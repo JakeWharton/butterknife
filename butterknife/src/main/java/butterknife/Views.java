@@ -47,13 +47,13 @@ public class Views {
 
   /** Simpler version of {@link View#findViewById(int)} which infers the target type. */
   @SuppressWarnings({ "unchecked", "UnusedDeclaration" }) // Checked by runtime cast, helper method.
-  public static <T> T findById(View view, int id) {
+  public static <T extends View> T findById(View view, int id) {
     return (T) view.findViewById(id);
   }
 
   /** Simpler version of {@link Activity#findViewById(int)} which infers the target type. */
   @SuppressWarnings({ "unchecked", "UnusedDeclaration" }) // Checked by runtime cast, helper method.
-  public static <T> T findById(Activity activity, int id) {
+  public static <T extends View> T findById(Activity activity, int id) {
     return (T) activity.findViewById(id);
   }
 
