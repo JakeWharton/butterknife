@@ -11,7 +11,7 @@
 
   <groupId>com.jakewharton</groupId>
   <artifactId>butterknife-parent</artifactId>
-  <version>1.0.1-SNAPSHOT</version>
+  <version>1.1.0</version>
   <packaging>pom</packaging>
 
   <name>Butter Knife (Parent)</name>
@@ -38,7 +38,7 @@
     <url>http://github.com/JakeWharton/butterknife/</url>
     <connection>scm:git:git://github.com/JakeWharton/butterknife.git</connection>
     <developerConnection>scm:git:ssh://git@github.com/JakeWharton/butterknife.git</developerConnection>
-    <tag>HEAD</tag>
+    <tag>butterknife-parent-1.1.0</tag>
   </scm>
 
   <issueManagement>
