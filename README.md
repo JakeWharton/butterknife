@@ -85,7 +85,6 @@ public void inject(ExampleActivity activity) {
 
 Some people call this view injection and lump it along with traditional
 dependency injection frameworks. They may be wrong in nomenclature, but perhaps
-
 there exists some use for this type of field assignment.
 
 
