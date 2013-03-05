@@ -1,7 +1,11 @@
 package butterknife;
 
-import android.app.Activity;
-import android.view.View;
+import static javax.lang.model.element.ElementKind.CLASS;
+import static javax.lang.model.element.Modifier.PRIVATE;
+import static javax.lang.model.element.Modifier.PROTECTED;
+import static javax.lang.model.element.Modifier.STATIC;
+import static javax.tools.Diagnostic.Kind.ERROR;
+
 import java.io.IOException;
 import java.io.Writer;
 import java.lang.reflect.Method;
@@ -9,6 +13,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
+
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
@@ -21,28 +26,65 @@ import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.tools.JavaFileObject;
 
-import static javax.lang.model.element.ElementKind.CLASS;
-import static javax.lang.model.element.Modifier.PRIVATE;
-import static javax.lang.model.element.Modifier.PROTECTED;
-import static javax.lang.model.element.Modifier.STATIC;
-import static javax.tools.Diagnostic.Kind.ERROR;
+import android.app.Activity;
+import android.view.View;
 
 public class Views {
   private Views() {
     // No instances.
   }
 
+  public static interface ViewFinder {
+      public View findViewById(int id);
+  }
+
+  private static class ActivityViewFinder implements ViewFinder {
+      private final Activity mActivity;
+
+    public ActivityViewFinder(Activity activity) {
+          mActivity = activity;
+      }
+
+    @Override
+    public View findViewById(int id) {
+        return mActivity.findViewById(id);
+    }
+  }
+
+  private static class ViewViewFinder implements ViewFinder {
+
+    private final View mView;
+
+    public ViewViewFinder(View view) {
+        mView = view;
+    }
+
+    @Override
+    public View findViewById(int id) {
+        return mView.findViewById(id);
+    }
+
+  }
+
   /** Inject the specified {@link Activity} using the injector generated at compile-time. */
   public static void inject(Activity activity) {
-    try {
-      Class<?> injector = Class.forName(activity.getClass().getName() + AnnotationProcessor.SUFFIX);
-      Method inject = injector.getMethod("inject", activity.getClass());
-      inject.invoke(null, activity);
-    } catch (RuntimeException e) {
-      throw e;
-    } catch (Exception e) {
-      throw new RuntimeException("Unable to inject views for activity " + activity, e);
-    }
+      inject(activity, new ActivityViewFinder(activity));
+  }
+
+  public static void inject(Object target, View view) {
+      inject(target, new ViewViewFinder(view));
+  }
+
+  public static void inject(Object target, ViewFinder finder) {
+      try {
+          Class<?> injector = Class.forName(target.getClass().getName() + AnnotationProcessor.SUFFIX);
+          Method inject = injector.getMethod("inject", target.getClass(), ViewFinder.class);
+          inject.invoke(null, target, finder);
+        } catch (RuntimeException e) {
+          throw e;
+        } catch (Exception e) {
+          throw new RuntimeException("Unable to inject views for target " + target, e);
+        }
   }
 
   /** Simpler version of {@link View#findViewById(int)} which infers the target type. */
@@ -114,8 +156,8 @@ public class Views {
         TypeElement type = injection.getKey();
         String targetClass = type.getQualifiedName().toString();
         int lastDot = targetClass.lastIndexOf(".");
-        String activityType = targetClass.substring(lastDot + 1);
-        String className = activityType + SUFFIX;
+        String targetType = targetClass.substring(lastDot + 1);
+        String className = targetType + SUFFIX;
         String packageName = targetClass.substring(0, lastDot);
         String parentClass = resolveParentType(type, injectionTargets);
         StringBuilder injections = new StringBuilder();
@@ -123,7 +165,7 @@ public class Views {
           injections.append("    ")
               .append(parentClass)
               .append(SUFFIX)
-              .append(".inject(activity);\n\n");
+              .append(".inject(target, finder);\n\n");
         }
         for (InjectionPoint injectionPoint : injection.getValue()) {
           injections.append(injectionPoint).append("\n");
@@ -135,7 +177,7 @@ public class Views {
               processingEnv.getFiler().createSourceFile(packageName + "." + className, type);
           Writer writer = jfo.openWriter();
           writer.write(
-              String.format(INJECTOR, packageName, className, activityType, injections.toString()));
+              String.format(INJECTOR, packageName, className, targetType, injections.toString()));
           writer.flush();
           writer.close();
         } catch (IOException e) {
@@ -176,11 +218,12 @@ public class Views {
       }
     }
 
-    private static final String INJECTION = "    activity.%s = (%s) activity.findViewById(%s);";
+    private static final String INJECTION = "    target.%s = (%s) finder.findViewById(%s);";
     private static final String INJECTOR = ""
         + "package %s;\n\n"
+        + "import butterknife.Views.ViewFinder;\n\n"
         + "public class %s {\n"
-        + "  public static void inject(%s activity) {\n"
+        + "  public static void inject(%s target, ViewFinder finder) {\n"
         + "%s"
         + "  }\n"
         + "}\n";
