@@ -30,7 +30,7 @@ public class SimpleActivity extends Activity {
     hello.setText("Say Hello");
     hello.setOnClickListener(new OnClickListener() {
       @Override public void onClick(View v) {
-        Toast.makeText(SimpleActivity.this, "Hello, views.", LENGTH_SHORT).show();
+        Toast.makeText(SimpleActivity.this, "Hello, views!", LENGTH_SHORT).show();
       }
     });
   }
