@@ -32,11 +32,18 @@ public class Views {
     // No instances.
   }
 
+  private static final Map<Class<?>, Method> INJECTORS = new LinkedHashMap<Class<?>, Method>();
+
   /** Inject the specified {@link Activity} using the injector generated at compile-time. */
   public static void inject(Activity activity) {
     try {
-      Class<?> injector = Class.forName(activity.getClass().getName() + AnnotationProcessor.SUFFIX);
-      Method inject = injector.getMethod("inject", activity.getClass());
+      Class<?> targetClass = activity.getClass();
+      Method inject = INJECTORS.get(targetClass);
+      if (inject == null) {
+        Class<?> injector = Class.forName(targetClass.getName() + AnnotationProcessor.SUFFIX);
+        inject = injector.getMethod("inject", activity.getClass());
+        INJECTORS.put(targetClass, inject);
+      }
       inject.invoke(null, activity);
     } catch (RuntimeException e) {
       throw e;
