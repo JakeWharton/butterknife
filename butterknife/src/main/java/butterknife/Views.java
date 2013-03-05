@@ -34,8 +34,8 @@ public class Views {
     // No instances.
   }
 
-  public static interface ViewFinder {
-      public View findViewById(int id);
+  public interface ViewFinder {
+      View findViewById(int id);
   }
 
   private static class ActivityViewFinder implements ViewFinder {
@@ -77,7 +77,8 @@ public class Views {
 
   public static void inject(Object target, ViewFinder finder) {
       try {
-          Class<?> injector = Class.forName(target.getClass().getName() + AnnotationProcessor.SUFFIX);
+          Class<?> injector = Class.forName(target.getClass().getName()
+                                            + AnnotationProcessor.SUFFIX);
           Method inject = injector.getMethod("inject", target.getClass(), ViewFinder.class);
           inject.invoke(null, target, finder);
         } catch (RuntimeException e) {
