@@ -4,6 +4,8 @@ Butter Knife
 View "injection" library for Android which uses annotation processing to
 generate code that does direct field assignment of your views.
 
+__Remember: A butter knife is like [a dagger][1] only infinitely less sharp.__
+
 
 
 Introduction
@@ -83,11 +85,8 @@ public void inject(ExampleActivity activity) {
 
 Some people call this view injection and lump it along with traditional
 dependency injection frameworks. They may be wrong in nomenclature, but perhaps
+
 there exists some use for this type of field assignment.
-
-__Remember: A butter knife is like [a dagger][1] only infinitely less sharp.__
-
-*Do not take this library too seriously, but it may be useful for some things.*
 
 
 Non-Activity Injection
