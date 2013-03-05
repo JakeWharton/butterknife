@@ -53,7 +53,7 @@ public class Views {
       Method inject = INJECTORS.get(targetClass);
       if (inject == null) {
         Class<?> injector = Class.forName(targetClass.getName() + AnnotationProcessor.SUFFIX);
-        inject = injector.getMethod("inject", target.getClass(), sourceType);
+        inject = injector.getMethod("inject", targetClass, sourceType);
         INJECTORS.put(targetClass, inject);
       }
       inject.invoke(null, target, source);
