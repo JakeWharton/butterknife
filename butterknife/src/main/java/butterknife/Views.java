@@ -34,21 +34,33 @@ public class Views {
 
   private static final Map<Class<?>, Method> INJECTORS = new LinkedHashMap<Class<?>, Method>();
 
-  /** Inject the specified {@link Activity} using the injector generated at compile-time. */
+  /** Inject fields annotated with {@link InjectView} in the specified {@link Activity}. */
   public static void inject(Activity activity) {
+    inject(activity, Activity.class, activity);
+  }
+
+  /**
+   * Inject fields annotated with {@link InjectView} in the specified {@code source} using {@code
+   * target} as the view root.
+   */
+  public static void inject(Object target, View source) {
+    inject(target, View.class, source);
+  }
+
+  private static void inject(Object target, Class<?> sourceType, Object source) {
     try {
-      Class<?> targetClass = activity.getClass();
+      Class<?> targetClass = target.getClass();
       Method inject = INJECTORS.get(targetClass);
       if (inject == null) {
         Class<?> injector = Class.forName(targetClass.getName() + AnnotationProcessor.SUFFIX);
-        inject = injector.getMethod("inject", activity.getClass());
+        inject = injector.getMethod("inject", target.getClass(), sourceType);
         INJECTORS.put(targetClass, inject);
       }
-      inject.invoke(null, activity);
+      inject.invoke(null, target, source);
     } catch (RuntimeException e) {
       throw e;
     } catch (Exception e) {
-      throw new RuntimeException("Unable to inject views for activity " + activity, e);
+      throw new RuntimeException("Unable to inject views for " + target, e);
     }
   }
 
@@ -119,11 +131,12 @@ public class Views {
 
       for (Map.Entry<TypeElement, Set<InjectionPoint>> injection : injectionsByClass.entrySet()) {
         TypeElement type = injection.getKey();
-        String targetClass = type.getQualifiedName().toString();
-        int lastDot = targetClass.lastIndexOf(".");
-        String activityType = targetClass.substring(lastDot + 1);
-        String className = activityType + SUFFIX;
-        String packageName = targetClass.substring(0, lastDot);
+        String targetType = type.getQualifiedName().toString();
+        String sourceType = resolveSourceType(type);
+        String packageName = processingEnv.getElementUtils().getPackageOf(type).toString();
+        String className =
+            type.getQualifiedName().toString().substring(packageName.length() + 1).replace('.', '$')
+                + SUFFIX;
         String parentClass = resolveParentType(type, injectionTargets);
         StringBuilder injections = new StringBuilder();
         if (parentClass != null) {
@@ -141,8 +154,8 @@ public class Views {
           JavaFileObject jfo =
               processingEnv.getFiler().createSourceFile(packageName + "." + className, type);
           Writer writer = jfo.openWriter();
-          writer.write(
-              String.format(INJECTOR, packageName, className, activityType, injections.toString()));
+          writer.write(String.format(INJECTOR, packageName, className, targetType, sourceType,
+              injections.toString()));
           writer.flush();
           writer.close();
         } catch (IOException e) {
@@ -153,6 +166,22 @@ public class Views {
       return true;
     }
 
+    /** Returns {@link #TYPE_ACTIVITY} or {@link #TYPE_VIEW} as the injection target type. */
+    private String resolveSourceType(TypeElement typeElement) {
+      TypeMirror type;
+      while (true) {
+        type = typeElement.getSuperclass();
+        if (type.getKind() == TypeKind.NONE) {
+          return TYPE_VIEW;
+        }
+        if (type.toString().equals(TYPE_ACTIVITY)) {
+          return TYPE_ACTIVITY;
+        }
+        typeElement = (TypeElement) ((DeclaredType) type).asElement();
+      }
+    }
+
+    /** Finds the parent injector type in the supplied set, if any. */
     private String resolveParentType(TypeElement typeElement, Set<TypeMirror> parents) {
       TypeMirror type;
       while (true) {
@@ -183,11 +212,13 @@ public class Views {
       }
     }
 
-    private static final String INJECTION = "    activity.%s = (%s) activity.findViewById(%s);";
+    private static final String TYPE_ACTIVITY = "android.app.Activity";
+    private static final String TYPE_VIEW = "android.view.View";
+    private static final String INJECTION = "    target.%s = (%s) source.findViewById(%s);";
     private static final String INJECTOR = ""
         + "package %s;\n\n"
         + "public class %s {\n"
-        + "  public static void inject(%s activity) {\n"
+        + "  public static void inject(%s target, %s source) {\n"
         + "%s"
         + "  }\n"
         + "}\n";
