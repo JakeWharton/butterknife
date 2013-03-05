@@ -34,14 +34,23 @@ public class Views {
 
   private static final Map<Class<?>, Method> INJECTORS = new LinkedHashMap<Class<?>, Method>();
 
-  /** Inject fields annotated with {@link InjectView} in the specified {@link Activity}. */
-  public static void inject(Activity activity) {
-    inject(activity, Activity.class, activity);
+  /**
+   * Inject fields annotated with {@link InjectView} in the specified {@link Activity}.
+   *
+   * @param target Target activity for field injection.
+   * @throws UnableToInjectException if injection could not be performed.
+   */
+  public static void inject(Activity target) {
+    inject(target, Activity.class, target);
   }
 
   /**
    * Inject fields annotated with {@link InjectView} in the specified {@code source} using {@code
    * target} as the view root.
+   *
+   * @param target Target class for field injection.
+   * @param source View tree root on which IDs will be looked up.
+   * @throws UnableToInjectException if injection could not be performed.
    */
   public static void inject(Object target, View source) {
     inject(target, View.class, source);
@@ -60,7 +69,7 @@ public class Views {
     } catch (RuntimeException e) {
       throw e;
     } catch (Exception e) {
-      throw new RuntimeException("Unable to inject views for " + target, e);
+      throw new UnableToInjectException("Unable to inject views for " + target, e);
     }
   }
 
@@ -74,6 +83,12 @@ public class Views {
   @SuppressWarnings({ "unchecked", "UnusedDeclaration" }) // Checked by runtime cast, helper method.
   public static <T extends View> T findById(Activity activity, int id) {
     return (T) activity.findViewById(id);
+  }
+
+  public static class UnableToInjectException extends RuntimeException {
+    UnableToInjectException(String message, Throwable cause) {
+      super(message, cause);
+    }
   }
 
   @SupportedAnnotationTypes("butterknife.InjectView")
