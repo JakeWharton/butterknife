@@ -158,7 +158,8 @@ public class Views {
 
         String targetType = type.getQualifiedName().toString();
         String sourceType = resolveSourceType(type);
-        String packageName = processingEnv.getElementUtils().getPackageOf(type).toString();
+        String packageName =
+            processingEnv.getElementUtils().getPackageOf(type).getQualifiedName().toString();
         String className =
             type.getQualifiedName().toString().substring(packageName.length() + 1).replace('.', '$')
                 + SUFFIX;
