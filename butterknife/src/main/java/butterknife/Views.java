@@ -104,15 +104,19 @@ public class Views {
     }
 
     @Override public boolean process(Set<? extends TypeElement> elements, RoundEnvironment env) {
+      TypeMirror viewType = processingEnv.getElementUtils().getTypeElement(TYPE_VIEW).asType();
+
       Map<TypeElement, Set<InjectionPoint>> injectionsByClass =
           new LinkedHashMap<TypeElement, Set<InjectionPoint>>();
       Set<TypeMirror> injectionTargets = new HashSet<TypeMirror>();
 
       for (Element element : env.getElementsAnnotatedWith(InjectView.class)) {
-        // Verify containing type.
         TypeElement enclosingElement = (TypeElement) element.getEnclosingElement();
-        if (enclosingElement.getKind() != CLASS) {
-          error("Unexpected @InjectView on field in " + element);
+
+        // Verify that the target type extends from View.
+        if (!processingEnv.getTypeUtils().isSubtype(element.asType(), viewType)) {
+          error("@InjectView fields must extend from View (%s.%s).",
+              enclosingElement.getQualifiedName(), element);
           continue;
         }
 
@@ -120,10 +124,14 @@ public class Views {
         Set<Modifier> modifiers = element.getModifiers();
         if (modifiers.contains(PRIVATE) || modifiers.contains(PROTECTED) || modifiers.contains(
             STATIC)) {
-          error("@InjectView fields must not be private, protected, or static: "
-              + enclosingElement.getQualifiedName()
-              + "."
-              + element);
+          error("@InjectView fields must not be private, protected, or static (%s.%s).",
+              enclosingElement.getQualifiedName(), element);
+          continue;
+        }
+
+        // Verify containing type.
+        if (enclosingElement.getKind() != CLASS) {
+          error("@InjectView field annotations may only be specified in classes (%s).", element);
           continue;
         }
 
