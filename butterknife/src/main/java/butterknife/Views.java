@@ -146,6 +146,8 @@ public class Views {
 
       for (Map.Entry<TypeElement, Set<InjectionPoint>> injection : injectionsByClass.entrySet()) {
         TypeElement type = injection.getKey();
+        Set<InjectionPoint> injectionPoints = injection.getValue();
+
         String targetType = type.getQualifiedName().toString();
         String sourceType = resolveSourceType(type);
         String packageName = processingEnv.getElementUtils().getPackageOf(type).toString();
@@ -160,7 +162,7 @@ public class Views {
               .append(SUFFIX)
               .append(".inject(activity);\n\n");
         }
-        for (InjectionPoint injectionPoint : injection.getValue()) {
+        for (InjectionPoint injectionPoint : injectionPoints) {
           injections.append(injectionPoint).append("\n");
         }
 
