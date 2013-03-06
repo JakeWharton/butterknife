@@ -241,6 +241,7 @@ public class Views {
     private static final String TYPE_VIEW = "android.view.View";
     private static final String INJECTION = "    target.%s = (%s) source.findViewById(%s);";
     private static final String INJECTOR = ""
+        + "// Generated code from Butter Knife. Do not modify!\n"
         + "package %s;\n\n"
         + "public class %s {\n"
         + "  public static void inject(%s target, %s source) {\n"
