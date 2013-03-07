@@ -1,8 +1,8 @@
 Change Log
 ==========
 
-Version 1.2.0 *(In Development)*
---------------------------------
+Version 1.2.0 *(2013-05-07)*
+----------------------------
 
  * Support injection on any object using an Activity as the view root.
  * Support injection on views for their children.
