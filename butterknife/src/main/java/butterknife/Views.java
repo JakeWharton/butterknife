@@ -144,8 +144,8 @@ public class Views {
       return SourceVersion.latestSupported();
     }
 
-    private void error(String message, Object... args) {
-      processingEnv.getMessager().printMessage(ERROR, String.format(message, args));
+    private void error(Element element, String message, Object... args) {
+      processingEnv.getMessager().printMessage(ERROR, String.format(message, args), element);
     }
 
     @Override public boolean process(Set<? extends TypeElement> elements, RoundEnvironment env) {
@@ -164,7 +164,7 @@ public class Views {
 
         // Verify that the target type extends from View.
         if (!typeUtils.isSubtype(element.asType(), viewType)) {
-          error("@InjectView fields must extend from View (%s.%s).",
+          error(element, "@InjectView fields must extend from View (%s.%s).",
               enclosingElement.getQualifiedName(), element);
           continue;
         }
@@ -173,14 +173,15 @@ public class Views {
         Set<Modifier> modifiers = element.getModifiers();
         if (modifiers.contains(PRIVATE) || modifiers.contains(PROTECTED) || modifiers.contains(
             STATIC)) {
-          error("@InjectView fields must not be private, protected, or static (%s.%s).",
+          error(element, "@InjectView fields must not be private, protected, or static (%s.%s).",
               enclosingElement.getQualifiedName(), element);
           continue;
         }
 
         // Verify containing type.
         if (enclosingElement.getKind() != CLASS) {
-          error("@InjectView field annotations may only be specified in classes (%s).", element);
+          error(element, "@InjectView field annotations may only be specified in classes (%s).",
+              element);
           continue;
         }
 
@@ -230,7 +231,7 @@ public class Views {
           writer.flush();
           writer.close();
         } catch (IOException e) {
-          error(e.getMessage());
+          error(type, "Unable to write injector for type %s: %s", type, e.getMessage());
         }
       }
 

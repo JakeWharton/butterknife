@@ -6,6 +6,7 @@ Version 1.2.0 *(In Development)*
 
  * Support injection on any object using an Activity as the view root.
  * Support injection on views for their children.
+ * Fix: Annotation errors now appear on the affected field in IDEs.
 
 
 Version 1.1.1 *(2013-05-06)*
