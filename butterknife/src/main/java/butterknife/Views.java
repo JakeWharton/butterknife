@@ -137,7 +137,7 @@ public class Views {
   }
 
   @SupportedAnnotationTypes("butterknife.InjectView")
-  public static class AnnotationProcessor extends AbstractProcessor {
+  public static class InjectViewProcessor extends AbstractProcessor {
     static final String SUFFIX = "$$ViewInjector";
 
     @Override public SourceVersion getSupportedSourceVersion() {
