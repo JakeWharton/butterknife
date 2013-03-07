@@ -37,13 +37,13 @@ public class Views {
   }
 
   public enum Finder {
-    VIEW() {
+    VIEW {
       @SuppressWarnings("unchecked") @Override
       public <T extends View> T findById(Object source, int id) {
         return (T) ((View) source).findViewById(id);
       }
     },
-    ACTIVITY() {
+    ACTIVITY {
       @SuppressWarnings("unchecked") @Override
       public <T extends View> T findById(Object source, int id) {
         return (T) ((Activity) source).findViewById(id);
