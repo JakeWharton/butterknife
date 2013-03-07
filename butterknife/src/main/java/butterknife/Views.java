@@ -79,18 +79,6 @@ public class Views {
 
   /**
    * Inject fields annotated with {@link InjectView} in the specified {@code source} using the
-   * {@code target} {@link View} as the view root.
-   *
-   * @param target Target class for field injection.
-   * @param source View root on which IDs will be looked up.
-   * @throws UnableToInjectException if injection could not be performed.
-   */
-  public static void inject(Object target, View source) {
-    inject(target, source, Finder.VIEW);
-  }
-
-  /**
-   * Inject fields annotated with {@link InjectView} in the specified {@code source} using the
    * {@code target} {@link Activity} as the view root.
    *
    * @param target Target class for field injection.
@@ -99,6 +87,18 @@ public class Views {
    */
   public static void inject(Object target, Activity source) {
     inject(target, source, Finder.ACTIVITY);
+  }
+
+  /**
+   * Inject fields annotated with {@link InjectView} in the specified {@code source} using the
+   * {@code target} {@link View} as the view root.
+   *
+   * @param target Target class for field injection.
+   * @param source View root on which IDs will be looked up.
+   * @throws UnableToInjectException if injection could not be performed.
+   */
+  public static void inject(Object target, View source) {
+    inject(target, source, Finder.VIEW);
   }
 
   private static void inject(Object target, Object source, Finder finder) {
