@@ -130,12 +130,6 @@ public class Views {
     return (T) activity.findViewById(id);
   }
 
-  public static class UnableToInjectException extends RuntimeException {
-    UnableToInjectException(String message, Throwable cause) {
-      super(message, cause);
-    }
-  }
-
   @SupportedAnnotationTypes("butterknife.InjectView")
   public static class InjectViewProcessor extends AbstractProcessor {
     static final String SUFFIX = "$$ViewInjector";

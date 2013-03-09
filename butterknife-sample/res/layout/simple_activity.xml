@@ -26,6 +26,10 @@
       android:layout_weight="1"
       android:layout_margin="10dp"
       />
+  <CheckBox
+      android:id="@+id/chkBeRespectful"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"/>
   <ListView
       android:id="@+id/list_of_things"
       android:layout_width="match_parent"
