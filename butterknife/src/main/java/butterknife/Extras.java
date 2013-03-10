@@ -22,7 +22,9 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
-import static javax.lang.model.element.Modifier.*;
+import static javax.lang.model.element.Modifier.PRIVATE;
+import static javax.lang.model.element.Modifier.PROTECTED;
+import static javax.lang.model.element.Modifier.STATIC;
 import static javax.tools.Diagnostic.Kind.ERROR;
 
 /**
@@ -34,9 +36,15 @@ public class Extras {
     // No instances.
   }
 
+  public static class MissingExtraException extends Exception {
+    public MissingExtraException(String message) {
+      super(message);
+    }
+  }
+
   public static class Finder {
     @SuppressWarnings("unchecked")
-    public Object getExtra(Activity target, String name) throws MissingExtraException {
+    public Object getExtra(Activity target, String name) throws Extras.MissingExtraException {
       android.os.Bundle extras = target.getIntent().getExtras();
       if (extras.containsKey(name)) {
         return extras.get(name);
@@ -169,9 +177,13 @@ public class Extras {
             case DOUBLE:
               elementType = doubleType;
               break;
+            default:
+              // Shouldn't happen
           }
         }
-        injections.add(new InjectionPoint(variableName, annotation.value(), annotation.optional(), elementType));
+        injections.add(
+            new InjectionPoint(variableName, annotation.value(), annotation.optional(), elementType)
+        );
       }
 
       for (Map.Entry<TypeElement, Set<InjectionPoint>> injection : injectionsByClass.entrySet()) {
@@ -211,7 +223,8 @@ public class Extras {
       private final boolean isOptional;
       private final TypeMirror variableType;
 
-      InjectionPoint(String variableName, String value, boolean isOptional, TypeMirror variableType) {
+      InjectionPoint(String variableName, String value, boolean isOptional,
+                     TypeMirror variableType) {
         this.variableName = variableName;
         this.value = value;
         this.isOptional = isOptional;
@@ -227,9 +240,12 @@ public class Extras {
       }
     }
 
-    private static final String INJECTION = "    target.%1$s = (%3$s) finder.getExtra(target, \"%2$s\");";
+    private static final String INJECTION =
+        "    target.%1$s = (%3$s) finder.getExtra(target, \"%2$s\");";
     private static final String INJECTION_OPT =
-        "    if (finder.hasExtra(target, \"%2$s\")) target.%1$s = (%3$s) finder.getExtra(target, \"%2$s\");";
+        "    if (finder.hasExtra(target, \"%2$s\")) {"
+        + "target.%1$s = (%3$s) finder.getExtra(target, \"%2$s\");"
+        + "}";
     private static final String INJECTOR = ""
         + "// Generated code from Butter Knife. Do not modify!\n"
         + "package %s;\n\n"
@@ -240,11 +256,5 @@ public class Extras {
         + "%s"
         + "  }\n"
         + "}\n";
-  }
-
-  public static class MissingExtraException extends Exception {
-    public MissingExtraException(String message) {
-      super(message);
-    }
   }
 }
