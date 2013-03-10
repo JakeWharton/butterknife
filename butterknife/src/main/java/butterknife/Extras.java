@@ -36,10 +36,10 @@ public class Extras {
 
   public static class Finder {
     @SuppressWarnings("unchecked")
-    public <T> T getExtra(Activity target, String name) throws MissingExtraException {
+    public Object getExtra(Activity target, String name) throws MissingExtraException {
       android.os.Bundle extras = target.getIntent().getExtras();
       if (extras.containsKey(name)) {
-        return (T) extras.get(name);
+        return extras.get(name);
       } else {
         throw new MissingExtraException(
             String.format("No value found for extra %s.%s", target.getClass().getSimpleName(), name)
