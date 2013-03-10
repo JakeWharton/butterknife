@@ -14,15 +14,19 @@ import butterknife.Views;
  */
 public class HelloActivity extends Activity {
 
-  public final static String EXTRA_ONE = "EXTRA_ONE";
-  public final static String EXTRA_TWO = "EXTRA_TWO";
+  public static final String EXTRA_ONE = "EXTRA_ONE";
+  public static final String EXTRA_TWO = "EXTRA_TWO";
+  public static final String EXTRA_THREE = "EXTRA_THREE";
 
   @InjectExtra(EXTRA_ONE)
   String firstExtra;
-  @InjectExtra(EXTRA_TWO)
-  boolean secondExtra;
+  @InjectExtra(value = EXTRA_TWO, optional = true)
+  boolean secondExtra = true;
+  @InjectExtra(value = EXTRA_THREE, optional = true)
+  String thirdExtra = "You're welcome";
 
   @InjectView(R.id.txtHello) TextView txtHello;
+  @InjectView(R.id.txtReply) TextView txtReply;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -40,5 +44,7 @@ public class HelloActivity extends Activity {
       sb.append(" dude!");
     }
     txtHello.setText(sb);
+
+    txtReply.setText(thirdExtra);
   }
 }

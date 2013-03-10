@@ -46,6 +46,10 @@ public class Extras {
         );
       }
     }
+
+    public boolean hasExtra(Activity target, String name) {
+      return target.getIntent().hasExtra(name);
+    }
   }
 
   private static final Map<Class<?>, Method> INJECTORS = new LinkedHashMap<Class<?>, Method>();
@@ -167,7 +171,7 @@ public class Extras {
               break;
           }
         }
-        injections.add(new InjectionPoint(variableName, annotation.value(), elementType));
+        injections.add(new InjectionPoint(variableName, annotation.value(), annotation.optional(), elementType));
       }
 
       for (Map.Entry<TypeElement, Set<InjectionPoint>> injection : injectionsByClass.entrySet()) {
@@ -204,20 +208,28 @@ public class Extras {
     private static class InjectionPoint {
       private final String variableName;
       private final String value;
+      private final boolean isOptional;
       private final TypeMirror variableType;
 
-      InjectionPoint(String variableName, String value, TypeMirror variableType) {
+      InjectionPoint(String variableName, String value, boolean isOptional, TypeMirror variableType) {
         this.variableName = variableName;
         this.value = value;
+        this.isOptional = isOptional;
         this.variableType = variableType;
       }
 
       @Override public String toString() {
-        return String.format(INJECTION, variableName, value, variableType);
+        if (isOptional) {
+          return String.format(INJECTION_OPT, variableName, value, variableType);
+        } else {
+          return String.format(INJECTION, variableName, value, variableType);
+        }
       }
     }
 
     private static final String INJECTION = "    target.%1$s = (%3$s) finder.getExtra(target, \"%2$s\");";
+    private static final String INJECTION_OPT =
+        "    if (finder.hasExtra(target, \"%2$s\")) target.%1$s = (%3$s) finder.getExtra(target, \"%2$s\");";
     private static final String INJECTOR = ""
         + "// Generated code from Butter Knife. Do not modify!\n"
         + "package %s;\n\n"
