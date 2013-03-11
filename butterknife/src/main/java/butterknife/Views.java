@@ -213,13 +213,10 @@ public class Views {
         String parentClass = resolveParentType(type, injectionTargets);
         StringBuilder injections = new StringBuilder();
         if (parentClass != null) {
-          injections.append("    ")
-              .append(parentClass)
-              .append(SUFFIX)
-              .append(".inject(activity);\n\n");
+          injections.append(String.format(PARENT, parentClass)).append('\n');
         }
         for (InjectionPoint injectionPoint : injectionPoints) {
-          injections.append(injectionPoint).append("\n");
+          injections.append(injectionPoint).append('\n');
         }
 
         // Write the view injector class.
@@ -268,6 +265,7 @@ public class Views {
     }
 
     private static final String INJECTION = "    target.%s = finder.findById(source, %s);";
+    private static final String PARENT = "    %s.inject(finder, target, source);";
     private static final String INJECTOR = ""
         + "// Generated code from Butter Knife. Do not modify!\n"
         + "package %s;\n\n"

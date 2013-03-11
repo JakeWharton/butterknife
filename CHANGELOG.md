@@ -1,6 +1,12 @@
 Change Log
 ==========
 
+Version 1.2.1 *(In Development)*
+--------------------------------
+
+ * Fix: Correct generated code for parent class inflation.
+
+
 Version 1.2.0 *(2013-05-07)*
 ----------------------------
 
