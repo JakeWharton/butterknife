@@ -26,7 +26,6 @@ import javax.tools.JavaFileObject;
 
 import static javax.lang.model.element.ElementKind.CLASS;
 import static javax.lang.model.element.Modifier.PRIVATE;
-import static javax.lang.model.element.Modifier.PROTECTED;
 import static javax.lang.model.element.Modifier.STATIC;
 import static javax.tools.Diagnostic.Kind.ERROR;
 
@@ -171,9 +170,8 @@ public class Views {
 
         // Verify field properties.
         Set<Modifier> modifiers = element.getModifiers();
-        if (modifiers.contains(PRIVATE) || modifiers.contains(PROTECTED) || modifiers.contains(
-            STATIC)) {
-          error(element, "@InjectView fields must not be private, protected, or static (%s.%s).",
+        if (modifiers.contains(PRIVATE) || modifiers.contains(STATIC)) {
+          error(element, "@InjectView fields must not be private, or static (%s.%s).",
               enclosingElement.getQualifiedName(), element);
           continue;
         }
