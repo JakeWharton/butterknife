@@ -1,10 +1,11 @@
 Change Log
 ==========
 
-Version 1.2.1 *(In Development)*
---------------------------------
+Version 1.2.1 *(2013-03-11)*
+----------------------------
 
  * Fix: Correct generated code for parent class inflation.
+ * Fix: Allow injection on `protected`-scoped fields.
 
 
 Version 1.2.0 *(2013-05-07)*
