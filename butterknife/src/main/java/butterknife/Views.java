@@ -171,7 +171,7 @@ public class Views {
         // Verify field properties.
         Set<Modifier> modifiers = element.getModifiers();
         if (modifiers.contains(PRIVATE) || modifiers.contains(STATIC)) {
-          error(element, "@InjectView fields must not be private, or static (%s.%s).",
+          error(element, "@InjectView fields must not be private or static (%s.%s).",
               enclosingElement.getQualifiedName(), element);
           continue;
         }
