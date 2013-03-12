@@ -179,7 +179,14 @@ public class Views {
         // Verify containing type.
         if (enclosingElement.getKind() != CLASS) {
           error(element, "@InjectView field annotations may only be specified in classes (%s).",
-              element);
+              enclosingElement);
+          continue;
+        }
+
+        // Verify containing class visibility is not private.
+        if (enclosingElement.getModifiers().contains(PRIVATE)) {
+          error(element, "@InjectView fields may not be on private classes (%s).",
+              enclosingElement);
           continue;
         }
 

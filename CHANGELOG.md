@@ -1,6 +1,12 @@
 Change Log
 ==========
 
+Version 1.2.2 *(2013-03-11)*
+----------------------------
+
+ * Fix: Prevent annotations on private classes.
+
+
 Version 1.2.1 *(2013-03-11)*
 ----------------------------
 
