@@ -9,6 +9,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
+import java.lang.ClassNotFoundException;
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.Filer;
 import javax.annotation.processing.RoundEnvironment;
@@ -110,6 +111,8 @@ public class Views {
         INJECTORS.put(targetClass, inject);
       }
       inject.invoke(null, finder, target, source);
+    } catch (ClassNotFoundException e) {
+      // Allows inject to be called on targets without injected Views
     } catch (RuntimeException e) {
       throw e;
     } catch (Exception e) {
