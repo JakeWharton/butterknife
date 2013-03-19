@@ -101,19 +101,22 @@ public class Views {
     inject(target, source, Finder.VIEW);
   }
 
-  private static void inject(Object target, Object source, Finder finder) {
-    if (target == null)
-      throw new UnableToInjectException("target of injection cannot be null");
-      
-    Class<?> targetClass = target.getClass();
+  /** No-op method */
+  private static final Method NO_OP = null;
+  
+  private static void inject(Object target, Object source, Finder finder) { 
     try {
-      Method inject = INJECTORS.get(targetClass);
-      if (inject == null) {
+      Method inject;
+      Class<?> targetClass = target.getClass();
+      if (!INJECTORS.containsKey(targetClass)) {
         Class<?> injector = Class.forName(targetClass.getName() + InjectViewProcessor.SUFFIX);
         inject = injector.getMethod("inject", Finder.class, targetClass, Object.class);
         INJECTORS.put(targetClass, inject);
+      } else {
+        inject = INJECTORS.get(targetClass);
       }
-      inject.invoke(null, finder, target, source);
+      // Allows for no-ops when there's nothing to inject
+      if (inject != null) inject.invoke(null, finder, target, source);
     } catch (ClassNotFoundException e) {
       // Allows inject to be called on targets without injected Views
       INJECTORS.put(targetClass, NO_OP); 
@@ -121,19 +124,6 @@ public class Views {
       throw e;
     } catch (Exception e) {
       throw new UnableToInjectException("Unable to inject views for " + target, e);
-    }
-  }
-  
-  /** No-op method for use for Classes that don't have any {@link View}s to inject. */
-  public static void noOp(Object finder, Object target, Object source) { }
-  
-  /** No-op method reference */
-  private static final Method NO_OP;
-  static {
-    try {
-      NO_OP = Views.class.getMethod("noOp", Object.class, Object.class, Object.class);
-    } catch (NoSuchMethodException e) {
-      // Fall through, this should be unreachable but Java complains                
     }
   }
 
@@ -150,10 +140,6 @@ public class Views {
   }
 
   public static class UnableToInjectException extends RuntimeException {
-    UnableToInjectException(String message) {
-      super(message);
-    }
-    
     UnableToInjectException(String message, Throwable cause) {
       super(message, cause);
     }
