@@ -102,8 +102,11 @@ public class Views {
   }
 
   private static void inject(Object target, Object source, Finder finder) {
+    if (target == null)
+      throw new UnableToInjectException("target of injection cannot be null");
+      
+    Class<?> targetClass = target.getClass();
     try {
-      Class<?> targetClass = target.getClass();
       Method inject = INJECTORS.get(targetClass);
       if (inject == null) {
         Class<?> injector = Class.forName(targetClass.getName() + InjectViewProcessor.SUFFIX);
