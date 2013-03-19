@@ -128,7 +128,7 @@ public class Views {
   public static void noOp(Object finder, Object target, Object source) { }
   
   /** No-op method reference */
-  private static final Method NO_OP = Views.class.getMethod("noOp", Object.class, Object.class, Object.class);
+  private static final Method NO_OP;
   static {
     try {
       NO_OP = Views.class.getMethod("noOp", Object.class, Object.class, Object.class);
