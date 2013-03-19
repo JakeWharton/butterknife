@@ -129,6 +129,13 @@ public class Views {
   
   /** No-op method reference */
   private static final Method NO_OP = Views.class.getMethod("noOp", Object.class, Object.class, Object.class);
+  static {
+    try {
+      NO_OP = Views.class.getMethod("noOp", Object.class, Object.class, Object.class);
+    } catch (NoSuchMethodException e) {
+      // Fall through, this should be unreachable but Java complains                
+    }
+  }
 
   /** Simpler version of {@link View#findViewById(int)} which infers the target type. */
   @SuppressWarnings({ "unchecked", "UnusedDeclaration" }) // Checked by runtime cast, helper method.
