@@ -113,12 +113,19 @@ public class Views {
       inject.invoke(null, finder, target, source);
     } catch (ClassNotFoundException e) {
       // Allows inject to be called on targets without injected Views
+      INJECTORS.put(targetClass, NO_OP); 
     } catch (RuntimeException e) {
       throw e;
     } catch (Exception e) {
       throw new UnableToInjectException("Unable to inject views for " + target, e);
     }
   }
+  
+  /** No-op method for use for Classes that don't have any {@link View}s to inject. */
+  public static void noOp(Object finder, Object target, Object source) { }
+  
+  /** No-op method reference */
+  private static final Method NO_OP = Views.class.getMethod("noOp", Object.class, Object.class, Object.class);
 
   /** Simpler version of {@link View#findViewById(int)} which infers the target type. */
   @SuppressWarnings({ "unchecked", "UnusedDeclaration" }) // Checked by runtime cast, helper method.
