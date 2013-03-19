@@ -143,6 +143,10 @@ public class Views {
   }
 
   public static class UnableToInjectException extends RuntimeException {
+    UnableToInjectException(String message) {
+      super(message);
+    }
+    
     UnableToInjectException(String message, Throwable cause) {
       super(message, cause);
     }
