@@ -54,6 +54,7 @@ public class Views {
   }
 
   private static final Map<Class<?>, Method> INJECTORS = new LinkedHashMap<Class<?>, Method>();
+  private static final Method NO_OP = null;
 
   /**
    * Inject fields annotated with {@link InjectView} in the specified {@link Activity}. The current
@@ -100,9 +101,6 @@ public class Views {
   public static void inject(Object target, View source) {
     inject(target, source, Finder.VIEW);
   }
-
-  /** No-op method */
-  private static final Method NO_OP = null;
   
   private static void inject(Object target, Object source, Finder finder) { 
     Class<?> targetClass = target.getClass();
@@ -115,10 +113,10 @@ public class Views {
       } else {
         inject = INJECTORS.get(targetClass);
       }
-      // Allows for no-ops when there's nothing to inject
+      // Allows for no-ops when there's nothing to inject.
       if (inject != null) inject.invoke(null, finder, target, source);
     } catch (ClassNotFoundException e) {
-      // Allows inject to be called on targets without injected Views
+      // Allows inject to be called on targets without injected Views.
       INJECTORS.put(targetClass, NO_OP); 
     } catch (RuntimeException e) {
       throw e;
