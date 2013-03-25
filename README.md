@@ -1,6 +1,8 @@
 Butter Knife
 ============
 
+![Logo](website/static/logo.png)
+
 View "injection" library for Android which uses annotation processing to
 generate code that does direct field assignment of your views.
 
