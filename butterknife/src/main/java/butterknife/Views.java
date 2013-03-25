@@ -105,9 +105,9 @@ public class Views {
   private static final Method NO_OP = null;
   
   private static void inject(Object target, Object source, Finder finder) { 
+    Class<?> targetClass = target.getClass();
     try {
       Method inject;
-      Class<?> targetClass = target.getClass();
       if (!INJECTORS.containsKey(targetClass)) {
         Class<?> injector = Class.forName(targetClass.getName() + InjectViewProcessor.SUFFIX);
         inject = injector.getMethod("inject", Finder.class, targetClass, Object.class);
