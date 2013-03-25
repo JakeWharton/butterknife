@@ -100,8 +100,8 @@ public class Views {
   public static void inject(Object target, View source) {
     inject(target, source, Finder.VIEW);
   }
-  
-  private static void inject(Object target, Object source, Finder finder) { 
+
+  static void inject(Object target, Object source, Finder finder) {
     Class<?> targetClass = target.getClass();
     try {
       Method inject;

@@ -29,6 +29,11 @@
       <artifactId>fest-assert-core</artifactId>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.robolectric</groupId>
+      <artifactId>robolectric</artifactId>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>

@@ -32,6 +32,7 @@
     <android.version>4.1.1.4</android.version>
     <android.platform>16</android.platform>
     <junit.version>4.10</junit.version>
+    <robolectric.version>2.0-alpha-2</robolectric.version>
   </properties>
 
   <scm>
@@ -74,6 +75,11 @@
         <groupId>org.easytesting</groupId>
         <artifactId>fest-assert-core</artifactId>
         <version>${fest.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.robolectric</groupId>
+        <artifactId>robolectric</artifactId>
+        <version>${robolectric.version}</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
