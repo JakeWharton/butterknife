@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Butter Knife</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="View &quot;injection&quot; library for Android.">
+    <link href="http://fonts.googleapis.com/css?family=Roboto:regular,medium,thin,italic,mediumitalic,bold" rel="stylesheet" title="roboto">
+    <link href="static/bootstrap.min.css" rel="stylesheet">
+    <link href="static/bootstrap-responsive.min.css" rel="stylesheet">
+    <link href="static/prettify.css" rel="stylesheet">
+    <link href="static/app.css" rel="stylesheet">
+  </head>
+  <body>
+    <div class="container">
+      <div class="row">
+        <div class="span4 side">
+          <img src="static/logo.png">
+          <h1>Butter Knife</h1>
+          <h2>View &quot;injection&quot; library for Android</h2>
+        </div>
+        <div class="offset4 span8 main">
+          <div class="main-inner">
+            <h3 id="introduction">Introduction</h3>
+            <p>Android developers, like most developers, are lazy and do not want to write a bunch of code which looks like this:</p>
+            <pre class="prettyprint">class ExampleActivity extends Activity {
+  TextView title;
+  TextView subtitle;
+  TextView footer;
+
+  @Override public void onCreate(Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+    setContentView(R.layout.simple_activity);
+    title = (TextView) findViewById(R.id.title);
+    subtitle = (TextView) findViewById(R.id.subtitle);
+    footer = (TextView) findViewById(R.id.footer);
+
+    // TODO Use views...
+  }
+}</pre>
+            <p>Instead, they turn to helper libraries that they likely do not fully understand. These libraries might use annotations and magic to allow you to condense your code to:</p>
+            <pre class="prettyprint">class ExampleActivity extends Activity {
+  @Magic(R.id.title) TextView title;
+  @Magic(R.id.subtitle) TextView subtitle;
+  @Magic(R.id.footer) TextView footer;
+
+  @Override public void onCreate(Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+    setContentView(R.layout.simple_activity);
+    // TODO Use "injected" views...
+  }
+}</pre>
+            <p>While it looks pretty, magic is for children (and it also comes with a heavy runtime penalty).</p>
+            <p>Instead we can leverage a powerful part of the <code>javac</code> compiler to generate the first example's <code>findViewById</code> boilerplate while still allowing us to keep the terseness of the annotations:</p>
+            <pre class="prettyprint">class ExampleActivity extends Activity {
+  @InjectView(R.id.title) TextView title;
+  @InjectView(R.id.subtitle) TextView subtitle;
+  @InjectView(R.id.footer) TextView footer;
+
+  @Override public void onCreate(Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+    setContentView(R.layout.simple_activity);
+    Views.inject(this);
+    // TODO Use "injected" views...
+  }
+}</pre>
+            <p>In place of magic we now call an <code>inject</code> method. This method delegates to generated code that you can see and debug:</p>
+            <pre class="prettyprint">public void inject(ExampleActivity activity) {
+  activity.subtitle = (android.widget.TextView) activity.findViewById(2130968578);
+  activity.footer = (android.widget.TextView) activity.findViewById(2130968579);
+  activity.title = (android.widget.TextView) activity.findViewById(2130968577);
+}</pre>
+            <p>Some people call this view injection and lump it along with traditional dependency injection frameworks. They may be wrong in nomenclature, but perhaps there exists some use for this type of field assignment.</p>
+
+            <h4 id="non-activity">Non-Activity Injection</h4>
+            <p>You can also perform injection on arbitrary objects by supplying your own view root.</p>
+            <pre class="prettyprint">public class FancyFragment extends Fragment {
+  @InjectView(R.id.button1) Button button1;
+  @InjectView(R.id.button2) Button button2;
+
+  @Override View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    View view = inflater.inflate(R.layout.fancy_fragment, container, false);
+    Views.inject(this, view);
+    // TODO Use "injected" views...
+    return view;
+  }
+}</pre>
+            <p>Another use is simplifying the view holder pattern inside of a list adapter.</p>
+            <pre class="prettyprint">public class MyAdapter extends BaseAdapter {
+  @Override public void getView(int position, View view, ViewGroup parent) {
+    ViewHolder holder;
+    if (view != null) {
+      holder = (ViewHolder) view.getTag();
+    } else {
+      view = inflater.inflate(R.layout.whatever, parent, false);
+      holder = new ViewHolder(view);
+      view.setTag(holder);
+    }
+
+    holder.name.setText("John Doe");
+    // etc...
+
+    return convertView;
+  }
+
+  static class ViewHolder {
+    @InjectView(R.id.title) TextView name;
+    @InjectView(R.id.job_title) TextView jobTitle;
+
+    public ViewHolder(View view) {
+      Views.inject(this, view);
+    }
+  }
+}</pre>
+            <p>You can see this implementation in action in the provided sample.</p>
+            <p>Other provided injection APIs:</p>
+            <ul>
+              <li>Inject arbitrary objects using an activity as the view root. If you use a pattern like MVC you can inject the controller using its activity with <code>Views.inject(this, activity)</code>.</li>
+              <li>Inject a view's children into fields using <code>`Views.inject(this)</code>. If you use <code>&lt;merge></code> tags in a layout and inflate in a custom view constructor you can
+   call this immediately after. Alternatively, custom view types inflated from
+   XML can use it in the <code>onLayoutInflated()</code> callback.</li>
+            </ul>
+
+            <h4 id="bonus">Bonus</h4>
+            <p>Also included are two <code>findById</code> methods which simplify code that still has to find views on a <code>View</code> or <code>Activity</code>. It uses generics to infer the return type and automatically performs the cast.</p>
+            <pre class="prettyprint">View view = LayoutInflater.from(context).inflate(R.layout.thing, null);
+TextView firstName = Views.findById(view, R.id.first_name);
+TextView lastName = Views.findById(view, R.id.last_name);
+ImageView photo = Views.findById(view, R.id.photo);</pre>
+            <p>Add a static import for `Views.findById` and enjoy even more fun.</p>
+
+            <h3 id="download">Download</h3>
+            <p class="downloads">
+              <a href="http://repository.sonatype.org/service/local/artifact/maven/redirect?r=central-proxy&g=com.jakewharton&a=butterknife&v=LATEST" class="btn btn-large btn-inverse" id="download-btn">Butter Knife JAR <span class="runner-version"></span></a>
+            </p>
+            <p>The source code to the library and sample application as well as this website is <a href="http://github.com/JakeWharton/butterknife">available on GitHub</a>.</p>
+
+            <h4>Maven</h4>
+            <p>If you are using Maven for compilation you can declare the screenshot library as a dependency.</p>
+            <pre class="prettyprint">&lt;dependency>
+  &lt;groupId>com.jakewharton&lt;/groupId>
+  &lt;artifactId>butterknife&lt;/artifactId>
+  &lt;version><span class="version"><em>(insert latest version)</em></span>&lt;/version>
+&lt;/dependency></pre>
+
+            <h4 id="proguard">ProGuard</h4>
+            <p>Butter Knife generates and uses classes dynamically which means that static analysis tools like ProGuard may think they are unused. In order to prevent them from being removed explicitly mark them to be kept.</p>
+            <pre>-keepclassmembers class **$$ViewInjector {
+  public static void inject(...);
+}</pre>
+
+            <h3 id="license">License</h3>
+            <pre class="license">Copyright 2013 Jake Wharton
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.</pre>
+
+            <a id="ribbon" href="https://github.com/JakeWharton/butterknife"><img src="static/ribbon.png" alt="Fork me on GitHub"></a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+    <script src="static/jquery-maven-artifact.min.js"></script>
+    <script src="static/prettify.js"></script>
+    <script>
+      prettyPrint();
+      $.fn.artifactVersion('com.jakewharton', 'butterknife', function(version, url) {
+        $('.version').text(version);
+        $('#download-btn').text('Butter Knife v' + version + ' JAR').attr('href', url);
+      });
+    </script>
+  </body>
+</html>
