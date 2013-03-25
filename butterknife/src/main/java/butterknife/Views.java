@@ -9,6 +9,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
+import java.lang.ClassNotFoundException;
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.Filer;
 import javax.annotation.processing.RoundEnvironment;
@@ -53,6 +54,7 @@ public class Views {
   }
 
   private static final Map<Class<?>, Method> INJECTORS = new LinkedHashMap<Class<?>, Method>();
+  private static final Method NO_OP = null;
 
   /**
    * Inject fields annotated with {@link InjectView} in the specified {@link Activity}. The current
@@ -99,17 +101,23 @@ public class Views {
   public static void inject(Object target, View source) {
     inject(target, source, Finder.VIEW);
   }
-
-  private static void inject(Object target, Object source, Finder finder) {
+  
+  private static void inject(Object target, Object source, Finder finder) { 
+    Class<?> targetClass = target.getClass();
     try {
-      Class<?> targetClass = target.getClass();
-      Method inject = INJECTORS.get(targetClass);
-      if (inject == null) {
+      Method inject;
+      if (!INJECTORS.containsKey(targetClass)) {
         Class<?> injector = Class.forName(targetClass.getName() + InjectViewProcessor.SUFFIX);
         inject = injector.getMethod("inject", Finder.class, targetClass, Object.class);
         INJECTORS.put(targetClass, inject);
+      } else {
+        inject = INJECTORS.get(targetClass);
       }
-      inject.invoke(null, finder, target, source);
+      // Allows for no-ops when there's nothing to inject.
+      if (inject != null) inject.invoke(null, finder, target, source);
+    } catch (ClassNotFoundException e) {
+      // Allows inject to be called on targets without injected Views.
+      INJECTORS.put(targetClass, NO_OP); 
     } catch (RuntimeException e) {
       throw e;
     } catch (Exception e) {
