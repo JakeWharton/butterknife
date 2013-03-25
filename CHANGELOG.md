@@ -1,6 +1,13 @@
 Change Log
 ==========
 
+Version 1.3.0 *(In Development)*
+--------------------------------
+
+ * New: Injection on objects with no `@InjectView` fields no longer throws an
+   exception.
+
+
 Version 1.2.2 *(2013-03-11)*
 ----------------------------
 
