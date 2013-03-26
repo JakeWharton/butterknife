@@ -1,11 +1,11 @@
 Change Log
 ==========
 
-Version 1.3.0 *(In Development)*
---------------------------------
+Version 1.3.0 *(2013-03-26)*
+----------------------------
 
- * New: Injection on objects with no `@InjectView` fields no longer throws an
-   exception.
+ * New: Injection on objects that have zero `@InjectView`-annotated fields will
+   no longer throw an exception.
 
 
 Version 1.2.2 *(2013-03-11)*
