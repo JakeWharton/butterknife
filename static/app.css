@@ -17,7 +17,11 @@ code, pre {
   border: none;
 }
 pre {
-  font-size: 11px;
+  font-size: 10px;
+  padding: 0;
+  overflow: auto;
+  word-wrap: normal;
+  white-space: pre;
 }
 code {
   white-space: nowrap;
@@ -27,9 +31,9 @@ code {
   text-align: center;
 }
 .side h1 {
-  font-size: 60px;
-  line-height: 60px;
-  font-weight: 200;
+  font-size: 50px;
+  line-height: 50px;
+  font-weight: 300;
   margin-top: 30px;
   margin-bottom: 10px;
   text-shadow: 0px 0px 5px #fff;
@@ -37,31 +41,34 @@ code {
 .side h2 {
   font-size: 18px;
   line-height: 25px;
-  font-weight: 300;
+  font-weight: 400;
   margin-bottom: 60px;
-  text-shadow: 0px 0px 5px #fff;
+  text-shadow: 0px 0px 3px #fff;
 }
 
 .main {
     padding: 20px;
     margin-bottom: 50px;
-    background-color: rgba(255, 255, 255, 0.85);
+    background-color: rgba(255, 255, 255, 0.9);
 }
 .main h3 {
     padding-top: 40px;
     margin-top: 0;
     margin-bottom: 10px;
-    font-weight: 200;
+    font-weight: 300;
     font-size: 20px;
+    font-style: italic;
+    color: #555;
 }
 .main h4 {
     padding-top: 20px;
     margin-top: 0;
     margin-bottom: 8px;
     text-transform: uppercase;
-    font-weight: 300;
+    font-weight: 400;
     font-size: 13px;
     line-height: 14px;
+    font-style: italic;
     color: #555;
 }
 .main h4:first-child, .main h3:first-child {
@@ -96,8 +103,8 @@ code {
         position: fixed;
     }
     .side h1 {
-      font-size: 45px;
-      line-height: 45px;
+      font-size: 40px;
+      line-height: 40px;
     }
     #ribbon img {
         position: fixed;
@@ -106,7 +113,7 @@ code {
 
 @media(min-width: 980px) {
     .side h1 {
-        font-size: 60px;
-        line-height: 60px;
+        font-size: 50px;
+        line-height: 50px;
     }
 }
