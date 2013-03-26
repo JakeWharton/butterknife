@@ -23,6 +23,9 @@ code {
   white-space: nowrap;
 }
 
+.side {
+  text-align: center;
+}
 .side h1 {
   font-size: 60px;
   line-height: 60px;
@@ -90,7 +93,6 @@ code {
         margin-top: 60px;
     }
     .side {
-        text-align: right;
         position: fixed;
     }
     .side h1 {
