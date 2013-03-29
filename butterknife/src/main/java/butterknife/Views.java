@@ -221,10 +221,8 @@ public class Views {
         Set<InjectionPoint> injectionPoints = injection.getValue();
 
         String targetType = type.getQualifiedName().toString();
-        String packageName = elementUtils.getPackageOf(type).getQualifiedName().toString();
-        String className =
-            type.getQualifiedName().toString().substring(packageName.length() + 1).replace('.', '$')
-                + SUFFIX;
+        String packageName = resolvePackageName(type, elementUtils);
+        String className = resolveClassName(type, packageName);
         String parentClass = resolveParentType(type, injectionTargets, elementUtils);
         StringBuilder injections = new StringBuilder();
         if (parentClass != null) {
@@ -261,14 +259,19 @@ public class Views {
         }
         typeElement = (TypeElement) ((DeclaredType) type).asElement();
         if (parents.contains(type)) {
-            String packageName =
-                    elementUtils.getPackageOf(typeElement).getQualifiedName().toString();
-            String className =
-                    typeElement.getQualifiedName().toString().substring(packageName.length() + 1)
-                            .replace('.', '$') + SUFFIX;
-          return className;
+          String packageName = resolvePackageName(typeElement, elementUtils);
+          return resolveClassName(typeElement, packageName);
         }
       }
+    }
+
+    private String resolvePackageName(TypeElement typeElement, Elements elementUtils) {
+      return elementUtils.getPackageOf(typeElement).getQualifiedName().toString();
+    }
+
+    private String resolveClassName(TypeElement typeElement, String packageName) {
+      return typeElement.getQualifiedName().toString().substring(packageName.length() + 1)
+                .replace('.', '$') + SUFFIX;
     }
 
     private static class InjectionPoint {
