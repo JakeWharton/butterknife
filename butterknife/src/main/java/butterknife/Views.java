@@ -2,13 +2,7 @@ package butterknife;
 
 import android.app.Activity;
 import android.view.View;
-import java.io.IOException;
-import java.io.Writer;
-import java.lang.reflect.Method;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Set;
+
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.Filer;
 import javax.annotation.processing.RoundEnvironment;
@@ -23,6 +17,13 @@ import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 import javax.tools.JavaFileObject;
+import java.io.IOException;
+import java.io.Writer;
+import java.lang.reflect.Method;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Set;
 
 import static javax.lang.model.element.ElementKind.CLASS;
 import static javax.lang.model.element.Modifier.PRIVATE;
@@ -224,7 +225,7 @@ public class Views {
         String className =
             type.getQualifiedName().toString().substring(packageName.length() + 1).replace('.', '$')
                 + SUFFIX;
-        String parentClass = resolveParentType(type, injectionTargets);
+        String parentClass = resolveParentType(type, injectionTargets, elementUtils);
         StringBuilder injections = new StringBuilder();
         if (parentClass != null) {
           injections.append(String.format(PARENT, parentClass)).append('\n');
@@ -250,17 +251,23 @@ public class Views {
     }
 
     /** Finds the parent injector type in the supplied set, if any. */
-    private String resolveParentType(TypeElement typeElement, Set<TypeMirror> parents) {
+    private String resolveParentType(TypeElement typeElement, Set<TypeMirror> parents,
+                                     Elements elementUtils) {
       TypeMirror type;
       while (true) {
         type = typeElement.getSuperclass();
         if (type.getKind() == TypeKind.NONE) {
           return null;
         }
-        if (parents.contains(type)) {
-          return type.toString();
-        }
         typeElement = (TypeElement) ((DeclaredType) type).asElement();
+        if (parents.contains(type)) {
+            String packageName =
+                    elementUtils.getPackageOf(typeElement).getQualifiedName().toString();
+            String className =
+                    typeElement.getQualifiedName().toString().substring(packageName.length() + 1)
+                            .replace('.', '$') + SUFFIX;
+          return className;
+        }
       }
     }
 
