@@ -220,25 +220,24 @@ public class Views {
         Set<InjectionPoint> injectionPoints = injection.getValue();
 
         String targetType = type.getQualifiedName().toString();
-        String packageName = elementUtils.getPackageOf(type).getQualifiedName().toString();
-        String className =
-            type.getQualifiedName().toString().substring(packageName.length() + 1).replace('.', '$')
-                + SUFFIX;
-        String parentClass = resolveParentType(type, injectionTargets);
-        StringBuilder injections = new StringBuilder();
-        if (parentClass != null) {
-          injections.append(String.format(PARENT, parentClass)).append('\n');
+        String classPackage = getPackageName(type);
+        String className = getClassName(type, classPackage) + SUFFIX;
+        String classFqcn = classPackage + "." + className;
+        String parentClassFqcn = findParentFqcn(type, injectionTargets);
+        StringBuilder injectionBuilder = new StringBuilder();
+        if (parentClassFqcn != null) {
+          injectionBuilder.append(String.format(PARENT, parentClassFqcn, SUFFIX)).append('\n');
         }
         for (InjectionPoint injectionPoint : injectionPoints) {
-          injections.append(injectionPoint).append('\n');
+          injectionBuilder.append(injectionPoint).append('\n');
         }
+        String injections = injectionBuilder.toString();
 
         // Write the view injector class.
         try {
-          JavaFileObject jfo = filer.createSourceFile(packageName + "." + className, type);
+          JavaFileObject jfo = filer.createSourceFile(classFqcn, type);
           Writer writer = jfo.openWriter();
-          writer.write(
-              String.format(INJECTOR, packageName, className, targetType, injections.toString()));
+          writer.write(String.format(INJECTOR, classPackage, className, targetType, injections));
           writer.flush();
           writer.close();
         } catch (IOException e) {
@@ -250,18 +249,30 @@ public class Views {
     }
 
     /** Finds the parent injector type in the supplied set, if any. */
-    private String resolveParentType(TypeElement typeElement, Set<TypeMirror> parents) {
+    private String findParentFqcn(TypeElement typeElement, Set<TypeMirror> parents) {
       TypeMirror type;
       while (true) {
         type = typeElement.getSuperclass();
         if (type.getKind() == TypeKind.NONE) {
           return null;
         }
-        if (parents.contains(type)) {
-          return type.toString();
-        }
         typeElement = (TypeElement) ((DeclaredType) type).asElement();
+        if (parents.contains(type)) {
+          String packageName = getPackageName(typeElement);
+          return packageName + "." + getClassName(typeElement, packageName);
+        }
       }
+    }
+
+    private String getPackageName(TypeElement type) {
+      return processingEnv.getElementUtils().getPackageOf(type).getQualifiedName().toString();
+    }
+
+    private static String getClassName(TypeElement type, String packageName) {
+      return type.getQualifiedName()
+          .toString()
+          .substring(packageName.length() + 1)
+          .replace('.', '$');
     }
 
     private static class InjectionPoint {
@@ -279,7 +290,7 @@ public class Views {
     }
 
     private static final String INJECTION = "    target.%s = finder.findById(source, %s);";
-    private static final String PARENT = "    %s.inject(finder, target, source);";
+    private static final String PARENT = "    %s%s.inject(finder, target, source);";
     private static final String INJECTOR = ""
         + "// Generated code from Butter Knife. Do not modify!\n"
         + "package %s;\n\n"
