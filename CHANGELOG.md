@@ -1,6 +1,12 @@
 Change Log
 ==========
 
+Version 1.3.1 *(2013-04-12)*
+----------------------------
+
+ * Fix: Parent class inflater resolution now generates correct code.
+
+
 Version 1.3.0 *(2013-03-26)*
 ----------------------------
 
