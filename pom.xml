@@ -33,7 +33,7 @@
     <android.platform>16</android.platform>
     <junit.version>4.10</junit.version>
     <robolectric.version>2.0-alpha-2</robolectric.version>
-    <fest.android.version>1.0.3</fest.android.version>
+    <fest.android.version>1.0.4</fest.android.version>
   </properties>
 
   <scm>

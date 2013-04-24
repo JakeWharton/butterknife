@@ -52,8 +52,8 @@ public class Views {
     public abstract <T extends View> T findById(Object source, int id);
   }
 
-  private static final Map<Class<?>, Method> INJECTORS = new LinkedHashMap<Class<?>, Method>();
-  private static final Method NO_OP = null;
+  static final Map<Class<?>, Method> INJECTORS = new LinkedHashMap<Class<?>, Method>();
+  static final Method NO_OP = null;
 
   /**
    * Inject fields annotated with {@link InjectView} in the specified {@link Activity}. The current
@@ -104,26 +104,34 @@ public class Views {
   static void inject(Object target, Object source, Finder finder) {
     Class<?> targetClass = target.getClass();
     try {
-      Method inject;
-      if (!INJECTORS.containsKey(targetClass)) {
-        Class<?> injector = Class.forName(targetClass.getName() + InjectViewProcessor.SUFFIX);
-        inject = injector.getMethod("inject", Finder.class, targetClass, Object.class);
-        INJECTORS.put(targetClass, inject);
-      } else {
-        inject = INJECTORS.get(targetClass);
-      }
-      // Allows for no-ops when there's nothing to inject.
+      Method inject = findInjectorForClass(targetClass);
       if (inject != null) {
         inject.invoke(null, finder, target, source);
       }
-    } catch (ClassNotFoundException e) {
-      // Allows inject to be called on targets without injected Views.
-      INJECTORS.put(targetClass, NO_OP);
     } catch (RuntimeException e) {
       throw e;
     } catch (Exception e) {
       throw new UnableToInjectException("Unable to inject views for " + target, e);
     }
+  }
+
+  static Method findInjectorForClass(Class<?> cls) throws NoSuchMethodException {
+    Method inject = INJECTORS.get(cls);
+    if (inject != null) {
+      return inject;
+    }
+    String clsName = cls.getName();
+    if (clsName.startsWith("android.") || clsName.startsWith("java.")) {
+      return NO_OP;
+    }
+    try {
+      Class<?> injector = Class.forName(clsName + InjectViewProcessor.SUFFIX);
+      inject = injector.getMethod("inject", Finder.class, cls, Object.class);
+    } catch (ClassNotFoundException e) {
+      inject = findInjectorForClass(cls.getSuperclass());
+    }
+    INJECTORS.put(cls, inject);
+    return inject;
   }
 
   /** Simpler version of {@link View#findViewById(int)} which infers the target type. */
