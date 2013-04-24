@@ -5,8 +5,8 @@ import android.view.View;
 import java.io.IOException;
 import java.io.Writer;
 import java.lang.reflect.Method;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 import javax.annotation.processing.AbstractProcessor;
@@ -37,19 +37,17 @@ public class Views {
 
   public enum Finder {
     VIEW {
-      @SuppressWarnings("unchecked") @Override
-      public <T extends View> T findById(Object source, int id) {
-        return (T) ((View) source).findViewById(id);
+      @Override public View findById(Object source, int id) {
+        return ((View) source).findViewById(id);
       }
     },
     ACTIVITY {
-      @SuppressWarnings("unchecked") @Override
-      public <T extends View> T findById(Object source, int id) {
-        return (T) ((Activity) source).findViewById(id);
+      @Override public View findById(Object source, int id) {
+        return ((Activity) source).findViewById(id);
       }
     };
 
-    public abstract <T extends View> T findById(Object source, int id);
+    public abstract View findById(Object source, int id);
   }
 
   static final Map<Class<?>, Method> INJECTORS = new LinkedHashMap<Class<?>, Method>();
@@ -135,13 +133,13 @@ public class Views {
   }
 
   /** Simpler version of {@link View#findViewById(int)} which infers the target type. */
-  @SuppressWarnings({ "unchecked", "UnusedDeclaration" }) // Checked by runtime cast, helper method.
+  @SuppressWarnings({ "unchecked", "UnusedDeclaration" }) // Checked by runtime cast. Public API.
   public static <T extends View> T findById(View view, int id) {
     return (T) view.findViewById(id);
   }
 
   /** Simpler version of {@link Activity#findViewById(int)} which infers the target type. */
-  @SuppressWarnings({ "unchecked", "UnusedDeclaration" }) // Checked by runtime cast, helper method.
+  @SuppressWarnings({ "unchecked", "UnusedDeclaration" }) // Checked by runtime cast. Public API.
   public static <T extends View> T findById(Activity activity, int id) {
     return (T) activity.findViewById(id);
   }
@@ -171,9 +169,9 @@ public class Views {
 
       TypeMirror viewType = elementUtils.getTypeElement("android.view.View").asType();
 
-      Map<TypeElement, Set<InjectionPoint>> injectionsByClass =
-          new LinkedHashMap<TypeElement, Set<InjectionPoint>>();
-      Set<TypeMirror> injectionTargets = new HashSet<TypeMirror>();
+      Map<TypeElement, Map<Integer, Set<InjectionPoint>>> injectionsByClass =
+          new LinkedHashMap<TypeElement, Map<Integer, Set<InjectionPoint>>>();
+      Set<TypeMirror> injectionTargets = new LinkedHashSet<TypeMirror>();
 
       for (Element element : env.getElementsAnnotatedWith(InjectView.class)) {
         TypeElement enclosingElement = (TypeElement) element.getEnclosingElement();
@@ -208,25 +206,32 @@ public class Views {
         }
 
         // Get and optionally create a set of all injection points for a type.
-        Set<InjectionPoint> injections = injectionsByClass.get(enclosingElement);
+        Map<Integer, Set<InjectionPoint>> injections = injectionsByClass.get(enclosingElement);
         if (injections == null) {
-          injections = new HashSet<InjectionPoint>();
+          injections = new LinkedHashMap<Integer, Set<InjectionPoint>>();
           injectionsByClass.put(enclosingElement, injections);
         }
 
         // Assemble information on the injection point.
         String variableName = element.getSimpleName().toString();
         int value = element.getAnnotation(InjectView.class).value();
-        injections.add(new InjectionPoint(variableName, value));
+        String type = element.asType().toString();
+
+        Set<InjectionPoint> injectionPoints = injections.get(value);
+        if (injectionPoints == null) {
+          injectionPoints = new LinkedHashSet<InjectionPoint>();
+          injections.put(value, injectionPoints);
+        }
+
+        injectionPoints.add(new InjectionPoint(variableName, type));
 
         // Add to the valid injection targets set.
         injectionTargets.add(enclosingElement.asType());
       }
 
-      for (Map.Entry<TypeElement, Set<InjectionPoint>> injection : injectionsByClass.entrySet()) {
+      for (Map.Entry<TypeElement, Map<Integer, Set<InjectionPoint>>> injection
+          : injectionsByClass.entrySet()) {
         TypeElement type = injection.getKey();
-        Set<InjectionPoint> injectionPoints = injection.getValue();
-
         String targetType = type.getQualifiedName().toString();
         String classPackage = getPackageName(type);
         String className = getClassName(type, classPackage) + SUFFIX;
@@ -236,8 +241,12 @@ public class Views {
         if (parentClassFqcn != null) {
           injectionBuilder.append(String.format(PARENT, parentClassFqcn, SUFFIX)).append('\n');
         }
-        for (InjectionPoint injectionPoint : injectionPoints) {
-          injectionBuilder.append(injectionPoint).append('\n');
+        for (Map.Entry<Integer, Set<InjectionPoint>> viewIdInjections : injection.getValue()
+            .entrySet()) {
+          injectionBuilder.append(String.format(FINDER, viewIdInjections.getKey())).append('\n');
+          for (InjectionPoint injectionPoint : viewIdInjections.getValue()) {
+            injectionBuilder.append(injectionPoint).append('\n');
+          }
         }
         String injections = injectionBuilder.toString();
 
@@ -285,26 +294,29 @@ public class Views {
 
     private static class InjectionPoint {
       private final String variableName;
-      private final int value;
+      private final String type;
 
-      InjectionPoint(String variableName, int value) {
+      InjectionPoint(String variableName, String type) {
         this.variableName = variableName;
-        this.value = value;
+        this.type = type;
       }
 
       @Override public String toString() {
-        return String.format(INJECTION, variableName, value);
+        return String.format(INJECTION, variableName, type);
       }
     }
 
-    private static final String INJECTION = "    target.%s = finder.findById(source, %s);";
+    private static final String FINDER = "    view = finder.findById(source, %s);";
+    private static final String INJECTION = "    target.%s = (%s) view;";
     private static final String PARENT = "    %s%s.inject(finder, target, source);";
     private static final String INJECTOR = ""
         + "// Generated code from Butter Knife. Do not modify!\n"
         + "package %s;\n\n"
+        + "import android.view.View;\n"
         + "import butterknife.Views.Finder;\n\n"
         + "public class %s {\n"
         + "  public static void inject(Finder finder, %s target, Object source) {\n"
+        + "    View view;\n"
         + "%s"
         + "  }\n"
         + "}\n";
