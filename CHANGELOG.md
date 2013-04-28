@@ -1,8 +1,8 @@
 Change Log
 ==========
 
-Version 1.3.2 *(In Development)*
---------------------------------
+Version 1.3.2 *(2013-04-27)*
+----------------------------
 
  * Multiple injections of the same view ID only require a single find call.
  * Fix: Ensure injection happens on classes who do not have any injections but
