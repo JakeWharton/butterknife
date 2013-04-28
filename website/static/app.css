@@ -11,6 +11,10 @@ body {
   margin-bottom: 20px;
 }
 
+li {
+  margin-bottom: 10px;
+}
+
 code, pre {
   color: #444;
   background: none;
