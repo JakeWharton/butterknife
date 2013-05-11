@@ -37,7 +37,7 @@
     <dependency>
       <groupId>org.robolectric</groupId>
       <artifactId>robolectric</artifactId>
-      <version>2.0-alpha-2</version>
+      <version>2.0-rc1</version>
       <scope>test</scope>
     </dependency>
     <dependency>
