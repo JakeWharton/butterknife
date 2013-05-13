@@ -31,5 +31,7 @@ public class ViewsTest {
     assertThat(Views.INJECTORS).isEmpty();
     Views.inject(new Object(), new Activity());
     assertThat(Views.INJECTORS).isEmpty();
+    Views.reset(new Object());
+    assertThat(Views.RESETTERS).isEmpty();
   }
 }
