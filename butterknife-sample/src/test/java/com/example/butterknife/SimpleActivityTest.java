@@ -19,11 +19,7 @@ public class SimpleActivityTest {
     assertThat(activity.hello).hasId(R.id.hello);
     assertThat(activity.listOfThings).hasId(R.id.list_of_things);
     assertThat(activity.footer).hasId(R.id.footer);
-  }
 
-  @Test public void verifyContentViewEjection() {
-    SimpleActivity activity = new SimpleActivity();
-    shadowOf(activity).callOnCreate(null);
     Views.eject(activity);
 
     assertThat(activity.title).isNull();

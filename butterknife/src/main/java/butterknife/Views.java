@@ -373,7 +373,7 @@ public class Views {
     private static final String INJECTION = "    target.%s = (%s) view;";
     private static final String EJECTION = "    target.%s = null;";
     private static final String PARENT = "    %s%s.inject(finder, target, source);";
-    private static final String PARENT_EJECT = "    %s%s.reject(target);";
+    private static final String PARENT_EJECT = "    %s%s.eject(target);";
     private static final String INJECTOR = ""
         + "// Generated code from Butter Knife. Do not modify!\n"
         + "package %s;\n\n"
