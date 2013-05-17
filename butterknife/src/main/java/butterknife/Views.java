@@ -128,7 +128,7 @@ public class Views {
     } catch (RuntimeException e) {
       throw e;
     } catch (Exception e) {
-      throw new UnableToInjectException("Unable to eject views for " + target, e);
+      throw new UnableToEjectException("Unable to eject views for " + target, e);
     }
   }
 
@@ -161,8 +161,8 @@ public class Views {
       return NO_OP;
     }
     try {
-      Class<?> ejector = Class.forName(clsName + InjectViewProcessor.SUFFIX);
-      eject = ejector.getMethod("eject", cls);
+      Class<?> injector = Class.forName(clsName + InjectViewProcessor.SUFFIX);
+      eject = injector.getMethod("eject", cls);
     } catch (ClassNotFoundException e) {
       eject = findEjectorForClass(cls.getSuperclass());
     }
@@ -182,12 +182,28 @@ public class Views {
     return (T) activity.findViewById(id);
   }
 
+  /**
+   * Exception thrown when a view cannot be injected for some reason.
+   */
   public static class UnableToInjectException extends RuntimeException {
     UnableToInjectException(String message, Throwable cause) {
       super(message, cause);
     }
   }
 
+  /**
+   * Exception thrown when a view cannot be ejected.
+   */
+  public static class UnableToEjectException extends RuntimeException {
+    UnableToEjectException(String message, Throwable cause) {
+      super(message, cause);
+    }
+  }
+
+  /**
+   * Annotation processor that generates view injection and ejection
+   * code based on @InjectView annotations.
+   */
   @SupportedAnnotationTypes("butterknife.InjectView")
   public static class InjectViewProcessor extends AbstractProcessor {
     static final String SUFFIX = "$$ViewInjector";
