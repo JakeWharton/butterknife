@@ -295,6 +295,7 @@ public class Views {
         StringBuilder ejectionBuilder = new StringBuilder();
         if (parentClassFqcn != null) {
           injectionBuilder.append(String.format(PARENT, parentClassFqcn, SUFFIX)).append('\n');
+          ejectionBuilder.append(String.format(PARENT_EJECT, parentClassFqcn, SUFFIX)).append('\n');
         }
         for (Map.Entry<Integer, Set<InjectionPoint>> viewIdInjections : injection.getValue()
             .entrySet()) {
@@ -372,6 +373,7 @@ public class Views {
     private static final String INJECTION = "    target.%s = (%s) view;";
     private static final String EJECTION = "    target.%s = null;";
     private static final String PARENT = "    %s%s.inject(finder, target, source);";
+    private static final String PARENT_EJECT = "    %s%s.reject(target);";
     private static final String INJECTOR = ""
         + "// Generated code from Butter Knife. Do not modify!\n"
         + "package %s;\n\n"
