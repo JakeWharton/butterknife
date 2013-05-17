@@ -51,6 +51,7 @@ public class Views {
   }
 
   static final Map<Class<?>, Method> INJECTORS = new LinkedHashMap<Class<?>, Method>();
+  static final Map<Class<?>, Method> EJECTORS = new LinkedHashMap<Class<?>, Method>();
   static final Method NO_OP = null;
 
   /**
@@ -99,6 +100,10 @@ public class Views {
     inject(target, source, Finder.VIEW);
   }
 
+  public static void eject(Object target) {
+    ejectInternal(target);
+  }
+
   static void inject(Object target, Object source, Finder finder) {
     Class<?> targetClass = target.getClass();
     try {
@@ -110,6 +115,20 @@ public class Views {
       throw e;
     } catch (Exception e) {
       throw new UnableToInjectException("Unable to inject views for " + target, e);
+    }
+  }
+
+  static void ejectInternal(Object target) {
+    Class<?> targetClass = target.getClass();
+    try {
+      Method eject = findEjectorForClass(targetClass);
+      if (eject != null) {
+        eject.invoke(null, target);
+      }
+    } catch (RuntimeException e) {
+      throw e;
+    } catch (Exception e) {
+      throw new UnableToEjectException("Unable to eject views for " + target, e);
     }
   }
 
@@ -132,6 +151,25 @@ public class Views {
     return inject;
   }
 
+  static Method findEjectorForClass(Class<?> cls) throws NoSuchMethodException {
+    Method eject = EJECTORS.get(cls);
+    if (eject != null) {
+      return eject;
+    }
+    String clsName = cls.getName();
+    if (clsName.startsWith("android.") || clsName.startsWith("java.")) {
+      return NO_OP;
+    }
+    try {
+      Class<?> injector = Class.forName(clsName + InjectViewProcessor.SUFFIX);
+      eject = injector.getMethod("eject", cls);
+    } catch (ClassNotFoundException e) {
+      eject = findEjectorForClass(cls.getSuperclass());
+    }
+    EJECTORS.put(cls, eject);
+    return eject;
+  }
+
   /** Simpler version of {@link View#findViewById(int)} which infers the target type. */
   @SuppressWarnings({ "unchecked", "UnusedDeclaration" }) // Checked by runtime cast. Public API.
   public static <T extends View> T findById(View view, int id) {
@@ -144,12 +182,28 @@ public class Views {
     return (T) activity.findViewById(id);
   }
 
+  /**
+   * Exception thrown when a view cannot be injected for some reason.
+   */
   public static class UnableToInjectException extends RuntimeException {
     UnableToInjectException(String message, Throwable cause) {
       super(message, cause);
     }
   }
 
+  /**
+   * Exception thrown when a view cannot be ejected.
+   */
+  public static class UnableToEjectException extends RuntimeException {
+    UnableToEjectException(String message, Throwable cause) {
+      super(message, cause);
+    }
+  }
+
+  /**
+   * Annotation processor that generates view injection and ejection
+   * code based on @InjectView annotations.
+   */
   @SupportedAnnotationTypes("butterknife.InjectView")
   public static class InjectViewProcessor extends AbstractProcessor {
     static final String SUFFIX = "$$ViewInjector";
@@ -238,23 +292,28 @@ public class Views {
         String classFqcn = classPackage + "." + className;
         String parentClassFqcn = findParentFqcn(type, injectionTargets);
         StringBuilder injectionBuilder = new StringBuilder();
+        StringBuilder ejectionBuilder = new StringBuilder();
         if (parentClassFqcn != null) {
           injectionBuilder.append(String.format(PARENT, parentClassFqcn, SUFFIX)).append('\n');
+          ejectionBuilder.append(String.format(PARENT_EJECT, parentClassFqcn, SUFFIX)).append('\n');
         }
         for (Map.Entry<Integer, Set<InjectionPoint>> viewIdInjections : injection.getValue()
             .entrySet()) {
           injectionBuilder.append(String.format(FINDER, viewIdInjections.getKey())).append('\n');
           for (InjectionPoint injectionPoint : viewIdInjections.getValue()) {
             injectionBuilder.append(injectionPoint).append('\n');
+            ejectionBuilder.append(injectionPoint.ejection()).append('\n');
           }
         }
         String injections = injectionBuilder.toString();
+        String ejections = ejectionBuilder.toString();
 
         // Write the view injector class.
         try {
           JavaFileObject jfo = filer.createSourceFile(classFqcn, type);
           Writer writer = jfo.openWriter();
-          writer.write(String.format(INJECTOR, classPackage, className, targetType, injections));
+          writer.write(String.format(INJECTOR, classPackage, className, targetType, injections,
+              targetType, ejections));
           writer.flush();
           writer.close();
         } catch (IOException e) {
@@ -304,11 +363,17 @@ public class Views {
       @Override public String toString() {
         return String.format(INJECTION, variableName, type);
       }
+
+      public String ejection() {
+        return String.format(EJECTION, variableName);
+      }
     }
 
     private static final String FINDER = "    view = finder.findById(source, %s);";
     private static final String INJECTION = "    target.%s = (%s) view;";
+    private static final String EJECTION = "    target.%s = null;";
     private static final String PARENT = "    %s%s.inject(finder, target, source);";
+    private static final String PARENT_EJECT = "    %s%s.reject(target);";
     private static final String INJECTOR = ""
         + "// Generated code from Butter Knife. Do not modify!\n"
         + "package %s;\n\n"
@@ -317,6 +382,9 @@ public class Views {
         + "public class %s {\n"
         + "  public static void inject(Finder finder, %s target, Object source) {\n"
         + "    View view;\n"
+        + "%s"
+        + "  }\n"
+        + "  public static void eject(%s target) {\n"
         + "%s"
         + "  }\n"
         + "}\n";
