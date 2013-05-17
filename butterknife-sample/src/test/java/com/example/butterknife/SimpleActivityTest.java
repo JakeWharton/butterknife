@@ -1,5 +1,6 @@
 package com.example.butterknife;
 
+import butterknife.Views;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
@@ -18,5 +19,17 @@ public class SimpleActivityTest {
     assertThat(activity.hello).hasId(R.id.hello);
     assertThat(activity.listOfThings).hasId(R.id.list_of_things);
     assertThat(activity.footer).hasId(R.id.footer);
+  }
+
+  @Test public void verifyContentViewEjection() {
+    SimpleActivity activity = new SimpleActivity();
+    shadowOf(activity).callOnCreate(null);
+    Views.eject(activity);
+
+    assertThat(activity.title).isNull();
+    assertThat(activity.subtitle).isNull();
+    assertThat(activity.hello).isNull();
+    assertThat(activity.listOfThings).isNull();
+    assertThat(activity.footer).isNull();
   }
 }

@@ -1,6 +1,8 @@
 package butterknife;
 
+import android.R;
 import android.app.Activity;
+import android.view.View;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -24,6 +26,15 @@ public class ViewsTest {
     Example example = new Example();
     Views.inject(example, null, null);
     assertThat(Views.INJECTORS).contains(entry(Example.class, Views.NO_OP));
+  }
+
+  @Test public void zeroEjectionsDoesNotThrowException() {
+    class Example {
+    }
+
+    Example example = new Example();
+    Views.eject(example);
+    assertThat(Views.EJECTORS).contains(entry(Example.class, Views.NO_OP));
   }
 
   @Test public void injectingKnownPackagesIsNoOp() {
