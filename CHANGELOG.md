@@ -6,7 +6,7 @@ Version 1.4.0 *(2013-06-03)*
 
  * New: `Views.reset` for settings injections back to `null` in a fragment's
    `onDestroyView` callback.
- * Fix: Support parent class injection when the parent class hsa a generics.
+ * Fix: Support parent class injection when the parent class has generics.
 
 
 Version 1.3.2 *(2013-04-27)*
