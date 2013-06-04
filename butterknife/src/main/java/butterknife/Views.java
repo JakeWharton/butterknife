@@ -5,6 +5,7 @@ import android.view.View;
 import java.io.IOException;
 import java.io.Writer;
 import java.lang.reflect.Method;
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -225,8 +226,9 @@ public class Views {
 
         injectionPoints.add(new InjectionPoint(variableName, type));
 
-        // Add to the valid injection targets set.
-        injectionTargets.add(enclosingElement.asType());
+        // Add the type-erased version to the valid injection targets set.
+        TypeMirror erasedInjectionType = typeUtils.erasure(enclosingElement.asType());
+        injectionTargets.add(erasedInjectionType);
       }
 
       for (Map.Entry<TypeElement, Map<Integer, Set<InjectionPoint>>> injection
@@ -274,11 +276,25 @@ public class Views {
           return null;
         }
         typeElement = (TypeElement) ((DeclaredType) type).asElement();
-        if (parents.contains(type)) {
+        if (containsTypeMirror(parents, type)) {
           String packageName = getPackageName(typeElement);
           return packageName + "." + getClassName(typeElement, packageName);
         }
       }
+    }
+
+    private boolean containsTypeMirror(Collection<TypeMirror> mirrors, TypeMirror query) {
+      Types typeUtils = processingEnv.getTypeUtils();
+
+      // Ensure we are checking against a type-erased version for normalization purposes.
+      query = typeUtils.erasure(query);
+
+      for (TypeMirror mirror : mirrors) {
+        if (typeUtils.isSameType(mirror, query)) {
+          return true;
+        }
+      }
+      return false;
     }
 
     private String getPackageName(TypeElement type) {
