@@ -52,6 +52,7 @@ public class Views {
   }
 
   static final Map<Class<?>, Method> INJECTORS = new LinkedHashMap<Class<?>, Method>();
+  static final Map<Class<?>, Method> RESETTERS = new LinkedHashMap<Class<?>, Method>();
   static final Method NO_OP = null;
 
   /**
@@ -133,6 +134,39 @@ public class Views {
     return inject;
   }
 
+  public static void reset(Object target) {
+    Class<?> targetClass = target.getClass();
+    try {
+      Method reset = findResettersForClass(targetClass);
+      if (reset != null) {
+        reset.invoke(null, target);
+      }
+    } catch (RuntimeException e) {
+      throw e;
+    } catch (Exception e) {
+      throw new UnableToResetException("Unable to reset views for " + target, e);
+    }
+  }
+
+  static Method findResettersForClass(Class<?> cls) throws NoSuchMethodException {
+    Method inject = RESETTERS.get(cls);
+    if (inject != null) {
+      return inject;
+    }
+    String clsName = cls.getName();
+    if (clsName.startsWith("android.") || clsName.startsWith("java.")) {
+      return NO_OP;
+    }
+    try {
+      Class<?> injector = Class.forName(clsName + InjectViewProcessor.SUFFIX);
+      inject = injector.getMethod("reset", cls);
+    } catch (ClassNotFoundException e) {
+      inject = findResettersForClass(cls.getSuperclass());
+    }
+    RESETTERS.put(cls, inject);
+    return inject;
+  }
+
   /** Simpler version of {@link View#findViewById(int)} which infers the target type. */
   @SuppressWarnings({ "unchecked", "UnusedDeclaration" }) // Checked by runtime cast. Public API.
   public static <T extends View> T findById(View view, int id) {
@@ -147,6 +181,12 @@ public class Views {
 
   public static class UnableToInjectException extends RuntimeException {
     UnableToInjectException(String message, Throwable cause) {
+      super(message, cause);
+    }
+  }
+
+  public static class UnableToResetException extends RuntimeException {
+    UnableToResetException(String message, Throwable cause) {
       super(message, cause);
     }
   }
@@ -240,23 +280,28 @@ public class Views {
         String classFqcn = classPackage + "." + className;
         String parentClassFqcn = findParentFqcn(type, injectionTargets);
         StringBuilder injectionBuilder = new StringBuilder();
+        StringBuilder resetBuilder = new StringBuilder();
         if (parentClassFqcn != null) {
           injectionBuilder.append(String.format(PARENT, parentClassFqcn, SUFFIX)).append('\n');
+          resetBuilder.append(String.format(PARENT_RESET, parentClassFqcn, SUFFIX)).append('\n');
         }
         for (Map.Entry<Integer, Set<InjectionPoint>> viewIdInjections : injection.getValue()
             .entrySet()) {
           injectionBuilder.append(String.format(FINDER, viewIdInjections.getKey())).append('\n');
           for (InjectionPoint injectionPoint : viewIdInjections.getValue()) {
             injectionBuilder.append(injectionPoint).append('\n');
+            resetBuilder.append(String.format(RESET, injectionPoint.variableName)).append('\n');
           }
         }
         String injections = injectionBuilder.toString();
+        String resetters = resetBuilder.toString();
 
         // Write the view injector class.
         try {
           JavaFileObject jfo = filer.createSourceFile(classFqcn, type);
           Writer writer = jfo.openWriter();
-          writer.write(String.format(INJECTOR, classPackage, className, targetType, injections));
+          writer.write(String.format(INJECTOR, classPackage, className, targetType, injections,
+              targetType, resetters));
           writer.flush();
           writer.close();
         } catch (IOException e) {
@@ -324,7 +369,9 @@ public class Views {
 
     private static final String FINDER = "    view = finder.findById(source, %s);";
     private static final String INJECTION = "    target.%s = (%s) view;";
+    private static final String RESET = "    target.%s = null;";
     private static final String PARENT = "    %s%s.inject(finder, target, source);";
+    private static final String PARENT_RESET = "    %s%s.reset(target);";
     private static final String INJECTOR = ""
         + "// Generated code from Butter Knife. Do not modify!\n"
         + "package %s;\n\n"
@@ -333,6 +380,9 @@ public class Views {
         + "public class %s {\n"
         + "  public static void inject(Finder finder, %s target, Object source) {\n"
         + "    View view;\n"
+        + "%s"
+        + "  }\n\n"
+        + "  public static void reset(%s target) {\n"
         + "%s"
         + "  }\n"
         + "}\n";
