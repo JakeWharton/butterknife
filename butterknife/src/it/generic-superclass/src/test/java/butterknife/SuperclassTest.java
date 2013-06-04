@@ -7,6 +7,7 @@ import java.lang.reflect.Method;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
@@ -21,7 +22,7 @@ public class SuperclassTest {
   }
 
   @Test public void superclassInjection() {
-    TestOne target = new TestOne();
+    TestOne target = Robolectric.buildActivity(TestOne.class).get();
     Views.inject(target);
 
     assertThat(target.thing).isNotNull();
@@ -32,7 +33,7 @@ public class SuperclassTest {
   }
 
   @Test public void onlyParentClassInjection() {
-    TestTwo target = new TestTwo();
+    TestTwo target = Robolectric.buildActivity(TestTwo.class).get();
     Views.inject(target);
 
     assertThat(target.baseThing).isNotNull();
