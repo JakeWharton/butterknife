@@ -101,6 +101,28 @@ public class Views {
     inject(target, source, Finder.VIEW);
   }
 
+  /**
+   * Reset fields annotated with {@link InjectView} to {@code null}.
+   * <p>
+   * This should only be used in the {@code onDestroyView} method of a fragment in practice.
+   *
+   * @param target Target class for field reset.
+   * @throws UnableToResetException if views could not be reset.
+   */
+  public static void reset(Object target) {
+    Class<?> targetClass = target.getClass();
+    try {
+      Method reset = findResettersForClass(targetClass);
+      if (reset != null) {
+        reset.invoke(null, target);
+      }
+    } catch (RuntimeException e) {
+      throw e;
+    } catch (Exception e) {
+      throw new UnableToResetException("Unable to reset views for " + target, e);
+    }
+  }
+
   static void inject(Object target, Object source, Finder finder) {
     Class<?> targetClass = target.getClass();
     try {
@@ -132,20 +154,6 @@ public class Views {
     }
     INJECTORS.put(cls, inject);
     return inject;
-  }
-
-  public static void reset(Object target) {
-    Class<?> targetClass = target.getClass();
-    try {
-      Method reset = findResettersForClass(targetClass);
-      if (reset != null) {
-        reset.invoke(null, target);
-      }
-    } catch (RuntimeException e) {
-      throw e;
-    } catch (Exception e) {
-      throw new UnableToResetException("Unable to reset views for " + target, e);
-    }
   }
 
   static Method findResettersForClass(Class<?> cls) throws NoSuchMethodException {
@@ -279,29 +287,30 @@ public class Views {
         String className = getClassName(type, classPackage) + SUFFIX;
         String classFqcn = classPackage + "." + className;
         String parentClassFqcn = findParentFqcn(type, injectionTargets);
-        StringBuilder injectionBuilder = new StringBuilder();
+        StringBuilder injectBuilder = new StringBuilder();
         StringBuilder resetBuilder = new StringBuilder();
         if (parentClassFqcn != null) {
-          injectionBuilder.append(String.format(PARENT, parentClassFqcn, SUFFIX)).append('\n');
+          injectBuilder.append(String.format(PARENT_INJECT, parentClassFqcn, SUFFIX)).append('\n');
           resetBuilder.append(String.format(PARENT_RESET, parentClassFqcn, SUFFIX)).append('\n');
         }
         for (Map.Entry<Integer, Set<InjectionPoint>> viewIdInjections : injection.getValue()
             .entrySet()) {
-          injectionBuilder.append(String.format(FINDER, viewIdInjections.getKey())).append('\n');
+          injectBuilder.append(String.format(FINDER, viewIdInjections.getKey())).append('\n');
           for (InjectionPoint injectionPoint : viewIdInjections.getValue()) {
-            injectionBuilder.append(injectionPoint).append('\n');
+            injectBuilder.append(injectionPoint).append('\n');
             resetBuilder.append(String.format(RESET, injectionPoint.variableName)).append('\n');
           }
         }
-        String injections = injectionBuilder.toString();
+        String injections = injectBuilder.toString();
         String resetters = resetBuilder.toString();
 
         // Write the view injector class.
         try {
           JavaFileObject jfo = filer.createSourceFile(classFqcn, type);
           Writer writer = jfo.openWriter();
-          writer.write(String.format(INJECTOR, classPackage, className, targetType, injections,
-              targetType, resetters));
+          writer.write(
+              String.format(INJECTOR, classPackage, className, targetType, injections, targetType,
+                  resetters));
           writer.flush();
           writer.close();
         } catch (IOException e) {
@@ -363,14 +372,14 @@ public class Views {
       }
 
       @Override public String toString() {
-        return String.format(INJECTION, variableName, type);
+        return String.format(INJECT, variableName, type);
       }
     }
 
     private static final String FINDER = "    view = finder.findById(source, %s);";
-    private static final String INJECTION = "    target.%s = (%s) view;";
+    private static final String INJECT = "    target.%s = (%s) view;";
     private static final String RESET = "    target.%s = null;";
-    private static final String PARENT = "    %s%s.inject(finder, target, source);";
+    private static final String PARENT_INJECT = "    %s%s.inject(finder, target, source);";
     private static final String PARENT_RESET = "    %s%s.reset(target);";
     private static final String INJECTOR = ""
         + "// Generated code from Butter Knife. Do not modify!\n"
