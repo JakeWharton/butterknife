@@ -279,7 +279,7 @@ public class Views {
         injectionTargets.add(erasedInjectionType);
       }
 
-      for (Map.Entry<TypeElement, Map<Integer, Set<InjectionPoint>>> injection
+      for (Map.Entry<TypeElement, Map<Integer, Set<InjectionPoint>>> injection //
           : injectionsByClass.entrySet()) {
         TypeElement type = injection.getKey();
         String targetType = type.getQualifiedName().toString();
