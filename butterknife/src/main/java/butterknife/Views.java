@@ -20,7 +20,8 @@ public class Views {
       }
       @Override public View findByIdName(Object source, String idName) {
         View view = ((View) source);
-        int viewId = view.getResources().getIdentifier(idName, "id", view.getContext().getPackageName());
+        int viewId = view.getResources().getIdentifier(idName, "id", view.getContext()
+               .getPackageName());
         return view.findViewById(viewId);
       }
     },

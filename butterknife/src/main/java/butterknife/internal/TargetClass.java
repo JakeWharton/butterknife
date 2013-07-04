@@ -23,7 +23,7 @@ class TargetClass {
     getTargetView(id).fields.add(new FieldInjection(name, type));
   }
 
-  void addField(String idName, String name, String type){
+  void addField(String idName, String name, String type) {
     getTargetView(idName).fields.add(new FieldInjection(name, type));
   }
 
@@ -81,7 +81,8 @@ class TargetClass {
     }
 
     for (Map.Entry<String, ViewIdName> entry : viewIdNameMap.entrySet()) {
-      builder.append("    view = finder.findByIdName(source, \"").append(entry.getKey()).append("\");\n");
+      builder.append("    view = finder.findByIdName(source, \"").append(entry.getKey())
+          .append("\");\n");
       for (FieldInjection fieldInjection : entry.getValue().fields) {
         builder.append("    target.")
             .append(fieldInjection.name)
@@ -90,7 +91,7 @@ class TargetClass {
             .append(") view;\n");
       }
     }
-    
+
     builder.append("  }\n\n");
     builder.append("  public static void reset(").append(targetClass).append(" target) {\n");
     if (parentInjector != null) {
