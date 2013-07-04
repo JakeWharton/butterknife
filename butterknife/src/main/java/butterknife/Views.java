@@ -18,14 +18,25 @@ public class Views {
       @Override public View findById(Object source, int id) {
         return ((View) source).findViewById(id);
       }
+      @Override public View findByIdName(Object source, String idName) {
+        View view = ((View) source);
+        int viewId = view.getResources().getIdentifier(idName, "id", view.getContext().getPackageName());
+        return view.findViewById(viewId);
+      }
     },
     ACTIVITY {
       @Override public View findById(Object source, int id) {
         return ((Activity) source).findViewById(id);
       }
+      @Override public View findByIdName(Object source, String idName) {
+        Activity activity = (Activity) source;
+        int viewId = activity.getResources().getIdentifier(idName, "id", activity.getPackageName());
+        return activity.findViewById(viewId);
+      }
     };
 
     public abstract View findById(Object source, int id);
+    public abstract View findByIdName(Object source, String idName);
   }
 
   static final Map<Class<?>, Method> INJECTORS = new LinkedHashMap<Class<?>, Method>();

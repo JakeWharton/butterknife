@@ -118,10 +118,16 @@ public class InjectViewProcessor extends AbstractProcessor {
 
       // Assemble information on the injection point.
       String name = element.getSimpleName().toString();
-      int id = element.getAnnotation(InjectView.class).value();
       String type = element.asType().toString();
 
-      targetClass.addField(id, name, type);
+      InjectView injectView = element.getAnnotation(InjectView.class);
+      int id = injectView.value();
+      if (id != -1) {
+        targetClass.addField(id, name, type);
+      } else {
+        String idName = injectView.idName();
+        targetClass.addField(idName, name, type);
+      }
 
       // Add the type-erased version to the valid injection targets set.
       TypeMirror erasedTargetType = typeUtils.erasure(enclosingElement.asType());
