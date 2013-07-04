@@ -22,7 +22,7 @@ class TargetClass {
   void addField(int id, String name, String type) {
     getTargetView(id).fields.add(new FieldInjection(name, type));
   }
-  
+
   void addField(String idName, String name, String type){
     getTargetView(idName).fields.add(new FieldInjection(name, type));
   }
@@ -39,7 +39,7 @@ class TargetClass {
     }
     return viewId;
   }
-  
+
   private ViewIdName getTargetView(String idName) {
     ViewIdName viewIdName = viewIdNameMap.get(idName);
     if (viewIdName == null) {
@@ -79,7 +79,7 @@ class TargetClass {
             .append(") view;\n");
       }
     }
-    
+
     for (Map.Entry<String, ViewIdName> entry : viewIdNameMap.entrySet()) {
       builder.append("    view = finder.findByIdName(source, \"").append(entry.getKey()).append("\");\n");
       for (FieldInjection fieldInjection : entry.getValue().fields) {
@@ -116,7 +116,7 @@ class TargetClass {
       this.id = id;
     }
   }
-  
+
   static class ViewIdName {
     final String idName;
     final Set<FieldInjection> fields = new LinkedHashSet<FieldInjection>();
