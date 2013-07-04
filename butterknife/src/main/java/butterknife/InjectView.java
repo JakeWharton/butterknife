@@ -8,5 +8,6 @@ import static java.lang.annotation.RetentionPolicy.CLASS;
 
 @Retention(CLASS) @Target(FIELD)
 public @interface InjectView {
-  int value();
+  int value() default -1;
+  String idName() default "";
 }

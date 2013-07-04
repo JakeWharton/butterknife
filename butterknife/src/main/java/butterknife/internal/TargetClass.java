@@ -7,6 +7,7 @@ import java.util.Set;
 
 class TargetClass {
   private final Map<Integer, ViewId> viewIdMap = new LinkedHashMap<Integer, ViewId>();
+  private final Map<String, ViewIdName> viewIdNameMap = new LinkedHashMap<String, ViewIdName>();
   private final String classPackage;
   private final String className;
   private final String targetClass;
@@ -22,6 +23,10 @@ class TargetClass {
     getTargetView(id).fields.add(new FieldInjection(name, type));
   }
 
+  void addField(String idName, String name, String type) {
+    getTargetView(idName).fields.add(new FieldInjection(name, type));
+  }
+
   void setParentInjector(String parentInjector) {
     this.parentInjector = parentInjector;
   }
@@ -33,6 +38,15 @@ class TargetClass {
       viewIdMap.put(id, viewId);
     }
     return viewId;
+  }
+
+  private ViewIdName getTargetView(String idName) {
+    ViewIdName viewIdName = viewIdNameMap.get(idName);
+    if (viewIdName == null) {
+      viewIdName = new ViewIdName(idName);
+      viewIdNameMap.put(idName, viewIdName);
+    }
+    return viewIdName;
   }
 
   String getFqcn() {
@@ -65,6 +79,19 @@ class TargetClass {
             .append(") view;\n");
       }
     }
+
+    for (Map.Entry<String, ViewIdName> entry : viewIdNameMap.entrySet()) {
+      builder.append("    view = finder.findByIdName(source, \"").append(entry.getKey())
+          .append("\");\n");
+      for (FieldInjection fieldInjection : entry.getValue().fields) {
+        builder.append("    target.")
+            .append(fieldInjection.name)
+            .append(" = (")
+            .append(fieldInjection.type)
+            .append(") view;\n");
+      }
+    }
+
     builder.append("  }\n\n");
     builder.append("  public static void reset(").append(targetClass).append(" target) {\n");
     if (parentInjector != null) {
@@ -88,6 +115,15 @@ class TargetClass {
 
     ViewId(int id) {
       this.id = id;
+    }
+  }
+
+  static class ViewIdName {
+    final String idName;
+    final Set<FieldInjection> fields = new LinkedHashSet<FieldInjection>();
+
+    ViewIdName(String idName) {
+      this.idName = idName;
     }
   }
 
