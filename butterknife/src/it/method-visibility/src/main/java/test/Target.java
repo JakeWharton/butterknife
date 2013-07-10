@@ -2,6 +2,7 @@ package test;
 
 import android.app.Activity;
 import android.view.View;
+import android.widget.TextView;
 import butterknife.InjectView;
 import butterknife.OnClick;
 import java.lang.Override;
@@ -21,16 +22,16 @@ public class Target extends Activity {
   }
 
   @OnClick(2)
-  void clickTwo() {
+  void clickTwo(View view) {
     two = true;
   }
 
   @OnClick(3)
-  protected void clickThree() {
+  protected void clickThree(TextView textView) {
     three = true;
   }
 
   @Override public View findViewById(int id) {
-    return new View(this);
+    return new TextView(this);
   }
 }
