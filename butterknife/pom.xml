@@ -59,6 +59,7 @@
           <filterProperties>
             <project.version>${project.version}</project.version>
           </filterProperties>
+          <showErrors>true</showErrors>
         </configuration>
         <executions>
           <execution>
