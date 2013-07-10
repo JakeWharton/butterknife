@@ -8,5 +8,5 @@ import static java.lang.annotation.RetentionPolicy.CLASS;
 
 @Retention(CLASS) @Target(METHOD)
 public @interface OnClick {
-  int value();
+  int[] value();
 }
