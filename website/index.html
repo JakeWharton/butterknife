@@ -71,7 +71,7 @@
   activity.footer = (android.widget.TextView) activity.findViewById(2130968579);
   activity.title = (android.widget.TextView) activity.findViewById(2130968577);
 }</pre>
-            <p>Some people call this view injection and lump it along with traditional dependency injection frameworks. They may be wrong in nomenclature, but perhaps there exists some use for this type of field assignment.</p>
+            <p>Some people call this view injection and lump it along with traditional dependency injection frameworks. They may be wrong in nomenclature, but perhaps there exists some use for it.</p>
 
             <h4 id="non-activity">Non-Activity Injection</h4>
             <p>You can also perform injection on arbitrary objects by supplying your own view root.</p>
@@ -121,6 +121,27 @@
    call this immediately after. Alternatively, custom view types inflated from
    XML can use it in the <code>onLayoutInflated()</code> callback.</li>
             </ul>
+
+            <h4 id="click-injection">Click Listener Injection</h4>
+            <p>Click listeners can also automatically be configured onto methods.</p>
+            <pre class="prettyprint">@OnClick(R.id.submit)
+public void submit() {
+  // TODO submit data to server...
+}</pre>
+            <p>You can add the view as an argument to the method. Define a specific type and it will automatically be cast.</p>
+            <pre class="prettyprint">@OnClick(R.id.submit)
+public void sayHi(Button button) {
+  button.setText("Hello!");
+}</pre>
+            <p>Specify multiple IDs in a single binding for common event handling.</p>
+            <pre class="prettyprint">@OnClick({ R.id.door1, R.id.door2, R.id.door3 })
+public void pickDoor(DoorView door) {
+  if (door.hasPrizeBehind()) {
+    Toast.makeText(this, "You win!", LENGTH_SHORT).show();
+  } else {
+    Toast.makeText(this, "Try again", LENGTH_SHORT).show();
+  }
+}</pre>
 
             <h4 id="reset">Injection Reset</h4>
             <p>Fragments have a different view lifecycle than activities. When injecting a fragment in <code>onCreateView</code>, set the views to <code>null</code> in <code>onDestroyView</code>. Butter Knife has a <code>reset</code> method to do this automatically.</p>
