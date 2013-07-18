@@ -1,6 +1,7 @@
 package butterknife;
 
 import android.app.Activity;
+import android.util.Log;
 import android.view.View;
 import butterknife.internal.InjectViewProcessor;
 import java.lang.reflect.Method;
@@ -28,9 +29,17 @@ public class Views {
     public abstract View findById(Object source, int id);
   }
 
+  private static final String TAG = "ButterKnife";
+  private static boolean debug = false;
+
   static final Map<Class<?>, Method> INJECTORS = new LinkedHashMap<Class<?>, Method>();
   static final Map<Class<?>, Method> RESETTERS = new LinkedHashMap<Class<?>, Method>();
   static final Method NO_OP = null;
+
+  /** Control whether debug logging is enabled. */
+  public static void setDebug(boolean debug) {
+    Views.debug = debug;
+  }
 
   /**
    * Inject fields annotated with {@link InjectView} in the specified {@link Activity}. The current
@@ -89,6 +98,7 @@ public class Views {
   public static void reset(Object target) {
     Class<?> targetClass = target.getClass();
     try {
+      if (debug) Log.d(TAG, "Looking up view injector for " + targetClass.getName());
       Method reset = findResettersForClass(targetClass);
       if (reset != null) {
         reset.invoke(null, target);
@@ -103,6 +113,7 @@ public class Views {
   static void inject(Object target, Object source, Finder finder) {
     Class<?> targetClass = target.getClass();
     try {
+      if (debug) Log.d(TAG, "Looking up view injector for " + targetClass.getName());
       Method inject = findInjectorForClass(targetClass);
       if (inject != null) {
         inject.invoke(null, finder, target, source);
@@ -117,16 +128,20 @@ public class Views {
   static Method findInjectorForClass(Class<?> cls) throws NoSuchMethodException {
     Method inject = INJECTORS.get(cls);
     if (inject != null) {
+      if (debug) Log.d(TAG, "HIT: Cached in injector map.");
       return inject;
     }
     String clsName = cls.getName();
     if (clsName.startsWith("android.") || clsName.startsWith("java.")) {
+      if (debug) Log.d(TAG, "MISS: Reached framework class. Abandoning search.");
       return NO_OP;
     }
     try {
       Class<?> injector = Class.forName(clsName + InjectViewProcessor.SUFFIX);
       inject = injector.getMethod("inject", Finder.class, cls, Object.class);
+      if (debug) Log.d(TAG, "HIT: Class loaded injection class.");
     } catch (ClassNotFoundException e) {
+      if (debug) Log.d(TAG, "Not found. Trying superclass " + cls.getSuperclass().getName());
       inject = findInjectorForClass(cls.getSuperclass());
     }
     INJECTORS.put(cls, inject);
@@ -136,16 +151,20 @@ public class Views {
   static Method findResettersForClass(Class<?> cls) throws NoSuchMethodException {
     Method inject = RESETTERS.get(cls);
     if (inject != null) {
+      if (debug) Log.d(TAG, "HIT: Cached in injector map.");
       return inject;
     }
     String clsName = cls.getName();
     if (clsName.startsWith("android.") || clsName.startsWith("java.")) {
+      if (debug) Log.d(TAG, "MISS: Reached framework class. Abandoning search.");
       return NO_OP;
     }
     try {
       Class<?> injector = Class.forName(clsName + InjectViewProcessor.SUFFIX);
       inject = injector.getMethod("reset", cls);
+      if (debug) Log.d(TAG, "HIT: Class loaded injection class.");
     } catch (ClassNotFoundException e) {
+      if (debug) Log.d(TAG, "Not found. Trying superclass " + cls.getSuperclass().getName());
       inject = findResettersForClass(cls.getSuperclass());
     }
     RESETTERS.put(cls, inject);

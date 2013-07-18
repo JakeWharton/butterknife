@@ -1,6 +1,12 @@
 Change Log
 ==========
 
+Version 2.0.1 *(2013-07-18)*
+----------------------------
+
+ * New: Control debug logging via `Views.setDebug`.
+
+
 Version 2.0.0 *(2013-07-16)*
 ----------------------------
 
