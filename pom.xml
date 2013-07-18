@@ -55,11 +55,6 @@
     </license>
   </licenses>
 
-  <organization>
-    <name>Square, Inc.</name>
-    <url>http://squareup.com</url>
-  </organization>
-
   <dependencyManagement>
     <dependencies>
       <dependency>
