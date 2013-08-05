@@ -2,6 +2,7 @@ package butterknife.internal;
 
 import butterknife.InjectView;
 import butterknife.OnClick;
+import butterknife.Optional;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Collection;
@@ -117,9 +118,10 @@ public class InjectViewProcessor extends AbstractProcessor {
       String name = element.getSimpleName().toString();
       int id = element.getAnnotation(InjectView.class).value();
       String type = element.asType().toString();
+      boolean required = element.getAnnotation(Optional.class) == null;
 
       TargetClass targetClass = getOrCreateTargetClass(targetClassMap, enclosingElement);
-      targetClass.addField(id, name, type);
+      targetClass.addField(id, name, type, required);
 
       // Add the type-erased version to the valid injection targets set.
       TypeMirror erasedTargetType = typeUtils.erasure(enclosingElement.asType());
@@ -187,6 +189,7 @@ public class InjectViewProcessor extends AbstractProcessor {
       // Assemble information on the injection point.
       String name = executableElement.getSimpleName().toString();
       int[] ids = element.getAnnotation(OnClick.class).value();
+      boolean required = element.getAnnotation(Optional.class) == null;
 
       TargetClass targetClass = getOrCreateTargetClass(targetClassMap, enclosingElement);
 
@@ -197,7 +200,7 @@ public class InjectViewProcessor extends AbstractProcessor {
           error(element, "@OnClick annotation for method %s contains duplicate ID %s.", element,
               id);
           bad = true;
-        } else if (!targetClass.addMethod(id, name, type)) {
+        } else if (!targetClass.addMethod(id, name, type, required)) {
           error(element, "Multiple @OnClick methods declared for ID %s in %s.", id,
               enclosingElement.getQualifiedName());
           bad = true;
