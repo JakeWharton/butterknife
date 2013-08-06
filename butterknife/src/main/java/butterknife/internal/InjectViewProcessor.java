@@ -83,136 +83,22 @@ public class InjectViewProcessor extends AbstractProcessor {
     Map<TypeElement, TargetClass> targetClassMap = new LinkedHashMap<TypeElement, TargetClass>();
     Set<TypeMirror> erasedTargetTypes = new LinkedHashSet<TypeMirror>();
 
+    // Process each @InjectView elements.
     for (Element element : env.getElementsAnnotatedWith(InjectView.class)) {
-      TypeElement enclosingElement = (TypeElement) element.getEnclosingElement();
-
-      // Verify that the target type extends from View.
-      if (!typeUtils.isSubtype(element.asType(), viewType)) {
-        error(element, "@InjectView fields must extend from View (%s.%s).",
-            enclosingElement.getQualifiedName(), element);
-        continue;
+      try {
+        parseInjectView(element, targetClassMap, erasedTargetTypes);
+      } catch (Exception e) {
+        error(element, "Unable to parse @InjectView: %s", e.getMessage());
       }
-
-      // Verify field modifiers.
-      Set<Modifier> modifiers = element.getModifiers();
-      if (modifiers.contains(PRIVATE) || modifiers.contains(STATIC)) {
-        error(element, "@InjectView fields must not be private or static (%s.%s).",
-            enclosingElement.getQualifiedName(), element);
-        continue;
-      }
-
-      // Verify containing type.
-      if (enclosingElement.getKind() != CLASS) {
-        error(element, "@InjectView field annotations may only be specified in classes (%s).",
-            enclosingElement);
-        continue;
-      }
-
-      // Verify containing class visibility is not private.
-      if (enclosingElement.getModifiers().contains(PRIVATE)) {
-        error(element, "@InjectView fields may not be on private classes (%s).", enclosingElement);
-        continue;
-      }
-
-      // Assemble information on the injection point.
-      String name = element.getSimpleName().toString();
-      int id = element.getAnnotation(InjectView.class).value();
-      String type = element.asType().toString();
-      boolean required = element.getAnnotation(Optional.class) == null;
-
-      TargetClass targetClass = getOrCreateTargetClass(targetClassMap, enclosingElement);
-      targetClass.addField(id, name, type, required);
-
-      // Add the type-erased version to the valid injection targets set.
-      TypeMirror erasedTargetType = typeUtils.erasure(enclosingElement.asType());
-      erasedTargetTypes.add(erasedTargetType);
     }
 
+    // Process each @OnClick elements.
     for (Element element : env.getElementsAnnotatedWith(OnClick.class)) {
-      if (!(element instanceof ExecutableElement)) {
-        error(element, "@OnClick annotation must be on a method.");
-        continue;
+      try {
+        parseOnClick(element, targetClassMap, erasedTargetTypes);
+      } catch (Exception e) {
+        error(element, "Unable to parse @OnClick: %s", e.getMessage());
       }
-
-      ExecutableElement executableElement = (ExecutableElement) element;
-      TypeElement enclosingElement = (TypeElement) element.getEnclosingElement();
-
-      // Verify method modifiers.
-      Set<Modifier> modifiers = element.getModifiers();
-      if (modifiers.contains(PRIVATE) || modifiers.contains(STATIC)) {
-        error(element, "@OnClick methods must not be private or static (%s.%s).",
-            enclosingElement.getQualifiedName(), element);
-        continue;
-      }
-
-      // Verify containing type.
-      if (enclosingElement.getKind() != CLASS) {
-        error(element, "@OnClick method annotations may only be specified in classes (%s).",
-            enclosingElement);
-        continue;
-      }
-
-      // Verify containing class visibility is not private.
-      if (enclosingElement.getModifiers().contains(PRIVATE)) {
-        error(element, "@OnClick methods may not be on private classes (%s).", enclosingElement);
-        continue;
-      }
-
-      // Verify method return type.
-      if (executableElement.getReturnType().getKind() != TypeKind.VOID) {
-        error(element, "@OnClick methods must have a 'void' return type (%s.%s).",
-            enclosingElement.getQualifiedName(), element);
-        continue;
-      }
-
-      String type = null;
-      List<? extends VariableElement> parameters = executableElement.getParameters();
-      if (!parameters.isEmpty()) {
-        // Verify that there is only a single parameter.
-        if (parameters.size() != 1) {
-          error(element,
-              "@OnClick methods may only have one parameter which is View (or subclass) (%s.%s).",
-              enclosingElement.getQualifiedName(), element);
-          continue;
-        }
-        // Verify that the parameter type extends from View.
-        VariableElement variableElement = parameters.get(0);
-        if (!typeUtils.isSubtype(variableElement.asType(), viewType)) {
-          error(element, "@OnClick method parameter must extend from View (%s.%s).",
-              enclosingElement.getQualifiedName(), element);
-          continue;
-        }
-
-        type = variableElement.asType().toString();
-      }
-
-      // Assemble information on the injection point.
-      String name = executableElement.getSimpleName().toString();
-      int[] ids = element.getAnnotation(OnClick.class).value();
-      boolean required = element.getAnnotation(Optional.class) == null;
-
-      TargetClass targetClass = getOrCreateTargetClass(targetClassMap, enclosingElement);
-
-      boolean bad = false;
-      Set<Integer> seenIds = new LinkedHashSet<Integer>();
-      for (int id : ids) {
-        if (!seenIds.add(id)) {
-          error(element, "@OnClick annotation for method %s contains duplicate ID %s.", element,
-              id);
-          bad = true;
-        } else if (!targetClass.addMethod(id, name, type, required)) {
-          error(element, "Multiple @OnClick methods declared for ID %s in %s.", id,
-              enclosingElement.getQualifiedName());
-          bad = true;
-        }
-      }
-      if (bad) {
-        continue;
-      }
-
-      // Add the type-erased version to the valid injection targets set.
-      TypeMirror erasedTargetType = typeUtils.erasure(enclosingElement.asType());
-      erasedTargetTypes.add(erasedTargetType);
     }
 
     // Try to find a parent injector for each injector.
@@ -224,6 +110,136 @@ public class InjectViewProcessor extends AbstractProcessor {
     }
 
     return targetClassMap;
+  }
+
+  private void parseInjectView(Element element, Map<TypeElement, TargetClass> targetClassMap,
+      Set<TypeMirror> erasedTargetTypes) {
+    TypeElement enclosingElement = (TypeElement) element.getEnclosingElement();
+
+    // Verify that the target type extends from View.
+    if (!typeUtils.isSubtype(element.asType(), viewType)) {
+      error(element, "@InjectView fields must extend from View (%s.%s).",
+          enclosingElement.getQualifiedName(), element);
+      return;
+    }
+
+    // Verify field modifiers.
+    Set<Modifier> modifiers = element.getModifiers();
+    if (modifiers.contains(PRIVATE) || modifiers.contains(STATIC)) {
+      error(element, "@InjectView fields must not be private or static (%s.%s).",
+          enclosingElement.getQualifiedName(), element);
+      return;
+    }
+
+    // Verify containing type.
+    if (enclosingElement.getKind() != CLASS) {
+      error(element, "@InjectView field annotations may only be specified in classes (%s).",
+          enclosingElement);
+      return;
+    }
+
+    // Verify containing class visibility is not private.
+    if (enclosingElement.getModifiers().contains(PRIVATE)) {
+      error(element, "@InjectView fields may not be on private classes (%s).", enclosingElement);
+      return;
+    }
+
+    // Assemble information on the injection point.
+    String name = element.getSimpleName().toString();
+    int id = element.getAnnotation(InjectView.class).value();
+    String type = element.asType().toString();
+    boolean required = element.getAnnotation(Optional.class) == null;
+
+    TargetClass targetClass = getOrCreateTargetClass(targetClassMap, enclosingElement);
+    targetClass.addField(id, name, type, required);
+
+    // Add the type-erased version to the valid injection targets set.
+    TypeMirror erasedTargetType = typeUtils.erasure(enclosingElement.asType());
+    erasedTargetTypes.add(erasedTargetType);
+  }
+
+  private void parseOnClick(Element element, Map<TypeElement, TargetClass> targetClassMap,
+      Set<TypeMirror> erasedTargetTypes) {
+    if (!(element instanceof ExecutableElement)) {
+      error(element, "@OnClick annotation must be on a method.");
+      return;
+    }
+
+    ExecutableElement executableElement = (ExecutableElement) element;
+    TypeElement enclosingElement = (TypeElement) element.getEnclosingElement();
+
+    // Verify method modifiers.
+    Set<Modifier> modifiers = element.getModifiers();
+    if (modifiers.contains(PRIVATE) || modifiers.contains(STATIC)) {
+      error(element, "@OnClick methods must not be private or static (%s.%s).",
+          enclosingElement.getQualifiedName(), element);
+      return;
+    }
+
+    // Verify containing type.
+    if (enclosingElement.getKind() != CLASS) {
+      error(element, "@OnClick method annotations may only be specified in classes (%s).",
+          enclosingElement);
+      return;
+    }
+
+    // Verify containing class visibility is not private.
+    if (enclosingElement.getModifiers().contains(PRIVATE)) {
+      error(element, "@OnClick methods may not be on private classes (%s).", enclosingElement);
+      return;
+    }
+
+    // Verify method return type.
+    if (executableElement.getReturnType().getKind() != TypeKind.VOID) {
+      error(element, "@OnClick methods must have a 'void' return type (%s.%s).",
+          enclosingElement.getQualifiedName(), element);
+      return;
+    }
+
+    String type = null;
+    List<? extends VariableElement> parameters = executableElement.getParameters();
+    if (!parameters.isEmpty()) {
+      // Verify that there is only a single parameter.
+      if (parameters.size() != 1) {
+        error(element,
+            "@OnClick methods may only have one parameter which is View (or subclass) (%s.%s).",
+            enclosingElement.getQualifiedName(), element);
+        return;
+      }
+      // Verify that the parameter type extends from View.
+      VariableElement variableElement = parameters.get(0);
+      if (!typeUtils.isSubtype(variableElement.asType(), viewType)) {
+        error(element, "@OnClick method parameter must extend from View (%s.%s).",
+            enclosingElement.getQualifiedName(), element);
+        return;
+      }
+
+      type = variableElement.asType().toString();
+    }
+
+    // Assemble information on the injection point.
+    String name = executableElement.getSimpleName().toString();
+    int[] ids = element.getAnnotation(OnClick.class).value();
+    boolean required = element.getAnnotation(Optional.class) == null;
+
+    TargetClass targetClass = getOrCreateTargetClass(targetClassMap, enclosingElement);
+
+    Set<Integer> seenIds = new LinkedHashSet<Integer>();
+    for (int id : ids) {
+      if (!seenIds.add(id)) {
+        error(element, "@OnClick annotation for method %s contains duplicate ID %s.", element,
+            id);
+        return;
+      } else if (!targetClass.addMethod(id, name, type, required)) {
+        error(element, "Multiple @OnClick methods declared for ID %s in %s.", id,
+            enclosingElement.getQualifiedName());
+        return;
+      }
+    }
+
+    // Add the type-erased version to the valid injection targets set.
+    TypeMirror erasedTargetType = typeUtils.erasure(enclosingElement.asType());
+    erasedTargetTypes.add(erasedTargetType);
   }
 
   private TargetClass getOrCreateTargetClass(Map<TypeElement, TargetClass> targetClassMap,
