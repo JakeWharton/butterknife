@@ -45,16 +45,12 @@ public class InjectViewProcessor extends AbstractProcessor {
   private Types typeUtils;
   private Filer filer;
 
-  private TypeMirror viewType;
-
   @Override public synchronized void init(ProcessingEnvironment env) {
     super.init(env);
 
     elementUtils = env.getElementUtils();
     typeUtils = env.getTypeUtils();
     filer = env.getFiler();
-
-    viewType = elementUtils.getTypeElement("android.view.View").asType();
   }
 
   @Override public boolean process(Set<? extends TypeElement> elements, RoundEnvironment env) {
@@ -117,7 +113,7 @@ public class InjectViewProcessor extends AbstractProcessor {
     TypeElement enclosingElement = (TypeElement) element.getEnclosingElement();
 
     // Verify that the target type extends from View.
-    if (!typeUtils.isSubtype(element.asType(), viewType)) {
+    if (!isSubtypeOfView(element.asType())) {
       error(element, "@InjectView fields must extend from View (%s.%s).",
           enclosingElement.getQualifiedName(), element);
       return;
@@ -208,7 +204,7 @@ public class InjectViewProcessor extends AbstractProcessor {
       }
       // Verify that the parameter type extends from View.
       VariableElement variableElement = parameters.get(0);
-      if (!typeUtils.isSubtype(variableElement.asType(), viewType)) {
+      if (!isSubtypeOfView(variableElement.asType())) {
         error(element, "@OnClick method parameter must extend from View (%s.%s).",
             enclosingElement.getQualifiedName(), element);
         return;
@@ -240,6 +236,24 @@ public class InjectViewProcessor extends AbstractProcessor {
     // Add the type-erased version to the valid injection targets set.
     TypeMirror erasedTargetType = typeUtils.erasure(enclosingElement.asType());
     erasedTargetTypes.add(erasedTargetType);
+  }
+
+  private boolean isSubtypeOfView(TypeMirror typeMirror) {
+    if (!(typeMirror instanceof DeclaredType)) {
+      return false;
+    }
+    DeclaredType declaredType = (DeclaredType) typeMirror;
+    if ("android.view.View".equals(declaredType.toString())) {
+      return true;
+    } else {
+      Element element = declaredType.asElement();
+      if (!(element instanceof TypeElement)) {
+        return false;
+      }
+      TypeElement typeElement = (TypeElement) element;
+      TypeMirror superType = typeElement.getSuperclass();
+      return isSubtypeOfView(superType);
+    }
   }
 
   private TargetClass getOrCreateTargetClass(Map<TypeElement, TargetClass> targetClassMap,
