@@ -1,6 +1,13 @@
 Change Log
 ==========
 
+Version 3.0.0 *(In Development)*
+--------------------------------
+
+ * New: Injections are now required. An exception will be thrown if a view is
+   not found. Add `@Optional` annotation to suppress this verification.
+
+
 Version 2.0.1 *(2013-07-18)*
 ----------------------------
 
