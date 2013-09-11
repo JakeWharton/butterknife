@@ -161,6 +161,15 @@ public void pickDoor(DoorView door) {
   }
 }</pre>
 
+            <h4 id="optional">Optional Injections</h4>
+            <p>By default, both <code>@InjectView</code> and <code>@OnClick</code> injections are required. An exception will be thrown if the target view cannot be found.</p>
+            <p>To suppress this behavior and create an optional injection, add the <code>@Optional</code> annotation to the field or method.</p>
+            <pre class="prettyprint">@Optional @InjectView(R.id.might_not_be_there) TextView mightNotBeThere;
+
+@Optional @OnClick(R.id.maybe_missing) void onMaybeMissingClicked() {
+  // TODO ...
+}</pre>
+
             <h4 id="bonus">Bonus</h4>
             <p>Also included are two <code>findById</code> methods which simplify code that still has to find views on a <code>View</code> or <code>Activity</code>. It uses generics to infer the return type and automatically performs the cast.</p>
             <pre class="prettyprint">View view = LayoutInflater.from(context).inflate(R.layout.thing, null);
