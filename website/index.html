@@ -144,9 +144,10 @@ public void pickDoor(DoorView door) {
 }</pre>
             <h4 id="long-click-injection">Long Click Listener Injection</h4>
             <p>Long click listeners can also automatically be configured onto methods.</p>
-            <pre class="prettyprint">@OnLongClick(R.id.image)
-public void showImageMenu() {
-  // TODO display image menu...
+            <pre class="prettyprint">@OnLongClick(R.id.avatar)
+public boolean showAvatarMenu() {
+  // TODO display avatar menu...
+  return true;
 }</pre>
             <p>You can add the view as an argument to the method. Define a specific type and it will automatically be cast.</p>
             <p>Note: Methods implementing @OnLongClick are required to return a boolean. If the callback consumes the long click then it should return true, otherwise false. See <a href="http://developer.android.com/reference/android/view/View.OnLongClickListener.html#onLongClick(android.view.View)" target="_blank">View.OnLongClickListener</a> for details.</p>
