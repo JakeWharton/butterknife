@@ -8,6 +8,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import butterknife.InjectView;
 import butterknife.OnClick;
+import butterknife.OnLongClick;
 import butterknife.Views;
 
 import static android.widget.Toast.LENGTH_SHORT;
@@ -21,6 +22,11 @@ public class SimpleActivity extends Activity {
 
   @OnClick(R.id.hello) void sayHello() {
     Toast.makeText(SimpleActivity.this, "Hello, views!", LENGTH_SHORT).show();
+  }
+
+  @OnLongClick(R.id.hello) boolean sayOhHai() {
+	  Toast.makeText(SimpleActivity.this, "Oh Hai, views!", LENGTH_SHORT).show();
+	  return true;
   }
 
   @Override protected void onCreate(Bundle savedInstanceState) {
