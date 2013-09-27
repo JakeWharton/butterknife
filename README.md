@@ -15,7 +15,7 @@ class ExampleActivity extends Activity {
     // TODO call server...
   }
 
-  @OnClick(R.id.avatar) boolean showAvatarMenu() {
+  @OnLongClick(R.id.avatar) boolean showAvatarMenu() {
     // TODO show avatar menu
     return true;
   }
