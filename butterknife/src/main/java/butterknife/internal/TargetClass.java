@@ -5,6 +5,8 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
+import static butterknife.internal.InjectViewProcessor.VIEW_TYPE;
+
 class TargetClass {
   private final Map<Integer, ViewId> viewIdMap = new LinkedHashMap<Integer, ViewId>();
   private final String classPackage;
@@ -80,9 +82,16 @@ class TargetClass {
         }
         builder.append("    target.")
             .append(fieldInjection.name)
-            .append(" = (")
+            .append(" = ");
+
+        // Only emit a cast if the type is not View.
+        if (!VIEW_TYPE.equals(fieldInjection.type)) {
+          builder.append("(")
             .append(fieldInjection.type)
-            .append(") view;\n");
+            .append(") ");
+        }
+
+        builder.append("view;\n");
       }
       MethodInjection method = viewId.method;
       if (method != null) {

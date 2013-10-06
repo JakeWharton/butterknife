@@ -39,6 +39,7 @@ import static javax.tools.Diagnostic.Kind.ERROR;
     "butterknife.OnClick" //
 })
 public class InjectViewProcessor extends AbstractProcessor {
+  static final String VIEW_TYPE = "android.view.View";
   public static final String SUFFIX = "$$ViewInjector";
 
   private Elements elementUtils;
@@ -243,7 +244,7 @@ public class InjectViewProcessor extends AbstractProcessor {
       return false;
     }
     DeclaredType declaredType = (DeclaredType) typeMirror;
-    if ("android.view.View".equals(declaredType.toString())) {
+    if (VIEW_TYPE.equals(declaredType.toString())) {
       return true;
     } else {
       Element element = declaredType.asElement();
