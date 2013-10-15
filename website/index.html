@@ -142,6 +142,30 @@ public void pickDoor(DoorView door) {
     Toast.makeText(this, "Try again", LENGTH_SHORT).show();
   }
 }</pre>
+            <h4 id="long-click-injection">Long Click Listener Injection</h4>
+            <p>Long click listeners can also automatically be configured onto methods.</p>
+            <pre class="prettyprint">@OnLongClick(R.id.avatar)
+public boolean showAvatarMenu() {
+  // TODO display avatar menu...
+  return true;
+}</pre>
+            <p>You can add the view as an argument to the method. Define a specific type and it will automatically be cast.</p>
+            <p>Note: Methods implementing @OnLongClick are required to return a boolean. If the callback consumes the long click then it should return true, otherwise false. See <a href="http://developer.android.com/reference/android/view/View.OnLongClickListener.html#onLongClick(android.view.View)" target="_blank">View.OnLongClickListener</a> for details.</p>
+            <pre class="prettyprint">@OnLongClick(R.id.image)
+public boolean hideImageButton(ImageButton imageButton) {
+  imageButton.setVisibility(View.GONE);
+  return true;
+}</pre>
+            <p>Specify multiple IDs in a single binding for common event handling.</p>
+            <pre class="prettyprint">@OnLongClick({ R.id.door1, R.id.door2, R.id.door3 })
+public boolean knockOnDoor(DoorView door) {
+  if (door.hasWalterWhite()) {
+    Toast.makeText(this, "I'm the one who knocks!", LENGTH_SHORT).show();
+  } else {
+    Toast.makeText(this, "Try again", LENGTH_SHORT).show();
+  }
+  return true;
+}</pre>
 
             <h4 id="reset">Injection Reset</h4>
             <p>Fragments have a different view lifecycle than activities. When injecting a fragment in <code>onCreateView</code>, set the views to <code>null</code> in <code>onDestroyView</code>. Butter Knife has a <code>reset</code> method to do this automatically.</p>

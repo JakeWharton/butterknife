@@ -15,6 +15,11 @@ class ExampleActivity extends Activity {
     // TODO call server...
   }
 
+  @OnLongClick(R.id.avatar) boolean showAvatarMenu() {
+    // TODO show avatar menu
+    return true;
+  }
+
   @Override public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.simple_activity);

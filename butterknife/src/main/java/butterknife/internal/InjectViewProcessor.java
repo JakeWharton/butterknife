@@ -2,32 +2,21 @@ package butterknife.internal;
 
 import butterknife.InjectView;
 import butterknife.OnClick;
+import butterknife.OnLongClick;
 import butterknife.Optional;
-import java.io.IOException;
-import java.io.Writer;
-import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import javax.annotation.processing.AbstractProcessor;
-import javax.annotation.processing.Filer;
-import javax.annotation.processing.ProcessingEnvironment;
-import javax.annotation.processing.RoundEnvironment;
-import javax.annotation.processing.SupportedAnnotationTypes;
+
+import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
-import javax.lang.model.element.Element;
-import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.element.Modifier;
-import javax.lang.model.element.TypeElement;
-import javax.lang.model.element.VariableElement;
+import javax.lang.model.element.*;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 import javax.tools.JavaFileObject;
+import java.io.IOException;
+import java.io.Writer;
+import java.util.*;
 
 import static javax.lang.model.element.ElementKind.CLASS;
 import static javax.lang.model.element.Modifier.PRIVATE;
@@ -36,7 +25,8 @@ import static javax.tools.Diagnostic.Kind.ERROR;
 
 @SupportedAnnotationTypes({ //
     "butterknife.InjectView", //
-    "butterknife.OnClick" //
+    "butterknife.OnClick", //
+	"butterknife.OnLongClick", //
 })
 public class InjectViewProcessor extends AbstractProcessor {
   static final String VIEW_TYPE = "android.view.View";
@@ -97,6 +87,15 @@ public class InjectViewProcessor extends AbstractProcessor {
         error(element, "Unable to parse @OnClick: %s", e.getMessage());
       }
     }
+
+	// Process each @OnLongClick elements.
+	for (Element element : env.getElementsAnnotatedWith(OnLongClick.class)) {
+		try {
+			parseOnLongClick(element, targetClassMap, erasedTargetTypes);
+		} catch (Exception e) {
+			error(element, "Unable to parse @OnLongClick %s", e.getMessage());
+		}
+	}
 
     // Try to find a parent injector for each injector.
     for (Map.Entry<TypeElement, TargetClass> entry : targetClassMap.entrySet()) {
@@ -227,8 +226,92 @@ public class InjectViewProcessor extends AbstractProcessor {
         error(element, "@OnClick annotation for method %s contains duplicate ID %s.", element,
             id);
         return;
-      } else if (!targetClass.addMethod(id, name, type, required)) {
+      } else if (!targetClass.addMethod(id, name, type, required, MethodInjectionType.OnClick)) {
         error(element, "Multiple @OnClick methods declared for ID %s in %s.", id,
+            enclosingElement.getQualifiedName());
+        return;
+      }
+    }
+
+    // Add the type-erased version to the valid injection targets set.
+    TypeMirror erasedTargetType = typeUtils.erasure(enclosingElement.asType());
+    erasedTargetTypes.add(erasedTargetType);
+  }
+
+  private void parseOnLongClick(Element element, Map<TypeElement, TargetClass> targetClassMap,
+      Set<TypeMirror> erasedTargetTypes) {
+    if (!(element instanceof ExecutableElement)) {
+      error(element, "@OnLongClick annotation must be on a method.");
+      return;
+    }
+
+    ExecutableElement executableElement = (ExecutableElement) element;
+    TypeElement enclosingElement = (TypeElement) element.getEnclosingElement();
+
+    // Verify method modifiers.
+    Set<Modifier> modifiers = element.getModifiers();
+    if (modifiers.contains(PRIVATE) || modifiers.contains(STATIC)) {
+      error(element, "@OnLongClick methods must not be private or static (%s.%s).",
+          enclosingElement.getQualifiedName(), element);
+      return;
+    }
+
+    // Verify containing type.
+    if (enclosingElement.getKind() != CLASS) {
+      error(element, "@OnLongClick method annotations may only be specified in classes (%s).",
+          enclosingElement);
+      return;
+    }
+
+    // Verify containing class visibility is not private.
+    if (enclosingElement.getModifiers().contains(PRIVATE)) {
+      error(element, "@OnLongClick methods may not be on private classes (%s).", enclosingElement);
+      return;
+    }
+
+    // Verify method return type.
+    if (executableElement.getReturnType().getKind() != TypeKind.BOOLEAN) {
+      error(element, "@OnLongClick methods must have a 'boolean' return type (%s.%s).",
+          enclosingElement.getQualifiedName(), element);
+      return;
+    }
+
+    String type = null;
+    List<? extends VariableElement> parameters = executableElement.getParameters();
+    if (!parameters.isEmpty()) {
+      // Verify that there is only a single parameter.
+      if (parameters.size() != 1) {
+        error(element,
+            "@OnLongClick methods may only have one parameter which is View (or subclass) (%s.%s).",
+            enclosingElement.getQualifiedName(), element);
+        return;
+      }
+      // Verify that the parameter type extends from View.
+      VariableElement variableElement = parameters.get(0);
+      if (!isSubtypeOfView(variableElement.asType())) {
+        error(element, "@OnLongClick method parameter must extend from View (%s.%s).",
+            enclosingElement.getQualifiedName(), element);
+        return;
+      }
+
+      type = variableElement.asType().toString();
+    }
+
+    // Assemble information on the injection point.
+    String name = executableElement.getSimpleName().toString();
+    int[] ids = element.getAnnotation(OnLongClick.class).value();
+    boolean required = element.getAnnotation(Optional.class) == null;
+
+    TargetClass targetClass = getOrCreateTargetClass(targetClassMap, enclosingElement);
+
+    Set<Integer> seenIds = new LinkedHashSet<Integer>();
+    for (int id : ids) {
+      if (!seenIds.add(id)) {
+        error(element, "@OnLongClick annotation for method %s contains duplicate ID %s.", element,
+            id);
+        return;
+      } else if (!targetClass.addMethod(id, name, type, required, MethodInjectionType.OnLongClick)) {
+        error(element, "Multiple @OnLongClick methods declared for ID %s in %s.", id,
             enclosingElement.getQualifiedName());
         return;
       }
