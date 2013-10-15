@@ -88,7 +88,7 @@
 }</pre>
             <p>Another use is simplifying the view holder pattern inside of a list adapter.</p>
             <pre class="prettyprint">public class MyAdapter extends BaseAdapter {
-  @Override public void getView(int position, View view, ViewGroup parent) {
+  @Override public View getView(int position, View view, ViewGroup parent) {
     ViewHolder holder;
     if (view != null) {
       holder = (ViewHolder) view.getTag();
