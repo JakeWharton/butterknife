@@ -34,6 +34,7 @@
     <junit.version>4.10</junit.version>
     <robolectric.version>2.1</robolectric.version>
     <fest.android.version>1.0.4</fest.android.version>
+    <compile-test.version>0.3</compile-test.version>
   </properties>
 
   <scm>
@@ -81,6 +82,11 @@
         <groupId>org.robolectric</groupId>
         <artifactId>robolectric</artifactId>
         <version>${robolectric.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.google.testing.compile</groupId>
+        <artifactId>compile-testing</artifactId>
+        <version>${compile-test.version}</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
