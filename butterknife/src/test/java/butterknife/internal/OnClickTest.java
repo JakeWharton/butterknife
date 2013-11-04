@@ -12,11 +12,9 @@ import static com.google.testing.compile.JavaSourceSubjectFactory.javaSource;
 import static org.truth0.Truth.ASSERT;
 
 public class OnClickTest {
-
-  @Test
-  public void onClickInjection() {
+  @Test public void onClickInjection() {
     // NOTE: needs to be in non-default package, otherwise got ".est$$ViewInjector.java"
-    final JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
+    JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
         "package test;",
         "import android.app.Activity;",
         "import butterknife.OnClick;",
@@ -32,9 +30,8 @@ public class OnClickTest {
     // TODO: confirm generated source (should expect test.Test$$ViewInjector.java)
   }
 
-  @Test
-  public void onClickInjectionFailsIfHasReturnType() {
-    final JavaFileObject source = JavaFileObjects.forSourceString("test.Test",
+  @Test public void onClickInjectionFailsIfHasReturnType() {
+    JavaFileObject source = JavaFileObjects.forSourceString("test.Test",
         Joiner.on('\n').join(
             "package test;",
             "import android.app.Activity;",
@@ -55,9 +52,8 @@ public class OnClickTest {
         .in(source).onLine(7);
   }
 
-  @Test
-  public void onClickInjectionFailsIfPrivate() {
-    final JavaFileObject source = JavaFileObjects.forSourceString("test.Test",
+  @Test public void onClickInjectionFailsIfPrivate() {
+    JavaFileObject source = JavaFileObjects.forSourceString("test.Test",
         Joiner.on('\n').join(
             "package test;",
             "import android.app.Activity;",
@@ -77,9 +73,8 @@ public class OnClickTest {
         .in(source).onLine(6);
   }
 
-  @Test
-  public void onClickInjectionFailsIfStatic() {
-    final JavaFileObject source = JavaFileObjects.forSourceString("test.Test",
+  @Test public void onClickInjectionFailsIfStatic() {
+    JavaFileObject source = JavaFileObjects.forSourceString("test.Test",
         Joiner.on('\n').join(
             "package test;",
             "import android.app.Activity;",
@@ -99,9 +94,8 @@ public class OnClickTest {
         .in(source).onLine(6);
   }
 
-  @Test
-  public void onClickInjectionFailsIfParameterNotView() {
-    final JavaFileObject source = JavaFileObjects.forSourceString("test.Test",
+  @Test public void onClickInjectionFailsIfParameterNotView() {
+    JavaFileObject source = JavaFileObjects.forSourceString("test.Test",
         Joiner.on('\n').join(
             "package test;",
             "import android.app.Activity;",
@@ -121,9 +115,8 @@ public class OnClickTest {
         .in(source).onLine(6);
   }
 
-  @Test
-  public void onClickInjectionFailsIfInInterface() {
-    final JavaFileObject source = JavaFileObjects.forSourceString("test.Test",
+  @Test public void onClickInjectionFailsIfInInterface() {
+    JavaFileObject source = JavaFileObjects.forSourceString("test.Test",
         Joiner.on('\n').join(
             "package test;",
             "import butterknife.OnClick;",
@@ -142,9 +135,8 @@ public class OnClickTest {
         .in(source).onLine(5);
   }
 
-  @Test
-  public void onClickInjectionFailsIfHasDuplicateIds() {
-    final JavaFileObject source = JavaFileObjects.forSourceString("test.Test",
+  @Test public void onClickInjectionFailsIfHasDuplicateIds() {
+    JavaFileObject source = JavaFileObjects.forSourceString("test.Test",
         Joiner.on('\n').join(
             "package test;",
             "import android.app.Activity;",

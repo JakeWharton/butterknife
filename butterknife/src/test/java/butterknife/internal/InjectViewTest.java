@@ -12,10 +12,8 @@ import static com.google.testing.compile.JavaSourceSubjectFactory.javaSource;
 import static org.truth0.Truth.ASSERT;
 
 public class InjectViewTest {
-
-  @Test
-  public void injectingView() {
-    final JavaFileObject source = JavaFileObjects.forSourceString("test.Test",
+  @Test public void injectingView() {
+    JavaFileObject source = JavaFileObjects.forSourceString("test.Test",
         Joiner.on('\n').join(
             "package test;",
             "import android.app.Activity;",
@@ -31,9 +29,8 @@ public class InjectViewTest {
     // TODO: confirm generated source (should expect test.Test$$ViewInjector.java)
   }
 
-  @Test
-  public void injectingViewFailsIfInPrivateClass() {
-    final JavaFileObject source = JavaFileObjects.forSourceString("test.Test",
+  @Test public void injectingViewFailsIfInPrivateClass() {
+    JavaFileObject source = JavaFileObjects.forSourceString("test.Test",
         Joiner.on('\n').join(
             "package test;",
             "import android.view.View;",
@@ -53,9 +50,8 @@ public class InjectViewTest {
         .in(source).onLine(6);
   }
 
-  @Test
-  public void injectViewFailsIfNotView() {
-    final JavaFileObject source = JavaFileObjects.forSourceString("test.Test",
+  @Test public void injectViewFailsIfNotView() {
+    JavaFileObject source = JavaFileObjects.forSourceString("test.Test",
         Joiner.on('\n').join(
             "package test;",
             "import android.app.Activity;",
@@ -73,9 +69,8 @@ public class InjectViewTest {
         .in(source).onLine(5);
   }
 
-  @Test
-  public void injectViewFailsIfInInterface() {
-    final JavaFileObject source = JavaFileObjects.forSourceString("test.Test",
+  @Test public void injectViewFailsIfInInterface() {
+    JavaFileObject source = JavaFileObjects.forSourceString("test.Test",
         Joiner.on('\n').join(
             "package test;",
             "import android.view.View;",
@@ -94,9 +89,8 @@ public class InjectViewTest {
         .in(source).onLine(5);
   }
 
-  @Test
-  public void injectingViewFailsIfPrivate() {
-    final JavaFileObject source = JavaFileObjects.forSourceString("test.Test",
+  @Test public void injectingViewFailsIfPrivate() {
+    JavaFileObject source = JavaFileObjects.forSourceString("test.Test",
         Joiner.on('\n').join(
             "package test;",
             "import android.app.Activity;",
@@ -115,9 +109,8 @@ public class InjectViewTest {
         .in(source).onLine(6);
   }
 
-  @Test
-  public void injectingViewFailsIfStatic() {
-    final JavaFileObject source = JavaFileObjects.forSourceString("test.Test",
+  @Test public void injectingViewFailsIfStatic() {
+    JavaFileObject source = JavaFileObjects.forSourceString("test.Test",
         Joiner.on('\n').join(
             "package test;",
             "import android.app.Activity;",

@@ -4,12 +4,7 @@ import java.util.Arrays;
 
 import javax.annotation.processing.Processor;
 
-/**
- * Test utilities.
- */
-/* package */class ProcessorTestUtilities {
-
-  /* package */
+final class ProcessorTestUtilities {
   static Iterable<? extends Processor> butterknifeProcessors() {
     return Arrays.asList(
         new InjectViewProcessor()
