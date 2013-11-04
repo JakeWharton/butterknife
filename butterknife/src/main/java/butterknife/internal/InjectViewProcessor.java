@@ -1,8 +1,5 @@
 package butterknife.internal;
 
-import butterknife.InjectView;
-import butterknife.OnClick;
-import butterknife.Optional;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Collection;
@@ -11,6 +8,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.Filer;
 import javax.annotation.processing.ProcessingEnvironment;
@@ -28,6 +26,10 @@ import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 import javax.tools.JavaFileObject;
+
+import butterknife.InjectView;
+import butterknife.OnClick;
+import butterknife.Optional;
 
 import static javax.lang.model.element.ElementKind.CLASS;
 import static javax.lang.model.element.Modifier.PRIVATE;
@@ -120,18 +122,18 @@ public class InjectViewProcessor extends AbstractProcessor {
       return;
     }
 
+    // Verify containing type.
+    if (enclosingElement.getKind() != CLASS) {
+      error(element, "@InjectView field annotations may only be specified in classes (%s).",
+          enclosingElement);
+      return;
+    }
+
     // Verify field modifiers.
     Set<Modifier> modifiers = element.getModifiers();
     if (modifiers.contains(PRIVATE) || modifiers.contains(STATIC)) {
       error(element, "@InjectView fields must not be private or static (%s.%s).",
           enclosingElement.getQualifiedName(), element);
-      return;
-    }
-
-    // Verify containing type.
-    if (enclosingElement.getKind() != CLASS) {
-      error(element, "@InjectView field annotations may only be specified in classes (%s).",
-          enclosingElement);
       return;
     }
 
@@ -224,7 +226,7 @@ public class InjectViewProcessor extends AbstractProcessor {
     Set<Integer> seenIds = new LinkedHashSet<Integer>();
     for (int id : ids) {
       if (!seenIds.add(id)) {
-        error(element, "@OnClick annotation for method %s contains duplicate ID %s.", element,
+        error(element, "@OnClick annotation for method %s contains duplicate ID %d.", element,
             id);
         return;
       } else if (!targetClass.addMethod(id, name, type, required)) {
