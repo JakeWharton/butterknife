@@ -32,9 +32,9 @@
     <android.version>4.1.1.4</android.version>
     <android.platform>16</android.platform>
     <junit.version>4.10</junit.version>
-    <robolectric.version>2.1</robolectric.version>
-    <fest.android.version>1.0.4</fest.android.version>
-    <compile-test.version>0.3</compile-test.version>
+    <robolectric.version>2.2</robolectric.version>
+    <fest.android.version>1.0.7</fest.android.version>
+    <compile-test.version>0.4</compile-test.version>
   </properties>
 
   <scm>

@@ -46,50 +46,9 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>default-compile</id>
-            <goals><goal>compile</goal></goals>
-            <configuration>
-              <compilerArgument>-proc:none</compilerArgument>
-            </configuration>
-          </execution>
-          <execution>
-            <id>default-test-compile</id>
-            <goals><goal>testCompile</goal></goals>
-            <configuration>
-              <annotationProcessors>
-                <annotationProcessor>butterknife.internal.InjectViewProcessor</annotationProcessor>
-              </annotationProcessors>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-invoker-plugin</artifactId>
         <configuration>
-          <cloneProjectsTo>${project.build.directory}/it</cloneProjectsTo>
-          <pomIncludes>
-            <pomInclude>*/pom.xml</pomInclude>
-          </pomIncludes>
-          <localRepositoryPath>${project.build.directory}/local-repo</localRepositoryPath>
-          <postBuildHookScript>verify</postBuildHookScript>
-          <filterProperties>
-            <project.version>${project.version}</project.version>
-          </filterProperties>
-          <showErrors>true</showErrors>
+          <compilerArgument>-proc:none</compilerArgument>
         </configuration>
-        <executions>
-          <execution>
-            <id>integration-test</id>
-            <goals>
-              <goal>install</goal>
-              <goal>run</goal>
-            </goals>
-          </execution>
-        </executions>
       </plugin>
     </plugins>
   </build>
