@@ -1,6 +1,16 @@
 Change Log
 ==========
 
+Version 4.0.0 *(In Development)*
+--------------------------------
+
+`Views` class is now named `ButterKnife`
+
+ * New: Views are now only checked to be `null` once if at least one of the fields and/or methods
+   lack the `@Optional` annotation.
+ * Fix: Do no emit redundant casts to `View` for methods.
+
+
 Version 3.0.1 *(2013-11-12)*
 ----------------------------
 
