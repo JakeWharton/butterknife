@@ -54,7 +54,7 @@ class TargetClass {
     builder.append("// Generated code from Butter Knife. Do not modify!\n");
     builder.append("package ").append(classPackage).append(";\n\n");
     builder.append("import android.view.View;\n");
-    builder.append("import butterknife.Views.Finder;\n\n");
+    builder.append("import butterknife.ButterKnife.Finder;\n\n");
     builder.append("public class ").append(className).append(" {\n");
     emitInject(builder);
     builder.append("\n");

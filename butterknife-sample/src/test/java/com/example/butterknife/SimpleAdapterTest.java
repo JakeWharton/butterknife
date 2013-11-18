@@ -3,7 +3,7 @@ package com.example.butterknife;
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
-import butterknife.Views;
+import butterknife.ButterKnife;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
@@ -24,7 +24,7 @@ public class SimpleAdapterTest {
     assertThat(holder.length).hasId(R.id.length);
     assertThat(holder.position).hasId(R.id.position);
 
-    Views.reset(holder);
+    ButterKnife.reset(holder);
     assertThat(holder.word).isNull();
     assertThat(holder.length).isNull();
     assertThat(holder.position).isNull();

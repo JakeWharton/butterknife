@@ -25,7 +25,7 @@ public class OnClickTest {
         Joiner.on('\n').join(
             "package test;",
             "import android.view.View;",
-            "import butterknife.Views.Finder;",
+            "import butterknife.ButterKnife.Finder;",
             "public class Test$$ViewInjector {",
             "  public static void inject(Finder finder, final test.Test target, Object source) {",
             "    View view;",
@@ -89,7 +89,7 @@ public class OnClickTest {
         Joiner.on('\n').join(
             "package test;",
             "import android.view.View;",
-            "import butterknife.Views.Finder;",
+            "import butterknife.ButterKnife.Finder;",
             "public class Test$$ViewInjector {",
             "  public static void inject(Finder finder, final test.Test target, Object source) {",
             "    View view;",
@@ -157,7 +157,7 @@ public class OnClickTest {
         Joiner.on('\n').join(
             "package test;",
             "import android.view.View;",
-            "import butterknife.Views.Finder;",
+            "import butterknife.ButterKnife.Finder;",
             "public class Test$$ViewInjector {",
             "  public static void inject(Finder finder, final test.Test target, Object source) {",
             "    View view;",
@@ -215,7 +215,7 @@ public class OnClickTest {
         Joiner.on('\n').join(
             "package test;",
             "import android.view.View;",
-            "import butterknife.Views.Finder;",
+            "import butterknife.ButterKnife.Finder;",
             "public class Test$$ViewInjector {",
             "  public static void inject(Finder finder, final test.Test target, Object source) {",
             "    View view;",
@@ -258,7 +258,7 @@ public class OnClickTest {
         Joiner.on('\n').join(
             "package test;",
             "import android.view.View;",
-            "import butterknife.Views.Finder;",
+            "import butterknife.ButterKnife.Finder;",
             "public class Test$$ViewInjector {",
             "  public static void inject(Finder finder, final test.Test target, Object source) {",
             "    View view;",

@@ -9,8 +9,8 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /** View injection utilities. */
-public class Views {
-  private Views() {
+public class ButterKnife {
+  private ButterKnife() {
     // No instances.
   }
 
@@ -38,7 +38,7 @@ public class Views {
 
   /** Control whether debug logging is enabled. */
   public static void setDebug(boolean debug) {
-    Views.debug = debug;
+    ButterKnife.debug = debug;
   }
 
   /**

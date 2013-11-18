@@ -6,8 +6,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
+import butterknife.ButterKnife;
 import butterknife.InjectView;
-import butterknife.Views;
 
 public class SimpleAdapter extends BaseAdapter {
   private static final String[] CONTENTS =
@@ -56,7 +56,7 @@ public class SimpleAdapter extends BaseAdapter {
     @InjectView(R.id.position) TextView position;
 
     ViewHolder(View view) {
-      Views.inject(this, view);
+      ButterKnife.inject(this, view);
     }
   }
 }

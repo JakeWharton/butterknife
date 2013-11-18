@@ -8,7 +8,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import butterknife.InjectView;
 import butterknife.OnClick;
-import butterknife.Views;
+import butterknife.ButterKnife;
 
 import static android.widget.Toast.LENGTH_SHORT;
 
@@ -26,7 +26,7 @@ public class SimpleActivity extends Activity {
   @Override protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.simple_activity);
-    Views.inject(this);
+    ButterKnife.inject(this);
 
     // Contrived code to use the "injected" views.
     title.setText("Butter Knife");

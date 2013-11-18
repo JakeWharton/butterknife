@@ -27,7 +27,7 @@ public class InjectViewTest {
         Joiner.on('\n').join(
             "package test;",
             "import android.view.View;",
-            "import butterknife.Views.Finder;",
+            "import butterknife.ButterKnife.Finder;",
             "public class Test$$ViewInjector {",
             "  public static void inject(Finder finder, final test.Test target, Object source) {",
             "    View view;",
@@ -67,7 +67,7 @@ public class InjectViewTest {
         Joiner.on('\n').join(
             "package test;",
             "import android.view.View;",
-            "import butterknife.Views.Finder;",
+            "import butterknife.ButterKnife.Finder;",
             "public class Test$$ViewInjector {",
             "  public static void inject(Finder finder, final test.Test target, Object source) {",
             "    View view;",
@@ -128,7 +128,7 @@ public class InjectViewTest {
         Joiner.on('\n').join(
             "package test;",
             "import android.view.View;",
-            "import butterknife.Views.Finder;",
+            "import butterknife.ButterKnife.Finder;",
             "public class Test$$ViewInjector {",
             "  public static void inject(Finder finder, final test.Test target, Object source) {",
             "    View view;",
@@ -169,7 +169,7 @@ public class InjectViewTest {
         Joiner.on('\n').join(
             "package test;",
             "import android.view.View;",
-            "import butterknife.Views.Finder;",
+            "import butterknife.ButterKnife.Finder;",
             "public class Test$$ViewInjector {",
             "  public static void inject(Finder finder, final test.Test target, Object source) {",
             "    View view;",
@@ -189,7 +189,7 @@ public class InjectViewTest {
         Joiner.on('\n').join(
             "package test;",
             "import android.view.View;",
-            "import butterknife.Views.Finder;",
+            "import butterknife.ButterKnife.Finder;",
             "public class TestOne$$ViewInjector {",
             "  public static void inject(Finder finder, final test.TestOne target, Object source) {",
             "    test.Test$$ViewInjector.inject(finder, target, source);",
@@ -235,7 +235,7 @@ public class InjectViewTest {
         Joiner.on('\n').join(
             "package test;",
             "import android.view.View;",
-            "import butterknife.Views.Finder;",
+            "import butterknife.ButterKnife.Finder;",
             "public class Test$$ViewInjector {",
             "  public static void inject(Finder finder, final test.Test target, Object source) {",
             "    View view;",
@@ -255,7 +255,7 @@ public class InjectViewTest {
         Joiner.on('\n').join(
             "package test;",
             "import android.view.View;",
-            "import butterknife.Views.Finder;",
+            "import butterknife.ButterKnife.Finder;",
             "public class TestOne$$ViewInjector {",
             "  public static void inject(Finder finder, final test.TestOne target, Object source) {",
             "    test.Test$$ViewInjector.inject(finder, target, source);",
