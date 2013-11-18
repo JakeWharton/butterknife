@@ -108,7 +108,7 @@ public class OnClickTest {
             "    }",
             "    view.setOnClickListener(new View.OnClickListener() {",
             "      @Override public void onClick(View view) {",
-            "        target.click1((android.view.View) view);",
+            "        target.click1(view);",
             "      }",
             "    });",
             "    view = finder.findById(source, 2);",

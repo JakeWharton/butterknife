@@ -110,7 +110,13 @@ class TargetClass {
             .append("      @Override public void onClick(View view) {\n")
             .append("        target.").append(method.name).append("(");
         if (method.type != null) {
-          builder.append("(").append(method.type).append(") view");
+          // Only emit a cast if the type is not View.
+          if (!VIEW_TYPE.equals(method.type)) {
+            builder.append("(")
+                .append(method.type)
+                .append(") ");
+          }
+          builder.append("view");
         }
         builder.append(");\n")
             .append("      }\n")
