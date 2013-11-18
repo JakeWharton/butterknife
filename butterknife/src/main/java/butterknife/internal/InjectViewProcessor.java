@@ -221,15 +221,17 @@ public class InjectViewProcessor extends AbstractProcessor {
     int[] ids = element.getAnnotation(OnClick.class).value();
     boolean required = element.getAnnotation(Optional.class) == null;
 
-    TargetClass targetClass = getOrCreateTargetClass(targetClassMap, enclosingElement);
-
-    Set<Integer> seenIds = new LinkedHashSet<Integer>();
+    Set<Integer> seenIds = new LinkedHashSet<Integer>(ids.length);
     for (int id : ids) {
       if (!seenIds.add(id)) {
-        error(element, "@OnClick annotation for method %s contains duplicate ID %d.", element,
-            id);
+        error(element, "@OnClick annotation for method %s contains duplicate ID %d.", element, id);
         return;
-      } else if (!targetClass.addMethod(id, name, type, required)) {
+      }
+    }
+
+    TargetClass targetClass = getOrCreateTargetClass(targetClassMap, enclosingElement);
+    for (int id : ids) {
+      if (!targetClass.addMethod(id, name, type, required)) {
         error(element, "Multiple @OnClick methods declared for ID %s in %s.", id,
             enclosingElement.getQualifiedName());
         return;
