@@ -57,7 +57,7 @@ class TargetClass {
     builder.append("import butterknife.ButterKnife.Finder;\n\n");
     builder.append("public class ").append(className).append(" {\n");
     emitInject(builder);
-    builder.append("\n");
+    builder.append('\n');
     emitReset(builder);
     builder.append("}\n");
     return builder.toString();
@@ -93,51 +93,58 @@ class TargetClass {
 
     List<Binding> requiredBindings = injection.getRequiredBindings();
     if (!requiredBindings.isEmpty()) {
-      String names1 = humanDescriptionJoin(requiredBindings);
       builder.append("    if (view == null) {\n")
           .append("      throw new IllegalStateException(\"Required view with id '")
           .append(injection.getId())
           .append("' for ")
-          .append(names1)
+          .append(humanDescriptionJoin(requiredBindings))
           .append(" was not found. If this view is optional add '@Optional' annotation.\");\n")
           .append("    }\n");
     }
 
+    emitFieldBindings(builder, injection);
+    emitMethodBindings(builder, injection);
+  }
+
+  private void emitFieldBindings(StringBuilder builder, ViewInjection injection) {
     for (FieldBinding fieldBinding : injection.getFieldBindings()) {
       builder.append("    target.")
           .append(fieldBinding.getName())
           .append(" = ");
-
-      // Only emit a cast if the type is not View.
-      if (!VIEW_TYPE.equals(fieldBinding.getViewType())) {
-        builder.append("(")
-          .append(fieldBinding.getViewType())
-          .append(") ");
-      }
-
+      emitCastIfNeeded(builder, fieldBinding.getViewType());
       builder.append("view;\n");
     }
+  }
 
+  private void emitMethodBindings(StringBuilder builder, ViewInjection injection) {
     MethodBinding methodBinding = injection.getMethodBinding();
     if (methodBinding != null) {
+      List<Binding> requiredBindings = injection.getRequiredBindings();
+      String extraIndent = "";
+
       // We only need to emit the null check if there are zero required bindings.
       if (requiredBindings.isEmpty()) {
         builder.append("    if (view != null) {\n  ");
+        extraIndent = "  ";
       }
-      builder.append("    view.setOnClickListener(new View.OnClickListener() {\n")
+
+      builder.append(extraIndent)
+          .append("    view.setOnClickListener(new View.OnClickListener() {\n")
+          .append(extraIndent)
           .append("      @Override public void onClick(View view) {\n")
-          .append("        target.").append(methodBinding.getName()).append("(");
+          .append(extraIndent)
+          .append("        target.")
+          .append(methodBinding.getName())
+          .append('(');
       if (methodBinding.getViewType() != null) {
         // Only emit a cast if the type is not View.
-        if (!VIEW_TYPE.equals(methodBinding.getViewType())) {
-          builder.append("(")
-              .append(methodBinding.getViewType())
-              .append(") ");
-        }
+        emitCastIfNeeded(builder, methodBinding.getViewType());
         builder.append("view");
       }
       builder.append(");\n")
+          .append(extraIndent)
           .append("      }\n")
+          .append(extraIndent)
           .append("    });\n");
       if (requiredBindings.isEmpty()) {
         builder.append("    }\n");
@@ -152,12 +159,19 @@ class TargetClass {
           .append(parentInjector)
           .append(".reset(target);\n\n");
     }
-    for (ViewInjection viewId : viewIdMap.values()) {
-      for (FieldBinding fieldInjection : viewId.getFieldBindings()) {
-        builder.append("    target.").append(fieldInjection.getName()).append(" = null;\n");
+    for (ViewInjection injection : viewIdMap.values()) {
+      for (FieldBinding fieldBinding : injection.getFieldBindings()) {
+        builder.append("    target.").append(fieldBinding.getName()).append(" = null;\n");
       }
     }
     builder.append("  }\n");
+  }
+
+  static void emitCastIfNeeded(StringBuilder builder, String viewType) {
+    // Only emit a cast if the type is not View.
+    if (!VIEW_TYPE.equals(viewType)) {
+      builder.append("(").append(viewType).append(") ");
+    }
   }
 
   static String humanDescriptionJoin(List<Binding> bindings) {

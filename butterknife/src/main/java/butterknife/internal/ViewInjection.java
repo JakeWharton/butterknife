@@ -5,8 +5,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-import static java.util.Collections.unmodifiableSet;
-
 class ViewInjection {
   private final int id;
   private final Set<FieldBinding> fieldBindings = new LinkedHashSet<FieldBinding>();
@@ -21,7 +19,7 @@ class ViewInjection {
   }
 
   public Set<FieldBinding> getFieldBindings() {
-    return unmodifiableSet(new LinkedHashSet<FieldBinding>(fieldBindings));
+    return fieldBindings;
   }
 
   public MethodBinding getMethodBinding() {
@@ -30,9 +28,9 @@ class ViewInjection {
 
   public List<Binding> getRequiredBindings() {
     List<Binding> requiredBindings = new ArrayList<Binding>();
-    for (FieldBinding field : fieldBindings) {
-      if (field.isRequired()) {
-        requiredBindings.add(field);
+    for (FieldBinding fieldBinding : fieldBindings) {
+      if (fieldBinding.isRequired()) {
+        requiredBindings.add(fieldBinding);
       }
     }
     if (methodBinding != null && methodBinding.isRequired()) {
