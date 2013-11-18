@@ -33,7 +33,7 @@ public class InjectViewTest {
             "    View view;",
             "    view = finder.findById(source, 1);",
             "    if (view == null) {",
-            "      throw new IllegalStateException(\"Required view with id '1' for field 'thing' was not found. If this field binding is optional add '@Optional'.\");",
+            "      throw new IllegalStateException(\"Required view with id '1' for field 'thing' was not found. If this view is optional add '@Optional' annotation.\");",
             "    }",
             "    target.thing = view;",
             "  }",
@@ -73,16 +73,10 @@ public class InjectViewTest {
             "    View view;",
             "    view = finder.findById(source, 1);",
             "    if (view == null) {",
-            "      throw new IllegalStateException(\"Required view with id '1' for field 'thing1' was not found. If this field binding is optional add '@Optional'.\");",
+            "      throw new IllegalStateException(\"Required view with id '1' for field 'thing1', field 'thing2', and field 'thing3' was not found. If this view is optional add '@Optional' annotation.\");",
             "    }",
             "    target.thing1 = view;",
-            "    if (view == null) {",
-            "      throw new IllegalStateException(\"Required view with id '1' for field 'thing2' was not found. If this field binding is optional add '@Optional'.\");",
-            "    }",
             "    target.thing2 = view;",
-            "    if (view == null) {",
-            "      throw new IllegalStateException(\"Required view with id '1' for field 'thing3' was not found. If this field binding is optional add '@Optional'.\");",
-            "    }",
             "    target.thing3 = view;",
             "  }",
             "  public static void reset(test.Test target) {",
@@ -181,7 +175,7 @@ public class InjectViewTest {
             "    View view;",
             "    view = finder.findById(source, 1);",
             "    if (view == null) {",
-            "      throw new IllegalStateException(\"Required view with id '1' for field 'view' was not found. If this field binding is optional add '@Optional'.\");",
+            "      throw new IllegalStateException(\"Required view with id '1' for field 'view' was not found. If this view is optional add '@Optional' annotation.\");",
             "    }",
             "    target.view = view;",
             "  }",
@@ -202,7 +196,7 @@ public class InjectViewTest {
             "    View view;",
             "    view = finder.findById(source, 1);",
             "    if (view == null) {",
-            "      throw new IllegalStateException(\"Required view with id '1' for field 'thing' was not found. If this field binding is optional add '@Optional'.\");",
+            "      throw new IllegalStateException(\"Required view with id '1' for field 'thing' was not found. If this view is optional add '@Optional' annotation.\");",
             "    }",
             "    target.thing = view;",
             "  }",
@@ -247,7 +241,7 @@ public class InjectViewTest {
             "    View view;",
             "    view = finder.findById(source, 1);",
             "    if (view == null) {",
-            "      throw new IllegalStateException(\"Required view with id '1' for field 'view' was not found. If this field binding is optional add '@Optional'.\");",
+            "      throw new IllegalStateException(\"Required view with id '1' for field 'view' was not found. If this view is optional add '@Optional' annotation.\");",
             "    }",
             "    target.view = view;",
             "  }",
@@ -268,7 +262,7 @@ public class InjectViewTest {
             "    View view;",
             "    view = finder.findById(source, 1);",
             "    if (view == null) {",
-            "      throw new IllegalStateException(\"Required view with id '1' for field 'thing' was not found. If this field binding is optional add '@Optional'.\");",
+            "      throw new IllegalStateException(\"Required view with id '1' for field 'thing' was not found. If this view is optional add '@Optional' annotation.\");",
             "    }",
             "    target.thing = view;",
             "  }",
@@ -286,7 +280,7 @@ public class InjectViewTest {
         .generatesSources(expectedSource1, expectedSource2);
   }
 
-  @Test public void injectingViewFailsIfInPrivateClass() {
+  @Test public void failsIfInPrivateClass() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
         "package test;",
         "import android.view.View;",
@@ -307,7 +301,7 @@ public class InjectViewTest {
         .in(source).onLine(6);
   }
 
-  @Test public void injectViewFailsIfNotView() {
+  @Test public void failsIfNotView() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
         "package test;",
         "import android.app.Activity;",
@@ -326,7 +320,7 @@ public class InjectViewTest {
         .in(source).onLine(5);
   }
 
-  @Test public void injectViewFailsIfInInterface() {
+  @Test public void failsIfInInterface() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
         "package test;",
         "import android.view.View;",
@@ -346,7 +340,7 @@ public class InjectViewTest {
         .in(source).onLine(5);
   }
 
-  @Test public void injectingViewFailsIfPrivate() {
+  @Test public void failsIfPrivate() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
         "package test;",
         "import android.app.Activity;",
@@ -366,7 +360,7 @@ public class InjectViewTest {
         .in(source).onLine(6);
   }
 
-  @Test public void injectingViewFailsIfStatic() {
+  @Test public void failsIfStatic() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
         "package test;",
         "import android.app.Activity;",

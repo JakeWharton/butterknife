@@ -31,7 +31,7 @@ public class OnClickTest {
             "    View view;",
             "    view = finder.findById(source, 1);",
             "    if (view == null) {",
-            "      throw new IllegalStateException(\"Required view with id '1' for method 'doStuff' was not found. If this method binding is optional add '@Optional'.\");",
+            "      throw new IllegalStateException(\"Required view with id '1' for method 'doStuff' was not found. If this view is optional add '@Optional' annotation.\");",
             "    }",
             "    view.setOnClickListener(new View.OnClickListener() {",
             "      @Override public void onClick(View view) {",
@@ -95,7 +95,7 @@ public class OnClickTest {
             "    View view;",
             "    view = finder.findById(source, 0);",
             "    if (view == null) {",
-            "      throw new IllegalStateException(\"Required view with id '0' for method 'click0' was not found. If this method binding is optional add '@Optional'.\");",
+            "      throw new IllegalStateException(\"Required view with id '0' for method 'click0' was not found. If this view is optional add '@Optional' annotation.\");",
             "    }",
             "    view.setOnClickListener(new View.OnClickListener() {",
             "      @Override public void onClick(View view) {",
@@ -104,7 +104,7 @@ public class OnClickTest {
             "    });",
             "    view = finder.findById(source, 1);",
             "    if (view == null) {",
-            "      throw new IllegalStateException(\"Required view with id '1' for method 'click1' was not found. If this method binding is optional add '@Optional'.\");",
+            "      throw new IllegalStateException(\"Required view with id '1' for method 'click1' was not found. If this view is optional add '@Optional' annotation.\");",
             "    }",
             "    view.setOnClickListener(new View.OnClickListener() {",
             "      @Override public void onClick(View view) {",
@@ -113,7 +113,7 @@ public class OnClickTest {
             "    });",
             "    view = finder.findById(source, 2);",
             "    if (view == null) {",
-            "      throw new IllegalStateException(\"Required view with id '2' for method 'click2' was not found. If this method binding is optional add '@Optional'.\");",
+            "      throw new IllegalStateException(\"Required view with id '2' for method 'click2' was not found. If this view is optional add '@Optional' annotation.\");",
             "    }",
             "    view.setOnClickListener(new View.OnClickListener() {",
             "      @Override public void onClick(View view) {",
@@ -122,7 +122,7 @@ public class OnClickTest {
             "    });",
             "    view = finder.findById(source, 3);",
             "    if (view == null) {",
-            "      throw new IllegalStateException(\"Required view with id '3' for method 'click3' was not found. If this method binding is optional add '@Optional'.\");",
+            "      throw new IllegalStateException(\"Required view with id '3' for method 'click3' was not found. If this view is optional add '@Optional' annotation.\");",
             "    }",
             "    view.setOnClickListener(new View.OnClickListener() {",
             "      @Override public void onClick(View view) {",
@@ -163,7 +163,7 @@ public class OnClickTest {
             "    View view;",
             "    view = finder.findById(source, 1);",
             "    if (view == null) {",
-            "      throw new IllegalStateException(\"Required view with id '1' for method 'click' was not found. If this method binding is optional add '@Optional'.\");",
+            "      throw new IllegalStateException(\"Required view with id '1' for method 'click' was not found. If this view is optional add '@Optional' annotation.\");",
             "    }",
             "    view.setOnClickListener(new View.OnClickListener() {",
             "      @Override public void onClick(View view) {",
@@ -172,7 +172,7 @@ public class OnClickTest {
             "    });",
             "    view = finder.findById(source, 2);",
             "    if (view == null) {",
-            "      throw new IllegalStateException(\"Required view with id '2' for method 'click' was not found. If this method binding is optional add '@Optional'.\");",
+            "      throw new IllegalStateException(\"Required view with id '2' for method 'click' was not found. If this view is optional add '@Optional' annotation.\");",
             "    }",
             "    view.setOnClickListener(new View.OnClickListener() {",
             "      @Override public void onClick(View view) {",
@@ -181,7 +181,7 @@ public class OnClickTest {
             "    });",
             "    view = finder.findById(source, 3);",
             "    if (view == null) {",
-            "      throw new IllegalStateException(\"Required view with id '3' for method 'click' was not found. If this method binding is optional add '@Optional'.\");",
+            "      throw new IllegalStateException(\"Required view with id '3' for method 'click' was not found. If this view is optional add '@Optional' annotation.\");",
             "    }",
             "    view.setOnClickListener(new View.OnClickListener() {",
             "      @Override public void onClick(View view) {",
@@ -229,6 +229,52 @@ public class OnClickTest {
             "    }",
             "  }",
             "  public static void reset(test.Test target) {",
+            "  }",
+            "}"
+        ));
+
+    ASSERT.about(javaSource()).that(source)
+        .processedWith(butterknifeProcessors())
+        .compilesWithoutError()
+        .and()
+        .generatesSources(expectedSource);
+  }
+
+
+  @Test public void optionalAndRequiredSkipsNullCheck() {
+    JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
+        "package test;",
+        "import android.app.Activity;",
+        "import android.view.View;",
+        "import butterknife.InjectView;",
+        "import butterknife.OnClick;",
+        "import butterknife.Optional;",
+        "public class Test extends Activity {",
+        "  @InjectView(1) View view;",
+        "  @Optional @OnClick(1) void doStuff() {}",
+        "}"));
+
+    JavaFileObject expectedSource = JavaFileObjects.forSourceString("test/Test$$ViewInjector",
+        Joiner.on('\n').join(
+            "package test;",
+            "import android.view.View;",
+            "import butterknife.Views.Finder;",
+            "public class Test$$ViewInjector {",
+            "  public static void inject(Finder finder, final test.Test target, Object source) {",
+            "    View view;",
+            "    view = finder.findById(source, 1);",
+            "    if (view == null) {",
+            "      throw new IllegalStateException(\"Required view with id '1' for field 'view' was not found. If this view is optional add '@Optional' annotation.\");",
+            "    }",
+            "    target.view = view;",
+            "    view.setOnClickListener(new View.OnClickListener() {",
+            "      @Override public void onClick(View view) {",
+            "        target.doStuff();",
+            "      }",
+            "    });",
+            "  }",
+            "  public static void reset(test.Test target) {",
+            "    target.view = null;",
             "  }",
             "}"
         ));
