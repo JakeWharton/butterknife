@@ -286,7 +286,7 @@ public class OnClickTest {
         .generatesSources(expectedSource);
   }
 
-  @Test public void onClickInjectionFailsIfHasReturnType() {
+  @Test public void failsIfHasReturnType() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test",
         Joiner.on('\n').join(
             "package test;",
@@ -303,12 +303,12 @@ public class OnClickTest {
         .processedWith(butterknifeProcessors())
         .failsToCompile()
         .withErrorContaining(
-            String.format("@OnClick methods must have a 'void' return type (%s).",
-                "test.Test.doStuff()"))
+            String.format("@OnClick methods must have a 'void' return type. (%s)",
+                "test.Test.doStuff"))
         .in(source).onLine(7);
   }
 
-  @Test public void onClickInjectionFailsIfPrivate() {
+  @Test public void failsIfPrivate() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test",
         Joiner.on('\n').join(
             "package test;",
@@ -324,12 +324,12 @@ public class OnClickTest {
         .processedWith(butterknifeProcessors())
         .failsToCompile()
         .withErrorContaining(
-            String.format("@OnClick methods must not be private or static (%s).",
-                "test.Test.doStuff()"))
+            String.format("@OnClick methods must not be private or static. (%s)",
+                "test.Test.doStuff"))
         .in(source).onLine(6);
   }
 
-  @Test public void onClickInjectionFailsIfStatic() {
+  @Test public void failsIfStatic() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test",
         Joiner.on('\n').join(
             "package test;",
@@ -345,12 +345,12 @@ public class OnClickTest {
         .processedWith(butterknifeProcessors())
         .failsToCompile()
         .withErrorContaining(
-            String.format("@OnClick methods must not be private or static (%s).",
-                "test.Test.doStuff()"))
+            String.format("@OnClick methods must not be private or static. (%s)",
+                "test.Test.doStuff"))
         .in(source).onLine(6);
   }
 
-  @Test public void onClickInjectionFailsIfParameterNotView() {
+  @Test public void failsIfParameterNotView() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test",
         Joiner.on('\n').join(
             "package test;",
@@ -366,12 +366,34 @@ public class OnClickTest {
         .processedWith(butterknifeProcessors())
         .failsToCompile()
         .withErrorContaining(
-            String.format("@OnClick method parameter must extend from View (%s).",
-                "test.Test.doStuff(java.lang.String)"))
+            String.format("@OnClick method parameter type must be View or a subclass. (%s)",
+                "test.Test.doStuff"))
         .in(source).onLine(6);
   }
 
-  @Test public void onClickInjectionFailsIfInInterface() {
+  @Test public void failsIfMoreThanOneParameter() {
+    JavaFileObject source = JavaFileObjects.forSourceString("test.Test",
+        Joiner.on('\n').join(
+            "package test;",
+            "import android.app.Activity;",
+            "import android.view.View;",
+            "import butterknife.OnClick;",
+            "public class Test extends Activity {",
+            "  @OnClick(1)",
+            "  public void doStuff(View thing, View otherThing) {",
+            "  }",
+            "}"));
+
+    ASSERT.about(javaSource()).that(source)
+        .processedWith(butterknifeProcessors())
+        .failsToCompile()
+        .withErrorContaining(
+            String.format("@OnClick methods may only have one parameter which is View or a subclass. (%s)",
+                "test.Test.doStuff"))
+        .in(source).onLine(7);
+  }
+
+  @Test public void failsIfInInterface() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test",
         Joiner.on('\n').join(
             "package test;",
@@ -385,13 +407,12 @@ public class OnClickTest {
         .processedWith(butterknifeProcessors())
         .failsToCompile()
         .withErrorContaining(
-            String.format("@OnClick method annotations may only be specified in classes" +
-                " (%s).",
-                "test.Test"))
+            String.format("@OnClick methods may only be contained in classes. (%s)",
+                "test.Test.doStuff"))
         .in(source).onLine(5);
   }
 
-  @Test public void onClickInjectionFailsIfHasDuplicateIds() {
+  @Test public void failsIfHasDuplicateIds() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test",
         Joiner.on('\n').join(
             "package test;",
@@ -407,8 +428,8 @@ public class OnClickTest {
         .processedWith(butterknifeProcessors())
         .failsToCompile()
         .withErrorContaining(
-            String.format("@OnClick annotation for method %s contains duplicate ID %d.",
-                "doStuff()", 1))
+            String.format("@OnClick annotation for method contains duplicate ID %d. (%s)",
+                1, "test.Test.doStuff"))
         .in(source).onLine(6);
   }
 }

@@ -24,16 +24,8 @@ public class TargetClassTest {
       this.description = description;
     }
 
-    @Override public String getName() {
-      throw new AssertionError();
-    }
-
     @Override public String getDescription() {
       return description;
-    }
-
-    @Override public String getViewType() {
-      throw new AssertionError();
     }
 
     @Override public boolean isRequired() {

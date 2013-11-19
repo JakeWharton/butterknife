@@ -1,14 +1,16 @@
 package butterknife.internal;
 
+import butterknife.InjectView;
+import butterknife.OnClick;
+import butterknife.Optional;
 import java.io.IOException;
 import java.io.Writer;
+import java.lang.annotation.Annotation;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.Filer;
 import javax.annotation.processing.ProcessingEnvironment;
@@ -19,7 +21,6 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
-import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
@@ -27,11 +28,8 @@ import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 import javax.tools.JavaFileObject;
 
-import butterknife.InjectView;
-import butterknife.OnClick;
-import butterknife.Optional;
-
 import static javax.lang.model.element.ElementKind.CLASS;
+import static javax.lang.model.element.ElementKind.METHOD;
 import static javax.lang.model.element.Modifier.PRIVATE;
 import static javax.lang.model.element.Modifier.STATIC;
 import static javax.tools.Diagnostic.Kind.ERROR;
@@ -41,8 +39,10 @@ import static javax.tools.Diagnostic.Kind.ERROR;
     "butterknife.OnClick" //
 })
 public class InjectViewProcessor extends AbstractProcessor {
-  static final String VIEW_TYPE = "android.view.View";
   public static final String SUFFIX = "$$ViewInjector";
+  static final String VIEW_TYPE = "android.view.View";
+  static final Map<String, InjectableListenerHandler> LISTENER_HANDLER_MAP =
+      new LinkedHashMap<String, InjectableListenerHandler>();
 
   private Elements elementUtils;
   private Types typeUtils;
@@ -91,14 +91,8 @@ public class InjectViewProcessor extends AbstractProcessor {
       }
     }
 
-    // Process each @OnClick elements.
-    for (Element element : env.getElementsAnnotatedWith(OnClick.class)) {
-      try {
-        parseOnClick(element, targetClassMap, erasedTargetTypes);
-      } catch (Exception e) {
-        error(element, "Unable to parse @OnClick: %s", e.getMessage());
-      }
-    }
+    // Process each annotation that corresponds to a listener.
+    findAndParseListener(env, OnClick.class, targetClassMap, erasedTargetTypes);
 
     // Try to find a parent injector for each injector.
     for (Map.Entry<TypeElement, TargetClass> entry : targetClassMap.entrySet()) {
@@ -109,6 +103,18 @@ public class InjectViewProcessor extends AbstractProcessor {
     }
 
     return targetClassMap;
+  }
+
+  private void findAndParseListener(RoundEnvironment env,
+      Class<? extends Annotation> annotationClass, Map<TypeElement, TargetClass> targetClassMap,
+      Set<TypeMirror> erasedTargetTypes) {
+    for (Element element : env.getElementsAnnotatedWith(annotationClass)) {
+      try {
+        parseListenerAnnotation(annotationClass, element, targetClassMap, erasedTargetTypes);
+      } catch (Exception e) {
+        error(element, "Unable to parse @%s: %s", annotationClass.getSimpleName(), e.getMessage());
+      }
+    }
   }
 
   private void parseInjectView(Element element, Map<TypeElement, TargetClass> targetClassMap,
@@ -157,83 +163,91 @@ public class InjectViewProcessor extends AbstractProcessor {
     erasedTargetTypes.add(erasedTargetType);
   }
 
-  private void parseOnClick(Element element, Map<TypeElement, TargetClass> targetClassMap,
-      Set<TypeMirror> erasedTargetTypes) {
-    if (!(element instanceof ExecutableElement)) {
-      error(element, "@OnClick annotation must be on a method.");
+  private void parseListenerAnnotation(Class<? extends Annotation> annotationClass, Element element,
+      Map<TypeElement, TargetClass> targetClassMap, Set<TypeMirror> erasedTargetTypes)
+      throws Exception {
+    // This should be guarded by the annotation's @Target but it's worth a check for safe casting.
+    if (!(element instanceof ExecutableElement) || element.getKind() != METHOD) {
+      error(element, "@%s annotation must be on a method.", annotationClass.getSimpleName());
       return;
+    }
+
+    String annotationName = annotationClass.getName();
+    InjectableListenerHandler handler = LISTENER_HANDLER_MAP.get(annotationName);
+    if (handler == null) {
+      InjectableListener listener = annotationClass.getAnnotation(InjectableListener.class);
+      if (listener == null) {
+        error(element, "No @%s defined on @%s.", InjectableListener.class.getSimpleName(),
+            annotationClass.getSimpleName());
+        return;
+      }
+      Class<? extends InjectableListenerHandler> handlerClass = listener.value();
+      handler = handlerClass.newInstance();
+      LISTENER_HANDLER_MAP.put(annotationName, handler);
     }
 
     ExecutableElement executableElement = (ExecutableElement) element;
     TypeElement enclosingElement = (TypeElement) element.getEnclosingElement();
 
+    // Assemble information on the injection point.
+    String name = executableElement.getSimpleName().toString();
+    Annotation annotation = element.getAnnotation(annotationClass);
+    int[] ids = (int[]) annotationClass.getDeclaredMethod("value").invoke(annotation);
+    boolean required = element.getAnnotation(Optional.class) == null;
+
     // Verify method modifiers.
     Set<Modifier> modifiers = element.getModifiers();
     if (modifiers.contains(PRIVATE) || modifiers.contains(STATIC)) {
-      error(element, "@OnClick methods must not be private or static (%s.%s).",
-          enclosingElement.getQualifiedName(), element);
-      return;
+      throw new InjectableListenerException(element,
+          "@%s methods must not be private or static. (%s.%s)", annotationClass.getSimpleName(),
+          enclosingElement.getQualifiedName(), element.getSimpleName());
     }
 
     // Verify containing type.
     if (enclosingElement.getKind() != CLASS) {
-      error(element, "@OnClick method annotations may only be specified in classes (%s).",
-          enclosingElement);
-      return;
+      throw new InjectableListenerException(enclosingElement,
+          "@%s methods may only be contained in classes. (%s.%s)", annotationClass.getSimpleName(),
+          enclosingElement.getQualifiedName(), element.getSimpleName());
     }
 
     // Verify containing class visibility is not private.
     if (enclosingElement.getModifiers().contains(PRIVATE)) {
-      error(element, "@OnClick methods may not be on private classes (%s).", enclosingElement);
-      return;
+      throw new InjectableListenerException(enclosingElement,
+          "@%s methods may not be contained in private classes. (%s.%s)",
+          annotationClass.getSimpleName(), enclosingElement.getQualifiedName(),
+          element.getSimpleName());
     }
 
     // Verify method return type.
     if (executableElement.getReturnType().getKind() != TypeKind.VOID) {
-      error(element, "@OnClick methods must have a 'void' return type (%s.%s).",
-          enclosingElement.getQualifiedName(), element);
-      return;
+      throw new InjectableListenerException(element,
+          "@%s methods must have a 'void' return type. (%s.%s)", annotationClass.getSimpleName(),
+          enclosingElement.getQualifiedName(), element.getSimpleName());
     }
-
-    String type = null;
-    List<? extends VariableElement> parameters = executableElement.getParameters();
-    if (!parameters.isEmpty()) {
-      // Verify that there is only a single parameter.
-      if (parameters.size() != 1) {
-        error(element,
-            "@OnClick methods may only have one parameter which is View (or subclass) (%s.%s).",
-            enclosingElement.getQualifiedName(), element);
-        return;
-      }
-      // Verify that the parameter type extends from View.
-      VariableElement variableElement = parameters.get(0);
-      if (!isSubtypeOfView(variableElement.asType())) {
-        error(element, "@OnClick method parameter must extend from View (%s.%s).",
-            enclosingElement.getQualifiedName(), element);
-        return;
-      }
-
-      type = variableElement.asType().toString();
-    }
-
-    // Assemble information on the injection point.
-    String name = executableElement.getSimpleName().toString();
-    int[] ids = element.getAnnotation(OnClick.class).value();
-    boolean required = element.getAnnotation(Optional.class) == null;
 
     Set<Integer> seenIds = new LinkedHashSet<Integer>(ids.length);
     for (int id : ids) {
       if (!seenIds.add(id)) {
-        error(element, "@OnClick annotation for method %s contains duplicate ID %d.", element, id);
-        return;
+        throw new InjectableListenerException(element,
+            "@%s annotation for method contains duplicate ID %d. (%s.%s)",
+            annotationClass.getSimpleName(), id, enclosingElement.getQualifiedName(),
+            element.getSimpleName());
       }
+    }
+
+    String[] types;
+    try {
+      types = handler.parseParamTypesAndValidateMethod(this, executableElement);
+    } catch (InjectableListenerException e) {
+      error(e.element, e.getMessage());
+      return;
     }
 
     TargetClass targetClass = getOrCreateTargetClass(targetClassMap, enclosingElement);
     for (int id : ids) {
-      if (!targetClass.addMethod(id, name, type, required)) {
-        error(element, "Multiple @OnClick methods declared for ID %s in %s.", id,
-            enclosingElement.getQualifiedName());
+      if (!targetClass.addMethod(id, annotationName, name, types, required)) {
+        error(element, "Multiple @%s methods declared for ID %s in %s.",
+            annotationClass.getSimpleName(), id, enclosingElement.getQualifiedName());
         return;
       }
     }
@@ -243,7 +257,7 @@ public class InjectViewProcessor extends AbstractProcessor {
     erasedTargetTypes.add(erasedTargetType);
   }
 
-  private boolean isSubtypeOfView(TypeMirror typeMirror) {
+  boolean isSubtypeOfView(TypeMirror typeMirror) {
     if (!(typeMirror instanceof DeclaredType)) {
       return false;
     }
@@ -312,7 +326,7 @@ public class InjectViewProcessor extends AbstractProcessor {
     return SourceVersion.latestSupported();
   }
 
-  protected void error(Element element, String message, Object... args) {
+  void error(Element element, String message, Object... args) {
     processingEnv.getMessager().printMessage(ERROR, String.format(message, args), element);
   }
 

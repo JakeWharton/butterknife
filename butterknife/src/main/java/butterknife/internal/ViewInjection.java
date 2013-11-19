@@ -1,14 +1,18 @@
 package butterknife.internal;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 class ViewInjection {
   private final int id;
   private final Set<FieldBinding> fieldBindings = new LinkedHashSet<FieldBinding>();
-  private MethodBinding methodBinding;
+  private final Map<String, MethodBinding> methodBindings =
+      new LinkedHashMap<String, MethodBinding>();
 
   ViewInjection(int id) {
     this.id = id;
@@ -18,12 +22,12 @@ class ViewInjection {
     return id;
   }
 
-  public Set<FieldBinding> getFieldBindings() {
+  public Collection<FieldBinding> getFieldBindings() {
     return fieldBindings;
   }
 
-  public MethodBinding getMethodBinding() {
-    return methodBinding;
+  public Collection<MethodBinding> getMethodBindings() {
+    return methodBindings.values();
   }
 
   public List<Binding> getRequiredBindings() {
@@ -33,18 +37,26 @@ class ViewInjection {
         requiredBindings.add(fieldBinding);
       }
     }
-    if (methodBinding != null && methodBinding.isRequired()) {
-      requiredBindings.add(methodBinding);
+    for (MethodBinding methodBinding : methodBindings.values()) {
+      if (methodBinding.isRequired()) {
+        requiredBindings.add(methodBinding);
+      }
     }
     return requiredBindings;
   }
 
   public void addMethodBinding(MethodBinding methodBinding) {
-    if (this.methodBinding != null) {
-      throw new IllegalStateException(
-          "View " + id + " already has method binding: " + this.methodBinding);
+    String annotation = methodBinding.getAnnotation();
+    MethodBinding existingBinding = methodBindings.get(annotation);
+    if (existingBinding != null) {
+      throw new IllegalStateException("View "
+          + id
+          + " already has method binding for "
+          + annotation
+          + " on "
+          + existingBinding.getName());
     }
-    this.methodBinding = methodBinding;
+    methodBindings.put(annotation, methodBinding);
   }
 
   public void addFieldBinding(FieldBinding fieldBinding) {

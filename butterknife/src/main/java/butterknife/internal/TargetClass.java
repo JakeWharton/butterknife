@@ -1,9 +1,11 @@
 package butterknife.internal;
 
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import static butterknife.internal.InjectViewProcessor.LISTENER_HANDLER_MAP;
 import static butterknife.internal.InjectViewProcessor.VIEW_TYPE;
 
 class TargetClass {
@@ -23,9 +25,10 @@ class TargetClass {
     getOrCreateViewBinding(id).addFieldBinding(new FieldBinding(name, type, required));
   }
 
-  boolean addMethod(int id, String name, String parameterType, boolean required) {
+  boolean addMethod(int id, String annotation, String name, String[] paramTypes, boolean required) {
     try {
-      getOrCreateViewBinding(id).addMethodBinding(new MethodBinding(name, parameterType, required));
+      getOrCreateViewBinding(id).addMethodBinding(
+          new MethodBinding(name, annotation, paramTypes, required));
       return true;
     } catch (IllegalStateException e) {
       return false;
@@ -111,41 +114,26 @@ class TargetClass {
       builder.append("    target.")
           .append(fieldBinding.getName())
           .append(" = ");
-      emitCastIfNeeded(builder, fieldBinding.getViewType());
+      emitCastIfNeeded(builder, fieldBinding.getType());
       builder.append("view;\n");
     }
   }
 
   private void emitMethodBindings(StringBuilder builder, ViewInjection injection) {
-    MethodBinding methodBinding = injection.getMethodBinding();
-    if (methodBinding != null) {
+    Collection<MethodBinding> methodBindings = injection.getMethodBindings();
+    if (!methodBindings.isEmpty()) {
       List<Binding> requiredBindings = injection.getRequiredBindings();
-      String extraIndent = "";
 
       // We only need to emit the null check if there are zero required bindings.
       if (requiredBindings.isEmpty()) {
-        builder.append("    if (view != null) {\n  ");
-        extraIndent = "  ";
+        builder.append("    if (view != null) {\n");
       }
 
-      builder.append(extraIndent)
-          .append("    view.setOnClickListener(new View.OnClickListener() {\n")
-          .append(extraIndent)
-          .append("      @Override public void onClick(View view) {\n")
-          .append(extraIndent)
-          .append("        target.")
-          .append(methodBinding.getName())
-          .append('(');
-      if (methodBinding.getViewType() != null) {
-        // Only emit a cast if the type is not View.
-        emitCastIfNeeded(builder, methodBinding.getViewType());
-        builder.append("view");
+      for (MethodBinding methodBinding : methodBindings) {
+        InjectableListenerHandler handler = LISTENER_HANDLER_MAP.get(methodBinding.getAnnotation());
+        handler.emit(builder, methodBinding);
       }
-      builder.append(");\n")
-          .append(extraIndent)
-          .append("      }\n")
-          .append(extraIndent)
-          .append("    });\n");
+
       if (requiredBindings.isEmpty()) {
         builder.append("    }\n");
       }

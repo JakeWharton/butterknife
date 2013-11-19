@@ -11,16 +11,16 @@ class FieldBinding implements Binding {
     this.required = required;
   }
 
-  @Override public String getName() {
+  public String getName() {
     return name;
+  }
+
+  public String getType() {
+    return type;
   }
 
   @Override public String getDescription() {
     return "field '" + name + "'";
-  }
-
-  @Override public String getViewType() {
-    return type;
   }
 
   @Override public boolean isRequired() {
