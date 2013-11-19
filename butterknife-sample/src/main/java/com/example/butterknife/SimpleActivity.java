@@ -9,6 +9,7 @@ import android.widget.Toast;
 import butterknife.InjectView;
 import butterknife.OnClick;
 import butterknife.ButterKnife;
+import butterknife.OnItemClick;
 
 import static android.widget.Toast.LENGTH_SHORT;
 
@@ -19,8 +20,14 @@ public class SimpleActivity extends Activity {
   @InjectView(R.id.list_of_things) ListView listOfThings;
   @InjectView(R.id.footer) TextView footer;
 
+  private SimpleAdapter adapter;
+
   @OnClick(R.id.hello) void sayHello() {
-    Toast.makeText(SimpleActivity.this, "Hello, views!", LENGTH_SHORT).show();
+    Toast.makeText(this, "Hello, views!", LENGTH_SHORT).show();
+  }
+
+  @OnItemClick(R.id.list_of_things) void onItemClick(int position) {
+    Toast.makeText(this, "You clicked: " + adapter.getItem(position), LENGTH_SHORT).show();
   }
 
   @Override protected void onCreate(Bundle savedInstanceState) {
@@ -33,6 +40,8 @@ public class SimpleActivity extends Activity {
     subtitle.setText("View \"injection\" for Android.");
     footer.setText("by Jake Wharton");
     hello.setText("Say Hello");
-    listOfThings.setAdapter(new SimpleAdapter(this));
+
+    adapter = new SimpleAdapter(this);
+    listOfThings.setAdapter(adapter);
   }
 }

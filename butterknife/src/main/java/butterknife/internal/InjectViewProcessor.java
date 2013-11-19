@@ -2,6 +2,7 @@ package butterknife.internal;
 
 import butterknife.InjectView;
 import butterknife.OnClick;
+import butterknife.OnItemClick;
 import butterknife.Optional;
 import java.io.IOException;
 import java.io.Writer;
@@ -9,6 +10,7 @@ import java.lang.annotation.Annotation;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import javax.annotation.processing.AbstractProcessor;
@@ -21,6 +23,7 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
@@ -36,7 +39,8 @@ import static javax.tools.Diagnostic.Kind.ERROR;
 
 @SupportedAnnotationTypes({ //
     "butterknife.InjectView", //
-    "butterknife.OnClick" //
+    "butterknife.OnClick", //
+    "butterknife.OnItemClick" //
 })
 public class InjectViewProcessor extends AbstractProcessor {
   public static final String SUFFIX = "$$ViewInjector";
@@ -93,6 +97,7 @@ public class InjectViewProcessor extends AbstractProcessor {
 
     // Process each annotation that corresponds to a listener.
     findAndParseListener(env, OnClick.class, targetClassMap, erasedTargetTypes);
+    findAndParseListener(env, OnItemClick.class, targetClassMap, erasedTargetTypes);
 
     // Try to find a parent injector for each injector.
     for (Map.Entry<TypeElement, TargetClass> entry : targetClassMap.entrySet()) {
@@ -122,7 +127,7 @@ public class InjectViewProcessor extends AbstractProcessor {
     TypeElement enclosingElement = (TypeElement) element.getEnclosingElement();
 
     // Verify that the target type extends from View.
-    if (!isSubtypeOfView(element.asType())) {
+    if (!isSubclassOfView(element.asType())) {
       error(element, "@InjectView fields must extend from View (%s.%s).",
           enclosingElement.getQualifiedName(), element);
       return;
@@ -235,9 +240,9 @@ public class InjectViewProcessor extends AbstractProcessor {
       }
     }
 
-    String[] types;
+    Param[] params;
     try {
-      types = handler.parseParamTypesAndValidateMethod(this, executableElement);
+      params = handler.parseParamTypesAndValidateMethod(this, executableElement);
     } catch (InjectableListenerException e) {
       error(e.element, e.getMessage());
       return;
@@ -245,7 +250,7 @@ public class InjectViewProcessor extends AbstractProcessor {
 
     TargetClass targetClass = getOrCreateTargetClass(targetClassMap, enclosingElement);
     for (int id : ids) {
-      if (!targetClass.addMethod(id, annotationName, name, types, required)) {
+      if (!targetClass.addMethod(id, annotationName, name, params, required)) {
         error(element, "Multiple @%s methods declared for ID %s in %s.",
             annotationClass.getSimpleName(), id, enclosingElement.getQualifiedName());
         return;
@@ -257,22 +262,46 @@ public class InjectViewProcessor extends AbstractProcessor {
     erasedTargetTypes.add(erasedTargetType);
   }
 
-  boolean isSubtypeOfView(TypeMirror typeMirror) {
+  static boolean isSubclassOfView(TypeMirror typeMirror) {
     if (!(typeMirror instanceof DeclaredType)) {
       return false;
     }
     DeclaredType declaredType = (DeclaredType) typeMirror;
     if (VIEW_TYPE.equals(declaredType.toString())) {
       return true;
-    } else {
-      Element element = declaredType.asElement();
-      if (!(element instanceof TypeElement)) {
-        return false;
-      }
-      TypeElement typeElement = (TypeElement) element;
-      TypeMirror superType = typeElement.getSuperclass();
-      return isSubtypeOfView(superType);
     }
+    Element element = declaredType.asElement();
+    if (!(element instanceof TypeElement)) {
+      return false;
+    }
+    TypeElement typeElement = (TypeElement) element;
+    TypeMirror superType = typeElement.getSuperclass();
+    return isSubclassOfView(superType);
+  }
+
+  static boolean isSubtypeOfType(TypeMirror typeMirror, String otherType) {
+    if (!(typeMirror instanceof DeclaredType)) {
+      return typeMirror.toString().equals(otherType);
+    }
+    DeclaredType declaredType = (DeclaredType) typeMirror;
+    if (otherType.equals(declaredType.toString())) {
+      return true;
+    }
+    Element element = declaredType.asElement();
+    if (!(element instanceof TypeElement)) {
+      return false;
+    }
+    TypeElement typeElement = (TypeElement) element;
+    TypeMirror superType = typeElement.getSuperclass();
+    if (isSubclassOfView(superType)) {
+      return true;
+    }
+    for (TypeMirror interfaceType : typeElement.getInterfaces()) {
+      if (isSubclassOfView(interfaceType)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   private TargetClass getOrCreateTargetClass(Map<TypeElement, TargetClass> targetClassMap,
@@ -289,7 +318,7 @@ public class InjectViewProcessor extends AbstractProcessor {
     return targetClass;
   }
 
-  protected static String getClassName(TypeElement type, String packageName) {
+  private static String getClassName(TypeElement type, String packageName) {
     int packageLen = packageName.length() + 1;
     return type.getQualifiedName().toString().substring(packageLen).replace('.', '$');
   }
@@ -332,5 +361,20 @@ public class InjectViewProcessor extends AbstractProcessor {
 
   protected String getPackageName(TypeElement type) {
     return elementUtils.getPackageOf(type).getQualifiedName().toString();
+  }
+
+  public void findBestParameter(Param[] params, List<? extends VariableElement> parameters,
+      Class<?> targetClass, int listenerPosition) {
+    String targetClassName = targetClass.getName();
+    for (int i = 0, count = parameters.size(); i < count; i++) {
+      if (params[i] != null) {
+        continue;
+      }
+      VariableElement parameter = parameters.get(i);
+      if (isSubtypeOfType(parameter.asType(), targetClassName)) {
+        params[i] = new Param(listenerPosition, parameter.asType().toString());
+        return;
+      }
+    }
   }
 }

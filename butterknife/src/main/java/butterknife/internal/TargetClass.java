@@ -25,10 +25,10 @@ class TargetClass {
     getOrCreateViewBinding(id).addFieldBinding(new FieldBinding(name, type, required));
   }
 
-  boolean addMethod(int id, String annotation, String name, String[] paramTypes, boolean required) {
+  boolean addMethod(int id, String annotation, String name, Param[] params, boolean required) {
     try {
       getOrCreateViewBinding(id).addMethodBinding(
-          new MethodBinding(name, annotation, paramTypes, required));
+          new MethodBinding(name, annotation, params, required));
       return true;
     } catch (IllegalStateException e) {
       return false;
@@ -156,9 +156,13 @@ class TargetClass {
   }
 
   static void emitCastIfNeeded(StringBuilder builder, String viewType) {
-    // Only emit a cast if the type is not View.
-    if (!VIEW_TYPE.equals(viewType)) {
-      builder.append("(").append(viewType).append(") ");
+    emitCastIfNeeded(builder, VIEW_TYPE, viewType);
+  }
+
+  static void emitCastIfNeeded(StringBuilder builder, String sourceType, String destinationType) {
+    // Only emit a cast if the source and destination type do not match.
+    if (!sourceType.equals(destinationType)) {
+      builder.append("(").append(destinationType).append(") ");
     }
   }
 

@@ -7,6 +7,7 @@ import static java.lang.annotation.ElementType.FIELD;
 import static java.lang.annotation.ElementType.METHOD;
 import static java.lang.annotation.RetentionPolicy.CLASS;
 
+/** Denote that the view specified by the injection is not required to be present. */
 @Retention(CLASS) @Target({ FIELD, METHOD })
 public @interface Optional {
 }

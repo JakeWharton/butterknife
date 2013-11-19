@@ -10,7 +10,7 @@ public interface InjectableListenerHandler {
    *
    * @throws InjectableListenerException if the method is not properly formed.
    */
-  String[] parseParamTypesAndValidateMethod(InjectViewProcessor ivp, ExecutableElement element)
+  Param[] parseParamTypesAndValidateMethod(InjectViewProcessor ivp, ExecutableElement element)
       throws InjectableListenerException;
 
   /**
