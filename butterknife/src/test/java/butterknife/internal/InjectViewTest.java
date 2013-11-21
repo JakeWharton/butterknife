@@ -296,9 +296,9 @@ public class InjectViewTest {
         .processedWith(butterknifeProcessors())
         .failsToCompile()
         .withErrorContaining(
-            String.format("@InjectView fields may not be on private classes (%s).",
-                "test.Test.Inner"))
-        .in(source).onLine(6);
+            String.format("@InjectView fields may not be contained in private classes. (%s)",
+                "test.Test.Inner.thing"))
+        .in(source).onLine(5);
   }
 
   @Test public void failsIfNotView() {
@@ -334,10 +334,9 @@ public class InjectViewTest {
         .processedWith(butterknifeProcessors())
         .failsToCompile()
         .withErrorContaining(
-            String.format("@InjectView field annotations may only be specified in " +
-                "classes (%s).",
-                "test.Test"))
-        .in(source).onLine(5);
+            String.format("@InjectView fields may only be contained in classes. (%s)",
+                "test.Test.thing"))
+        .in(source).onLine(4);
   }
 
   @Test public void failsIfPrivate() {
@@ -355,7 +354,7 @@ public class InjectViewTest {
         .processedWith(butterknifeProcessors())
         .failsToCompile()
         .withErrorContaining(
-            String.format("@InjectView fields must not be private or static (%s).",
+            String.format("@InjectView fields must not be private or static. (%s)",
                 "test.Test.thing"))
         .in(source).onLine(6);
   }
@@ -375,7 +374,7 @@ public class InjectViewTest {
         .processedWith(butterknifeProcessors())
         .failsToCompile()
         .withErrorContaining(
-            String.format("@InjectView fields must not be private or static (%s).",
+            String.format("@InjectView fields must not be private or static. (%s)",
                 "test.Test.thing"))
         .in(source).onLine(6);
   }

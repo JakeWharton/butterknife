@@ -1,6 +1,6 @@
 package butterknife.internal;
 
-class FieldBinding implements Binding {
+final class FieldBinding implements Binding {
   private final String name;
   private final String type;
   private final boolean required;

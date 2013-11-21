@@ -5,8 +5,12 @@ import butterknife.OnClick;
 import butterknife.OnItemClick;
 import butterknife.Optional;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.io.Writer;
 import java.lang.annotation.Annotation;
+import java.util.Arrays;
+import java.util.BitSet;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -42,11 +46,11 @@ import static javax.tools.Diagnostic.Kind.ERROR;
     "butterknife.OnClick", //
     "butterknife.OnItemClick" //
 })
-public class InjectViewProcessor extends AbstractProcessor {
+public final class InjectViewProcessor extends AbstractProcessor {
   public static final String SUFFIX = "$$ViewInjector";
   static final String VIEW_TYPE = "android.view.View";
-  static final Map<String, InjectableListenerHandler> LISTENER_HANDLER_MAP =
-      new LinkedHashMap<String, InjectableListenerHandler>();
+  private static final Map<Class<?>, Listener> LISTENER_MAP =
+      new LinkedHashMap<Class<?>, Listener>();
 
   private Elements elementUtils;
   private Types typeUtils;
@@ -61,17 +65,16 @@ public class InjectViewProcessor extends AbstractProcessor {
   }
 
   @Override public boolean process(Set<? extends TypeElement> elements, RoundEnvironment env) {
-    Map<TypeElement, TargetClass> targetClassMap = findAndParseTargets(env);
+    Map<TypeElement, ViewInjector> targetClassMap = findAndParseTargets(env);
 
-    for (Map.Entry<TypeElement, TargetClass> entry : targetClassMap.entrySet()) {
+    for (Map.Entry<TypeElement, ViewInjector> entry : targetClassMap.entrySet()) {
       TypeElement typeElement = entry.getKey();
-      TargetClass targetClass = entry.getValue();
+      ViewInjector viewInjector = entry.getValue();
 
-      // Write the view injector class.
       try {
-        JavaFileObject jfo = filer.createSourceFile(targetClass.getFqcn(), typeElement);
+        JavaFileObject jfo = filer.createSourceFile(viewInjector.getFqcn(), typeElement);
         Writer writer = jfo.openWriter();
-        writer.write(targetClass.brewJava());
+        writer.write(viewInjector.brewJava());
         writer.flush();
         writer.close();
       } catch (IOException e) {
@@ -82,8 +85,8 @@ public class InjectViewProcessor extends AbstractProcessor {
     return true;
   }
 
-  private Map<TypeElement, TargetClass> findAndParseTargets(RoundEnvironment env) {
-    Map<TypeElement, TargetClass> targetClassMap = new LinkedHashMap<TypeElement, TargetClass>();
+  private Map<TypeElement, ViewInjector> findAndParseTargets(RoundEnvironment env) {
+    Map<TypeElement, ViewInjector> targetClassMap = new LinkedHashMap<TypeElement, ViewInjector>();
     Set<TypeMirror> erasedTargetTypes = new LinkedHashSet<TypeMirror>();
 
     // Process each @InjectView elements.
@@ -100,7 +103,7 @@ public class InjectViewProcessor extends AbstractProcessor {
     findAndParseListener(env, OnItemClick.class, targetClassMap, erasedTargetTypes);
 
     // Try to find a parent injector for each injector.
-    for (Map.Entry<TypeElement, TargetClass> entry : targetClassMap.entrySet()) {
+    for (Map.Entry<TypeElement, ViewInjector> entry : targetClassMap.entrySet()) {
       String parentClassFqcn = findParentFqcn(entry.getKey(), erasedTargetTypes);
       if (parentClassFqcn != null) {
         entry.getValue().setParentInjector(parentClassFqcn + SUFFIX);
@@ -110,47 +113,55 @@ public class InjectViewProcessor extends AbstractProcessor {
     return targetClassMap;
   }
 
-  private void findAndParseListener(RoundEnvironment env,
-      Class<? extends Annotation> annotationClass, Map<TypeElement, TargetClass> targetClassMap,
-      Set<TypeMirror> erasedTargetTypes) {
-    for (Element element : env.getElementsAnnotatedWith(annotationClass)) {
-      try {
-        parseListenerAnnotation(annotationClass, element, targetClassMap, erasedTargetTypes);
-      } catch (Exception e) {
-        error(element, "Unable to parse @%s: %s", annotationClass.getSimpleName(), e.getMessage());
-      }
-    }
-  }
-
-  private void parseInjectView(Element element, Map<TypeElement, TargetClass> targetClassMap,
-      Set<TypeMirror> erasedTargetTypes) {
+  private boolean isValidForGeneratedCode(Class<? extends Annotation> annotationClass,
+      String targetThing, Element element) {
+    boolean hasError = false;
     TypeElement enclosingElement = (TypeElement) element.getEnclosingElement();
 
-    // Verify that the target type extends from View.
-    if (!isSubclassOfView(element.asType())) {
-      error(element, "@InjectView fields must extend from View (%s.%s).",
-          enclosingElement.getQualifiedName(), element);
-      return;
+    // Verify method modifiers.
+    Set<Modifier> modifiers = element.getModifiers();
+    if (modifiers.contains(PRIVATE) || modifiers.contains(STATIC)) {
+      error(element, "@%s %s must not be private or static. (%s.%s)",
+          annotationClass.getSimpleName(), targetThing, enclosingElement.getQualifiedName(),
+          element.getSimpleName());
+      hasError = true;
     }
 
     // Verify containing type.
     if (enclosingElement.getKind() != CLASS) {
-      error(element, "@InjectView field annotations may only be specified in classes (%s).",
-          enclosingElement);
-      return;
-    }
-
-    // Verify field modifiers.
-    Set<Modifier> modifiers = element.getModifiers();
-    if (modifiers.contains(PRIVATE) || modifiers.contains(STATIC)) {
-      error(element, "@InjectView fields must not be private or static (%s.%s).",
-          enclosingElement.getQualifiedName(), element);
-      return;
+      error(enclosingElement, "@%s %s may only be contained in classes. (%s.%s)",
+          annotationClass.getSimpleName(), targetThing, enclosingElement.getQualifiedName(),
+          element.getSimpleName());
+      hasError = true;
     }
 
     // Verify containing class visibility is not private.
     if (enclosingElement.getModifiers().contains(PRIVATE)) {
-      error(element, "@InjectView fields may not be on private classes (%s).", enclosingElement);
+      error(enclosingElement, "@%s %s may not be contained in private classes. (%s.%s)",
+          annotationClass.getSimpleName(), targetThing, enclosingElement.getQualifiedName(),
+          element.getSimpleName());
+      hasError = true;
+    }
+
+    return hasError;
+  }
+
+  private void parseInjectView(Element element, Map<TypeElement, ViewInjector> targetClassMap,
+      Set<TypeMirror> erasedTargetTypes) {
+    boolean hasError = false;
+    TypeElement enclosingElement = (TypeElement) element.getEnclosingElement();
+
+    // Verify that the target type extends from View.
+    if (!isSubtypeOfType(element.asType(), VIEW_TYPE)) {
+      error(element, "@InjectView fields must extend from View (%s.%s).",
+          enclosingElement.getQualifiedName(), element.getSimpleName());
+      hasError = true;
+    }
+
+    // Verify common generated code restrictions.
+    hasError |= isValidForGeneratedCode(InjectView.class, "fields", element);
+
+    if (hasError) {
       return;
     }
 
@@ -160,35 +171,37 @@ public class InjectViewProcessor extends AbstractProcessor {
     String type = element.asType().toString();
     boolean required = element.getAnnotation(Optional.class) == null;
 
-    TargetClass targetClass = getOrCreateTargetClass(targetClassMap, enclosingElement);
-    targetClass.addField(id, name, type, required);
+    ViewInjector viewInjector = getOrCreateTargetClass(targetClassMap, enclosingElement);
+    viewInjector.addField(id, name, type, required);
 
     // Add the type-erased version to the valid injection targets set.
     TypeMirror erasedTargetType = typeUtils.erasure(enclosingElement.asType());
     erasedTargetTypes.add(erasedTargetType);
   }
 
+  private void findAndParseListener(RoundEnvironment env,
+      Class<? extends Annotation> annotationClass, Map<TypeElement, ViewInjector> targetClassMap,
+      Set<TypeMirror> erasedTargetTypes) {
+    for (Element element : env.getElementsAnnotatedWith(annotationClass)) {
+      try {
+        parseListenerAnnotation(annotationClass, element, targetClassMap, erasedTargetTypes);
+      } catch (Exception e) {
+        StringWriter stackTrace = new StringWriter();
+        e.printStackTrace(new PrintWriter(stackTrace));
+
+        error(element, "Unable to generate view injector for @%s.\n\n%s",
+            annotationClass.getSimpleName(), stackTrace.toString());
+      }
+    }
+  }
+
   private void parseListenerAnnotation(Class<? extends Annotation> annotationClass, Element element,
-      Map<TypeElement, TargetClass> targetClassMap, Set<TypeMirror> erasedTargetTypes)
+      Map<TypeElement, ViewInjector> targetClassMap, Set<TypeMirror> erasedTargetTypes)
       throws Exception {
     // This should be guarded by the annotation's @Target but it's worth a check for safe casting.
     if (!(element instanceof ExecutableElement) || element.getKind() != METHOD) {
       error(element, "@%s annotation must be on a method.", annotationClass.getSimpleName());
       return;
-    }
-
-    String annotationName = annotationClass.getName();
-    InjectableListenerHandler handler = LISTENER_HANDLER_MAP.get(annotationName);
-    if (handler == null) {
-      InjectableListener listener = annotationClass.getAnnotation(InjectableListener.class);
-      if (listener == null) {
-        error(element, "No @%s defined on @%s.", InjectableListener.class.getSimpleName(),
-            annotationClass.getSimpleName());
-        return;
-      }
-      Class<? extends InjectableListenerHandler> handlerClass = listener.value();
-      handler = handlerClass.newInstance();
-      LISTENER_HANDLER_MAP.put(annotationName, handler);
     }
 
     ExecutableElement executableElement = (ExecutableElement) element;
@@ -199,58 +212,120 @@ public class InjectViewProcessor extends AbstractProcessor {
     Annotation annotation = element.getAnnotation(annotationClass);
     int[] ids = (int[]) annotationClass.getDeclaredMethod("value").invoke(annotation);
     boolean required = element.getAnnotation(Optional.class) == null;
+    String targetThing = "methods";
 
-    // Verify method modifiers.
-    Set<Modifier> modifiers = element.getModifiers();
-    if (modifiers.contains(PRIVATE) || modifiers.contains(STATIC)) {
-      throw new InjectableListenerException(element,
-          "@%s methods must not be private or static. (%s.%s)", annotationClass.getSimpleName(),
-          enclosingElement.getQualifiedName(), element.getSimpleName());
-    }
-
-    // Verify containing type.
-    if (enclosingElement.getKind() != CLASS) {
-      throw new InjectableListenerException(enclosingElement,
-          "@%s methods may only be contained in classes. (%s.%s)", annotationClass.getSimpleName(),
-          enclosingElement.getQualifiedName(), element.getSimpleName());
-    }
-
-    // Verify containing class visibility is not private.
-    if (enclosingElement.getModifiers().contains(PRIVATE)) {
-      throw new InjectableListenerException(enclosingElement,
-          "@%s methods may not be contained in private classes. (%s.%s)",
-          annotationClass.getSimpleName(), enclosingElement.getQualifiedName(),
-          element.getSimpleName());
-    }
+    boolean hasError = isValidForGeneratedCode(annotationClass, targetThing, element);
 
     // Verify method return type.
     if (executableElement.getReturnType().getKind() != TypeKind.VOID) {
-      throw new InjectableListenerException(element,
-          "@%s methods must have a 'void' return type. (%s.%s)", annotationClass.getSimpleName(),
-          enclosingElement.getQualifiedName(), element.getSimpleName());
+      error(element, "@%s methods must have a 'void' return type. (%s.%s)",
+          annotationClass.getSimpleName(), enclosingElement.getQualifiedName(),
+          element.getSimpleName());
+      hasError = true;
     }
 
     Set<Integer> seenIds = new LinkedHashSet<Integer>(ids.length);
     for (int id : ids) {
       if (!seenIds.add(id)) {
-        throw new InjectableListenerException(element,
-            "@%s annotation for method contains duplicate ID %d. (%s.%s)",
+        error(element, "@%s annotation for method contains duplicate ID %d. (%s.%s)",
             annotationClass.getSimpleName(), id, enclosingElement.getQualifiedName(),
             element.getSimpleName());
+        hasError = true;
       }
     }
 
-    Param[] params;
-    try {
-      params = handler.parseParamTypesAndValidateMethod(this, executableElement);
-    } catch (InjectableListenerException e) {
-      error(e.element, e.getMessage());
+    ListenerClass listenerClass = annotationClass.getAnnotation(ListenerClass.class);
+    if (listenerClass == null) {
+      error(element, "No @%s defined on @%s.", ListenerClass.class.getSimpleName(),
+          annotationClass.getSimpleName());
+      return; // We can't do any more validation without a listener.
+    }
+
+    Class<?> listenerClassClass = listenerClass.value();
+    Listener listener = LISTENER_MAP.get(listenerClassClass);
+    if (listener == null) {
+      try {
+        listener = Listener.from(listenerClassClass);
+        LISTENER_MAP.put(listenerClassClass, listener);
+      } catch (IllegalArgumentException e) {
+        error(elementUtils.getTypeElement(annotationClass.getName()), "%s (%s on @%s)",
+            e.getMessage(), listenerClassClass.getName(), annotationClass.getName());
+        hasError = true;
+      }
+    }
+
+    if (hasError) {
       return;
     }
 
-    TargetClass targetClass = getOrCreateTargetClass(targetClassMap, enclosingElement);
+    List<? extends VariableElement> methodParameters = executableElement.getParameters();
+    if (methodParameters.size() > listener.getParameterTypes().size()) {
+      error(element, "@%s methods can have at most %s parameter(s). (%s.%s)",
+          annotationClass.getSimpleName(), listener.getParameterTypes().size(),
+          enclosingElement.getQualifiedName(), element.getSimpleName());
+      return;
+    }
+
+    Parameter[] parameters = new Parameter[methodParameters.size()];
+    if (!methodParameters.isEmpty()) {
+      BitSet methodParameterUsed = new BitSet(methodParameters.size());
+      List<String> parameterTypes = listener.getParameterTypes();
+      for (int i = 0; i < methodParameters.size(); i++) {
+        VariableElement methodParameter = methodParameters.get(i);
+        TypeMirror methodParameterType = methodParameter.asType();
+
+        for (int j = 0; j < parameterTypes.size(); j++) {
+          if (methodParameterUsed.get(j)) {
+            continue;
+          }
+          if (isSubtypeOfType(methodParameterType, parameterTypes.get(j))) {
+            parameters[i] = new Parameter(j, methodParameterType.toString());
+            methodParameterUsed.set(j);
+            break;
+          }
+        }
+        if (parameters[i] == null) {
+          StringBuilder builder = new StringBuilder();
+          builder.append("Unable to match @")
+              .append(annotationClass.getSimpleName())
+              .append(" method arguments. (")
+              .append(enclosingElement.getQualifiedName())
+              .append('.')
+              .append(element.getSimpleName())
+              .append(')');
+          for (int j = 0; j < parameters.length; j++) {
+            Parameter parameter = parameters[j];
+            builder.append("\n\n  Parameter #")
+                .append(j + 1)
+                .append(": ")
+                .append(methodParameters.get(j).asType().toString())
+                .append("\n    ");
+            if (parameter == null) {
+              builder.append("did not match any listener parameters");
+            } else {
+              builder.append("matched listener parameter #")
+                  .append(parameter.getListenerPosition() + 1)
+                  .append(": ")
+                  .append(parameter.getType());
+            }
+          }
+          builder.append("\n\nMethods may have up to ")
+              .append(listener.getParameterTypes().size())
+              .append(" parameter(s):\n");
+          for (String parameterType : listener.getParameterTypes()) {
+            builder.append("\n  ").append(parameterType);
+          }
+          builder.append(
+              "\n\nThese may be listed in any order but will be searched for from top to bottom.");
+          error(executableElement, builder.toString());
+          return;
+        }
+      }
+    }
+
+    ViewInjector viewInjector = getOrCreateTargetClass(targetClassMap, enclosingElement);
     for (int id : ids) {
-      if (!targetClass.addMethod(id, annotationName, name, params, required)) {
+      if (!viewInjector.addMethod(id, listener, name, Arrays.asList(parameters), required)) {
         error(element, "Multiple @%s methods declared for ID %s in %s.",
             annotationClass.getSimpleName(), id, enclosingElement.getQualifiedName());
         return;
@@ -262,13 +337,28 @@ public class InjectViewProcessor extends AbstractProcessor {
     erasedTargetTypes.add(erasedTargetType);
   }
 
-  static boolean isSubclassOfView(TypeMirror typeMirror) {
+  private boolean isSubtypeOfType(TypeMirror typeMirror, String otherType) {
+    if (otherType.equals(typeMirror.toString())) {
+      return true;
+    }
     if (!(typeMirror instanceof DeclaredType)) {
       return false;
     }
     DeclaredType declaredType = (DeclaredType) typeMirror;
-    if (VIEW_TYPE.equals(declaredType.toString())) {
-      return true;
+    List<? extends TypeMirror> typeArguments = declaredType.getTypeArguments();
+    if (typeArguments.size() > 0) {
+      StringBuilder typeString = new StringBuilder(declaredType.asElement().toString());
+      typeString.append('<');
+      for (int i = 0; i < typeArguments.size(); i++) {
+        if (i > 0) {
+          typeString.append(',');
+        }
+        typeString.append('?');
+      }
+      typeString.append('>');
+      if (typeString.toString().equals(otherType)) {
+        return true;
+      }
     }
     Element element = declaredType.asElement();
     if (!(element instanceof TypeElement)) {
@@ -276,46 +366,29 @@ public class InjectViewProcessor extends AbstractProcessor {
     }
     TypeElement typeElement = (TypeElement) element;
     TypeMirror superType = typeElement.getSuperclass();
-    return isSubclassOfView(superType);
-  }
-
-  static boolean isSubtypeOfType(TypeMirror typeMirror, String otherType) {
-    if (!(typeMirror instanceof DeclaredType)) {
-      return typeMirror.toString().equals(otherType);
-    }
-    DeclaredType declaredType = (DeclaredType) typeMirror;
-    if (otherType.equals(declaredType.toString())) {
-      return true;
-    }
-    Element element = declaredType.asElement();
-    if (!(element instanceof TypeElement)) {
-      return false;
-    }
-    TypeElement typeElement = (TypeElement) element;
-    TypeMirror superType = typeElement.getSuperclass();
-    if (isSubclassOfView(superType)) {
+    if (isSubtypeOfType(superType, otherType)) {
       return true;
     }
     for (TypeMirror interfaceType : typeElement.getInterfaces()) {
-      if (isSubclassOfView(interfaceType)) {
+      if (isSubtypeOfType(interfaceType, otherType)) {
         return true;
       }
     }
     return false;
   }
 
-  private TargetClass getOrCreateTargetClass(Map<TypeElement, TargetClass> targetClassMap,
+  private ViewInjector getOrCreateTargetClass(Map<TypeElement, ViewInjector> targetClassMap,
       TypeElement enclosingElement) {
-    TargetClass targetClass = targetClassMap.get(enclosingElement);
-    if (targetClass == null) {
+    ViewInjector viewInjector = targetClassMap.get(enclosingElement);
+    if (viewInjector == null) {
       String targetType = enclosingElement.getQualifiedName().toString();
       String classPackage = getPackageName(enclosingElement);
       String className = getClassName(enclosingElement, classPackage) + SUFFIX;
 
-      targetClass = new TargetClass(classPackage, className, targetType);
-      targetClassMap.put(enclosingElement, targetClass);
+      viewInjector = new ViewInjector(classPackage, className, targetType);
+      targetClassMap.put(enclosingElement, viewInjector);
     }
-    return targetClass;
+    return viewInjector;
   }
 
   private static String getClassName(TypeElement type, String packageName) {
@@ -355,26 +428,11 @@ public class InjectViewProcessor extends AbstractProcessor {
     return SourceVersion.latestSupported();
   }
 
-  void error(Element element, String message, Object... args) {
+  private void error(Element element, String message, Object... args) {
     processingEnv.getMessager().printMessage(ERROR, String.format(message, args), element);
   }
 
-  protected String getPackageName(TypeElement type) {
+  private String getPackageName(TypeElement type) {
     return elementUtils.getPackageOf(type).getQualifiedName().toString();
-  }
-
-  public void findBestParameter(Param[] params, List<? extends VariableElement> parameters,
-      Class<?> targetClass, int listenerPosition) {
-    String targetClassName = targetClass.getName();
-    for (int i = 0, count = parameters.size(); i < count; i++) {
-      if (params[i] != null) {
-        continue;
-      }
-      VariableElement parameter = parameters.get(i);
-      if (isSubtypeOfType(parameter.asType(), targetClassName)) {
-        params[i] = new Param(listenerPosition, parameter.asType().toString());
-        return;
-      }
-    }
   }
 }

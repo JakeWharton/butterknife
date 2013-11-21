@@ -5,17 +5,16 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import static butterknife.internal.InjectViewProcessor.LISTENER_HANDLER_MAP;
 import static butterknife.internal.InjectViewProcessor.VIEW_TYPE;
 
-class TargetClass {
+final class ViewInjector {
   private final Map<Integer, ViewInjection> viewIdMap = new LinkedHashMap<Integer, ViewInjection>();
   private final String classPackage;
   private final String className;
   private final String targetClass;
   private String parentInjector;
 
-  TargetClass(String classPackage, String className, String targetClass) {
+  ViewInjector(String classPackage, String className, String targetClass) {
     this.classPackage = classPackage;
     this.className = className;
     this.targetClass = targetClass;
@@ -25,10 +24,11 @@ class TargetClass {
     getOrCreateViewBinding(id).addFieldBinding(new FieldBinding(name, type, required));
   }
 
-  boolean addMethod(int id, String annotation, String name, Param[] params, boolean required) {
+  boolean addMethod(int id, Listener listener, String name, List<Parameter> parameters,
+      boolean required) {
     try {
-      getOrCreateViewBinding(id).addMethodBinding(
-          new MethodBinding(name, annotation, params, required));
+      getOrCreateViewBinding(id).addMethodBinding(listener,
+          new MethodBinding(name, parameters, required));
       return true;
     } catch (IllegalStateException e) {
       return false;
@@ -99,9 +99,9 @@ class TargetClass {
       builder.append("    if (view == null) {\n")
           .append("      throw new IllegalStateException(\"Required view with id '")
           .append(injection.getId())
-          .append("' for ")
-          .append(humanDescriptionJoin(requiredBindings))
-          .append(" was not found. If this view is optional add '@Optional' annotation.\");\n")
+          .append("' for ");
+      emitHumanDescription(builder, requiredBindings);
+      builder.append(" was not found. If this view is optional add '@Optional' annotation.\");\n")
           .append("    }\n");
     }
 
@@ -110,7 +110,12 @@ class TargetClass {
   }
 
   private void emitFieldBindings(StringBuilder builder, ViewInjection injection) {
-    for (FieldBinding fieldBinding : injection.getFieldBindings()) {
+    Collection<FieldBinding> fieldBindings = injection.getFieldBindings();
+    if (fieldBindings.isEmpty()) {
+      return;
+    }
+
+    for (FieldBinding fieldBinding : fieldBindings) {
       builder.append("    target.")
           .append(fieldBinding.getName())
           .append(" = ");
@@ -120,23 +125,97 @@ class TargetClass {
   }
 
   private void emitMethodBindings(StringBuilder builder, ViewInjection injection) {
-    Collection<MethodBinding> methodBindings = injection.getMethodBindings();
-    if (!methodBindings.isEmpty()) {
-      List<Binding> requiredBindings = injection.getRequiredBindings();
+    Map<Listener, MethodBinding> methodBindings = injection.getMethodBindings();
+    if (methodBindings.isEmpty()) {
+      return;
+    }
 
-      // We only need to emit the null check if there are zero required bindings.
-      if (requiredBindings.isEmpty()) {
-        builder.append("    if (view != null) {\n");
+    String extraIndent = "";
+
+    // We only need to emit the null check if there are zero required bindings.
+    boolean needsNullChecked = injection.getRequiredBindings().isEmpty();
+    if (needsNullChecked) {
+      builder.append("    if (view != null) {\n");
+      extraIndent = "  ";
+    }
+
+    for (Map.Entry<Listener, MethodBinding> entry : methodBindings.entrySet()) {
+      Listener listener = entry.getKey();
+      MethodBinding methodBinding = entry.getValue();
+
+      // Emit: ((OWNER_TYPE) view).SETTER_NAME(
+      boolean needsCast = !VIEW_TYPE.equals(listener.getOwnerType());
+      builder.append(extraIndent)
+          .append("    ");
+      if (needsCast) {
+        builder.append("((").append(listener.getOwnerType()).append(") ");
+      }
+      builder.append("view");
+      if (needsCast) {
+        builder.append(')');
+      }
+      builder.append('.')
+          .append(listener.getSetterName())
+          .append("(\n");
+
+      // Emit: new TYPE() {
+      builder.append(extraIndent)
+          .append("      new ")
+          .append(listener.getType())
+          .append("() {\n");
+
+      // Emit: @Override public RETURN_TYPE METHOD_NAME(
+      builder.append(extraIndent)
+          .append("        @Override public ")
+          .append(listener.getReturnType())
+          .append(' ')
+          .append(listener.getMethodName())
+          .append("(\n");
+
+      // Emit listener method arguments, each on their own line.
+      List<String> parameterTypes = listener.getParameterTypes();
+      for (int i = 0, count = parameterTypes.size(); i < count; i++) {
+        builder.append(extraIndent)
+            .append("          ")
+            .append(parameterTypes.get(i))
+            .append(" p")
+            .append(i);
+        if (i < count - 1) {
+          builder.append(',');
+        }
+        builder.append('\n');
       }
 
-      for (MethodBinding methodBinding : methodBindings) {
-        InjectableListenerHandler handler = LISTENER_HANDLER_MAP.get(methodBinding.getAnnotation());
-        handler.emit(builder, methodBinding);
-      }
+      // Emit end of parameters, start of body.
+      builder.append(extraIndent).append("        ) {\n");
 
-      if (requiredBindings.isEmpty()) {
-        builder.append("    }\n");
+      // Emit call to target method using its parameter list.
+      builder.append(extraIndent)
+          .append("          target.")
+          .append(methodBinding.getName())
+          .append('(');
+      List<Parameter> parameters = methodBinding.getParameters();
+      List<String> listenerParameters = listener.getParameterTypes();
+      for (int i = 0, count = parameters.size(); i < count; i++) {
+        Parameter parameter = parameters.get(i);
+        int listenerPosition = parameter.getListenerPosition();
+        emitCastIfNeeded(builder, listenerParameters.get(listenerPosition), parameter.getType());
+        builder.append('p').append(listenerPosition);
+        if (i < count - 1) {
+          builder.append(", ");
+        }
       }
+      builder.append(");\n");
+
+      // Emit end of listener method.
+      builder.append(extraIndent).append("        }\n");
+
+      // Emit end of listener class body and close the setter method call.
+      builder.append(extraIndent).append("      });\n");
+    }
+
+    if (needsNullChecked) {
+      builder.append("    }\n");
     }
   }
 
@@ -162,29 +241,32 @@ class TargetClass {
   static void emitCastIfNeeded(StringBuilder builder, String sourceType, String destinationType) {
     // Only emit a cast if the source and destination type do not match.
     if (!sourceType.equals(destinationType)) {
-      builder.append("(").append(destinationType).append(") ");
+      builder.append('(').append(destinationType).append(") ");
     }
   }
 
-  static String humanDescriptionJoin(List<Binding> bindings) {
+  static void emitHumanDescription(StringBuilder builder, List<Binding> bindings) {
     switch (bindings.size()) {
       case 1:
-        return bindings.get(0).getDescription();
+        builder.append(bindings.get(0).getDescription());
+        break;
       case 2:
-        return bindings.get(0).getDescription() + " and " + bindings.get(1).getDescription();
+        builder.append(bindings.get(0).getDescription())
+            .append(" and ")
+            .append(bindings.get(1).getDescription());
+        break;
       default:
-        StringBuilder names = new StringBuilder();
         for (int i = 0, count = bindings.size(); i < count; i++) {
           Binding requiredField = bindings.get(i);
           if (i != 0) {
-            names.append(", ");
+            builder.append(", ");
           }
           if (i == count - 1) {
-            names.append("and ");
+            builder.append("and ");
           }
-          names.append(requiredField.getDescription());
+          builder.append(requiredField.getDescription());
         }
-        return names.toString();
+        break;
     }
   }
 }

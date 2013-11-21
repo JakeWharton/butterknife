@@ -2,17 +2,18 @@ package butterknife.internal;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-class ViewInjection {
+final class ViewInjection {
   private final int id;
   private final Set<FieldBinding> fieldBindings = new LinkedHashSet<FieldBinding>();
-  private final Map<String, MethodBinding> methodBindings =
-      new LinkedHashMap<String, MethodBinding>();
+  private final Map<Listener, MethodBinding> methodBindings =
+      new LinkedHashMap<Listener, MethodBinding>();
 
   ViewInjection(int id) {
     this.id = id;
@@ -26,8 +27,8 @@ class ViewInjection {
     return fieldBindings;
   }
 
-  public Collection<MethodBinding> getMethodBindings() {
-    return methodBindings.values();
+  public Map<Listener, MethodBinding> getMethodBindings() {
+    return Collections.unmodifiableMap(new LinkedHashMap<Listener, MethodBinding>(methodBindings));
   }
 
   public List<Binding> getRequiredBindings() {
@@ -45,18 +46,17 @@ class ViewInjection {
     return requiredBindings;
   }
 
-  public void addMethodBinding(MethodBinding methodBinding) {
-    String annotation = methodBinding.getAnnotation();
-    MethodBinding existingBinding = methodBindings.get(annotation);
+  public void addMethodBinding(Listener listener, MethodBinding methodBinding) {
+    MethodBinding existingBinding = methodBindings.get(listener);
     if (existingBinding != null) {
       throw new IllegalStateException("View "
           + id
           + " already has method binding for "
-          + annotation
+          + listener.getType()
           + " on "
           + existingBinding.getName());
     }
-    methodBindings.put(annotation, methodBinding);
+    methodBindings.put(listener, methodBinding);
   }
 
   public void addFieldBinding(FieldBinding fieldBinding) {

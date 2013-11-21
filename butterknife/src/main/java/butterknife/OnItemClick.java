@@ -1,15 +1,15 @@
 package butterknife;
 
-import butterknife.internal.InjectableListener;
-import butterknife.internal.OnItemClickListenerHandler;
+import android.widget.AdapterView;
+import butterknife.internal.ListenerClass;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
 import static java.lang.annotation.ElementType.METHOD;
 import static java.lang.annotation.RetentionPolicy.CLASS;
 
-@InjectableListener(OnItemClickListenerHandler.class)
 @Retention(CLASS) @Target(METHOD)
+@ListenerClass(AdapterView.OnItemClickListener.class)
 public @interface OnItemClick {
   int[] value();
 }
