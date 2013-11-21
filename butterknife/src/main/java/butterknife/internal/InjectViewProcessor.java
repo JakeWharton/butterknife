@@ -3,6 +3,7 @@ package butterknife.internal;
 import butterknife.InjectView;
 import butterknife.OnClick;
 import butterknife.OnItemClick;
+import butterknife.OnLongClick;
 import butterknife.Optional;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -44,7 +45,8 @@ import static javax.tools.Diagnostic.Kind.ERROR;
 @SupportedAnnotationTypes({ //
     "butterknife.InjectView", //
     "butterknife.OnClick", //
-    "butterknife.OnItemClick" //
+    "butterknife.OnItemClick", //
+    "butterknife.OnLongClick" //
 })
 public final class InjectViewProcessor extends AbstractProcessor {
   public static final String SUFFIX = "$$ViewInjector";
@@ -101,6 +103,7 @@ public final class InjectViewProcessor extends AbstractProcessor {
     // Process each annotation that corresponds to a listener.
     findAndParseListener(env, OnClick.class, targetClassMap, erasedTargetTypes);
     findAndParseListener(env, OnItemClick.class, targetClassMap, erasedTargetTypes);
+    findAndParseListener(env, OnLongClick.class, targetClassMap, erasedTargetTypes);
 
     // Try to find a parent injector for each injector.
     for (Map.Entry<TypeElement, ViewInjector> entry : targetClassMap.entrySet()) {
@@ -216,14 +219,6 @@ public final class InjectViewProcessor extends AbstractProcessor {
 
     boolean hasError = isValidForGeneratedCode(annotationClass, targetThing, element);
 
-    // Verify method return type.
-    if (executableElement.getReturnType().getKind() != TypeKind.VOID) {
-      error(element, "@%s methods must have a 'void' return type. (%s.%s)",
-          annotationClass.getSimpleName(), enclosingElement.getQualifiedName(),
-          element.getSimpleName());
-      hasError = true;
-    }
-
     Set<Integer> seenIds = new LinkedHashSet<Integer>(ids.length);
     for (int id : ids) {
       if (!seenIds.add(id)) {
@@ -263,6 +258,18 @@ public final class InjectViewProcessor extends AbstractProcessor {
       error(element, "@%s methods can have at most %s parameter(s). (%s.%s)",
           annotationClass.getSimpleName(), listener.getParameterTypes().size(),
           enclosingElement.getQualifiedName(), element.getSimpleName());
+      hasError = true;
+    }
+
+    // Verify method return type matches the listener.
+    if (!executableElement.getReturnType().toString().equals(listener.getReturnType())) {
+      error(element, "@%s methods must have a '%s' return type. (%s.%s)",
+          annotationClass.getSimpleName(), listener.getReturnType(),
+          enclosingElement.getQualifiedName(), element.getSimpleName());
+      hasError = true;
+    }
+
+    if (hasError) {
       return;
     }
 

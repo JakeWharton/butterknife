@@ -10,6 +10,7 @@ import butterknife.InjectView;
 import butterknife.OnClick;
 import butterknife.ButterKnife;
 import butterknife.OnItemClick;
+import butterknife.OnLongClick;
 
 import static android.widget.Toast.LENGTH_SHORT;
 
@@ -24,6 +25,11 @@ public class SimpleActivity extends Activity {
 
   @OnClick(R.id.hello) void sayHello() {
     Toast.makeText(this, "Hello, views!", LENGTH_SHORT).show();
+  }
+
+  @OnLongClick(R.id.hello) boolean sayGetOffMe() {
+    Toast.makeText(this, "Let go of me!", LENGTH_SHORT).show();
+    return true;
   }
 
   @OnItemClick(R.id.list_of_things) void onItemClick(int position) {

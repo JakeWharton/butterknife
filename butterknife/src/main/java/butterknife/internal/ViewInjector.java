@@ -190,8 +190,11 @@ final class ViewInjector {
       builder.append(extraIndent).append("        ) {\n");
 
       // Emit call to target method using its parameter list.
-      builder.append(extraIndent)
-          .append("          target.")
+      builder.append(extraIndent).append("          ");
+      if (!"void".equals(listener.getReturnType())) {
+        builder.append("return ");
+      }
+      builder.append("target.")
           .append(methodBinding.getName())
           .append('(');
       List<Parameter> parameters = methodBinding.getParameters();
