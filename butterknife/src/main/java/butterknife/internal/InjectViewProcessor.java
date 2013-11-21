@@ -10,6 +10,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collection;
@@ -96,7 +97,11 @@ public final class InjectViewProcessor extends AbstractProcessor {
       try {
         parseInjectView(element, targetClassMap, erasedTargetTypes);
       } catch (Exception e) {
-        error(element, "Unable to parse @InjectView: %s", e.getMessage());
+        StringWriter stackTrace = new StringWriter();
+        e.printStackTrace(new PrintWriter(stackTrace));
+
+        error(element, "Unable to generate view injector for @InjectView.\n\n%s",
+            stackTrace.toString());
       }
     }
 
@@ -211,13 +216,20 @@ public final class InjectViewProcessor extends AbstractProcessor {
     TypeElement enclosingElement = (TypeElement) element.getEnclosingElement();
 
     // Assemble information on the injection point.
-    String name = executableElement.getSimpleName().toString();
     Annotation annotation = element.getAnnotation(annotationClass);
-    int[] ids = (int[]) annotationClass.getDeclaredMethod("value").invoke(annotation);
-    boolean required = element.getAnnotation(Optional.class) == null;
-    String targetThing = "methods";
+    Method annotationValue = annotationClass.getDeclaredMethod("value");
+    if (annotationValue == null || annotationValue.getReturnType() != int[].class) {
+      error(element, "@%s annotation lacks int[] value property. (%s.%s)", annotationClass,
+          enclosingElement.getQualifiedName(), element.getSimpleName());
+      return;
+    }
 
-    boolean hasError = isValidForGeneratedCode(annotationClass, targetThing, element);
+    int[] ids = (int[]) annotationValue.invoke(annotation);
+    String name = executableElement.getSimpleName().toString();
+    boolean required = element.getAnnotation(Optional.class) == null;
+
+    // Verify that the method and its containing class are accessible via generated code.
+    boolean hasError = isValidForGeneratedCode(annotationClass, "methods", element);
 
     Set<Integer> seenIds = new LinkedHashSet<Integer>(ids.length);
     for (int id : ids) {
@@ -236,6 +248,7 @@ public final class InjectViewProcessor extends AbstractProcessor {
       return; // We can't do any more validation without a listener.
     }
 
+    // Get or create the metadata model for the target listener.
     Class<?> listenerClassClass = listenerClass.value();
     Listener listener = LISTENER_MAP.get(listenerClassClass);
     if (listener == null) {
@@ -245,14 +258,11 @@ public final class InjectViewProcessor extends AbstractProcessor {
       } catch (IllegalArgumentException e) {
         error(elementUtils.getTypeElement(annotationClass.getName()), "%s (%s on @%s)",
             e.getMessage(), listenerClassClass.getName(), annotationClass.getName());
-        hasError = true;
+        return; // We can't process and further without a valid listener model.
       }
     }
 
-    if (hasError) {
-      return;
-    }
-
+    // Verify that the method has equal to or less than the number of parameters as the listener.
     List<? extends VariableElement> methodParameters = executableElement.getParameters();
     if (methodParameters.size() > listener.getParameterTypes().size()) {
       error(element, "@%s methods can have at most %s parameter(s). (%s.%s)",
@@ -273,8 +283,9 @@ public final class InjectViewProcessor extends AbstractProcessor {
       return;
     }
 
-    Parameter[] parameters = new Parameter[methodParameters.size()];
+    Parameter[] parameters = Parameter.NONE;
     if (!methodParameters.isEmpty()) {
+      parameters = new Parameter[methodParameters.size()];
       BitSet methodParameterUsed = new BitSet(methodParameters.size());
       List<String> parameterTypes = listener.getParameterTypes();
       for (int i = 0; i < methodParameters.size(); i++) {

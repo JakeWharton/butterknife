@@ -8,12 +8,60 @@ import java.lang.reflect.Method;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-/** View injection utilities. */
+/**
+ * View injection utilities. Use this class to simplify finding views and attaching listeners by
+ * injecting them.
+ * <p>
+ * Injecting views from your activity is as easy as:
+ * <pre><code>
+ * public class ExampleActivity extends Activity {
+ *   {@literal @}InjectView(R.id.title) EditText titleView;
+ *   {@literal @}InjectView(R.id.subtitle) EditText subtitleView;
+ *
+ *   {@literal @}Override protected void onCreate(Bundle savedInstanceState) {
+ *     super.onCreate(savedInstanceState);
+ *     setContentView(R.layout.example_activity);
+ *     ButterKnife.inject(this);
+ *   }
+ * }
+ * </code></pre>
+ * You can inject an {@link #inject(Activity) activity directly} or a {@link #inject(View) view
+ * directly}, or inject an {@link #inject(Object, Activity) activity into another object} or a
+ * {@link #inject(Object, View) view into another object}.
+ * <p>
+ * To inject listeners to your views you can annotate your methods:
+ * <pre><code>
+ * {@literal @}OnClick(R.id.submit) void onSubmit() {
+ *   // React to button click.
+ * }
+ * </code></pre>
+ * Any number of parameters from the listener may be used on the method.
+ * <pre><code>
+ * {@literal @}OnItemClick(R.id.tweet_list) void onTweetClicked(int position) {
+ *   // React to tweet click.
+ * }
+ * </code></pre>
+ * <p>
+ * Be default, views are required to be present in the layout for both field and method injections.
+ * If a view is optional add the {@link Optional @Optional} annotation.
+ * <pre><code>
+ * {@literal @}Optional @InjectView(R.id.title) TextView subtitleView;
+ * </code></pre>
+ *
+ * @see InjectView
+ * @see OnClick
+ * @see OnItemClick
+ * @see OnLongClick
+ */
 public class ButterKnife {
   private ButterKnife() {
     // No instances.
   }
 
+  /**
+   * A means of finding a view in either an {@link Activity} or a {@link View}. Exposed for use only
+   * by generated code.
+   */
   public enum Finder {
     VIEW {
       @Override public View findById(Object source, int id) {
@@ -125,7 +173,7 @@ public class ButterKnife {
     }
   }
 
-  static Method findInjectorForClass(Class<?> cls) throws NoSuchMethodException {
+  private static Method findInjectorForClass(Class<?> cls) throws NoSuchMethodException {
     Method inject = INJECTORS.get(cls);
     if (inject != null) {
       if (debug) Log.d(TAG, "HIT: Cached in injector map.");
@@ -148,7 +196,7 @@ public class ButterKnife {
     return inject;
   }
 
-  static Method findResettersForClass(Class<?> cls) throws NoSuchMethodException {
+  private static Method findResettersForClass(Class<?> cls) throws NoSuchMethodException {
     Method inject = RESETTERS.get(cls);
     if (inject != null) {
       if (debug) Log.d(TAG, "HIT: Cached in injector map.");
