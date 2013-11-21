@@ -1,8 +1,12 @@
 package butterknife.internal;
 
 import butterknife.InjectView;
+import butterknife.OnCheckedChanged;
 import butterknife.OnClick;
+import butterknife.OnEditorAction;
+import butterknife.OnFocusChanged;
 import butterknife.OnItemClick;
+import butterknife.OnItemLongClick;
 import butterknife.OnLongClick;
 import butterknife.Optional;
 import java.io.IOException;
@@ -23,7 +27,6 @@ import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.Filer;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
-import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
@@ -43,17 +46,20 @@ import static javax.lang.model.element.Modifier.PRIVATE;
 import static javax.lang.model.element.Modifier.STATIC;
 import static javax.tools.Diagnostic.Kind.ERROR;
 
-@SupportedAnnotationTypes({ //
-    "butterknife.InjectView", //
-    "butterknife.OnClick", //
-    "butterknife.OnItemClick", //
-    "butterknife.OnLongClick" //
-})
 public final class InjectViewProcessor extends AbstractProcessor {
   public static final String SUFFIX = "$$ViewInjector";
   static final String VIEW_TYPE = "android.view.View";
   private static final Map<Class<?>, Listener> LISTENER_MAP =
       new LinkedHashMap<Class<?>, Listener>();
+  private static final List<Class<? extends Annotation>> LISTENERS = Arrays.asList(//
+      OnCheckedChanged.class, //
+      OnClick.class, //
+      OnEditorAction.class, //
+      OnFocusChanged.class, //
+      OnItemClick.class, //
+      OnItemLongClick.class, //
+      OnLongClick.class //
+  );
 
   private Elements elementUtils;
   private Types typeUtils;
@@ -65,6 +71,16 @@ public final class InjectViewProcessor extends AbstractProcessor {
     elementUtils = env.getElementUtils();
     typeUtils = env.getTypeUtils();
     filer = env.getFiler();
+  }
+
+  @Override public Set<String> getSupportedAnnotationTypes() {
+    Set<String> supportTypes = new LinkedHashSet<String>();
+    supportTypes.add(InjectView.class.getCanonicalName());
+    for (Class<? extends Annotation> listener : LISTENERS) {
+      supportTypes.add(listener.getCanonicalName());
+    }
+
+    return supportTypes;
   }
 
   @Override public boolean process(Set<? extends TypeElement> elements, RoundEnvironment env) {
@@ -106,9 +122,9 @@ public final class InjectViewProcessor extends AbstractProcessor {
     }
 
     // Process each annotation that corresponds to a listener.
-    findAndParseListener(env, OnClick.class, targetClassMap, erasedTargetTypes);
-    findAndParseListener(env, OnItemClick.class, targetClassMap, erasedTargetTypes);
-    findAndParseListener(env, OnLongClick.class, targetClassMap, erasedTargetTypes);
+    for (Class<? extends Annotation> listener : LISTENERS) {
+      findAndParseListener(env, listener, targetClassMap, erasedTargetTypes);
+    }
 
     // Try to find a parent injector for each injector.
     for (Map.Entry<TypeElement, ViewInjector> entry : targetClassMap.entrySet()) {

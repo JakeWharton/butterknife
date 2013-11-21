@@ -49,8 +49,12 @@ import java.util.Map;
  * </code></pre>
  *
  * @see InjectView
+ * @see OnCheckedChanged
  * @see OnClick
+ * @see OnEditorAction
+ * @see OnFocusChanged
  * @see OnItemClick
+ * @see OnItemLongClick
  * @see OnLongClick
  */
 public class ButterKnife {

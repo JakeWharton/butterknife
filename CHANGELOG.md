@@ -6,7 +6,11 @@ Version 4.0.0 *(In Development)*
 
 `Views` class is now named `ButterKnife`
 
- * New listeners! `@OnItemClick` for `AdapterView` and `@OnLongClick` for any `View`.
+ * New listeners!
+   * `View`: `@OnLongClick` and `@OnFocusChanged`.
+   * `TextView`: `@OnEditorAction`.
+   * `AdapterView`: `@OnItemClick` and `@OnItemLongClick`.
+   * `CompoundButton`: `@OnCheckedChanged`.
  * New: Views are now only checked to be `null` once if at least one of the fields and/or methods
    lack the `@Optional` annotation.
  * Fix: Do no emit redundant casts to `View` for methods.

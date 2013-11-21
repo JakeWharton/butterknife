@@ -9,7 +9,7 @@ import static java.lang.annotation.ElementType.METHOD;
 import static java.lang.annotation.RetentionPolicy.CLASS;
 
 /**
- * Annotation for methods which indicate that they should be called when a view is clicked.
+ * Annotation for methods which indicate that they should be called when a view is long pressed.
  * Corresponds to adding a {@link OnLongClickListener} to the views specified by {@link #value()}.
  * <pre><code>
  * {@literal @}OnLongClick(R.id.example) boolean onLongClick() {
