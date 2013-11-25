@@ -1,8 +1,8 @@
 Change Log
 ==========
 
-Version 4.0.0 *(In Development)*
---------------------------------
+Version 4.0.0 *(2013-11-25)*
+----------------------------
 
 `Views` class is now named `ButterKnife`
 
