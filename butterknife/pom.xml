@@ -6,7 +6,7 @@
   <parent>
     <groupId>com.jakewharton</groupId>
     <artifactId>butterknife-parent</artifactId>
-    <version>4.0.0-SNAPSHOT</version>
+    <version>4.0.0</version>
   </parent>
 
   <artifactId>butterknife</artifactId>
