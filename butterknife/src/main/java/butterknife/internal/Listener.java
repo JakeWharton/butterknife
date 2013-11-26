@@ -1,9 +1,13 @@
 package butterknife.internal;
 
-import java.lang.reflect.Method;
-import java.lang.reflect.TypeVariable;
 import java.util.ArrayList;
 import java.util.List;
+import javax.lang.model.element.Element;
+import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.VariableElement;
+import javax.lang.model.type.TypeMirror;
+import javax.lang.model.util.Types;
 
 /**
  * Represents all the data needed to generate code for constructing a listener instance.
@@ -24,36 +28,26 @@ final class Listener {
    *
    * @throws IllegalArgumentException if the method cannot be parsed into a {@link Listener}.
    */
-  static Listener from(Class<?> listenerClass) {
-    Method[] listenerDeclaredMethods = listenerClass.getDeclaredMethods();
-    if (listenerDeclaredMethods.length != 1) {
+  static Listener from(TypeElement listenerElement, Types typeUtils) {
+    List<? extends Element> listenerEnclosedElements = listenerElement.getEnclosedElements();
+    if (listenerEnclosedElements.size() != 1) {
       throw new IllegalArgumentException(
-          listenerClass.getSimpleName() + " is not a single-method interface");
+          listenerElement.getSimpleName() + " is not a single-method interface");
     }
-    Method listenerMethod = listenerDeclaredMethods[0];
+    ExecutableElement listenerMethod = (ExecutableElement) listenerEnclosedElements.get(0);
 
-    String ownerType = listenerClass.getDeclaringClass().getCanonicalName();
-    String setterName = "set" + listenerClass.getSimpleName();
-    String type = listenerClass.getCanonicalName();
-    String methodName = listenerMethod.getName();
-    String returnType = listenerMethod.getReturnType().getCanonicalName(); // Assuming simple type.
+    TypeMirror ownerTypeMirror = listenerElement.getEnclosingElement().asType();
+    ownerTypeMirror = typeUtils.erasure(ownerTypeMirror);
+    String ownerType = ownerTypeMirror.toString();
+    String setterName = "set" + listenerElement.getSimpleName();
+    String type = listenerElement.getQualifiedName().toString();
+    String methodName = listenerMethod.getSimpleName().toString();
+    String returnType = listenerMethod.getReturnType().toString(); // Assuming simple type.
 
-    Class<?>[] listenerParameterTypes = listenerMethod.getParameterTypes();
-    List<String> parameterTypes = new ArrayList<String>(listenerParameterTypes.length);
-    for (Class<?> listenerParameterType : listenerParameterTypes) {
-      StringBuilder builder = new StringBuilder(listenerParameterType.getCanonicalName());
-      TypeVariable<? extends Class<?>>[] typeParameters = listenerParameterType.getTypeParameters();
-      if (typeParameters.length > 0) {
-        builder.append('<');
-        for (int i = 0; i < typeParameters.length; i++) {
-          if (i > 0) {
-            builder.append(',');
-          }
-          builder.append('?');
-        }
-        builder.append('>');
-      }
-      String parameterType = builder.toString();
+    List<? extends VariableElement> listenerParameterTypes = listenerMethod.getParameters();
+    List<String> parameterTypes = new ArrayList<String>(listenerParameterTypes.size());
+    for (VariableElement listenerParameterType : listenerParameterTypes) {
+      String parameterType = listenerParameterType.asType().toString();
       if (parameterType.startsWith("java.lang.") && !parameterType.substring(10).contains(".")) {
         parameterType = parameterType.substring(10);
       }

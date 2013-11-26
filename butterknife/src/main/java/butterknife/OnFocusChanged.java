@@ -22,7 +22,7 @@ import static java.lang.annotation.RetentionPolicy.CLASS;
  * @see Optional
  */
 @Retention(CLASS) @Target(METHOD)
-@ListenerClass(OnFocusChangeListener.class)
+@ListenerClass("android.view.View.OnFocusChangeListener")
 public @interface OnFocusChanged {
   int[] value();
 }

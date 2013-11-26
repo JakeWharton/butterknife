@@ -10,5 +10,5 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Documented
 @Retention(RUNTIME) @Target(ANNOTATION_TYPE)
 public @interface ListenerClass {
-  Class<?> value();
+  String value();
 }

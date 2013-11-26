@@ -49,8 +49,7 @@ import static javax.tools.Diagnostic.Kind.ERROR;
 public final class InjectViewProcessor extends AbstractProcessor {
   public static final String SUFFIX = "$$ViewInjector";
   static final String VIEW_TYPE = "android.view.View";
-  private static final Map<Class<?>, Listener> LISTENER_MAP =
-      new LinkedHashMap<Class<?>, Listener>();
+  private static final Map<String, Listener> LISTENER_MAP = new LinkedHashMap<String, Listener>();
   private static final List<Class<? extends Annotation>> LISTENERS = Arrays.asList(//
       OnCheckedChanged.class, //
       OnClick.class, //
@@ -265,15 +264,15 @@ public final class InjectViewProcessor extends AbstractProcessor {
     }
 
     // Get or create the metadata model for the target listener.
-    Class<?> listenerClassClass = listenerClass.value();
-    Listener listener = LISTENER_MAP.get(listenerClassClass);
+    String listenerElement = listenerClass.value();
+    Listener listener = LISTENER_MAP.get(listenerElement);
     if (listener == null) {
       try {
-        listener = Listener.from(listenerClassClass);
-        LISTENER_MAP.put(listenerClassClass, listener);
+        listener = Listener.from(elementUtils.getTypeElement(listenerElement), typeUtils);
+        LISTENER_MAP.put(listenerElement, listener);
       } catch (IllegalArgumentException e) {
         error(elementUtils.getTypeElement(annotationClass.getName()), "%s (%s on @%s)",
-            e.getMessage(), listenerClassClass.getName(), annotationClass.getName());
+            e.getMessage(), listenerElement, annotationClass.getName());
         return; // We can't process and further without a valid listener model.
       }
     }
