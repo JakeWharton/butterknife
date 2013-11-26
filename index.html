@@ -61,7 +61,7 @@
   @Override public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.simple_activity);
-    Views.inject(this);
+    ButterKnife.inject(this);
     // TODO Use "injected" views...
   }
 }</pre>
@@ -81,7 +81,7 @@
 
   @Override View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
     View view = inflater.inflate(R.layout.fancy_fragment, container, false);
-    Views.inject(this, view);
+    ButterKnife.inject(this, view);
     // TODO Use "injected" views...
     return view;
   }
@@ -109,15 +109,15 @@
     @InjectView(R.id.job_title) TextView jobTitle;
 
     public ViewHolder(View view) {
-      Views.inject(this, view);
+      ButterKnife.inject(this, view);
     }
   }
 }</pre>
             <p>You can see this implementation in action in the provided sample.</p>
             <p>Other provided injection APIs:</p>
             <ul>
-              <li>Inject arbitrary objects using an activity as the view root. If you use a pattern like MVC you can inject the controller using its activity with <code>Views.inject(this, activity)</code>.</li>
-              <li>Inject a view's children into fields using <code>Views.inject(this)</code>. If you use <code>&lt;merge></code> tags in a layout and inflate in a custom view constructor you can
+              <li>Inject arbitrary objects using an activity as the view root. If you use a pattern like MVC you can inject the controller using its activity with <code>ButterKnife.inject(this, activity)</code>.</li>
+              <li>Inject a view's children into fields using <code>ButterKnife.inject(this)</code>. If you use <code>&lt;merge></code> tags in a layout and inflate in a custom view constructor you can
    call this immediately after. Alternatively, custom view types inflated from
    XML can use it in the <code>onLayoutInflated()</code> callback.</li>
             </ul>
@@ -151,7 +151,7 @@ public void pickDoor(DoorView door) {
 
   @Override View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
     View view = inflater.inflate(R.layout.fancy_fragment, container, false);
-    Views.inject(this, view);
+    ButterKnife.inject(this, view);
     // TODO Use "injected" views...
     return view;
   }
@@ -201,7 +201,7 @@ ImageView photo = Views.findById(view, R.id.photo);</pre>
             </ul>
 
             <h4 id="proguard">ProGuard</h4>
-            <p>Butter Knife generates and uses classes dynamically which means that static analysis tools like ProGuard may think they are unused. In order to prevent them from being removed, explicitly mark them to be kept. 
+            <p>Butter Knife generates and uses classes dynamically which means that static analysis tools like ProGuard may think they are unused. In order to prevent them from being removed, explicitly mark them to be kept.
                 To prevent ProGuard renaming classes that use @InjectView on a member field the <code>keepnames</code> option is used.</p>
             <pre>-dontwarn butterknife.internal.**
 -keep class **$$ViewInjector { *; }
