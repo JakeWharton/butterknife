@@ -264,15 +264,15 @@ public final class InjectViewProcessor extends AbstractProcessor {
     }
 
     // Get or create the metadata model for the target listener.
-    String listenerElement = listenerClass.value();
-    Listener listener = LISTENER_MAP.get(listenerElement);
+    String listenerFqcn = listenerClass.value();
+    Listener listener = LISTENER_MAP.get(listenerFqcn);
     if (listener == null) {
       try {
-        listener = Listener.from(elementUtils.getTypeElement(listenerElement), typeUtils);
-        LISTENER_MAP.put(listenerElement, listener);
+        listener = Listener.from(elementUtils.getTypeElement(listenerFqcn), typeUtils);
+        LISTENER_MAP.put(listenerFqcn, listener);
       } catch (IllegalArgumentException e) {
         error(elementUtils.getTypeElement(annotationClass.getName()), "%s (%s on @%s)",
-            e.getMessage(), listenerElement, annotationClass.getName());
+            e.getMessage(), listenerFqcn, annotationClass.getName());
         return; // We can't process and further without a valid listener model.
       }
     }
