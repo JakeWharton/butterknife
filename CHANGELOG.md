@@ -1,6 +1,13 @@
 Change Log
 ==========
 
+Version 4.0.1 *(2013-11-25)*
+----------------------------
+
+ * Fix: Correct a problem preventing the annotation processor to access Android types when certain
+   `javac` configurations were used to build.
+
+
 Version 4.0.0 *(2013-11-25)*
 ----------------------------
 
