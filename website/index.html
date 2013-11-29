@@ -158,7 +158,7 @@ public void pickDoor(DoorView door) {
 
   @Override void onDestroyView() {
     super.onDestroyView();
-    Views.reset(this);
+    ButterKnife.reset(this);
   }
 }</pre>
 
@@ -174,10 +174,10 @@ public void pickDoor(DoorView door) {
             <h4 id="bonus">Bonus</h4>
             <p>Also included are two <code>findById</code> methods which simplify code that still has to find views on a <code>View</code> or <code>Activity</code>. It uses generics to infer the return type and automatically performs the cast.</p>
             <pre class="prettyprint">View view = LayoutInflater.from(context).inflate(R.layout.thing, null);
-TextView firstName = Views.findById(view, R.id.first_name);
-TextView lastName = Views.findById(view, R.id.last_name);
-ImageView photo = Views.findById(view, R.id.photo);</pre>
-            <p>Add a static import for <code>Views.findById</code> and enjoy even more fun.</p>
+TextView firstName = ButterKnife.findById(view, R.id.first_name);
+TextView lastName = ButterKnife.findById(view, R.id.last_name);
+ImageView photo = ButterKnife.findById(view, R.id.photo);</pre>
+            <p>Add a static import for <code>ButterKnife.findById</code> and enjoy even more fun.</p>
 
             <h3 id="download">Download</h3>
             <p class="downloads">
