@@ -51,6 +51,50 @@ public class OnClickTest {
         .generatesSources(expectedSource);
   }
 
+  @Test public void findOnlyCalledOnce() {
+    JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
+        "package test;",
+        "import android.app.Activity;",
+        "import android.view.View;",
+        "import butterknife.InjectView;",
+        "import butterknife.OnClick;",
+        "public class Test extends Activity {",
+        "  @InjectView(1) View view;",
+        "  @OnClick(1) void doStuff() {}",
+        "}"));
+
+    JavaFileObject expectedSource = JavaFileObjects.forSourceString("test/Test$$ViewInjector",
+        Joiner.on('\n').join(
+            "package test;",
+            "import android.view.View;",
+            "import butterknife.ButterKnife.Finder;",
+            "public class Test$$ViewInjector {",
+            "  public static void inject(Finder finder, final test.Test target, Object source) {",
+            "    View view;",
+            "    view = finder.findById(source, 1);",
+            "    if (view == null) {",
+            "      throw new IllegalStateException(\"Required view with id '1' for field 'view' and method 'doStuff' was not found. If this view is optional add '@Optional' annotation.\");",
+            "    }",
+            "    target.view = view;",
+            "    view.setOnClickListener(new android.view.View.OnClickListener() {",
+            "      @Override public void onClick(android.view.View p0) {",
+            "        target.doStuff();",
+            "      }",
+            "    });",
+            "  }",
+            "  public static void reset(test.Test target) {",
+            "    target.view = null;",
+            "  }",
+            "}"
+        ));
+
+    ASSERT.about(javaSource()).that(source)
+        .processedWith(butterknifeProcessors())
+        .compilesWithoutError()
+        .and()
+        .generatesSources(expectedSource);
+  }
+
   @Test public void methodVisibility() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
         "package test;",
