@@ -56,6 +56,7 @@ import java.util.Map;
  * @see OnItemClick
  * @see OnItemLongClick
  * @see OnLongClick
+ * @see OnTextChanged
  */
 public class ButterKnife {
   private ButterKnife() {

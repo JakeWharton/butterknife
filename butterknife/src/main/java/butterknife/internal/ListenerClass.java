@@ -10,5 +10,8 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Documented
 @Retention(RUNTIME) @Target(ANNOTATION_TYPE)
 public @interface ListenerClass {
-  String value();
+  String name();
+  String method() default "";
+  String setter() default "";
+  String owner() default "";
 }

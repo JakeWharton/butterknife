@@ -8,7 +8,9 @@ import butterknife.OnFocusChanged;
 import butterknife.OnItemClick;
 import butterknife.OnItemLongClick;
 import butterknife.OnLongClick;
+import butterknife.OnTextChanged;
 import butterknife.Optional;
+
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -49,7 +51,8 @@ import static javax.tools.Diagnostic.Kind.ERROR;
 public final class ButterKnifeProcessor extends AbstractProcessor {
   public static final String SUFFIX = "$$ViewInjector";
   static final String VIEW_TYPE = "android.view.View";
-  private static final Map<String, Listener> LISTENER_MAP = new LinkedHashMap<String, Listener>();
+  private static final Map<ListenerClass, Listener> LISTENER_MAP =
+      new LinkedHashMap<ListenerClass, Listener>();
   private static final List<Class<? extends Annotation>> LISTENERS = Arrays.asList(//
       OnCheckedChanged.class, //
       OnClick.class, //
@@ -57,7 +60,8 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
       OnFocusChanged.class, //
       OnItemClick.class, //
       OnItemLongClick.class, //
-      OnLongClick.class //
+      OnLongClick.class, //
+      OnTextChanged.class //
   );
 
   private Elements elementUtils;
@@ -264,15 +268,16 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     }
 
     // Get or create the metadata model for the target listener.
-    String listenerFqcn = listenerClass.value();
-    Listener listener = LISTENER_MAP.get(listenerFqcn);
+    String listenerClassName = listenerClass.name();
+    Listener listener = LISTENER_MAP.get(listenerClass);
     if (listener == null) {
       try {
-        listener = Listener.from(elementUtils.getTypeElement(listenerFqcn), typeUtils);
-        LISTENER_MAP.put(listenerFqcn, listener);
+        listener = Listener.from(elementUtils.getTypeElement(listenerClassName),
+            typeUtils, listenerClass);
+        LISTENER_MAP.put(listenerClass, listener);
       } catch (IllegalArgumentException e) {
         error(elementUtils.getTypeElement(annotationClass.getName()), "%s (%s on @%s)",
-            e.getMessage(), listenerFqcn, annotationClass.getName());
+            e.getMessage(), listenerClassName, annotationClass.getName());
         return; // We can't process and further without a valid listener model.
       }
     }
