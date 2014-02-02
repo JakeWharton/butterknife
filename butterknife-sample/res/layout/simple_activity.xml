@@ -19,6 +19,12 @@
       android:gravity="center"
       android:textSize="20sp"
       />
+  <EditText
+      android:id="@+id/input"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:singleLine="true"
+      />
   <Button
       android:id="@+id/hello"
       android:layout_width="match_parent"
