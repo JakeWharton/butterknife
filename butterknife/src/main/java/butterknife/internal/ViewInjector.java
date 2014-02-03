@@ -5,7 +5,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import static butterknife.internal.InjectViewProcessor.VIEW_TYPE;
+import static butterknife.internal.ButterKnifeProcessor.VIEW_TYPE;
 
 final class ViewInjector {
   private final Map<Integer, ViewInjection> viewIdMap = new LinkedHashMap<Integer, ViewInjection>();

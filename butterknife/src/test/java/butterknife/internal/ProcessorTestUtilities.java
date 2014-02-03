@@ -7,7 +7,7 @@ import javax.annotation.processing.Processor;
 final class ProcessorTestUtilities {
   static Iterable<? extends Processor> butterknifeProcessors() {
     return Arrays.asList(
-        new InjectViewProcessor()
+        new ButterKnifeProcessor()
     );
   }
 }

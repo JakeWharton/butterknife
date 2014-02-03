@@ -3,7 +3,7 @@ package butterknife;
 import android.app.Activity;
 import android.util.Log;
 import android.view.View;
-import butterknife.internal.InjectViewProcessor;
+import butterknife.internal.ButterKnifeProcessor;
 import java.lang.reflect.Method;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -189,7 +189,7 @@ public class ButterKnife {
       return NO_OP;
     }
     try {
-      Class<?> injector = Class.forName(clsName + InjectViewProcessor.SUFFIX);
+      Class<?> injector = Class.forName(clsName + ButterKnifeProcessor.SUFFIX);
       inject = injector.getMethod("inject", Finder.class, cls, Object.class);
       if (debug) Log.d(TAG, "HIT: Class loaded injection class.");
     } catch (ClassNotFoundException e) {
@@ -212,7 +212,7 @@ public class ButterKnife {
       return NO_OP;
     }
     try {
-      Class<?> injector = Class.forName(clsName + InjectViewProcessor.SUFFIX);
+      Class<?> injector = Class.forName(clsName + ButterKnifeProcessor.SUFFIX);
       inject = injector.getMethod("reset", cls);
       if (debug) Log.d(TAG, "HIT: Class loaded injection class.");
     } catch (ClassNotFoundException e) {

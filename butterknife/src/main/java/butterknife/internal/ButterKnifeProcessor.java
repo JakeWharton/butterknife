@@ -46,7 +46,7 @@ import static javax.lang.model.element.Modifier.PRIVATE;
 import static javax.lang.model.element.Modifier.STATIC;
 import static javax.tools.Diagnostic.Kind.ERROR;
 
-public final class InjectViewProcessor extends AbstractProcessor {
+public final class ButterKnifeProcessor extends AbstractProcessor {
   public static final String SUFFIX = "$$ViewInjector";
   static final String VIEW_TYPE = "android.view.View";
   private static final Map<String, Listener> LISTENER_MAP = new LinkedHashMap<String, Listener>();
