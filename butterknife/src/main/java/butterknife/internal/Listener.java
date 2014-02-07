@@ -6,7 +6,6 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
-import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Types;
 
 /**
@@ -28,18 +27,10 @@ final class Listener {
    *
    * @throws IllegalArgumentException if the method cannot be parsed into a {@link Listener}.
    */
-  static Listener from(TypeElement listenerElement, Types typeUtils) {
-    List<? extends Element> listenerEnclosedElements = listenerElement.getEnclosedElements();
-    if (listenerEnclosedElements.size() != 1) {
-      throw new IllegalArgumentException(
-          listenerElement.getSimpleName() + " is not a single-method interface");
-    }
-    ExecutableElement listenerMethod = (ExecutableElement) listenerEnclosedElements.get(0);
-
-    TypeMirror ownerTypeMirror = listenerElement.getEnclosingElement().asType();
-    ownerTypeMirror = typeUtils.erasure(ownerTypeMirror);
-    String ownerType = ownerTypeMirror.toString();
-    String setterName = "set" + listenerElement.getSimpleName();
+  static Listener from(TypeElement listenerElement, Types typeUtils, ListenerClass listenerClass) {
+    ExecutableElement listenerMethod = getListenerMethod(listenerElement, listenerClass.method());
+    String setterName = getListenerSetter(listenerElement, listenerClass.setter());
+    String ownerType = getListenerOwner(listenerElement, typeUtils, listenerClass.owner());
     String type = listenerElement.getQualifiedName().toString();
     String methodName = listenerMethod.getSimpleName().toString();
     String returnType = listenerMethod.getReturnType().toString(); // Assuming simple type.
@@ -55,6 +46,38 @@ final class Listener {
     }
 
     return new Listener(ownerType, setterName, type, returnType, methodName, parameterTypes);
+  }
+
+  static ExecutableElement getListenerMethod(TypeElement listenerElement, String targetMethod) {
+    List<? extends Element> enclosedElements = listenerElement.getEnclosedElements();
+    boolean validTargetMethod = targetMethod != null && targetMethod.length() > 0;
+    if (enclosedElements.size() != 1 && !validTargetMethod) {
+      throw new IllegalArgumentException(
+          listenerElement.getSimpleName() + " is not a single-method interface");
+    }
+    if (!validTargetMethod) {
+      return (ExecutableElement) enclosedElements.get(0);
+    }
+    for (Element enclosedElement : enclosedElements) {
+      if (enclosedElement.getSimpleName().contentEquals(targetMethod)) {
+        return (ExecutableElement) enclosedElement;
+      }
+    }
+    throw new IllegalArgumentException("Couldn't find a \"" + targetMethod + "\" method");
+  }
+
+  static String getListenerSetter(TypeElement listenerElement, String setterName) {
+    if (setterName != null && setterName.length() > 0) {
+      return setterName;
+    }
+    return "set" + listenerElement.getSimpleName();
+  }
+
+  static String getListenerOwner(TypeElement listenerElement, Types typeUtils, String owner) {
+    if (owner != null && owner.length() > 0) {
+      return owner;
+    }
+    return typeUtils.erasure(listenerElement.getEnclosingElement().asType()).toString();
   }
 
   private final String ownerType;

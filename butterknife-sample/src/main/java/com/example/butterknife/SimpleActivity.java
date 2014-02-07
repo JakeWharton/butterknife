@@ -2,15 +2,17 @@ package com.example.butterknife;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.text.Editable;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
+import butterknife.ButterKnife;
 import butterknife.InjectView;
 import butterknife.OnClick;
-import butterknife.ButterKnife;
 import butterknife.OnItemClick;
 import butterknife.OnLongClick;
+import butterknife.OnTextChanged;
 
 import static android.widget.Toast.LENGTH_SHORT;
 
@@ -34,6 +36,10 @@ public class SimpleActivity extends Activity {
 
   @OnItemClick(R.id.list_of_things) void onItemClick(int position) {
     Toast.makeText(this, "You clicked: " + adapter.getItem(position), LENGTH_SHORT).show();
+  }
+
+  @OnTextChanged(R.id.input) void onTextChanged(Editable text) {
+    Toast.makeText(this, "Text changed " + text, LENGTH_SHORT).show();
   }
 
   @Override protected void onCreate(Bundle savedInstanceState) {

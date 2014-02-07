@@ -22,7 +22,7 @@ import static java.lang.annotation.RetentionPolicy.CLASS;
  * @see Optional
  */
 @Retention(CLASS) @Target(METHOD)
-@ListenerClass("android.view.View.OnClickListener")
+@ListenerClass(name = "android.view.View.OnClickListener")
 public @interface OnClick {
   int[] value();
 }
