@@ -74,11 +74,9 @@ final class Listener {
     this.parameterTypes = parameterTypes; // No defensive copy, only instantiated internally.
   }
 
-  // Fix issue #83 - when built with Eclipse, the generated listener code contains an errant
-  // type parameter
+  // When built with Eclipse, the generated listener code contains an errant type parameter.
   private static String stripTypeParameters(String type) {
-    int typeParamStart = type.indexOf("<");
-
+    int typeParamStart = type.indexOf('<');
     if (typeParamStart != -1) {
       return type.substring(0, typeParamStart);
     } else {
