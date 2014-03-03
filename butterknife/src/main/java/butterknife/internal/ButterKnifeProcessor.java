@@ -17,7 +17,6 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.BitSet;
-import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -105,12 +104,12 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
   private Map<TypeElement, ViewInjector> findAndParseTargets(RoundEnvironment env) {
     Map<TypeElement, ViewInjector> targetClassMap = new LinkedHashMap<TypeElement, ViewInjector>();
-    Set<TypeMirror> erasedTargetTypes = new LinkedHashSet<TypeMirror>();
+    Set<String> erasedTargetNames = new LinkedHashSet<String>();
 
     // Process each @InjectView elements.
     for (Element element : env.getElementsAnnotatedWith(InjectView.class)) {
       try {
-        parseInjectView(element, targetClassMap, erasedTargetTypes);
+        parseInjectView(element, targetClassMap, erasedTargetNames);
       } catch (Exception e) {
         StringWriter stackTrace = new StringWriter();
         e.printStackTrace(new PrintWriter(stackTrace));
@@ -122,12 +121,12 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
     // Process each annotation that corresponds to a listener.
     for (Class<? extends Annotation> listener : LISTENERS) {
-      findAndParseListener(env, listener, targetClassMap, erasedTargetTypes);
+      findAndParseListener(env, listener, targetClassMap, erasedTargetNames);
     }
 
     // Try to find a parent injector for each injector.
     for (Map.Entry<TypeElement, ViewInjector> entry : targetClassMap.entrySet()) {
-      String parentClassFqcn = findParentFqcn(entry.getKey(), erasedTargetTypes);
+      String parentClassFqcn = findParentFqcn(entry.getKey(), erasedTargetNames);
       if (parentClassFqcn != null) {
         entry.getValue().setParentInjector(parentClassFqcn + SUFFIX);
       }
@@ -170,7 +169,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
   }
 
   private void parseInjectView(Element element, Map<TypeElement, ViewInjector> targetClassMap,
-      Set<TypeMirror> erasedTargetTypes) {
+      Set<String> erasedTargetNames) {
     boolean hasError = false;
     TypeElement enclosingElement = (TypeElement) element.getEnclosingElement();
 
@@ -198,16 +197,15 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     viewInjector.addField(id, name, type, required);
 
     // Add the type-erased version to the valid injection targets set.
-    TypeMirror erasedTargetType = typeUtils.erasure(enclosingElement.asType());
-    erasedTargetTypes.add(erasedTargetType);
+    erasedTargetNames.add(enclosingElement.toString());
   }
 
   private void findAndParseListener(RoundEnvironment env,
       Class<? extends Annotation> annotationClass, Map<TypeElement, ViewInjector> targetClassMap,
-      Set<TypeMirror> erasedTargetTypes) {
+      Set<String> erasedTargetNames) {
     for (Element element : env.getElementsAnnotatedWith(annotationClass)) {
       try {
-        parseListenerAnnotation(annotationClass, element, targetClassMap, erasedTargetTypes);
+        parseListenerAnnotation(annotationClass, element, targetClassMap, erasedTargetNames);
       } catch (Exception e) {
         StringWriter stackTrace = new StringWriter();
         e.printStackTrace(new PrintWriter(stackTrace));
@@ -219,7 +217,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
   }
 
   private void parseListenerAnnotation(Class<? extends Annotation> annotationClass, Element element,
-      Map<TypeElement, ViewInjector> targetClassMap, Set<TypeMirror> erasedTargetTypes)
+      Map<TypeElement, ViewInjector> targetClassMap, Set<String> erasedTargetNames)
       throws Exception {
     // This should be guarded by the annotation's @Target but it's worth a check for safe casting.
     if (!(element instanceof ExecutableElement) || element.getKind() != METHOD) {
@@ -366,8 +364,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     }
 
     // Add the type-erased version to the valid injection targets set.
-    TypeMirror erasedTargetType = typeUtils.erasure(enclosingElement.asType());
-    erasedTargetTypes.add(erasedTargetType);
+    erasedTargetNames.add(enclosingElement.toString());
   }
 
   private boolean isSubtypeOfType(TypeMirror typeMirror, String otherType) {
@@ -430,7 +427,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
   }
 
   /** Finds the parent injector type in the supplied set, if any. */
-  private String findParentFqcn(TypeElement typeElement, Set<TypeMirror> parents) {
+  private String findParentFqcn(TypeElement typeElement, Set<String> parents) {
     TypeMirror type;
     while (true) {
       type = typeElement.getSuperclass();
@@ -438,23 +435,11 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
         return null;
       }
       typeElement = (TypeElement) ((DeclaredType) type).asElement();
-      if (containsTypeMirror(parents, type)) {
+      if (parents.contains(typeElement.toString())) {
         String packageName = getPackageName(typeElement);
         return packageName + "." + getClassName(typeElement, packageName);
       }
     }
-  }
-
-  private boolean containsTypeMirror(Collection<TypeMirror> mirrors, TypeMirror query) {
-    // Ensure we are checking against a type-erased version for normalization purposes.
-    query = typeUtils.erasure(query);
-
-    for (TypeMirror mirror : mirrors) {
-      if (typeUtils.isSameType(mirror, query)) {
-        return true;
-      }
-    }
-    return false;
   }
 
   @Override public SourceVersion getSupportedSourceVersion() {
