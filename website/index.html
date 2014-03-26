@@ -193,6 +193,17 @@ ImageView photo = ButterKnife.findById(view, R.id.photo);</pre>
   &lt;version><span class="version"><em>(insert latest version)</em></span>&lt;/version>
 &lt;/dependency></pre>
 
+            <h4>Gradle</h4>
+            <pre class="prettyprint">compile 'com.jakewharton:butterknife:<span class="version"><em>(insert latest version)</em></span>'</pre>
+            <p>Be sure to supress this lint warning in your <code>build.gradle</code>.</p>
+            <pre class="prettyprint">lintOptions {
+  disable 'InvalidPackage'
+}</pre>
+            <p>Some configurations may also require additional exclusions.</p>
+            <pre class="prettyprint">packagingOptions {
+  exclude 'META-INF/services/javax.annotation.processing.Processor'
+}</pre>
+
             <h4 id="ide">IDE Configuration</h4>
             <p>Some IDEs require additional configuration in order to enable annotation processing.</p>
             <ul>
