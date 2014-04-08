@@ -38,7 +38,7 @@ final class Listener {
 
     TypeMirror ownerTypeMirror = listenerElement.getEnclosingElement().asType();
     ownerTypeMirror = typeUtils.erasure(ownerTypeMirror);
-    String ownerType = ownerTypeMirror.toString();
+    String ownerType = stripTypeParameters(ownerTypeMirror.toString());
     String setterName = "set" + listenerElement.getSimpleName();
     String type = listenerElement.getQualifiedName().toString();
     String methodName = listenerMethod.getSimpleName().toString();
@@ -72,6 +72,16 @@ final class Listener {
     this.returnType = returnType;
     this.methodName = methodName;
     this.parameterTypes = parameterTypes; // No defensive copy, only instantiated internally.
+  }
+
+  // When built with Eclipse, the generated listener code contains an errant type parameter.
+  private static String stripTypeParameters(String type) {
+    int typeParamStart = type.indexOf('<');
+    if (typeParamStart != -1) {
+      return type.substring(0, typeParamStart);
+    } else {
+      return type;
+    }
   }
 
   public String getOwnerType() {
