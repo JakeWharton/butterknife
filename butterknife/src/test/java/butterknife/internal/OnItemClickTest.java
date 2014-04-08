@@ -165,24 +165,24 @@ public class OnItemClickTest {
         .failsToCompile()
         .withErrorContaining(Joiner.on('\n').join(
             "Unable to match @OnItemClick method arguments. (test.Test.doStuff)",
-            "",
-            "  Parameter #1: android.widget.AdapterView<?>",
-            "    matched listener parameter #1: android.widget.AdapterView<?>",
-            "",
-            "  Parameter #2: android.view.View",
-            "    matched listener parameter #2: android.view.View",
-            "",
-            "  Parameter #3: android.view.View",
-            "    did not match any listener parameters",
-            "",
-            "Methods may have up to 4 parameter(s):",
-            "",
-            "  android.widget.AdapterView<?>",
-            "  android.view.View",
-            "  int",
-            "  long",
-            "",
-            "These may be listed in any order but will be searched for from top to bottom."))
+            "  ",
+            "    Parameter #1: android.widget.AdapterView<?>",
+            "      matched listener parameter #1: android.widget.AdapterView<?>",
+            "  ",
+            "    Parameter #2: android.view.View",
+            "      matched listener parameter #2: android.view.View",
+            "  ",
+            "    Parameter #3: android.view.View",
+            "      did not match any listener parameters",
+            "  ",
+            "  Methods may have up to 4 parameter(s):",
+            "  ",
+            "    android.widget.AdapterView<?>",
+            "    android.view.View",
+            "    int",
+            "    long",
+            "  ",
+            "  These may be listed in any order but will be searched for from top to bottom."))
         .in(source).onLine(7);
   }
 }
