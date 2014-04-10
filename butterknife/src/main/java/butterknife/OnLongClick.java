@@ -23,7 +23,16 @@ import static java.lang.annotation.RetentionPolicy.CLASS;
  * @see Optional
  */
 @Retention(CLASS) @Target(METHOD)
-@ListenerClass("android.view.View.OnLongClickListener")
+@ListenerClass(
+    targetType = "android.view.View",
+    setter = "setOnLongClickListener",
+    type = "android.view.View.OnLongClickListener",
+    name = "onLongClick",
+    returnType = "boolean",
+    parameters = {
+        "android.view.View"
+    }
+)
 public @interface OnLongClick {
   int[] value();
 }

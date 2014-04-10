@@ -12,8 +12,8 @@ import java.util.Set;
 final class ViewInjection {
   private final int id;
   private final Set<FieldBinding> fieldBindings = new LinkedHashSet<FieldBinding>();
-  private final Map<Listener, MethodBinding> methodBindings =
-      new LinkedHashMap<Listener, MethodBinding>();
+  private final Map<ListenerClass, MethodBinding> methodBindings =
+      new LinkedHashMap<ListenerClass, MethodBinding>();
 
   ViewInjection(int id) {
     this.id = id;
@@ -27,8 +27,9 @@ final class ViewInjection {
     return fieldBindings;
   }
 
-  public Map<Listener, MethodBinding> getMethodBindings() {
-    return Collections.unmodifiableMap(new LinkedHashMap<Listener, MethodBinding>(methodBindings));
+  public Map<ListenerClass, MethodBinding> getMethodBindings() {
+    return Collections.unmodifiableMap(
+        new LinkedHashMap<ListenerClass, MethodBinding>(methodBindings));
   }
 
   public List<Binding> getRequiredBindings() {
@@ -46,13 +47,13 @@ final class ViewInjection {
     return requiredBindings;
   }
 
-  public void addMethodBinding(Listener listener, MethodBinding methodBinding) {
+  public void addMethodBinding(ListenerClass listener, MethodBinding methodBinding) {
     MethodBinding existingBinding = methodBindings.get(listener);
     if (existingBinding != null) {
       throw new IllegalStateException("View "
           + id
           + " already has method binding for "
-          + listener.getType()
+          + listener.type()
           + " on "
           + existingBinding.getName());
     }

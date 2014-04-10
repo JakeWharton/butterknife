@@ -24,7 +24,18 @@ import static java.lang.annotation.RetentionPolicy.CLASS;
  * @see Optional
  */
 @Retention(CLASS) @Target(METHOD)
-@ListenerClass("android.widget.AdapterView.OnItemLongClickListener")
+@ListenerClass(
+    targetType = "android.widget.AdapterView<?>",
+    setter = "setOnFocusChangeListener",
+    type = "android.widget.AdapterView.OnItemClickListener",
+    name = "onItemClick",
+    parameters = {
+        "android.widget.AdapterView<?>",
+        "andorid.view.View",
+        "int",
+        "long"
+    }
+)
 public @interface OnItemLongClick {
   int[] value();
 }

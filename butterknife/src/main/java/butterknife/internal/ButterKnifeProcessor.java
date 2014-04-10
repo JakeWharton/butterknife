@@ -36,7 +36,6 @@ import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
-import javax.lang.model.util.Types;
 import javax.tools.JavaFileObject;
 
 import static javax.lang.model.element.ElementKind.CLASS;
@@ -48,7 +47,6 @@ import static javax.tools.Diagnostic.Kind.ERROR;
 public final class ButterKnifeProcessor extends AbstractProcessor {
   public static final String SUFFIX = "$$ViewInjector";
   static final String VIEW_TYPE = "android.view.View";
-  private static final Map<String, Listener> LISTENER_MAP = new LinkedHashMap<String, Listener>();
   private static final List<Class<? extends Annotation>> LISTENERS = Arrays.asList(//
       OnCheckedChanged.class, //
       OnClick.class, //
@@ -60,14 +58,12 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
   );
 
   private Elements elementUtils;
-  private Types typeUtils;
   private Filer filer;
 
   @Override public synchronized void init(ProcessingEnvironment env) {
     super.init(env);
 
     elementUtils = env.getElementUtils();
-    typeUtils = env.getTypeUtils();
     filer = env.getFiler();
   }
 
@@ -254,40 +250,26 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
       }
     }
 
-    ListenerClass listenerClass = annotationClass.getAnnotation(ListenerClass.class);
-    if (listenerClass == null) {
+    ListenerClass listener = annotationClass.getAnnotation(ListenerClass.class);
+    if (listener == null) {
       error(element, "No @%s defined on @%s.", ListenerClass.class.getSimpleName(),
           annotationClass.getSimpleName());
       return; // We can't do any more validation without a listener.
     }
 
-    // Get or create the metadata model for the target listener.
-    String listenerFqcn = listenerClass.value();
-    Listener listener = LISTENER_MAP.get(listenerFqcn);
-    if (listener == null) {
-      try {
-        listener = Listener.from(elementUtils.getTypeElement(listenerFqcn), typeUtils);
-        LISTENER_MAP.put(listenerFqcn, listener);
-      } catch (IllegalArgumentException e) {
-        error(elementUtils.getTypeElement(annotationClass.getName()), "%s (%s on @%s)",
-            e.getMessage(), listenerFqcn, annotationClass.getName());
-        return; // We can't process and further without a valid listener model.
-      }
-    }
-
     // Verify that the method has equal to or less than the number of parameters as the listener.
     List<? extends VariableElement> methodParameters = executableElement.getParameters();
-    if (methodParameters.size() > listener.getParameterTypes().size()) {
+    if (methodParameters.size() > listener.parameters().length) {
       error(element, "@%s methods can have at most %s parameter(s). (%s.%s)",
-          annotationClass.getSimpleName(), listener.getParameterTypes().size(),
+          annotationClass.getSimpleName(), listener.parameters().length,
           enclosingElement.getQualifiedName(), element.getSimpleName());
       hasError = true;
     }
 
     // Verify method return type matches the listener.
-    if (!executableElement.getReturnType().toString().equals(listener.getReturnType())) {
+    if (!executableElement.getReturnType().toString().equals(listener.returnType())) {
       error(element, "@%s methods must have a '%s' return type. (%s.%s)",
-          annotationClass.getSimpleName(), listener.getReturnType(),
+          annotationClass.getSimpleName(), listener.returnType(),
           enclosingElement.getQualifiedName(), element.getSimpleName());
       hasError = true;
     }
@@ -300,16 +282,16 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     if (!methodParameters.isEmpty()) {
       parameters = new Parameter[methodParameters.size()];
       BitSet methodParameterUsed = new BitSet(methodParameters.size());
-      List<String> parameterTypes = listener.getParameterTypes();
+      String[] parameterTypes = listener.parameters();
       for (int i = 0; i < methodParameters.size(); i++) {
         VariableElement methodParameter = methodParameters.get(i);
         TypeMirror methodParameterType = methodParameter.asType();
 
-        for (int j = 0; j < parameterTypes.size(); j++) {
+        for (int j = 0; j < parameterTypes.length; j++) {
           if (methodParameterUsed.get(j)) {
             continue;
           }
-          if (isSubtypeOfType(methodParameterType, parameterTypes.get(j))) {
+          if (isSubtypeOfType(methodParameterType, parameterTypes[j])) {
             parameters[i] = new Parameter(j, methodParameterType.toString());
             methodParameterUsed.set(j);
             break;
@@ -341,9 +323,9 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
             }
           }
           builder.append("\n\nMethods may have up to ")
-              .append(listener.getParameterTypes().size())
+              .append(listener.parameters().length)
               .append(" parameter(s):\n");
-          for (String parameterType : listener.getParameterTypes()) {
+          for (String parameterType : listener.parameters()) {
             builder.append("\n  ").append(parameterType);
           }
           builder.append(

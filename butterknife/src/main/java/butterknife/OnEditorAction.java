@@ -24,7 +24,17 @@ import static java.lang.annotation.RetentionPolicy.CLASS;
  * @see Optional
  */
 @Retention(CLASS) @Target(METHOD)
-@ListenerClass("android.widget.TextView.OnEditorActionListener")
+@ListenerClass(
+    targetType = "android.widget.TextView",
+    setter = "setOnEditorActionListener",
+    type = "android.widget.TextView.OnEditorActionListener",
+    name = "onEditorAction",
+    parameters = {
+        "android.widget.TextView",
+        "int",
+        "android.view.KeyEvent"
+    }
+)
 public @interface OnEditorAction {
   int[] value();
 }

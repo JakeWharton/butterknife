@@ -24,7 +24,7 @@ final class ViewInjector {
     getOrCreateViewBinding(id).addFieldBinding(new FieldBinding(name, type, required));
   }
 
-  boolean addMethod(int id, Listener listener, String name, List<Parameter> parameters,
+  boolean addMethod(int id, ListenerClass listener, String name, List<Parameter> parameters,
       boolean required) {
     try {
       getOrCreateViewBinding(id).addMethodBinding(listener,
@@ -125,7 +125,7 @@ final class ViewInjector {
   }
 
   private void emitMethodBindings(StringBuilder builder, ViewInjection injection) {
-    Map<Listener, MethodBinding> methodBindings = injection.getMethodBindings();
+    Map<ListenerClass, MethodBinding> methodBindings = injection.getMethodBindings();
     if (methodBindings.isEmpty()) {
       return;
     }
@@ -139,45 +139,56 @@ final class ViewInjector {
       extraIndent = "  ";
     }
 
-    for (Map.Entry<Listener, MethodBinding> entry : methodBindings.entrySet()) {
-      Listener listener = entry.getKey();
+    for (Map.Entry<ListenerClass, MethodBinding> entry : methodBindings.entrySet()) {
+      ListenerClass listener = entry.getKey();
       MethodBinding methodBinding = entry.getValue();
 
       // Emit: ((OWNER_TYPE) view).SETTER_NAME(
-      boolean needsCast = !VIEW_TYPE.equals(listener.getOwnerType());
+      boolean needsCast = !VIEW_TYPE.equals(listener.targetType());
       builder.append(extraIndent)
           .append("    ");
       if (needsCast) {
-        builder.append("((").append(listener.getOwnerType()).append(") ");
+        builder.append("((").append(listener.targetType());
+        if (listener.genericArguments() > 0) {
+          builder.append('<');
+          for (int i = 0; i < listener.genericArguments(); i++) {
+            if (i > 0) {
+              builder.append(", ");
+            }
+            builder.append('?');
+          }
+          builder.append('>');
+        }
+        builder.append(") ");
       }
       builder.append("view");
       if (needsCast) {
         builder.append(')');
       }
       builder.append('.')
-          .append(listener.getSetterName())
+          .append(listener.setter())
           .append("(\n");
 
       // Emit: new TYPE() {
       builder.append(extraIndent)
           .append("      new ")
-          .append(listener.getType())
+          .append(listener.type())
           .append("() {\n");
 
       // Emit: @Override public RETURN_TYPE METHOD_NAME(
       builder.append(extraIndent)
           .append("        @Override public ")
-          .append(listener.getReturnType())
+          .append(listener.returnType())
           .append(' ')
-          .append(listener.getMethodName())
+          .append(listener.name())
           .append("(\n");
 
       // Emit listener method arguments, each on their own line.
-      List<String> parameterTypes = listener.getParameterTypes();
-      for (int i = 0, count = parameterTypes.size(); i < count; i++) {
+      String[] parameterTypes = listener.parameters();
+      for (int i = 0, count = parameterTypes.length; i < count; i++) {
         builder.append(extraIndent)
             .append("          ")
-            .append(parameterTypes.get(i))
+            .append(parameterTypes[i])
             .append(" p")
             .append(i);
         if (i < count - 1) {
@@ -191,18 +202,18 @@ final class ViewInjector {
 
       // Emit call to target method using its parameter list.
       builder.append(extraIndent).append("          ");
-      if (!"void".equals(listener.getReturnType())) {
+      if (!"void".equals(listener.returnType())) {
         builder.append("return ");
       }
       builder.append("target.")
           .append(methodBinding.getName())
           .append('(');
       List<Parameter> parameters = methodBinding.getParameters();
-      List<String> listenerParameters = listener.getParameterTypes();
+      String[] listenerParameters = listener.parameters();
       for (int i = 0, count = parameters.size(); i < count; i++) {
         Parameter parameter = parameters.get(i);
         int listenerPosition = parameter.getListenerPosition();
-        emitCastIfNeeded(builder, listenerParameters.get(listenerPosition), parameter.getType());
+        emitCastIfNeeded(builder, listenerParameters[listenerPosition], parameter.getType());
         builder.append('p').append(listenerPosition);
         if (i < count - 1) {
           builder.append(", ");

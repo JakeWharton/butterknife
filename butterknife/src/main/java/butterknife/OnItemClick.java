@@ -22,7 +22,18 @@ import static java.lang.annotation.RetentionPolicy.CLASS;
  * @see Optional
  */
 @Retention(CLASS) @Target(METHOD)
-@ListenerClass("android.widget.AdapterView.OnItemClickListener")
+@ListenerClass(
+    targetType = "android.widget.AdapterView<?>",
+    setter = "setOnItemClickListener",
+    type = "android.widget.AdapterView.OnItemClickListener",
+    name = "onItemClick",
+    parameters = {
+        "android.widget.AdapterView<?>",
+        "android.view.View",
+        "int",
+        "long"
+    }
+)
 public @interface OnItemClick {
   int[] value();
 }

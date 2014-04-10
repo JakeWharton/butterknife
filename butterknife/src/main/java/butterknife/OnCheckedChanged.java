@@ -23,7 +23,16 @@ import static java.lang.annotation.RetentionPolicy.CLASS;
  * @see Optional
  */
 @Retention(CLASS) @Target(METHOD)
-@ListenerClass("android.widget.CompoundButton.OnCheckedChangeListener")
+@ListenerClass(
+    targetType = "android.widget.CompoundButton",
+    setter = "setOnCheckedChangeListener",
+    type = "android.widget.CompoundButton.OnCheckedChangeListener",
+    name = "onCheckedChanged",
+    parameters = {
+        "android.widget.CompoundButton",
+        "boolean"
+    }
+)
 public @interface OnCheckedChanged {
   int[] value();
 }
