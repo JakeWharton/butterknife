@@ -57,7 +57,7 @@ import java.util.Map;
  * @see OnItemLongClick
  * @see OnLongClick
  */
-public class ButterKnife {
+public final class ButterKnife {
   private ButterKnife() {
     // No instances.
   }
