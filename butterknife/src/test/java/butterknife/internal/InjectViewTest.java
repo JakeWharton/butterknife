@@ -31,10 +31,7 @@ public class InjectViewTest {
             "public class Test$$ViewInjector {",
             "  public static void inject(Finder finder, final test.Test target, Object source) {",
             "    View view;",
-            "    view = finder.findById(source, 1);",
-            "    if (view == null) {",
-            "      throw new IllegalStateException(\"Required view with id '1' for field 'thing' was not found. If this view is optional add '@Optional' annotation.\");",
-            "    }",
+            "    view = finder.findRequiredView(source, 1, \"field 'thing'\");",
             "    target.thing = view;",
             "  }",
             "  public static void reset(test.Test target) {",
@@ -71,10 +68,7 @@ public class InjectViewTest {
             "public class Test$$ViewInjector {",
             "  public static void inject(Finder finder, final test.Test target, Object source) {",
             "    View view;",
-            "    view = finder.findById(source, 1);",
-            "    if (view == null) {",
-            "      throw new IllegalStateException(\"Required view with id '1' for field 'thing1', field 'thing2', and field 'thing3' was not found. If this view is optional add '@Optional' annotation.\");",
-            "    }",
+            "    view = finder.findRequiredView(source, 1, \"field 'thing1', field 'thing2', and field 'thing3'\");",
             "    target.thing1 = view;",
             "    target.thing2 = view;",
             "    target.thing3 = view;",
@@ -132,7 +126,7 @@ public class InjectViewTest {
             "public class Test$$ViewInjector {",
             "  public static void inject(Finder finder, final test.Test target, Object source) {",
             "    View view;",
-            "    view = finder.findById(source, 1);",
+            "    view = finder.findOptionalView(source, 1);",
             "    target.view = view;",
             "  }",
             "  public static void reset(test.Test target) {",
@@ -173,10 +167,7 @@ public class InjectViewTest {
             "public class Test$$ViewInjector {",
             "  public static void inject(Finder finder, final test.Test target, Object source) {",
             "    View view;",
-            "    view = finder.findById(source, 1);",
-            "    if (view == null) {",
-            "      throw new IllegalStateException(\"Required view with id '1' for field 'view' was not found. If this view is optional add '@Optional' annotation.\");",
-            "    }",
+            "    view = finder.findRequiredView(source, 1, \"field 'view'\");",
             "    target.view = view;",
             "  }",
             "  public static void reset(test.Test target) {",
@@ -194,10 +185,7 @@ public class InjectViewTest {
             "  public static void inject(Finder finder, final test.TestOne target, Object source) {",
             "    test.Test$$ViewInjector.inject(finder, target, source);",
             "    View view;",
-            "    view = finder.findById(source, 1);",
-            "    if (view == null) {",
-            "      throw new IllegalStateException(\"Required view with id '1' for field 'thing' was not found. If this view is optional add '@Optional' annotation.\");",
-            "    }",
+            "    view = finder.findRequiredView(source, 1, \"field 'thing'\");",
             "    target.thing = view;",
             "  }",
             "  public static void reset(test.TestOne target) {",
@@ -239,10 +227,7 @@ public class InjectViewTest {
             "public class Test$$ViewInjector {",
             "  public static void inject(Finder finder, final test.Test target, Object source) {",
             "    View view;",
-            "    view = finder.findById(source, 1);",
-            "    if (view == null) {",
-            "      throw new IllegalStateException(\"Required view with id '1' for field 'view' was not found. If this view is optional add '@Optional' annotation.\");",
-            "    }",
+            "    view = finder.findRequiredView(source, 1, \"field 'view'\");",
             "    target.view = view;",
             "  }",
             "  public static void reset(test.Test target) {",
@@ -260,10 +245,7 @@ public class InjectViewTest {
             "  public static void inject(Finder finder, final test.TestOne target, Object source) {",
             "    test.Test$$ViewInjector.inject(finder, target, source);",
             "    View view;",
-            "    view = finder.findById(source, 1);",
-            "    if (view == null) {",
-            "      throw new IllegalStateException(\"Required view with id '1' for field 'thing' was not found. If this view is optional add '@Optional' annotation.\");",
-            "    }",
+            "    view = finder.findRequiredView(source, 1, \"field 'thing'\");",
             "    target.thing = view;",
             "  }",
             "  public static void reset(test.TestOne target) {",
@@ -296,8 +278,7 @@ public class InjectViewTest {
         .processedWith(butterknifeProcessors())
         .failsToCompile()
         .withErrorContaining(
-            String.format("@InjectView fields may not be contained in private classes. (%s)",
-                "test.Test.Inner.thing"))
+            "@InjectView fields may not be contained in private classes. (test.Test.Inner.thing)")
         .in(source).onLine(5);
   }
 
@@ -314,9 +295,7 @@ public class InjectViewTest {
     ASSERT.about(javaSource()).that(source)
         .processedWith(butterknifeProcessors())
         .failsToCompile()
-        .withErrorContaining(
-            String.format("@InjectView fields must extend from View (%s).",
-                "test.Test.thing"))
+        .withErrorContaining("@InjectView fields must extend from View. (test.Test.thing)")
         .in(source).onLine(5);
   }
 
@@ -334,8 +313,7 @@ public class InjectViewTest {
         .processedWith(butterknifeProcessors())
         .failsToCompile()
         .withErrorContaining(
-            String.format("@InjectView fields may only be contained in classes. (%s)",
-                "test.Test.thing"))
+            "@InjectView fields may only be contained in classes. (test.Test.thing)")
         .in(source).onLine(4);
   }
 
@@ -353,9 +331,7 @@ public class InjectViewTest {
     ASSERT.about(javaSource()).that(source)
         .processedWith(butterknifeProcessors())
         .failsToCompile()
-        .withErrorContaining(
-            String.format("@InjectView fields must not be private or static. (%s)",
-                "test.Test.thing"))
+        .withErrorContaining("@InjectView fields must not be private or static. (test.Test.thing)")
         .in(source).onLine(6);
   }
 
@@ -373,9 +349,27 @@ public class InjectViewTest {
     ASSERT.about(javaSource()).that(source)
         .processedWith(butterknifeProcessors())
         .failsToCompile()
-        .withErrorContaining(
-            String.format("@InjectView fields must not be private or static. (%s)",
-                "test.Test.thing"))
+        .withErrorContaining("@InjectView fields must not be private or static. (test.Test.thing)")
         .in(source).onLine(6);
+  }
+
+  @Test public void failsIfBothAnnotations() {
+    JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
+        "package test;",
+        "import android.app.Activity;",
+        "import android.view.View;",
+        "import butterknife.InjectView;",
+        "import butterknife.InjectViews;",
+        "public class Test extends Activity {",
+        "    @InjectView(1) @InjectViews(1) View thing;",
+        "}"
+    ));
+
+    ASSERT.about(javaSource()).that(source)
+        .processedWith(butterknifeProcessors())
+        .failsToCompile()
+        .withErrorContaining(
+            "Only one of @InjectView and @InjectViews is allowed. (test.Test.thing)")
+        .in(source).onLine(7);
   }
 }

@@ -2,10 +2,12 @@ package butterknife;
 
 import android.app.Activity;
 import android.util.Log;
+import android.util.Property;
 import android.view.View;
 import butterknife.internal.ButterKnifeProcessor;
 import java.lang.reflect.Method;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -29,6 +31,18 @@ import java.util.Map;
  * directly}, or inject an {@link #inject(Object, Activity) activity into another object} or a
  * {@link #inject(Object, View) view into another object}.
  * <p>
+ * Group multiple views together into a {@link List} or array.
+ * <pre><code>
+ * {@literal @}InjectViews({R.id.first_name, R.id.middle_name, R.id.last_name})
+ * List<EditText> nameViews;
+ * </code></pre>
+ * There are two convenience methods for working with view collections:
+ * <ul>
+ * <li>{@link #apply(List, Action)} &ndash; Applies an action to each view.</li>
+ * <li>{@link #apply(List, Property, Object)} &ndash; Applies a value to each view using a
+ * property.</li>
+ * </ul>
+ * <p>
  * To inject listeners to your views you can annotate your methods:
  * <pre><code>
  * {@literal @}OnClick(R.id.submit) void onSubmit() {
@@ -49,6 +63,7 @@ import java.util.Map;
  * </code></pre>
  *
  * @see InjectView
+ * @see InjectViews
  * @see OnCheckedChanged
  * @see OnClick
  * @see OnEditorAction
@@ -59,26 +74,52 @@ import java.util.Map;
  */
 public final class ButterKnife {
   private ButterKnife() {
-    // No instances.
+    throw new AssertionError("No instances.");
   }
 
   /**
-   * A means of finding a view in either an {@link Activity} or a {@link View}. Exposed for use only
-   * by generated code.
+   * A means of finding a view in either an {@link Activity} or a {@link View}. Exposed for use
+   * only by generated code.
    */
   public enum Finder {
     VIEW {
-      @Override public View findById(Object source, int id) {
+      @Override public View findOptionalView(Object source, int id) {
         return ((View) source).findViewById(id);
       }
     },
     ACTIVITY {
-      @Override public View findById(Object source, int id) {
+      @Override public View findOptionalView(Object source, int id) {
         return ((Activity) source).findViewById(id);
       }
     };
 
-    public abstract View findById(Object source, int id);
+    public static <T extends View> T[] arrayOf(T... views) {
+      return views;
+    }
+
+    public static <T extends View> List<T> listOf(T... views) {
+      return new ImmutableViewList<T>(views);
+    }
+
+    public View findRequiredView(Object source, int id, String who) {
+      View view = findOptionalView(source, id);
+      if (view == null) {
+        throw new IllegalStateException("Required view with id '"
+            + id
+            + "' for "
+            + who
+            + " was not found. If thie view is optional add '@Optional' annotation.");
+      }
+      return view;
+    }
+
+    public abstract View findOptionalView(Object source, int id);
+  }
+
+  /** A simple action that can be applied to a list of views. */
+  public interface Action<T extends View> {
+    /** Apply the action on the {@code view} which is at {@code index} in the list. */
+    void apply(T view, int index);
   }
 
   private static final String TAG = "ButterKnife";
@@ -221,6 +262,24 @@ public final class ButterKnife {
     }
     RESETTERS.put(cls, inject);
     return inject;
+  }
+
+  /** Apply the specified {@code action} across the {@code list} of views. */
+  public static <T extends View> void apply(List<T> list, Action<? super T> action) {
+    for (int i = 0, count = list.size(); i < count; i++) {
+      action.apply(list.get(i), i);
+    }
+  }
+
+  /**
+   * Apply the specified {@code value} across the {@code list} of views using the {@code property}.
+   */
+  public static <T extends View, V> void apply(List<T> list, Property<? super T, V> setter,
+      V value) {
+    //noinspection ForLoopReplaceableByForEach
+    for (int i = 0, count = list.size(); i < count; i++) {
+      setter.set(list.get(i), value);
+    }
   }
 
   /** Simpler version of {@link View#findViewById(int)} which infers the target type. */

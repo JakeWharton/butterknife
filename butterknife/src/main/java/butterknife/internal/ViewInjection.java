@@ -32,6 +32,10 @@ final class ViewInjection {
         new LinkedHashMap<ListenerClass, MethodBinding>(methodBindings));
   }
 
+  public boolean hasMethodBinding(ListenerClass listenerClass) {
+    return methodBindings.containsKey(listenerClass);
+  }
+
   public List<Binding> getRequiredBindings() {
     List<Binding> requiredBindings = new ArrayList<Binding>();
     for (FieldBinding fieldBinding : fieldBindings) {

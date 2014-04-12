@@ -1,6 +1,7 @@
 package butterknife.internal;
 
 import butterknife.InjectView;
+import butterknife.InjectViews;
 import butterknife.OnCheckedChanged;
 import butterknife.OnClick;
 import butterknife.OnEditorAction;
@@ -32,10 +33,12 @@ import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
+import javax.lang.model.type.ArrayType;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
+import javax.lang.model.util.Types;
 import javax.tools.JavaFileObject;
 
 import static javax.lang.model.element.ElementKind.CLASS;
@@ -47,6 +50,7 @@ import static javax.tools.Diagnostic.Kind.ERROR;
 public final class ButterKnifeProcessor extends AbstractProcessor {
   public static final String SUFFIX = "$$ViewInjector";
   static final String VIEW_TYPE = "android.view.View";
+  private static final String LIST_TYPE = List.class.getCanonicalName();
   private static final List<Class<? extends Annotation>> LISTENERS = Arrays.asList(//
       OnCheckedChanged.class, //
       OnClick.class, //
@@ -58,18 +62,21 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
   );
 
   private Elements elementUtils;
+  private Types typeUtils;
   private Filer filer;
 
   @Override public synchronized void init(ProcessingEnvironment env) {
     super.init(env);
 
     elementUtils = env.getElementUtils();
+    typeUtils = env.getTypeUtils();
     filer = env.getFiler();
   }
 
   @Override public Set<String> getSupportedAnnotationTypes() {
     Set<String> supportTypes = new LinkedHashSet<String>();
     supportTypes.add(InjectView.class.getCanonicalName());
+    supportTypes.add(InjectViews.class.getCanonicalName());
     for (Class<? extends Annotation> listener : LISTENERS) {
       supportTypes.add(listener.getCanonicalName());
     }
@@ -102,7 +109,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     Map<TypeElement, ViewInjector> targetClassMap = new LinkedHashMap<TypeElement, ViewInjector>();
     Set<String> erasedTargetNames = new LinkedHashSet<String>();
 
-    // Process each @InjectView elements.
+    // Process each @InjectView element.
     for (Element element : env.getElementsAnnotatedWith(InjectView.class)) {
       try {
         parseInjectView(element, targetClassMap, erasedTargetNames);
@@ -110,8 +117,19 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
         StringWriter stackTrace = new StringWriter();
         e.printStackTrace(new PrintWriter(stackTrace));
 
-        error(element, "Unable to generate view injector for @InjectView.\n\n%s",
-            stackTrace.toString());
+        error(element, "Unable to generate view injector for @InjectView.\n\n%s", stackTrace);
+      }
+    }
+
+    // Process each @InjectViews element.
+    for (Element element : env.getElementsAnnotatedWith(InjectViews.class)) {
+      try {
+        parseInjectViews(element, targetClassMap, erasedTargetNames);
+      } catch (Exception e) {
+        StringWriter stackTrace = new StringWriter();
+        e.printStackTrace(new PrintWriter(stackTrace));
+
+        error(element, "Unable to generate view injector for @InjectViews.\n\n%s", stackTrace);
       }
     }
 
@@ -171,13 +189,20 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
     // Verify that the target type extends from View.
     if (!isSubtypeOfType(element.asType(), VIEW_TYPE)) {
-      error(element, "@InjectView fields must extend from View (%s.%s).",
+      error(element, "@InjectView fields must extend from View. (%s.%s)",
           enclosingElement.getQualifiedName(), element.getSimpleName());
       hasError = true;
     }
 
     // Verify common generated code restrictions.
     hasError |= isValidForGeneratedCode(InjectView.class, "fields", element);
+
+    // Check for the other field annotation.
+    if (element.getAnnotation(InjectViews.class) != null) {
+      error(element, "Only one of @InjectView and @InjectViews is allowed. (%s.%s)",
+          enclosingElement.getQualifiedName(), element.getSimpleName());
+      hasError = true;
+    }
 
     if (hasError) {
       return;
@@ -193,6 +218,69 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     viewInjector.addField(id, name, type, required);
 
     // Add the type-erased version to the valid injection targets set.
+    erasedTargetNames.add(enclosingElement.toString());
+  }
+
+  private void parseInjectViews(Element element, Map<TypeElement, ViewInjector> targetClassMap,
+      Set<String> erasedTargetNames) {
+    boolean hasError = false;
+    TypeElement enclosingElement = (TypeElement) element.getEnclosingElement();
+
+    // Verify that the type is a List or an array.
+    TypeMirror elementType = element.asType();
+    TypeMirror erasedType = typeUtils.erasure(elementType);
+    TypeMirror viewType = null;
+    CollectionBinding.Kind kind = null;
+    if (elementType.getKind() == TypeKind.ARRAY) {
+      ArrayType arrayType = (ArrayType) elementType;
+      viewType = arrayType.getComponentType();
+      kind = CollectionBinding.Kind.ARRAY;
+    } else if (LIST_TYPE.equals(erasedType.toString())) {
+      DeclaredType declaredType = (DeclaredType) elementType;
+      List<? extends TypeMirror> typeArguments = declaredType.getTypeArguments();
+      if (typeArguments.size() != 1) {
+        error(element, "@InjectViews List must have a generic component. (%s.%s)",
+            enclosingElement.getQualifiedName(), element.getSimpleName());
+        hasError = true;
+      } else {
+        viewType = typeArguments.get(0);
+      }
+      kind = CollectionBinding.Kind.LIST;
+    } else {
+      error(element, "@InjectViews must be a List or array. (%s.%s)",
+          enclosingElement.getQualifiedName(), element.getSimpleName());
+      hasError = true;
+    }
+
+    // Verify that the target type extends from View.
+    if (viewType != null && !isSubtypeOfType(viewType, VIEW_TYPE)) {
+      error(element, "@InjectViews type must extend from View. (%s.%s)",
+          enclosingElement.getQualifiedName(), element.getSimpleName());
+      hasError = true;
+    }
+
+    // Verify common generated code restrictions.
+    hasError |= isValidForGeneratedCode(InjectViews.class, "fields", element);
+
+    if (hasError) {
+      return;
+    }
+
+    // Assemble information on the injection point.
+    String name = element.getSimpleName().toString();
+    int[] ids = element.getAnnotation(InjectViews.class).value();
+    if (ids.length == 0) {
+      error(element, "@InjectViews must specify at least one ID. (%s.%s)",
+          enclosingElement.getQualifiedName(), element.getSimpleName());
+      return;
+    }
+
+    assert viewType != null; // Always false as hasError would have been true.
+    String type = viewType.toString();
+
+    ViewInjector viewInjector = getOrCreateTargetClass(targetClassMap, enclosingElement);
+    viewInjector.addCollection(ids, name, type, kind);
+
     erasedTargetNames.add(enclosingElement.toString());
   }
 
@@ -429,7 +517,10 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
   }
 
   private void error(Element element, String message, Object... args) {
-    processingEnv.getMessager().printMessage(ERROR, String.format(message, args), element);
+    if (args.length > 0) {
+      message = String.format(message, args);
+    }
+    processingEnv.getMessager().printMessage(ERROR, message, element);
   }
 
   private String getPackageName(TypeElement type) {
