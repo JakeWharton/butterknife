@@ -23,7 +23,7 @@ final class FieldBinding implements Binding {
     return "field '" + name + "'";
   }
 
-  @Override public boolean isRequired() {
+  public boolean isRequired() {
     return required;
   }
 }

@@ -27,7 +27,7 @@ final class MethodBinding implements Binding {
     return "method '" + name + "'";
   }
 
-  @Override public boolean isRequired() {
+  public boolean isRequired() {
     return required;
   }
 }

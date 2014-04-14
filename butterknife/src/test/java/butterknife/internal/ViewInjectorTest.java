@@ -35,9 +35,5 @@ public class ViewInjectorTest {
     @Override public String getDescription() {
       return description;
     }
-
-    @Override public boolean isRequired() {
-      throw new AssertionError();
-    }
   }
 }
