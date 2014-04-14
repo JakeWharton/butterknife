@@ -136,6 +136,49 @@ public class OnItemClickTest {
         .generatesSources(expectedSource);
   }
 
+  @Test public void onClickInjectionWithParameterSubsetAndGenerics() {
+    JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
+        "package test;",
+        "import android.app.Activity;",
+        "import android.view.View;",
+        "import android.widget.ListView;",
+        "import butterknife.OnItemClick;",
+        "public class Test<T extends ListView> extends Activity {",
+        "  @OnItemClick(1) void doStuff(",
+        "    T parent,",
+        "    int position",
+        "  ) {}",
+        "}"));
+
+    JavaFileObject expectedSource = JavaFileObjects.forSourceString("test/Test$$ViewInjector",
+        Joiner.on('\n').join(
+            "package test;",
+            "import android.view.View;",
+            "import butterknife.ButterKnife.Finder;",
+            "public class Test$$ViewInjector {",
+            "  public static void inject(Finder finder, final test.Test target, Object source) {",
+            "    View view;",
+            "    view = finder.findRequiredView(source, 1, \"method 'doStuff'\");",
+            "    ((android.widget.AdapterView<?>) view).setOnItemClickListener(",
+            "      new android.widget.AdapterView.OnItemClickListener() {",
+            "        @Override public void onItemClick(",
+            "            android.widget.AdapterView<?> p0, android.view.View p1, int p2, long p3) {",
+            "          target.doStuff((android.widget.ListView) p0, p2);",
+            "        }",
+            "      });",
+            "  }",
+            "  public static void reset(test.Test target) {",
+            "  }",
+            "}"
+        ));
+
+    ASSERT.about(javaSource()).that(source)
+        .processedWith(butterknifeProcessors())
+        .compilesWithoutError()
+        .and()
+        .generatesSources(expectedSource);
+  }
+
   @Test public void failsWithInvalidParameterConfiguration() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
         "package test;",

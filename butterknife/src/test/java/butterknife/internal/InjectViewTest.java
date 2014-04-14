@@ -47,6 +47,44 @@ public class InjectViewTest {
         .generatesSources(expectedSource);
   }
 
+  @Test public void genericType() {
+    JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
+        "package test;",
+        "import android.app.Activity;",
+        "import android.widget.EditText;",
+        "import android.widget.TextView;",
+        "import butterknife.InjectView;",
+        "class Base<T extends TextView> extends Activity {",
+        "    @InjectView(1) T thing;",
+        "}",
+        "public class Test extends Base<EditText> {",
+        "}"
+    ));
+
+    JavaFileObject expectedSource = JavaFileObjects.forSourceString("test/Base$$ViewInjector",
+        Joiner.on('\n').join(
+            "package test;",
+            "import android.view.View;",
+            "import butterknife.ButterKnife.Finder;",
+            "public class Base$$ViewInjector {",
+            "  public static void inject(Finder finder, final test.Base target, Object source) {",
+            "    View view;",
+            "    view = finder.findRequiredView(source, 1, \"field 'thing'\");",
+            "    target.thing = (android.widget.TextView) view;",
+            "  }",
+            "  public static void reset(test.Base target) {",
+            "    target.thing = null;",
+            "  }",
+            "}"
+        ));
+
+    ASSERT.about(javaSource()).that(source)
+        .processedWith(butterknifeProcessors())
+        .compilesWithoutError()
+        .and()
+        .generatesSources(expectedSource);
+  }
+
   @Test public void oneFindPerId() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
         "package test;",

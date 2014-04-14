@@ -37,6 +37,7 @@ import javax.lang.model.type.ArrayType;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
+import javax.lang.model.type.TypeVariable;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 import javax.tools.JavaFileObject;
@@ -188,7 +189,12 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     TypeElement enclosingElement = (TypeElement) element.getEnclosingElement();
 
     // Verify that the target type extends from View.
-    if (!isSubtypeOfType(element.asType(), VIEW_TYPE)) {
+    TypeMirror elementType = element.asType();
+    if (elementType instanceof TypeVariable) {
+      TypeVariable typeVariable = (TypeVariable) elementType;
+      elementType = typeVariable.getUpperBound();
+    }
+    if (!isSubtypeOfType(elementType, VIEW_TYPE)) {
       error(element, "@InjectView fields must extend from View. (%s.%s)",
           enclosingElement.getQualifiedName(), element.getSimpleName());
       hasError = true;
@@ -211,7 +217,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     // Assemble information on the injection point.
     String name = element.getSimpleName().toString();
     int id = element.getAnnotation(InjectView.class).value();
-    String type = element.asType().toString();
+    String type = elementType.toString();
     boolean required = element.getAnnotation(Optional.class) == null;
 
     ViewInjector viewInjector = getOrCreateTargetClass(targetClassMap, enclosingElement);
@@ -250,6 +256,10 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
       error(element, "@InjectViews must be a List or array. (%s.%s)",
           enclosingElement.getQualifiedName(), element.getSimpleName());
       hasError = true;
+    }
+    if (viewType instanceof TypeVariable) {
+      TypeVariable typeVariable = (TypeVariable) viewType;
+      viewType = typeVariable.getUpperBound();
     }
 
     // Verify that the target type extends from View.
@@ -355,7 +365,12 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     }
 
     // Verify method return type matches the listener.
-    if (!executableElement.getReturnType().toString().equals(listener.returnType())) {
+    TypeMirror returnType = executableElement.getReturnType();
+    if (returnType instanceof TypeVariable) {
+      TypeVariable typeVariable = (TypeVariable) returnType;
+      returnType = typeVariable.getUpperBound();
+    }
+    if (!returnType.toString().equals(listener.returnType())) {
       error(element, "@%s methods must have a '%s' return type. (%s.%s)",
           annotationClass.getSimpleName(), listener.returnType(),
           enclosingElement.getQualifiedName(), element.getSimpleName());
@@ -374,6 +389,10 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
       for (int i = 0; i < methodParameters.size(); i++) {
         VariableElement methodParameter = methodParameters.get(i);
         TypeMirror methodParameterType = methodParameter.asType();
+        if (methodParameterType instanceof TypeVariable) {
+          TypeVariable typeVariable = (TypeVariable) methodParameterType;
+          methodParameterType = typeVariable.getUpperBound();
+        }
 
         for (int j = 0; j < parameterTypes.length; j++) {
           if (methodParameterUsed.get(j)) {
