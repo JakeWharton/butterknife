@@ -100,7 +100,7 @@ List&lt;EditText> nameViews;</pre>
             <p>Use the <code>apply</code> method to set a <a href="https://developer.android.com/reference/android/util/Property.html"><code>Property</code></a> on all of the views.</p>
             <pre class="prettyprint">ButterKnife.apply(nameViews, View.ALPHA, 0);</pre>
             <p>The supplied <code>Action</code> interface allows you to perform actions on all of the views in a list as well.</p>
-            <pre class="prettyprint">ButterKnife.apply(nameView, new Action&lt;View>() {
+            <pre class="prettyprint">ButterKnife.apply(nameViews, new Action&lt;View>() {
   @Override public void apply(View view, int index) {
     view.setAlpha(0);
     view.animate().alpha(1).setStartDelay(index * 200).setDuration(400);
