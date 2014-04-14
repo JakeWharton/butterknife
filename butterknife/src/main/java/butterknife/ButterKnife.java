@@ -108,7 +108,7 @@ public final class ButterKnife {
             + id
             + "' for "
             + who
-            + " was not found. If thie view is optional add '@Optional' annotation.");
+            + " was not found. If this view is optional add '@Optional' annotation.");
       }
       return view;
     }
