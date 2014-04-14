@@ -9,6 +9,8 @@ import static butterknife.internal.ButterKnifeProcessor.VIEW_TYPE;
 
 final class ViewInjector {
   private final Map<Integer, ViewInjection> viewIdMap = new LinkedHashMap<Integer, ViewInjection>();
+  private final Map<CollectionBinding, int[]> collectionBindings =
+      new LinkedHashMap<CollectionBinding, int[]>();
   private final String classPackage;
   private final String className;
   private final String targetClass;
@@ -26,13 +28,17 @@ final class ViewInjector {
 
   boolean addMethod(int id, ListenerClass listener, String name, List<Parameter> parameters,
       boolean required) {
-    try {
-      getOrCreateViewBinding(id).addMethodBinding(listener,
-          new MethodBinding(name, parameters, required));
-      return true;
-    } catch (IllegalStateException e) {
+    ViewInjection viewInjection = getOrCreateViewBinding(id);
+    if (viewInjection.hasMethodBinding(listener)) {
       return false;
     }
+    viewInjection.addMethodBinding(listener, new MethodBinding(name, parameters, required));
+    return true;
+  }
+
+  void addCollection(int[] ids, String name, String type, CollectionBinding.Kind kind) {
+    CollectionBinding binding = new CollectionBinding(name, type, kind);
+    collectionBindings.put(binding, ids);
   }
 
   void setParentInjector(String parentInjector) {
@@ -86,23 +92,58 @@ final class ViewInjector {
       emitViewInjection(builder, injection);
     }
 
+    // Loop over each collection binding and emit it.
+    for (Map.Entry<CollectionBinding, int[]> entry : collectionBindings.entrySet()) {
+      emitCollectionBinding(builder, entry.getKey(), entry.getValue());
+    }
+
     builder.append("  }\n");
   }
 
+  private void emitCollectionBinding(StringBuilder builder, CollectionBinding binding, int[] ids) {
+    builder.append("    target.").append(binding.getName()).append(" = ");
+
+    switch (binding.getKind()) {
+      case ARRAY:
+        builder.append("Finder.arrayOf(");
+        break;
+      case LIST:
+        builder.append("Finder.listOf(");
+        break;
+      default:
+        throw new IllegalStateException("Unknown kind: " + binding.getKind());
+    }
+
+    for (int i = 0; i < ids.length; i++) {
+      if (i > 0) {
+        builder.append(',');
+      }
+      builder.append("\n        ");
+      emitCastIfNeeded(builder, binding.getType());
+      builder.append("finder.findRequiredView(source, ")
+          .append(ids[i])
+          .append(", \"")
+          .append(binding.getName())
+          .append("\")");
+    }
+
+    builder.append("\n    );");
+  }
+
   private void emitViewInjection(StringBuilder builder, ViewInjection injection) {
-    builder.append("    view = finder.findById(source, ")
-        .append(injection.getId())
-        .append(");\n");
+    builder.append("    view = ");
 
     List<Binding> requiredBindings = injection.getRequiredBindings();
-    if (!requiredBindings.isEmpty()) {
-      builder.append("    if (view == null) {\n")
-          .append("      throw new IllegalStateException(\"Required view with id '")
+    if (requiredBindings.isEmpty()) {
+      builder.append("finder.findOptionalView(source, ")
           .append(injection.getId())
-          .append("' for ");
+          .append(");\n");
+    } else {
+      builder.append("finder.findRequiredView(source, ")
+          .append(injection.getId())
+          .append(", \"");
       emitHumanDescription(builder, requiredBindings);
-      builder.append(" was not found. If this view is optional add '@Optional' annotation.\");\n")
-          .append("    }\n");
+      builder.append("\");\n");
     }
 
     emitFieldBindings(builder, injection);
@@ -244,6 +285,9 @@ final class ViewInjector {
       for (FieldBinding fieldBinding : injection.getFieldBindings()) {
         builder.append("    target.").append(fieldBinding.getName()).append(" = null;\n");
       }
+    }
+    for (CollectionBinding collectionBinding : collectionBindings.keySet()) {
+      builder.append("    target.").append(collectionBinding.getName()).append(" = null;\n");
     }
     builder.append("  }\n");
   }

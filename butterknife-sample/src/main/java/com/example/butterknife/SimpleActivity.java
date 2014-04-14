@@ -2,29 +2,47 @@ package com.example.butterknife;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.view.View;
+import android.view.animation.AlphaAnimation;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
-import butterknife.InjectView;
-import butterknife.OnClick;
 import butterknife.ButterKnife;
+import butterknife.InjectView;
+import butterknife.InjectViews;
+import butterknife.OnClick;
 import butterknife.OnItemClick;
 import butterknife.OnLongClick;
+import java.util.List;
 
 import static android.widget.Toast.LENGTH_SHORT;
 
 public class SimpleActivity extends Activity {
+  private static final ButterKnife.Action<View> ALPHA_FADE = new ButterKnife.Action<View>() {
+    @Override public void apply(View view, int index) {
+      AlphaAnimation alphaAnimation = new AlphaAnimation(0, 1);
+      alphaAnimation.setFillBefore(true);
+      alphaAnimation.setDuration(500);
+      alphaAnimation.setStartOffset(index * 100);
+      view.startAnimation(alphaAnimation);
+    }
+  };
+
   @InjectView(R.id.title) TextView title;
   @InjectView(R.id.subtitle) TextView subtitle;
   @InjectView(R.id.hello) Button hello;
   @InjectView(R.id.list_of_things) ListView listOfThings;
   @InjectView(R.id.footer) TextView footer;
 
+  @InjectViews({ R.id.title, R.id.subtitle, R.id.hello })
+  List<View> headerViews;
+
   private SimpleAdapter adapter;
 
   @OnClick(R.id.hello) void sayHello() {
     Toast.makeText(this, "Hello, views!", LENGTH_SHORT).show();
+    ButterKnife.apply(headerViews, ALPHA_FADE);
   }
 
   @OnLongClick(R.id.hello) boolean sayGetOffMe() {

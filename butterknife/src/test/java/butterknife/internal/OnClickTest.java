@@ -29,10 +29,7 @@ public class OnClickTest {
             "public class Test$$ViewInjector {",
             "  public static void inject(Finder finder, final test.Test target, Object source) {",
             "    View view;",
-            "    view = finder.findById(source, 1);",
-            "    if (view == null) {",
-            "      throw new IllegalStateException(\"Required view with id '1' for method 'doStuff' was not found. If this view is optional add '@Optional' annotation.\");",
-            "    }",
+            "    view = finder.findRequiredView(source, 1, \"method 'doStuff'\");",
             "    view.setOnClickListener(new android.view.View.OnClickListener() {",
             "      @Override public void onClick(android.view.View p0) {",
             "        target.doStuff();",
@@ -71,10 +68,7 @@ public class OnClickTest {
             "public class Test$$ViewInjector {",
             "  public static void inject(Finder finder, final test.Test target, Object source) {",
             "    View view;",
-            "    view = finder.findById(source, 1);",
-            "    if (view == null) {",
-            "      throw new IllegalStateException(\"Required view with id '1' for field 'view' and method 'doStuff' was not found. If this view is optional add '@Optional' annotation.\");",
-            "    }",
+            "    view = finder.findRequiredView(source, 1, \"field 'view' and method 'doStuff'\");",
             "    target.view = view;",
             "    view.setOnClickListener(new android.view.View.OnClickListener() {",
             "      @Override public void onClick(android.view.View p0) {",
@@ -137,37 +131,25 @@ public class OnClickTest {
             "public class Test$$ViewInjector {",
             "  public static void inject(Finder finder, final test.Test target, Object source) {",
             "    View view;",
-            "    view = finder.findById(source, 0);",
-            "    if (view == null) {",
-            "      throw new IllegalStateException(\"Required view with id '0' for method 'click0' was not found. If this view is optional add '@Optional' annotation.\");",
-            "    }",
+            "    view = finder.findRequiredView(source, 0, \"method 'click0'\");",
             "    view.setOnClickListener(new android.view.View.OnClickListener() {",
             "      @Override public void onClick(android.view.View p0) {",
             "        target.click0();",
             "      }",
             "    });",
-            "    view = finder.findById(source, 1);",
-            "    if (view == null) {",
-            "      throw new IllegalStateException(\"Required view with id '1' for method 'click1' was not found. If this view is optional add '@Optional' annotation.\");",
-            "    }",
+            "    view = finder.findRequiredView(source, 1, \"method 'click1'\");",
             "    view.setOnClickListener(new android.view.View.OnClickListener() {",
             "      @Override public void onClick(android.view.View p0) {",
             "        target.click1(p0);",
             "      }",
             "    });",
-            "    view = finder.findById(source, 2);",
-            "    if (view == null) {",
-            "      throw new IllegalStateException(\"Required view with id '2' for method 'click2' was not found. If this view is optional add '@Optional' annotation.\");",
-            "    }",
+            "    view = finder.findRequiredView(source, 2, \"method 'click2'\");",
             "    view.setOnClickListener(new android.view.View.OnClickListener() {",
             "      @Override public void onClick(android.view.View p0) {",
             "        target.click2((android.widget.TextView) p0);",
             "      }",
             "    });",
-            "    view = finder.findById(source, 3);",
-            "    if (view == null) {",
-            "      throw new IllegalStateException(\"Required view with id '3' for method 'click3' was not found. If this view is optional add '@Optional' annotation.\");",
-            "    }",
+            "    view = finder.findRequiredView(source, 3, \"method 'click3'\");",
             "    view.setOnClickListener(new android.view.View.OnClickListener() {",
             "      @Override public void onClick(android.view.View p0) {",
             "        target.click3((android.widget.Button) p0);",
@@ -205,28 +187,19 @@ public class OnClickTest {
             "public class Test$$ViewInjector {",
             "  public static void inject(Finder finder, final test.Test target, Object source) {",
             "    View view;",
-            "    view = finder.findById(source, 1);",
-            "    if (view == null) {",
-            "      throw new IllegalStateException(\"Required view with id '1' for method 'click' was not found. If this view is optional add '@Optional' annotation.\");",
-            "    }",
+            "    view = finder.findRequiredView(source, 1, \"method 'click'\");",
             "    view.setOnClickListener(new android.view.View.OnClickListener() {",
             "      @Override public void onClick(android.view.View p0) {",
             "        target.click();",
             "      }",
             "    });",
-            "    view = finder.findById(source, 2);",
-            "    if (view == null) {",
-            "      throw new IllegalStateException(\"Required view with id '2' for method 'click' was not found. If this view is optional add '@Optional' annotation.\");",
-            "    }",
+            "    view = finder.findRequiredView(source, 2, \"method 'click'\");",
             "    view.setOnClickListener(new android.view.View.OnClickListener() {",
             "      @Override public void onClick(android.view.View p0) {",
             "        target.click();",
             "      }",
             "    });",
-            "    view = finder.findById(source, 3);",
-            "    if (view == null) {",
-            "      throw new IllegalStateException(\"Required view with id '3' for method 'click' was not found. If this view is optional add '@Optional' annotation.\");",
-            "    }",
+            "    view = finder.findRequiredView(source, 3, \"method 'click'\");",
             "    view.setOnClickListener(new android.view.View.OnClickListener() {",
             "      @Override public void onClick(android.view.View p0) {",
             "        target.click();",
@@ -263,7 +236,7 @@ public class OnClickTest {
             "public class Test$$ViewInjector {",
             "  public static void inject(Finder finder, final test.Test target, Object source) {",
             "    View view;",
-            "    view = finder.findById(source, 1);",
+            "    view = finder.findOptionalView(source, 1);",
             "    if (view != null) {",
             "      view.setOnClickListener(new android.view.View.OnClickListener() {",
             "        @Override public void onClick(android.view.View p0) {",
@@ -306,10 +279,7 @@ public class OnClickTest {
             "public class Test$$ViewInjector {",
             "  public static void inject(Finder finder, final test.Test target, Object source) {",
             "    View view;",
-            "    view = finder.findById(source, 1);",
-            "    if (view == null) {",
-            "      throw new IllegalStateException(\"Required view with id '1' for field 'view' was not found. If this view is optional add '@Optional' annotation.\");",
-            "    }",
+            "    view = finder.findRequiredView(source, 1, \"field 'view'\");",
             "    target.view = view;",
             "    view.setOnClickListener(new android.view.View.OnClickListener() {",
             "      @Override public void onClick(android.view.View p0) {",
@@ -346,9 +316,7 @@ public class OnClickTest {
     ASSERT.about(javaSource()).that(source)
         .processedWith(butterknifeProcessors())
         .failsToCompile()
-        .withErrorContaining(
-            String.format("@OnClick methods must have a 'void' return type. (%s)",
-                "test.Test.doStuff"))
+        .withErrorContaining("@OnClick methods must have a 'void' return type. (test.Test.doStuff)")
         .in(source).onLine(7);
   }
 
@@ -367,9 +335,7 @@ public class OnClickTest {
     ASSERT.about(javaSource()).that(source)
         .processedWith(butterknifeProcessors())
         .failsToCompile()
-        .withErrorContaining(
-            String.format("@OnClick methods must not be private or static. (%s)",
-                "test.Test.doStuff"))
+        .withErrorContaining("@OnClick methods must not be private or static. (test.Test.doStuff)")
         .in(source).onLine(6);
   }
 
@@ -388,9 +354,7 @@ public class OnClickTest {
     ASSERT.about(javaSource()).that(source)
         .processedWith(butterknifeProcessors())
         .failsToCompile()
-        .withErrorContaining(
-            String.format("@OnClick methods must not be private or static. (%s)",
-                "test.Test.doStuff"))
+        .withErrorContaining("@OnClick methods must not be private or static. (test.Test.doStuff)")
         .in(source).onLine(6);
   }
 
@@ -440,8 +404,7 @@ public class OnClickTest {
         .processedWith(butterknifeProcessors())
         .failsToCompile()
         .withErrorContaining(
-            String.format("@OnClick methods can have at most 1 parameter(s). (%s)",
-                "test.Test.doStuff"))
+            "@OnClick methods can have at most 1 parameter(s). (test.Test.doStuff)")
         .in(source).onLine(7);
   }
 
@@ -459,8 +422,7 @@ public class OnClickTest {
         .processedWith(butterknifeProcessors())
         .failsToCompile()
         .withErrorContaining(
-            String.format("@OnClick methods may only be contained in classes. (%s)",
-                "test.Test.doStuff"))
+            "@OnClick methods may only be contained in classes. (test.Test.doStuff)")
         .in(source).onLine(3);
   }
 
@@ -480,8 +442,7 @@ public class OnClickTest {
         .processedWith(butterknifeProcessors())
         .failsToCompile()
         .withErrorContaining(
-            String.format("@OnClick annotation for method contains duplicate ID %d. (%s)",
-                1, "test.Test.doStuff"))
+            "@OnClick annotation for method contains duplicate ID 1. (test.Test.doStuff)")
         .in(source).onLine(6);
   }
 }
