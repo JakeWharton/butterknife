@@ -54,25 +54,23 @@ public class InjectViewTest {
         "import android.widget.EditText;",
         "import android.widget.TextView;",
         "import butterknife.InjectView;",
-        "class Base<T extends TextView> extends Activity {",
+        "class Test<T extends TextView> extends Activity {",
         "    @InjectView(1) T thing;",
-        "}",
-        "public class Test extends Base<EditText> {",
         "}"
     ));
 
-    JavaFileObject expectedSource = JavaFileObjects.forSourceString("test/Base$$ViewInjector",
+    JavaFileObject expectedSource = JavaFileObjects.forSourceString("test/Test$$ViewInjector",
         Joiner.on('\n').join(
             "package test;",
             "import android.view.View;",
             "import butterknife.ButterKnife.Finder;",
-            "public class Base$$ViewInjector {",
-            "  public static void inject(Finder finder, final test.Base target, Object source) {",
+            "public class Test$$ViewInjector {",
+            "  public static void inject(Finder finder, final test.Test target, Object source) {",
             "    View view;",
             "    view = finder.findRequiredView(source, 1, \"field 'thing'\");",
             "    target.thing = (android.widget.TextView) view;",
             "  }",
-            "  public static void reset(test.Base target) {",
+            "  public static void reset(test.Test target) {",
             "    target.thing = null;",
             "  }",
             "}"
