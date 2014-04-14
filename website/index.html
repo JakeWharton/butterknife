@@ -93,19 +93,26 @@
    XML can use it in the <code>onLayoutInflated()</code> callback.</li>
             </ul>
 
-            <h4 id="view-collection">View Collection</h4>
+            <h4 id="view-lists">View Lists</h4>
             <p>You can group multiple views into a <code>List</code> or array.</p>
             <pre class="prettyprint">@InjectViews({ R.id.first_name, R.id.middle_name, R.id.last_name })
 List&lt;EditText> nameViews;</pre>
-            <p>Use the <code>apply</code> method to set a <a href="https://developer.android.com/reference/android/util/Property.html"><code>Property</code></a> on all of the views.</p>
-            <pre class="prettyprint">ButterKnife.apply(nameViews, View.ALPHA, 0);</pre>
-            <p>The supplied <code>Action</code> interface allows you to perform actions on all of the views in a list as well.</p>
-            <pre class="prettyprint">ButterKnife.apply(nameViews, new Action&lt;View>() {
+            <p>The <code>apply</code> method allows you to act on all the views in a list at once.</p>
+            <pre class="prettyprint">ButterKnife.apply(nameViews, DISABLE);
+ButterKnife.apply(nameViews, ENABLED, false);</pre>
+            <p><code>Action</code> and <code>Setter</code> interfaces allow specifying simple behavior.</p>
+            <pre class="prettyprint">private static final Action&lt;View> DISABLE = new Action&lt;>() {
   @Override public void apply(View view, int index) {
-    view.setAlpha(0);
-    view.animate().alpha(1).setStartDelay(index * 200).setDuration(400);
+    view.setEnabled(false);
   }
-});</pre>
+}
+private static final Setter&lt;View, Boolean> ENABLED = new Setter&lt;>() {
+  @Override public void set(View view, Boolean value, int index) {
+    view.setEnabled(value);
+  }
+}</pre>
+            <p>An Android <a href="https://developer.android.com/reference/android/util/Property.html"><code>Property</code></a> can also be used with the <code>apply</code> method.</p>
+            <pre class="prettyprint">ButterKnife.apply(nameViews, View.ALPHA, 0);</pre>
 
             <h4 id="click-injection">Click Listener Injection</h4>
             <p>Click listeners can also automatically be configured onto methods.</p>

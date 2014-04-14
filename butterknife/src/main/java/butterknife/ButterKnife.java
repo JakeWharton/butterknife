@@ -1,6 +1,8 @@
 package butterknife;
 
+import android.annotation.TargetApi;
 import android.app.Activity;
+import android.os.Build;
 import android.util.Log;
 import android.util.Property;
 import android.view.View;
@@ -36,11 +38,11 @@ import java.util.Map;
  * {@literal @}InjectViews({R.id.first_name, R.id.middle_name, R.id.last_name})
  * List<EditText> nameViews;
  * </code></pre>
- * There are two convenience methods for working with view collections:
+ * There are three convenience methods for working with view collections:
  * <ul>
  * <li>{@link #apply(List, Action)} &ndash; Applies an action to each view.</li>
- * <li>{@link #apply(List, Property, Object)} &ndash; Applies a value to each view using a
- * property.</li>
+ * <li>{@link #apply(List, Setter, Object)} &ndash; Applies a setter value to each view.</li>
+ * <li>{@link #apply(List, Property, Object)} &ndash; Applies a property value to each view.</li>
  * </ul>
  * <p>
  * To inject listeners to your views you can annotate your methods:
@@ -120,6 +122,12 @@ public final class ButterKnife {
   public interface Action<T extends View> {
     /** Apply the action on the {@code view} which is at {@code index} in the list. */
     void apply(T view, int index);
+  }
+
+  /** A simple setter that can be apply a value to a list of views. */
+  public interface Setter<T extends View, V> {
+    /** Set the {@code value} on the {@code view} which is at {@code index} in the list. */
+    void set(T view, V value, int index);
   }
 
   private static final String TAG = "ButterKnife";
@@ -271,9 +279,17 @@ public final class ButterKnife {
     }
   }
 
+  /** Set the {@code value} using the specified {@code setter} across the {@code list} of views. */
+  public static <T extends View, V> void apply(List<T> list, Setter<? super T, V> setter, V value) {
+    for (int i = 0, count = list.size(); i < count; i++) {
+      setter.set(list.get(i), value, i);
+    }
+  }
+
   /**
    * Apply the specified {@code value} across the {@code list} of views using the {@code property}.
    */
+  @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
   public static <T extends View, V> void apply(List<T> list, Property<? super T, V> setter,
       V value) {
     //noinspection ForLoopReplaceableByForEach
