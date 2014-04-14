@@ -9,6 +9,7 @@ import static butterknife.internal.ProcessorTestUtilities.butterknifeProcessors;
 import static com.google.testing.compile.JavaSourceSubjectFactory.javaSource;
 import static org.truth0.Truth.ASSERT;
 
+/** This augments {@link OnClickTest} with tests that exercise callbacks with return types. */
 public class OnLongClickTest {
   @Test public void onLongClickInjection() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
@@ -47,5 +48,25 @@ public class OnLongClickTest {
         .compilesWithoutError()
         .and()
         .generatesSources(expectedSource);
+  }
+
+  @Test public void failsIfMissingReturnType() {
+    JavaFileObject source = JavaFileObjects.forSourceString("test.Test",
+        Joiner.on('\n').join(
+            "package test;",
+            "import android.app.Activity;",
+            "import butterknife.OnLongClick;",
+            "public class Test extends Activity {",
+            "  @OnLongClick(1)",
+            "  public void doStuff() {",
+            "  }",
+            "}"));
+
+    ASSERT.about(javaSource()).that(source)
+        .processedWith(butterknifeProcessors())
+        .failsToCompile()
+        .withErrorContaining(
+            "@OnLongClick methods must have a 'boolean' return type. (test.Test.doStuff)")
+        .in(source).onLine(6);
   }
 }
