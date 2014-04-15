@@ -29,9 +29,9 @@ import java.util.Map;
  *   }
  * }
  * </code></pre>
- * You can inject an {@link #inject(Activity) activity directly} or a {@link #inject(View) view
- * directly}, or inject an {@link #inject(Object, Activity) activity into another object} or a
- * {@link #inject(Object, View) view into another object}.
+ * You can inject an {@linkplain #inject(Activity) activity directly} or a{@linkplain #inject(View)
+ * view directly}, or inject an {@linkplain #inject(Object, Activity) activity into another object}
+ * or a {@linkplain #inject(Object, View) view into another object}.
  * <p>
  * Group multiple views together into a {@link List} or array.
  * <pre><code>
