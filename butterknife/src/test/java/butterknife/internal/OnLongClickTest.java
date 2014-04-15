@@ -51,16 +51,15 @@ public class OnLongClickTest {
   }
 
   @Test public void failsIfMissingReturnType() {
-    JavaFileObject source = JavaFileObjects.forSourceString("test.Test",
-        Joiner.on('\n').join(
-            "package test;",
-            "import android.app.Activity;",
-            "import butterknife.OnLongClick;",
-            "public class Test extends Activity {",
-            "  @OnLongClick(1)",
-            "  public void doStuff() {",
-            "  }",
-            "}"));
+    JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
+        "package test;",
+        "import android.app.Activity;",
+        "import butterknife.OnLongClick;",
+        "public class Test extends Activity {",
+        "  @OnLongClick(1)",
+        "  public void doStuff() {",
+        "  }",
+        "}"));
 
     ASSERT.about(javaSource()).that(source)
         .processedWith(butterknifeProcessors())
