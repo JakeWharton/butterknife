@@ -5,7 +5,8 @@ Version 5.0.0 *(In Development)*
 --------------------------------
 
  * New: `@InjectViews` annotation groups multiple IDs into a `List` or array.
- * New: `ButterKnife.apply` method applies a `Property` or `ButterKnife.Action` to views in a list.
+ * New: `ButterKnife.apply` method applies an `Action`, `Setter`, or Android `Property` to views in
+   a list.
  * Fix: Support for generic types which are declared with an upper-bound.
  * Fix: Use less sophisticated method injection inspection in the annotation processor. The previous
    method caused problems with some Eclipse configurations.
