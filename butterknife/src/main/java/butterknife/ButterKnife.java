@@ -144,7 +144,6 @@ public final class ButterKnife {
    * content view is used as the view root.
    *
    * @param target Target activity for field injection.
-   * @throws UnableToInjectException if injection could not be performed.
    */
   public static void inject(Activity target) {
     inject(target, target, Finder.ACTIVITY);
@@ -155,7 +154,6 @@ public final class ButterKnife {
    * its children are used as the view root.
    *
    * @param target Target view for field injection.
-   * @throws UnableToInjectException if injection could not be performed.
    */
   public static void inject(View target) {
     inject(target, target, Finder.VIEW);
@@ -167,7 +165,6 @@ public final class ButterKnife {
    *
    * @param target Target class for field injection.
    * @param source Activity on which IDs will be looked up.
-   * @throws UnableToInjectException if injection could not be performed.
    */
   public static void inject(Object target, Activity source) {
     inject(target, source, Finder.ACTIVITY);
