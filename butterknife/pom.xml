@@ -55,6 +55,14 @@
           <compilerArgument>-proc:none</compilerArgument>
         </configuration>
       </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <configuration>
+          <excludePackageNames>butterknife.internal:butterknife.internal.*</excludePackageNames>
+        </configuration>
+      </plugin>
     </plugins>
   </build>
 </project>

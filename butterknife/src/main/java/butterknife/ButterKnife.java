@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * View injection utilities. Use this class to simplify finding views and attaching listeners by
+ * View "injection" utilities. Use this class to simplify finding views and attaching listeners by
  * injecting them.
  * <p>
  * Injecting views from your activity is as easy as:
@@ -79,10 +79,7 @@ public final class ButterKnife {
     throw new AssertionError("No instances.");
   }
 
-  /**
-   * A means of finding a view in either an {@link Activity} or a {@link View}. Exposed for use
-   * only by generated code.
-   */
+  /** DO NOT USE: Exposed for generated code. */
   public enum Finder {
     VIEW {
       @Override public View findOptionalView(Object source, int id) {
