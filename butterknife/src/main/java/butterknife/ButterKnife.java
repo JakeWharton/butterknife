@@ -179,7 +179,6 @@ public final class ButterKnife {
    *
    * @param target Target class for field injection.
    * @param source View root on which IDs will be looked up.
-   * @throws UnableToInjectException if injection could not be performed.
    */
   public static void inject(Object target, View source) {
     inject(target, source, Finder.VIEW);
@@ -191,7 +190,6 @@ public final class ButterKnife {
    * This should only be used in the {@code onDestroyView} method of a fragment in practice.
    *
    * @param target Target class for field reset.
-   * @throws UnableToResetException if views could not be reset.
    */
   public static void reset(Object target) {
     Class<?> targetClass = target.getClass();
@@ -204,7 +202,7 @@ public final class ButterKnife {
     } catch (RuntimeException e) {
       throw e;
     } catch (Exception e) {
-      throw new UnableToResetException("Unable to reset views for " + target, e);
+      throw new RuntimeException("Unable to reset views for " + target, e);
     }
   }
 
@@ -219,7 +217,7 @@ public final class ButterKnife {
     } catch (RuntimeException e) {
       throw e;
     } catch (Exception e) {
-      throw new UnableToInjectException("Unable to inject views for " + target, e);
+      throw new RuntimeException("Unable to inject views for " + target, e);
     }
   }
 
@@ -305,17 +303,5 @@ public final class ButterKnife {
   @SuppressWarnings({ "unchecked", "UnusedDeclaration" }) // Checked by runtime cast. Public API.
   public static <T extends View> T findById(Activity activity, int id) {
     return (T) activity.findViewById(id);
-  }
-
-  public static class UnableToInjectException extends RuntimeException {
-    UnableToInjectException(String message, Throwable cause) {
-      super(message, cause);
-    }
-  }
-
-  public static class UnableToResetException extends RuntimeException {
-    UnableToResetException(String message, Throwable cause) {
-      super(message, cause);
-    }
   }
 }
