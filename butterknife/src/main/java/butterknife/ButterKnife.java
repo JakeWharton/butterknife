@@ -2,11 +2,13 @@ package butterknife;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
+import android.app.Dialog;
 import android.os.Build;
 import android.util.Log;
 import android.util.Property;
 import android.view.View;
 import butterknife.internal.ButterKnifeProcessor;
+
 import java.lang.reflect.Method;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -79,18 +81,20 @@ public final class ButterKnife {
     throw new AssertionError("No instances.");
   }
 
-  /** DO NOT USE: Exposed for generated code. */
-  public enum Finder {
-    VIEW {
-      @Override public View findOptionalView(Object source, int id) {
-        return ((View) source).findViewById(id);
-      }
-    },
-    ACTIVITY {
-      @Override public View findOptionalView(Object source, int id) {
-        return ((Activity) source).findViewById(id);
-      }
-    };
+  /**
+   * Strategy which encapsulates an algorithm of obtaining target {@link View} by id from
+   * the given source.
+   * <p/>
+   * E.g. it might use {@link Activity#findViewById(int)} for {@link Activity} source;
+   * {@link View#findViewById(int)} for {@link View} source etc.
+   * <p/>
+   * <b>Note:</b> there is a bunch of predefined finders used by the library internally.
+   * They are used at {@code inject()} methods within the current class
+   * (e.g. {@link #inject(View)}, {@link #inject(Activity)}). However, it's always possible
+   * to use generic {@link #inject(Object, Object, Finder)} with a custom {@link Finder}
+   * implementation.
+   */
+  public abstract static class Finder {
 
     public static <T extends View> T[] arrayOf(T... views) {
       return views;
@@ -104,16 +108,38 @@ public final class ButterKnife {
       View view = findOptionalView(source, id);
       if (view == null) {
         throw new IllegalStateException("Required view with id '"
-            + id
-            + "' for "
-            + who
-            + " was not found. If this view is optional add '@Optional' annotation.");
+                                        + id
+                                        + "' for "
+                                        + who
+                                        + " was not found. If this view is optional add "
+                                        + "'@Optional' annotation.");
       }
       return view;
     }
 
     public abstract View findOptionalView(Object source, int id);
   }
+
+  private static final Finder VIEW = new Finder() {
+    @Override
+    public View findOptionalView(Object source, int id) {
+      return ((View) source).findViewById(id);
+    }
+  };
+
+  private static final Finder ACTIVITY = new Finder() {
+    @Override
+    public View findOptionalView(Object source, int id) {
+      return ((Activity) source).findViewById(id);
+    }
+  };
+
+  private static final Finder DIALOG = new Finder() {
+    @Override
+    public View findOptionalView(Object source, int id) {
+      return ((Dialog) source).findViewById(id);
+    }
+  };
 
   /** A simple action that can be applied to a list of views. */
   public interface Action<T extends View> {
@@ -127,12 +153,12 @@ public final class ButterKnife {
     void set(T view, V value, int index);
   }
 
-  private static final String TAG = "ButterKnife";
-  private static boolean debug = false;
+  private static final String  TAG   = "ButterKnife";
+  private static       boolean debug = false;
 
   static final Map<Class<?>, Method> INJECTORS = new LinkedHashMap<Class<?>, Method>();
   static final Map<Class<?>, Method> RESETTERS = new LinkedHashMap<Class<?>, Method>();
-  static final Method NO_OP = null;
+  static final Method                NO_OP     = null;
 
   /** Control whether debug logging is enabled. */
   public static void setDebug(boolean debug) {
@@ -140,13 +166,13 @@ public final class ButterKnife {
   }
 
   /**
-   * Inject fields annotated with {@link InjectView} in the specified {@link Activity}. The current
-   * content view is used as the view root.
+   * Inject fields annotated with {@link InjectView} in the specified {@link Activity}.
+   * The current content view is used as the view root.
    *
    * @param target Target activity for field injection.
    */
   public static void inject(Activity target) {
-    inject(target, target, Finder.ACTIVITY);
+    inject(target, target, ACTIVITY);
   }
 
   /**
@@ -156,7 +182,18 @@ public final class ButterKnife {
    * @param target Target view for field injection.
    */
   public static void inject(View target) {
-    inject(target, target, Finder.VIEW);
+    inject(target, target, VIEW);
+  }
+
+  /**
+   * Inject fields annotated with {@link InjectView} in the specified {@link Dialog}.
+   * The current {@link Dialog#getWindow() window}
+   * is used as the view root.
+   *
+   * @param target Target dialog for field injection.
+   */
+  public static void inject(Dialog target) {
+    inject(target, target, DIALOG);
   }
 
   /**
@@ -167,7 +204,7 @@ public final class ButterKnife {
    * @param source Activity on which IDs will be looked up.
    */
   public static void inject(Object target, Activity source) {
-    inject(target, source, Finder.ACTIVITY);
+    inject(target, source, ACTIVITY);
   }
 
   /**
@@ -178,7 +215,18 @@ public final class ButterKnife {
    * @param source View root on which IDs will be looked up.
    */
   public static void inject(Object target, View source) {
-    inject(target, source, Finder.VIEW);
+    inject(target, source, VIEW);
+  }
+
+  /**
+   * Inject fields annotated with {@link InjectView} in the specified {@code source} using the
+   * {@code target} {@link Dialog#getWindow() dialog's window} as the view root.
+   *
+   * @param target Target class for field injection.
+   * @param source Dialog on which IDs will be looked up.
+   */
+  public static void inject(Object target, Dialog source) {
+    inject(target, source, DIALOG);
   }
 
   /**
@@ -203,7 +251,7 @@ public final class ButterKnife {
     }
   }
 
-  static void inject(Object target, Object source, Finder finder) {
+  public static void inject(Object target, Object source, Finder finder) {
     Class<?> targetClass = target.getClass();
     try {
       if (debug) Log.d(TAG, "Looking up view injector for " + targetClass.getName());
