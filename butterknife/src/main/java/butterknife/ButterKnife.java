@@ -82,14 +82,17 @@ public final class ButterKnife {
   }
 
   /**
-   * Strategy which encapsulates an algorithm of obtaining target {@link View} by id from the given source.
+   * Strategy which encapsulates an algorithm of obtaining target {@link View} by id from
+   * the given source.
    * <p/>
-   * E.g. it might use {@link Activity#findViewById(int)} for {@link Activity} source; {@link View#findViewById(int)} for
-   * {@link View} source etc.
+   * E.g. it might use {@link Activity#findViewById(int)} for {@link Activity} source;
+   * {@link View#findViewById(int)} for {@link View} source etc.
    * <p/>
-   * <b>Note:</b> there is a bunch of predefined finders used by the library internally. They are used at {@code inject()} methods
-   * within the current class (e.g. {@link #inject(View)}, {@link #inject(Activity)}). However, it's always possible to use generic
-   * {@link #inject(Object, Object, Finder)} with a custom {@link Finder} implementation.
+   * <b>Note:</b> there is a bunch of predefined finders used by the library internally.
+   * They are used at {@code inject()} methods within the current class
+   * (e.g. {@link #inject(View)}, {@link #inject(Activity)}). However, it's always possible
+   * to use generic {@link #inject(Object, Object, Finder)} with a custom {@link Finder}
+   * implementation.
    */
   public abstract static class Finder {
 
@@ -108,7 +111,8 @@ public final class ButterKnife {
                                         + id
                                         + "' for "
                                         + who
-                                        + " was not found. If this view is optional add '@Optional' annotation.");
+                                        + " was not found. If this view is optional add "
+                                        + "'@Optional' annotation.");
       }
       return view;
     }
@@ -162,8 +166,8 @@ public final class ButterKnife {
   }
 
   /**
-   * Inject fields annotated with {@link InjectView} in the specified {@link Activity}. The current
-   * content view is used as the view root.
+   * Inject fields annotated with {@link InjectView} in the specified {@link Activity}.
+   * The current content view is used as the view root.
    *
    * @param target Target activity for field injection.
    */
@@ -182,7 +186,8 @@ public final class ButterKnife {
   }
 
   /**
-   * Inject fields annotated with {@link InjectView} in the specified {@link Dialog}. The current {@link Dialog#getWindow() window}
+   * Inject fields annotated with {@link InjectView} in the specified {@link Dialog}.
+   * The current {@link Dialog#getWindow() window}
    * is used as the view root.
    *
    * @param target Target dialog for field injection.
