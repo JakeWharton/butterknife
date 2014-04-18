@@ -5,16 +5,20 @@ import butterknife.InjectViews;
 import butterknife.OnCheckedChanged;
 import butterknife.OnClick;
 import butterknife.OnEditorAction;
-import butterknife.OnFocusChanged;
+import butterknife.OnFocusChange;
 import butterknife.OnItemClick;
 import butterknife.OnItemLongClick;
+import butterknife.OnItemSelected;
 import butterknife.OnLongClick;
+import butterknife.OnPageChange;
+import butterknife.OnTextChanged;
 import butterknife.Optional;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.BitSet;
@@ -56,10 +60,13 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
       OnCheckedChanged.class, //
       OnClick.class, //
       OnEditorAction.class, //
-      OnFocusChanged.class, //
+      OnFocusChange.class, //
       OnItemClick.class, //
       OnItemLongClick.class, //
-      OnLongClick.class //
+      OnItemSelected.class, //
+      OnLongClick.class, //
+      OnPageChange.class, //
+      OnTextChanged.class //
   );
 
   private Elements elementUtils;
@@ -221,7 +228,8 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     boolean required = element.getAnnotation(Optional.class) == null;
 
     ViewInjector viewInjector = getOrCreateTargetClass(targetClassMap, enclosingElement);
-    viewInjector.addField(id, name, type, required);
+    ViewBinding binding = new ViewBinding(name, type, required);
+    viewInjector.addView(id, binding);
 
     // Add the type-erased version to the valid injection targets set.
     erasedTargetNames.add(enclosingElement.toString());
@@ -289,7 +297,8 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     String type = viewType.toString();
 
     ViewInjector viewInjector = getOrCreateTargetClass(targetClassMap, enclosingElement);
-    viewInjector.addCollection(ids, name, type, kind);
+    CollectionBinding binding = new CollectionBinding(name, type, kind);
+    viewInjector.addCollection(ids, binding);
 
     erasedTargetNames.add(enclosingElement.toString());
   }
@@ -330,15 +339,22 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
           enclosingElement.getQualifiedName(), element.getSimpleName());
       return;
     }
+    Method annotationCallback = annotationClass.getDeclaredMethod("callback");
+    if (annotationCallback == null) {
+      error(element, "@%s annotation lacks callback property. (%s.%s)", annotationClass,
+          enclosingElement.getQualifiedName(), element.getSimpleName());
+      return;
+    }
 
     int[] ids = (int[]) annotationValue.invoke(annotation);
+    Enum<?> callback = (Enum<?>) annotationCallback.invoke(annotation);
     String name = executableElement.getSimpleName().toString();
     boolean required = element.getAnnotation(Optional.class) == null;
 
     // Verify that the method and its containing class are accessible via generated code.
     boolean hasError = isValidForGeneratedCode(annotationClass, "methods", element);
 
-    Set<Integer> seenIds = new LinkedHashSet<Integer>(ids.length);
+    Set<Integer> seenIds = new LinkedHashSet<Integer>();
     for (int id : ids) {
       if (!seenIds.add(id)) {
         error(element, "@%s annotation for method contains duplicate ID %d. (%s.%s)",
@@ -355,11 +371,20 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
       return; // We can't do any more validation without a listener.
     }
 
+    Field callbackField = callback.getDeclaringClass().getField(callback.name());
+    ListenerMethod method = callbackField.getAnnotation(ListenerMethod.class);
+    if (method == null) {
+      error(element, "No @%s defined on @%s's %s.%s.", ListenerMethod.class.getSimpleName(),
+          annotationClass.getSimpleName(), callback.getDeclaringClass().getSimpleName(),
+          callback.name());
+      return; // We can't do any more validation without a method.
+    }
+
     // Verify that the method has equal to or less than the number of parameters as the listener.
     List<? extends VariableElement> methodParameters = executableElement.getParameters();
-    if (methodParameters.size() > listener.parameters().length) {
+    if (methodParameters.size() > method.parameters().length) {
       error(element, "@%s methods can have at most %s parameter(s). (%s.%s)",
-          annotationClass.getSimpleName(), listener.parameters().length,
+          annotationClass.getSimpleName(), method.parameters().length,
           enclosingElement.getQualifiedName(), element.getSimpleName());
       hasError = true;
     }
@@ -370,9 +395,9 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
       TypeVariable typeVariable = (TypeVariable) returnType;
       returnType = typeVariable.getUpperBound();
     }
-    if (!returnType.toString().equals(listener.returnType())) {
+    if (!returnType.toString().equals(method.returnType())) {
       error(element, "@%s methods must have a '%s' return type. (%s.%s)",
-          annotationClass.getSimpleName(), listener.returnType(),
+          annotationClass.getSimpleName(), method.returnType(),
           enclosingElement.getQualifiedName(), element.getSimpleName());
       hasError = true;
     }
@@ -385,7 +410,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     if (!methodParameters.isEmpty()) {
       parameters = new Parameter[methodParameters.size()];
       BitSet methodParameterUsed = new BitSet(methodParameters.size());
-      String[] parameterTypes = listener.parameters();
+      String[] parameterTypes = method.parameters();
       for (int i = 0; i < methodParameters.size(); i++) {
         VariableElement methodParameter = methodParameters.get(i);
         TypeMirror methodParameterType = methodParameter.asType();
@@ -430,9 +455,9 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
             }
           }
           builder.append("\n\nMethods may have up to ")
-              .append(listener.parameters().length)
+              .append(method.parameters().length)
               .append(" parameter(s):\n");
-          for (String parameterType : listener.parameters()) {
+          for (String parameterType : method.parameters()) {
             builder.append("\n  ").append(parameterType);
           }
           builder.append(
@@ -443,9 +468,10 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
       }
     }
 
+    ListenerBinding binding = new ListenerBinding(name, Arrays.asList(parameters), required);
     ViewInjector viewInjector = getOrCreateTargetClass(targetClassMap, enclosingElement);
     for (int id : ids) {
-      if (!viewInjector.addMethod(id, listener, name, Arrays.asList(parameters), required)) {
+      if (!viewInjector.addListener(id, listener, method, binding)) {
         error(element, "Multiple @%s methods declared for ID %s in %s.",
             annotationClass.getSimpleName(), id, enclosingElement.getQualifiedName());
         return;

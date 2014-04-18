@@ -1,6 +1,6 @@
 package butterknife.internal;
 
-final class CollectionBinding {
+final class CollectionBinding implements Binding {
   enum Kind {
     ARRAY,
     LIST
@@ -26,5 +26,9 @@ final class CollectionBinding {
 
   public Kind getKind() {
     return kind;
+  }
+
+  @Override public String getDescription() {
+    return "field '" + name + "'";
   }
 }

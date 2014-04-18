@@ -1,6 +1,7 @@
 package butterknife;
 
 import butterknife.internal.ListenerClass;
+import butterknife.internal.ListenerMethod;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
@@ -9,15 +10,16 @@ import static java.lang.annotation.ElementType.METHOD;
 import static java.lang.annotation.RetentionPolicy.CLASS;
 
 /**
- * Annotation for methods which indicate that they should be called when a view is long pressed.
- * Corresponds to adding a {@link OnLongClickListener} to the views specified by {@link #value()}.
+ * Annotation for methods which indicate that they should be called when a view is long clicked.
+ * Corresponds to adding an {@link OnLongClickListener OnLongClickListener} to the views specified.
  * <pre><code>
  * {@literal @}OnLongClick(R.id.example) boolean onLongClick() {
  *   Toast.makeText(this, "Long clicked!", LENGTH_SHORT).show();
  *   return true;
  * }
  * </code></pre>
- * Any number of parameters from {@link OnLongClickListener} may be used on the method.
+ * Any number of parameters from {@link OnLongClickListener#onLongClick(android.view.View)} may be
+ * used on the method.
  *
  * @see OnLongClickListener
  * @see Optional
@@ -27,12 +29,21 @@ import static java.lang.annotation.RetentionPolicy.CLASS;
     targetType = "android.view.View",
     setter = "setOnLongClickListener",
     type = "android.view.View.OnLongClickListener",
-    name = "onLongClick",
-    returnType = "boolean",
-    parameters = {
-        "android.view.View"
-    }
+    callbacks = OnLongClick.Callback.class
 )
 public @interface OnLongClick {
   int[] value();
+  Callback callback() default Callback.LONG_CLICK;
+
+  enum Callback {
+    @ListenerMethod(
+        name = "onLongClick",
+        parameters = {
+            "android.view.View"
+        },
+        returnType = "boolean",
+        defaultReturn = "false"
+    )
+    LONG_CLICK
+  }
 }

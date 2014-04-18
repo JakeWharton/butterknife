@@ -69,10 +69,13 @@ import java.util.Map;
  * @see OnCheckedChanged
  * @see OnClick
  * @see OnEditorAction
- * @see OnFocusChanged
+ * @see OnFocusChange
  * @see OnItemClick
  * @see OnItemLongClick
+ * @see OnItemSelected
  * @see OnLongClick
+ * @see OnPageChange
+ * @see OnTextChanged
  */
 public final class ButterKnife {
   private ButterKnife() {

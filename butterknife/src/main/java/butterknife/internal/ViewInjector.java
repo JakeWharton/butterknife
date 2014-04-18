@@ -1,5 +1,6 @@
 package butterknife.internal;
 
+import java.lang.reflect.Field;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -22,22 +23,21 @@ final class ViewInjector {
     this.targetClass = targetClass;
   }
 
-  void addField(int id, String name, String type, boolean required) {
-    getOrCreateViewBinding(id).addFieldBinding(new FieldBinding(name, type, required));
+  void addView(int id, ViewBinding binding) {
+    getOrCreateViewInjection(id).addViewBinding(binding);
   }
 
-  boolean addMethod(int id, ListenerClass listener, String name, List<Parameter> parameters,
-      boolean required) {
-    ViewInjection viewInjection = getOrCreateViewBinding(id);
-    if (viewInjection.hasMethodBinding(listener)) {
+  boolean addListener(int id, ListenerClass listener, ListenerMethod method,
+      ListenerBinding binding) {
+    ViewInjection viewInjection = getOrCreateViewInjection(id);
+    if (viewInjection.hasListenerBinding(listener, method)) {
       return false;
     }
-    viewInjection.addMethodBinding(listener, new MethodBinding(name, parameters, required));
+    viewInjection.addListenerBinding(listener, method, binding);
     return true;
   }
 
-  void addCollection(int[] ids, String name, String type, CollectionBinding.Kind kind) {
-    CollectionBinding binding = new CollectionBinding(name, type, kind);
+  void addCollection(int[] ids, CollectionBinding binding) {
     collectionBindings.put(binding, ids);
   }
 
@@ -45,7 +45,7 @@ final class ViewInjector {
     this.parentInjector = parentInjector;
   }
 
-  private ViewInjection getOrCreateViewBinding(int id) {
+  private ViewInjection getOrCreateViewInjection(int id) {
     ViewInjection viewId = viewIdMap.get(id);
     if (viewId == null) {
       viewId = new ViewInjection(id);
@@ -146,28 +146,29 @@ final class ViewInjector {
       builder.append("\");\n");
     }
 
-    emitFieldBindings(builder, injection);
-    emitMethodBindings(builder, injection);
+    emitViewBindings(builder, injection);
+    emitListenerBindings(builder, injection);
   }
 
-  private void emitFieldBindings(StringBuilder builder, ViewInjection injection) {
-    Collection<FieldBinding> fieldBindings = injection.getFieldBindings();
-    if (fieldBindings.isEmpty()) {
+  private void emitViewBindings(StringBuilder builder, ViewInjection injection) {
+    Collection<ViewBinding> viewBindings = injection.getViewBindings();
+    if (viewBindings.isEmpty()) {
       return;
     }
 
-    for (FieldBinding fieldBinding : fieldBindings) {
+    for (ViewBinding viewBinding : viewBindings) {
       builder.append("    target.")
-          .append(fieldBinding.getName())
+          .append(viewBinding.getName())
           .append(" = ");
-      emitCastIfNeeded(builder, fieldBinding.getType());
+      emitCastIfNeeded(builder, viewBinding.getType());
       builder.append("view;\n");
     }
   }
 
-  private void emitMethodBindings(StringBuilder builder, ViewInjection injection) {
-    Map<ListenerClass, MethodBinding> methodBindings = injection.getMethodBindings();
-    if (methodBindings.isEmpty()) {
+  private void emitListenerBindings(StringBuilder builder, ViewInjection injection) {
+    Map<ListenerClass, Map<ListenerMethod, ListenerBinding>> bindings =
+        injection.getListenerBindings();
+    if (bindings.isEmpty()) {
       return;
     }
 
@@ -180,9 +181,10 @@ final class ViewInjector {
       extraIndent = "  ";
     }
 
-    for (Map.Entry<ListenerClass, MethodBinding> entry : methodBindings.entrySet()) {
-      ListenerClass listener = entry.getKey();
-      MethodBinding methodBinding = entry.getValue();
+    for (ListenerClass listener : bindings.keySet()) {
+      Class<? extends Enum<?>> callbacks = listener.callbacks();
+      Enum<?>[] callbackMethods = callbacks.getEnumConstants();
+      Map<ListenerMethod, ListenerBinding> methodBindings = bindings.get(listener);
 
       // Emit: ((OWNER_TYPE) view).SETTER_NAME(
       boolean needsCast = !VIEW_TYPE.equals(listener.targetType());
@@ -216,54 +218,75 @@ final class ViewInjector {
           .append(listener.type())
           .append("() {\n");
 
-      // Emit: @Override public RETURN_TYPE METHOD_NAME(
-      builder.append(extraIndent)
-          .append("        @Override public ")
-          .append(listener.returnType())
-          .append(' ')
-          .append(listener.name())
-          .append("(\n");
+      for (Enum<?> callbackMethod : callbackMethods) {
+        try {
+          Field callbackField = callbacks.getField(callbackMethod.name());
+          ListenerMethod method = callbackField.getAnnotation(ListenerMethod.class);
+          if (method == null) {
+            throw new IllegalStateException(String.format("@%s's %s.%s missing @%s annotation.",
+                callbacks.getEnclosingClass().getSimpleName(), callbacks.getSimpleName(),
+                callbackMethod.name(), ListenerMethod.class.getSimpleName()));
+          }
 
-      // Emit listener method arguments, each on their own line.
-      String[] parameterTypes = listener.parameters();
-      for (int i = 0, count = parameterTypes.length; i < count; i++) {
-        builder.append(extraIndent)
-            .append("          ")
-            .append(parameterTypes[i])
-            .append(" p")
-            .append(i);
-        if (i < count - 1) {
-          builder.append(',');
+          ListenerBinding binding = methodBindings.get(method);
+
+          // Emit: @Override public RETURN_TYPE METHOD_NAME(
+          builder.append(extraIndent)
+              .append("        @Override public ")
+              .append(method.returnType())
+              .append(' ')
+              .append(method.name())
+              .append("(\n");
+
+          // Emit listener method arguments, each on their own line.
+          String[] parameterTypes = method.parameters();
+          for (int i = 0, count = parameterTypes.length; i < count; i++) {
+            builder.append(extraIndent)
+                .append("          ")
+                .append(parameterTypes[i])
+                .append(" p")
+                .append(i);
+            if (i < count - 1) {
+              builder.append(',');
+            }
+            builder.append('\n');
+          }
+
+          // Emit end of parameters, start of body.
+          builder.append(extraIndent).append("        ) {\n");
+
+          // Set up the return statement, if needed.
+          builder.append(extraIndent).append("          ");
+          boolean hasReturnType = !"void".equals(method.returnType());
+          if (hasReturnType) {
+            builder.append("return ");
+          }
+
+          if (binding != null) {
+            builder.append("target.").append(binding.getName()).append('(');
+            List<Parameter> parameters = binding.getParameters();
+            String[] listenerParameters = method.parameters();
+            for (int i = 0, count = parameters.size(); i < count; i++) {
+              Parameter parameter = parameters.get(i);
+              int listenerPosition = parameter.getListenerPosition();
+              emitCastIfNeeded(builder, listenerParameters[listenerPosition], parameter.getType());
+              builder.append('p').append(listenerPosition);
+              if (i < count - 1) {
+                builder.append(", ");
+              }
+            }
+            builder.append(");");
+          } else if (hasReturnType) {
+            builder.append(method.defaultReturn()).append(';');
+          }
+          builder.append('\n');
+
+          // Emit end of listener method.
+          builder.append(extraIndent).append("        }\n");
+        } catch (NoSuchFieldException e) {
+          throw new AssertionError(e);
         }
-        builder.append('\n');
       }
-
-      // Emit end of parameters, start of body.
-      builder.append(extraIndent).append("        ) {\n");
-
-      // Emit call to target method using its parameter list.
-      builder.append(extraIndent).append("          ");
-      if (!"void".equals(listener.returnType())) {
-        builder.append("return ");
-      }
-      builder.append("target.")
-          .append(methodBinding.getName())
-          .append('(');
-      List<Parameter> parameters = methodBinding.getParameters();
-      String[] listenerParameters = listener.parameters();
-      for (int i = 0, count = parameters.size(); i < count; i++) {
-        Parameter parameter = parameters.get(i);
-        int listenerPosition = parameter.getListenerPosition();
-        emitCastIfNeeded(builder, listenerParameters[listenerPosition], parameter.getType());
-        builder.append('p').append(listenerPosition);
-        if (i < count - 1) {
-          builder.append(", ");
-        }
-      }
-      builder.append(");\n");
-
-      // Emit end of listener method.
-      builder.append(extraIndent).append("        }\n");
 
       // Emit end of listener class body and close the setter method call.
       builder.append(extraIndent).append("      });\n");
@@ -282,8 +305,8 @@ final class ViewInjector {
           .append(".reset(target);\n\n");
     }
     for (ViewInjection injection : viewIdMap.values()) {
-      for (FieldBinding fieldBinding : injection.getFieldBindings()) {
-        builder.append("    target.").append(fieldBinding.getName()).append(" = null;\n");
+      for (ViewBinding viewBinding : injection.getViewBindings()) {
+        builder.append("    target.").append(viewBinding.getName()).append(" = null;\n");
       }
     }
     for (CollectionBinding collectionBinding : collectionBindings.keySet()) {
