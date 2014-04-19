@@ -1,5 +1,6 @@
 package butterknife;
 
+import butterknife.internal.ListenerMethod;
 import butterknife.internal.ListenerClass;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
@@ -10,27 +11,36 @@ import static java.lang.annotation.RetentionPolicy.CLASS;
 
 /**
  * Annotation for methods which indicate that they should be called when a view is clicked.
- * Corresponds to adding a {@link OnClickListener} to the views specified by {@link #value()}.
+ * Corresponds to adding an {@link OnClickListener OnClickListener} to the views specified.
  * <pre><code>
  * {@literal @}OnClick(R.id.example) void onClick() {
  *   Toast.makeText(this, "Clicked!", LENGTH_SHORT).show();
  * }
  * </code></pre>
- * Any number of parameters from {@link OnClickListener} may be used on the method.
+ * Any number of parameters from
+ * {@link OnClickListener#onClick(android.view.View) onClick} may be used on the
+ * method.
  *
  * @see OnClickListener
  * @see Optional
  */
-@Retention(CLASS) @Target(METHOD)
+@Target(METHOD)
+@Retention(CLASS)
 @ListenerClass(
     targetType = "android.view.View",
     setter = "setOnClickListener",
     type = "android.view.View.OnClickListener",
-    name = "onClick",
-    parameters = {
-        "android.view.View"
-    }
+    callbacks = OnClick.Callback.class
 )
 public @interface OnClick {
   int[] value();
+  Callback callback() default Callback.CLICK;
+
+  enum Callback {
+    @ListenerMethod(
+        name = "onClick",
+        parameters = "android.view.View"
+    )
+    CLICK
+  }
 }

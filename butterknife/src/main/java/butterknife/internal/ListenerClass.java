@@ -19,15 +19,6 @@ public @interface ListenerClass {
   /** The number of generic arguments for the type. This used used for casting the view. */
   int genericArguments() default 0;
 
-  /** Name of the listener method for which this annotation applies. */
-  String name();
-
-  /**
-   * List of method parameters in the form "<type> <name>". If the type is not a primitive it must
-   * be fully-qualified.
-   */
-  String[] parameters() default { };
-
-  /** Primative or fully-qualified return type of the listener method. May also be {@code void}. */
-  String returnType() default "void";
+  /** Enum which declares the listener callback methods. */
+  Class<? extends Enum<?>> callbacks();
 }
