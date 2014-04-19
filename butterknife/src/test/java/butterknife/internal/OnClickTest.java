@@ -305,7 +305,6 @@ public class OnClickTest {
         "package test;",
         "import android.app.Activity;",
         "import butterknife.OnClick;",
-        "import java.lang.String;",
         "public class Test extends Activity {",
         "  @OnClick(1)",
         "  public String doStuff() {",
@@ -316,7 +315,7 @@ public class OnClickTest {
         .processedWith(butterknifeProcessors())
         .failsToCompile()
         .withErrorContaining("@OnClick methods must have a 'void' return type. (test.Test.doStuff)")
-        .in(source).onLine(7);
+        .in(source).onLine(6);
   }
 
   @Test public void failsIfPrivateMethod() {
