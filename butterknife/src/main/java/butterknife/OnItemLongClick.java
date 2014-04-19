@@ -32,14 +32,7 @@ import static java.lang.annotation.RetentionPolicy.CLASS;
     targetType = "android.widget.AdapterView<?>",
     setter = "setOnItemLongClickListener",
     type = "android.widget.AdapterView.OnItemLongClickListener",
-    callbacks = OnItemLongClick.Callback.class
-)
-public @interface OnItemLongClick {
-  int[] value();
-  Callback callback() default Callback.ITEM_CLICK;
-
-  enum Callback {
-    @ListenerMethod(
+    method = @ListenerMethod(
         name = "onItemLongClick",
         parameters = {
             "android.widget.AdapterView<?>",
@@ -50,6 +43,7 @@ public @interface OnItemLongClick {
         returnType = "boolean",
         defaultReturn = "false"
     )
-    ITEM_CLICK
-  }
+)
+public @interface OnItemLongClick {
+  int[] value();
 }

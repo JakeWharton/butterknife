@@ -1,7 +1,7 @@
 package butterknife;
 
-import butterknife.internal.ListenerMethod;
 import butterknife.internal.ListenerClass;
+import butterknife.internal.ListenerMethod;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
@@ -30,17 +30,11 @@ import static java.lang.annotation.RetentionPolicy.CLASS;
     targetType = "android.view.View",
     setter = "setOnClickListener",
     type = "android.view.View.OnClickListener",
-    callbacks = OnClick.Callback.class
-)
-public @interface OnClick {
-  int[] value();
-  Callback callback() default Callback.CLICK;
-
-  enum Callback {
-    @ListenerMethod(
+    method = @ListenerMethod(
         name = "onClick",
         parameters = "android.view.View"
     )
-    CLICK
-  }
+)
+public @interface OnClick {
+  int[] value();
 }

@@ -30,20 +30,14 @@ import static java.lang.annotation.RetentionPolicy.CLASS;
     targetType = "android.view.View",
     setter = "setOnFocusChangeListener",
     type = "android.view.View.OnFocusChangeListener",
-    callbacks = OnFocusChange.Callback.class
-)
-public @interface OnFocusChange {
-  int[] value();
-  Callback callback() default Callback.ITEM_LONG_CLICK;
-
-  enum Callback {
-    @ListenerMethod(
+    method = @ListenerMethod(
         name = "onFocusChange",
         parameters = {
             "android.view.View",
             "boolean"
         }
     )
-    ITEM_LONG_CLICK
-  }
+)
+public @interface OnFocusChange {
+  int[] value();
 }

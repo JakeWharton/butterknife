@@ -79,9 +79,6 @@ public class AllTheThingsTest {
   @OnCheckedChanged({ 210, 220 })
   void checkedChangedMultiple() {}
 
-  @OnCheckedChanged(value = 230, callback = OnCheckedChanged.Callback.CHECKED_CHANGED)
-  void checkedChangedQualifiedDefault() {}
-
   /////////////////////////////////////////////////////////////////////////////////////////////////
 
   @OnClick(240)
@@ -91,9 +88,6 @@ public class AllTheThingsTest {
 
   @OnClick({ 260, 270 })
   void clickMultiple() {}
-
-  @OnClick(value = 280, callback = OnClick.Callback.CLICK)
-  void clickQualifiedDefault() {}
 
   /////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -117,9 +111,6 @@ public class AllTheThingsTest {
   @OnEditorAction({ 370, 380 })
   boolean editorActionMultiple() { return false; }
 
-  @OnEditorAction(value = 390, callback = OnEditorAction.Callback.EDITOR_ACTION)
-  boolean editorActionQualifiedDefault() { return false; }
-
   /////////////////////////////////////////////////////////////////////////////////////////////////
 
   @OnFocusChange(400)
@@ -133,9 +124,6 @@ public class AllTheThingsTest {
 
   @OnFocusChange({ 440, 450 })
   void focusChangeMultiple() {}
-
-  @OnFocusChange(value = 460, callback = OnFocusChange.Callback.ITEM_LONG_CLICK)
-  void focusChangeQualifiedDefault() {}
 
   /////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -173,9 +161,6 @@ public class AllTheThingsTest {
   @OnItemClick({ 620, 630 })
   void itemClickMultiple() {}
 
-  @OnItemClick(value = 640, callback = OnItemClick.Callback.ITEM_CLICK)
-  void itemClickQualifiedDefault() {}
-
   /////////////////////////////////////////////////////////////////////////////////////////////////
 
   @OnItemLongClick(650)
@@ -211,9 +196,6 @@ public class AllTheThingsTest {
 
   @OnItemLongClick({ 800, 810 })
   boolean itemLongClickMultiple() { return false; }
-
-  @OnItemLongClick(value = 820, callback = OnItemLongClick.Callback.ITEM_CLICK)
-  boolean itemLongClickQualifiedDefault() { return false; }
 
   /////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -275,9 +257,6 @@ public class AllTheThingsTest {
 
   @OnLongClick({ 1080, 1090 })
   boolean longClickMultiple() { return false; }
-
-  @OnLongClick(value = 1100, callback = OnLongClick.Callback.LONG_CLICK)
-  boolean longClickQualifiedDefault() { return false; }
 
   /////////////////////////////////////////////////////////////////////////////////////////////////
 

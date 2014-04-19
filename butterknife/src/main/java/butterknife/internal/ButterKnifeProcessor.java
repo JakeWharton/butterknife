@@ -324,8 +324,8 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
       throws Exception {
     // This should be guarded by the annotation's @Target but it's worth a check for safe casting.
     if (!(element instanceof ExecutableElement) || element.getKind() != METHOD) {
-      error(element, "@%s annotation must be on a method.", annotationClass.getSimpleName());
-      return;
+      throw new IllegalStateException(
+          String.format("@%s annotation must be on a method.", annotationClass.getSimpleName()));
     }
 
     ExecutableElement executableElement = (ExecutableElement) element;
@@ -335,19 +335,11 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     Annotation annotation = element.getAnnotation(annotationClass);
     Method annotationValue = annotationClass.getDeclaredMethod("value");
     if (annotationValue == null || annotationValue.getReturnType() != int[].class) {
-      error(element, "@%s annotation lacks int[] value property. (%s.%s)", annotationClass,
-          enclosingElement.getQualifiedName(), element.getSimpleName());
-      return;
-    }
-    Method annotationCallback = annotationClass.getDeclaredMethod("callback");
-    if (annotationCallback == null) {
-      error(element, "@%s annotation lacks callback property. (%s.%s)", annotationClass,
-          enclosingElement.getQualifiedName(), element.getSimpleName());
-      return;
+      throw new IllegalStateException(
+          String.format("@%s annotation lacks int[] value property.", annotationClass));
     }
 
     int[] ids = (int[]) annotationValue.invoke(annotation);
-    Enum<?> callback = (Enum<?>) annotationCallback.invoke(annotation);
     String name = executableElement.getSimpleName().toString();
     boolean required = element.getAnnotation(Optional.class) == null;
 
@@ -366,18 +358,38 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
     ListenerClass listener = annotationClass.getAnnotation(ListenerClass.class);
     if (listener == null) {
-      error(element, "No @%s defined on @%s.", ListenerClass.class.getSimpleName(),
-          annotationClass.getSimpleName());
-      return; // We can't do any more validation without a listener.
+      throw new IllegalStateException(
+          String.format("No @%s defined on @%s.", ListenerClass.class.getSimpleName(),
+              annotationClass.getSimpleName()));
     }
 
-    Field callbackField = callback.getDeclaringClass().getField(callback.name());
-    ListenerMethod method = callbackField.getAnnotation(ListenerMethod.class);
-    if (method == null) {
-      error(element, "No @%s defined on @%s's %s.%s.", ListenerMethod.class.getSimpleName(),
-          annotationClass.getSimpleName(), callback.getDeclaringClass().getSimpleName(),
-          callback.name());
-      return; // We can't do any more validation without a method.
+    ListenerMethod method;
+    ListenerMethod[] methods = listener.method();
+    if (methods.length > 1) {
+      throw new IllegalStateException(String.format("Multiple listener methods specified on @%s.",
+          annotationClass.getSimpleName()));
+    } else if (methods.length == 1) {
+      if (listener.callbacks() != ListenerClass.NONE.class) {
+        throw new IllegalStateException(
+            String.format("Both method() and callback() defined on @%s.",
+                annotationClass.getSimpleName()));
+      }
+      method = methods[0];
+    } else {
+      Method annotationCallback = annotationClass.getDeclaredMethod("callback");
+      if (annotationCallback == null) {
+        throw new IllegalStateException(
+            String.format("@%s annotation lacks callback property.", annotationClass));
+      }
+      Enum<?> callback = (Enum<?>) annotationCallback.invoke(annotation);
+      Field callbackField = callback.getDeclaringClass().getField(callback.name());
+      method = callbackField.getAnnotation(ListenerMethod.class);
+      if (method == null) {
+        throw new IllegalStateException(
+            String.format("No @%s defined on @%s's %s.%s.", ListenerMethod.class.getSimpleName(),
+                annotationClass.getSimpleName(), callback.getDeclaringClass().getSimpleName(),
+                callback.name()));
+      }
     }
 
     // Verify that the method has equal to or less than the number of parameters as the listener.

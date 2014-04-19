@@ -1,6 +1,8 @@
 package butterknife.internal;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -182,8 +184,6 @@ final class ViewInjector {
     }
 
     for (ListenerClass listener : bindings.keySet()) {
-      Class<? extends Enum<?>> callbacks = listener.callbacks();
-      Enum<?>[] callbackMethods = callbacks.getEnumConstants();
       Map<ListenerMethod, ListenerBinding> methodBindings = bindings.get(listener);
 
       // Emit: ((OWNER_TYPE) view).SETTER_NAME(
@@ -218,74 +218,61 @@ final class ViewInjector {
           .append(listener.type())
           .append("() {\n");
 
-      for (Enum<?> callbackMethod : callbackMethods) {
-        try {
-          Field callbackField = callbacks.getField(callbackMethod.name());
-          ListenerMethod method = callbackField.getAnnotation(ListenerMethod.class);
-          if (method == null) {
-            throw new IllegalStateException(String.format("@%s's %s.%s missing @%s annotation.",
-                callbacks.getEnclosingClass().getSimpleName(), callbacks.getSimpleName(),
-                callbackMethod.name(), ListenerMethod.class.getSimpleName()));
-          }
+      for (ListenerMethod method : getListenerMethods(listener)) {
+        // Emit: @Override public RETURN_TYPE METHOD_NAME(
+        builder.append(extraIndent)
+            .append("        @Override public ")
+            .append(method.returnType())
+            .append(' ')
+            .append(method.name())
+            .append("(\n");
 
-          ListenerBinding binding = methodBindings.get(method);
-
-          // Emit: @Override public RETURN_TYPE METHOD_NAME(
+        // Emit listener method arguments, each on their own line.
+        String[] parameterTypes = method.parameters();
+        for (int i = 0, count = parameterTypes.length; i < count; i++) {
           builder.append(extraIndent)
-              .append("        @Override public ")
-              .append(method.returnType())
-              .append(' ')
-              .append(method.name())
-              .append("(\n");
-
-          // Emit listener method arguments, each on their own line.
-          String[] parameterTypes = method.parameters();
-          for (int i = 0, count = parameterTypes.length; i < count; i++) {
-            builder.append(extraIndent)
-                .append("          ")
-                .append(parameterTypes[i])
-                .append(" p")
-                .append(i);
-            if (i < count - 1) {
-              builder.append(',');
-            }
-            builder.append('\n');
-          }
-
-          // Emit end of parameters, start of body.
-          builder.append(extraIndent).append("        ) {\n");
-
-          // Set up the return statement, if needed.
-          builder.append(extraIndent).append("          ");
-          boolean hasReturnType = !"void".equals(method.returnType());
-          if (hasReturnType) {
-            builder.append("return ");
-          }
-
-          if (binding != null) {
-            builder.append("target.").append(binding.getName()).append('(');
-            List<Parameter> parameters = binding.getParameters();
-            String[] listenerParameters = method.parameters();
-            for (int i = 0, count = parameters.size(); i < count; i++) {
-              Parameter parameter = parameters.get(i);
-              int listenerPosition = parameter.getListenerPosition();
-              emitCastIfNeeded(builder, listenerParameters[listenerPosition], parameter.getType());
-              builder.append('p').append(listenerPosition);
-              if (i < count - 1) {
-                builder.append(", ");
-              }
-            }
-            builder.append(");");
-          } else if (hasReturnType) {
-            builder.append(method.defaultReturn()).append(';');
+              .append("          ")
+              .append(parameterTypes[i])
+              .append(" p")
+              .append(i);
+          if (i < count - 1) {
+            builder.append(',');
           }
           builder.append('\n');
-
-          // Emit end of listener method.
-          builder.append(extraIndent).append("        }\n");
-        } catch (NoSuchFieldException e) {
-          throw new AssertionError(e);
         }
+
+        // Emit end of parameters, start of body.
+        builder.append(extraIndent).append("        ) {\n");
+
+        // Set up the return statement, if needed.
+        builder.append(extraIndent).append("          ");
+        boolean hasReturnType = !"void".equals(method.returnType());
+        if (hasReturnType) {
+          builder.append("return ");
+        }
+
+        if (methodBindings.containsKey(method)) {
+          ListenerBinding binding = methodBindings.get(method);
+          builder.append("target.").append(binding.getName()).append('(');
+          List<Parameter> parameters = binding.getParameters();
+          String[] listenerParameters = method.parameters();
+          for (int i = 0, count = parameters.size(); i < count; i++) {
+            Parameter parameter = parameters.get(i);
+            int listenerPosition = parameter.getListenerPosition();
+            emitCastIfNeeded(builder, listenerParameters[listenerPosition], parameter.getType());
+            builder.append('p').append(listenerPosition);
+            if (i < count - 1) {
+              builder.append(", ");
+            }
+          }
+          builder.append(");");
+        } else if (hasReturnType) {
+          builder.append(method.defaultReturn()).append(';');
+        }
+        builder.append('\n');
+
+        // Emit end of listener method.
+        builder.append(extraIndent).append("        }\n");
       }
 
       // Emit end of listener class body and close the setter method call.
@@ -294,6 +281,30 @@ final class ViewInjector {
 
     if (needsNullChecked) {
       builder.append("    }\n");
+    }
+  }
+
+  static List<ListenerMethod> getListenerMethods(ListenerClass listener) {
+    if (listener.method().length == 1) {
+      return Arrays.asList(listener.method());
+    }
+
+    try {
+      List<ListenerMethod> methods = new ArrayList<ListenerMethod>();
+      Class<? extends Enum<?>> callbacks = listener.callbacks();
+      for (Enum<?> callbackMethod : callbacks.getEnumConstants()) {
+        Field callbackField = callbacks.getField(callbackMethod.name());
+        ListenerMethod method = callbackField.getAnnotation(ListenerMethod.class);
+        if (method == null) {
+          throw new IllegalStateException(String.format("@%s's %s.%s missing @%s annotation.",
+              callbacks.getEnclosingClass().getSimpleName(), callbacks.getSimpleName(),
+              callbackMethod.name(), ListenerMethod.class.getSimpleName()));
+        }
+        methods.add(method);
+      }
+      return methods;
+    } catch (NoSuchFieldException e) {
+      throw new AssertionError(e);
     }
   }
 

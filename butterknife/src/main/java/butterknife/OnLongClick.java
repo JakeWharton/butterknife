@@ -29,14 +29,7 @@ import static java.lang.annotation.RetentionPolicy.CLASS;
     targetType = "android.view.View",
     setter = "setOnLongClickListener",
     type = "android.view.View.OnLongClickListener",
-    callbacks = OnLongClick.Callback.class
-)
-public @interface OnLongClick {
-  int[] value();
-  Callback callback() default Callback.LONG_CLICK;
-
-  enum Callback {
-    @ListenerMethod(
+    method = @ListenerMethod(
         name = "onLongClick",
         parameters = {
             "android.view.View"
@@ -44,6 +37,7 @@ public @interface OnLongClick {
         returnType = "boolean",
         defaultReturn = "false"
     )
-    LONG_CLICK
-  }
+)
+public @interface OnLongClick {
+  int[] value();
 }

@@ -31,20 +31,14 @@ import static java.lang.annotation.RetentionPolicy.CLASS;
     targetType = "android.widget.CompoundButton",
     setter = "setOnCheckedChangeListener",
     type = "android.widget.CompoundButton.OnCheckedChangeListener",
-    callbacks = OnCheckedChanged.Callback.class
-)
-public @interface OnCheckedChanged {
-  int[] value();
-  Callback callback() default Callback.CHECKED_CHANGED;
-
-  enum Callback {
-    @ListenerMethod(
+    method = @ListenerMethod(
         name = "onCheckedChanged",
         parameters = {
             "android.widget.CompoundButton",
             "boolean"
         }
     )
-    CHECKED_CHANGED
-  }
+)
+public @interface OnCheckedChanged {
+  int[] value();
 }

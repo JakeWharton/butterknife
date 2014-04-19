@@ -32,14 +32,7 @@ import static java.lang.annotation.RetentionPolicy.CLASS;
     targetType = "android.widget.TextView",
     setter = "setOnEditorActionListener",
     type = "android.widget.TextView.OnEditorActionListener",
-    callbacks = OnEditorAction.Callback.class
-)
-public @interface OnEditorAction {
-  int[] value();
-  Callback callback() default Callback.EDITOR_ACTION;
-
-  enum Callback {
-    @ListenerMethod(
+    method = @ListenerMethod(
         name = "onEditorAction",
         parameters = {
             "android.widget.TextView",
@@ -49,6 +42,7 @@ public @interface OnEditorAction {
         returnType = "boolean",
         defaultReturn = "false"
     )
-    EDITOR_ACTION
-  }
+)
+public @interface OnEditorAction {
+  int[] value();
 }
