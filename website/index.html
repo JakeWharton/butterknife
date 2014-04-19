@@ -164,6 +164,18 @@ public void pickDoor(DoorView door) {
   // TODO ...
 }</pre>
 
+            <h4 id="multi-method-listeners">Multi-Method Listeners</h4>
+            <p>Method annotations whose corresponding listener has multiple callbacks can be used to bind to any one of them. Each annotation has a default callback that it binds to. Specify an alternate using the <code>callback</code> parameter.</p>
+            <pre class="prettyprint">@OnItemSelected(R.id.list_view)
+void onItemSelected(int position) {
+  // TODO ...
+}
+
+@OnItemSelected(value = R.id.maybe_missing, callback = NOTHING_SELECTED)
+void onNothingSelected() {
+  // TODO ...
+}</pre>
+
             <h4 id="bonus">Bonus</h4>
             <p>Also included are two <code>findById</code> methods which simplify code that still has to find views on a <code>View</code> or <code>Activity</code>. It uses generics to infer the return type and automatically performs the cast.</p>
             <pre class="prettyprint">View view = LayoutInflater.from(context).inflate(R.layout.thing, null);
