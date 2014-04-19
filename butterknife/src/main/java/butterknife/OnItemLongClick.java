@@ -10,9 +10,8 @@ import static java.lang.annotation.ElementType.METHOD;
 import static java.lang.annotation.RetentionPolicy.CLASS;
 
 /**
- * Annotation for methods which indicate that they should be called when an item is long clicked.
- * Corresponds to adding an {@link OnItemLongClickListener OnItemLongClickListener} to the views
- * specified.
+ * Bind a method to an {@link OnItemLongClickListener OnItemLongClickListener} on the view for each
+ * ID specified.
  * <pre><code>
  * {@literal @}OnItemLongClick(R.id.example_list) boolean onItemLongClick(int position) {
  *   Toast.makeText(this, "Long clicked position " + position + "!", LENGTH_SHORT).show();
@@ -45,5 +44,6 @@ import static java.lang.annotation.RetentionPolicy.CLASS;
     )
 )
 public @interface OnItemLongClick {
+  /** View IDs to which the method will be bound. */
   int[] value();
 }

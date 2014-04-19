@@ -5,15 +5,13 @@ import butterknife.internal.ListenerMethod;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
-import static android.widget.AdapterView.OnItemLongClickListener;
 import static android.widget.AdapterView.OnItemSelectedListener;
 import static java.lang.annotation.ElementType.METHOD;
 import static java.lang.annotation.RetentionPolicy.CLASS;
 
 /**
- * Annotation for methods which indicate that they should be called when an item is selected.
- * Corresponds to adding an {@link OnItemSelectedListener OnItemSelectedListener} to the views
- * specified.
+ * Bind a method to an {@link OnItemSelectedListener OnItemSelectedListener} on the view for each
+ * ID specified.
  * <pre><code>
  * {@literal @}OnItemSelected(R.id.example_list) void onItemSelected(int position) {
  *   Toast.makeText(this, "Selected position " + position + "!", LENGTH_SHORT).show();
@@ -31,7 +29,7 @@ import static java.lang.annotation.RetentionPolicy.CLASS;
  * }
  * </code></pre>
  *
- * @see OnItemLongClickListener
+ * @see OnItemSelectedListener
  * @see Optional
  */
 @Target(METHOD)
@@ -43,10 +41,18 @@ import static java.lang.annotation.RetentionPolicy.CLASS;
     callbacks = OnItemSelected.Callback.class
 )
 public @interface OnItemSelected {
+  /** View IDs to which the method will be bound. */
   int[] value();
+
+  /** Listener callback to which the method will be bound. */
   Callback callback() default Callback.ITEM_SELECTED;
 
+  /** {@link OnItemSelectedListener} callback methods. */
   enum Callback {
+    /**
+     * {@link OnItemSelectedListener#onItemSelected(android.widget.AdapterView, android.view.View,
+     * int, long)}
+     */
     @ListenerMethod(
         name = "onItemSelected",
         parameters = {
@@ -58,6 +64,7 @@ public @interface OnItemSelected {
     )
     ITEM_SELECTED,
 
+    /** {@link OnItemSelectedListener#onNothingSelected(android.widget.AdapterView)} */
     @ListenerMethod(
         name = "onNothingSelected",
         parameters = "android.widget.AdapterView<?>"

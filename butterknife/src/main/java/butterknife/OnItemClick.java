@@ -10,8 +10,8 @@ import static java.lang.annotation.ElementType.METHOD;
 import static java.lang.annotation.RetentionPolicy.CLASS;
 
 /**
- * Annotation for methods which indicate that they should be called when an item is clicked.
- * Corresponds to adding a {@link OnItemClickListener OnItemClickListener} to the views specified.
+ * Bind a method to an {@link OnItemClickListener OnItemClickListener} on the view for each ID
+ * specified.
  * <pre><code>
  * {@literal @}OnItemClick(R.id.example_list) void onItemClick(int position) {
  *   Toast.makeText(this, "Clicked position " + position + "!", LENGTH_SHORT).show();
@@ -40,5 +40,6 @@ import static java.lang.annotation.RetentionPolicy.CLASS;
     )
 )
 public @interface OnItemClick {
+  /** View IDs to which the method will be bound. */
   int[] value();
 }

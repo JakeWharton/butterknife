@@ -10,8 +10,8 @@ import static java.lang.annotation.ElementType.METHOD;
 import static java.lang.annotation.RetentionPolicy.CLASS;
 
 /**
- * Annotation for methods which indicate that they should be called when a view is long clicked.
- * Corresponds to adding an {@link OnLongClickListener OnLongClickListener} to the views specified.
+ * Bind a method to an {@link OnLongClickListener OnLongClickListener} on the view for each ID
+ * specified.
  * <pre><code>
  * {@literal @}OnLongClick(R.id.example) boolean onLongClick() {
  *   Toast.makeText(this, "Long clicked!", LENGTH_SHORT).show();
@@ -39,5 +39,6 @@ import static java.lang.annotation.RetentionPolicy.CLASS;
     )
 )
 public @interface OnLongClick {
+  /** View IDs to which the method will be bound. */
   int[] value();
 }

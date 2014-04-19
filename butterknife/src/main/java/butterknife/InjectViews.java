@@ -8,8 +8,8 @@ import static java.lang.annotation.ElementType.FIELD;
 import static java.lang.annotation.RetentionPolicy.CLASS;
 
 /**
- * Annotation for fields which indicate that the specified view IDs should be looked up in the view
- * or activity layout and placed in a {@link List} or array.
+ * Bind a field to the view for each ID specified in a {@link List} or array. Each view will
+ * automatically be cast to the list or array type.
  * <pre><code>
  * {@literal @}InjectViews({R.id.first_name, R.id.middle_name, R.id.last_name})
  * List&lt;TextView&gt; nameViews;
@@ -20,5 +20,6 @@ import static java.lang.annotation.RetentionPolicy.CLASS;
  */
 @Retention(CLASS) @Target(FIELD)
 public @interface InjectViews {
+  /** View IDs to which the field will be bound. */
   int[] value();
 }

@@ -9,9 +9,7 @@ import static java.lang.annotation.ElementType.METHOD;
 import static java.lang.annotation.RetentionPolicy.CLASS;
 
 /**
- * Annotation for methods which indicate that they should be called when a {@code ViewPager} page
- * has changed. Corresponds to adding an {@code OnPageChangeListener} to the
- * views specified.
+ * Bind a method to an {@code OnPageChangeListener} on the view for each ID specified.
  * <pre><code>
  * {@literal @}OnPageChange(R.id.example_pager) void onPageSelected(int position) {
  *   Toast.makeText(this, "Selected " + position + "!", LENGTH_SHORT).show();
@@ -38,16 +36,22 @@ import static java.lang.annotation.RetentionPolicy.CLASS;
     callbacks = OnPageChange.Callback.class
 )
 public @interface OnPageChange {
+  /** View IDs to which the method will be bound. */
   int[] value();
+
+  /** Listener callback to which the method will be bound. */
   Callback callback() default Callback.PAGE_SELECTED;
 
+  /** {@code ViewPager.OnPageChangeListener} callback methods. */
   enum Callback {
+    /** {@code onPageSelected(int)} */
     @ListenerMethod(
         name = "onPageSelected",
         parameters = "int"
     )
     PAGE_SELECTED,
 
+    /** {@code onPageScrolled(int, float, int)} */
     @ListenerMethod(
         name = "onPageScrolled",
         parameters = {
@@ -58,6 +62,7 @@ public @interface OnPageChange {
     )
     PAGE_SCROLLED,
 
+    /** {@code onPageScrollStateChanged(int)} */
     @ListenerMethod(
         name = "onPageScrollStateChanged",
         parameters = "int"

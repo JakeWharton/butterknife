@@ -118,13 +118,13 @@ public final class ButterKnife {
     public abstract View findOptionalView(Object source, int id);
   }
 
-  /** A simple action that can be applied to a list of views. */
+  /** An action that can be applied to a list of views. */
   public interface Action<T extends View> {
     /** Apply the action on the {@code view} which is at {@code index} in the list. */
     void apply(T view, int index);
   }
 
-  /** A simple setter that can be apply a value to a list of views. */
+  /** A setter that can apply a value to a list of views. */
   public interface Setter<T extends View, V> {
     /** Set the {@code value} on the {@code view} which is at {@code index} in the list. */
     void set(T view, V value, int index);
@@ -143,8 +143,8 @@ public final class ButterKnife {
   }
 
   /**
-   * Inject fields annotated with {@link InjectView} in the specified {@link Activity}. The current
-   * content view is used as the view root.
+   * Inject annotated fields and methods in the specified {@link Activity}. The current content
+   * view is used as the view root.
    *
    * @param target Target activity for field injection.
    */
@@ -153,8 +153,8 @@ public final class ButterKnife {
   }
 
   /**
-   * Inject fields annotated with {@link InjectView} in the specified {@link View}. The view and
-   * its children are used as the view root.
+   * Inject annotated fields and methods in the specified {@link View}. The view and its children
+   * are used as the view root.
    *
    * @param target Target view for field injection.
    */
@@ -163,8 +163,8 @@ public final class ButterKnife {
   }
 
   /**
-   * Inject fields annotated with {@link InjectView} in the specified {@code source} using the
-   * {@code target} {@link Activity} as the view root.
+   * Inject annotated fields and methods in the specified {@code target} using the {@code source}
+   * {@link Activity} as the view root.
    *
    * @param target Target class for field injection.
    * @param source Activity on which IDs will be looked up.
@@ -174,8 +174,8 @@ public final class ButterKnife {
   }
 
   /**
-   * Inject fields annotated with {@link InjectView} in the specified {@code source} using the
-   * {@code target} {@link View} as the view root.
+   * Inject annotated fields and methods in the specified {@code target} using the {@code source}
+   * {@link View} as the view root.
    *
    * @param target Target class for field injection.
    * @param source View root on which IDs will be looked up.
@@ -185,9 +185,10 @@ public final class ButterKnife {
   }
 
   /**
-   * Reset fields annotated with {@link InjectView} to {@code null}.
+   * Reset fields annotated with {@link InjectView @InjectView} and {@link InjectViews @InjectViews}
+   * to {@code null}.
    * <p>
-   * This should only be used in the {@code onDestroyView} method of a fragment in practice.
+   * This should only be used in the {@code onDestroyView} method of a fragment.
    *
    * @param target Target class for field reset.
    */

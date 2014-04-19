@@ -10,9 +10,8 @@ import static java.lang.annotation.ElementType.METHOD;
 import static java.lang.annotation.RetentionPolicy.CLASS;
 
 /**
- * Annotation for methods which indicate that they should be called when a view is checked or
- * unchecked. Corresponds to adding an {@link OnCheckedChangeListener OnCheckedChangeListener} to
- * the views specified.
+ * Bind a method to an {@link OnCheckedChangeListener OnCheckedChangeListener} on the view for
+ * each ID specified.
  * <pre><code>
  * {@literal @}OnCheckedChanged(R.id.example) void onChecked(boolean checked) {
  *   Toast.makeText(this, checked ? "Checked!" : "Unchecked!", LENGTH_SHORT).show();
@@ -40,5 +39,6 @@ import static java.lang.annotation.RetentionPolicy.CLASS;
     )
 )
 public @interface OnCheckedChanged {
+  /** View IDs to which the method will be bound. */
   int[] value();
 }

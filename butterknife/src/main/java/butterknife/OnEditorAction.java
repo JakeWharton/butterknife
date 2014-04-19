@@ -10,9 +10,8 @@ import static java.lang.annotation.ElementType.METHOD;
 import static java.lang.annotation.RetentionPolicy.CLASS;
 
 /**
- * Annotation for methods which indicate that they should be called when an edit action occurs.
- * Corresponds to adding an {@link OnEditorActionListener OnEditorActionListener} to the views
- * specified.
+ * Bind a method to an {@link OnEditorActionListener OnEditorActionListener} on the view for each
+ * ID specified.
  * <pre><code>
  * {@literal @}OnEditorAction(R.id.example) boolean onEditorAction(KeyEvent key) {
  *   Toast.makeText(this, "Pressed: " + key, LENGTH_SHORT).show();
@@ -44,5 +43,6 @@ import static java.lang.annotation.RetentionPolicy.CLASS;
     )
 )
 public @interface OnEditorAction {
+  /** View IDs to which the method will be bound. */
   int[] value();
 }

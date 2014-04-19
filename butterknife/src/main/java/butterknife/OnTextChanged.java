@@ -10,8 +10,7 @@ import static java.lang.annotation.ElementType.METHOD;
 import static java.lang.annotation.RetentionPolicy.CLASS;
 
 /**
- * Annotation for methods which indicate that they should be called when text has changed.
- * Corresponds to adding an {@link TextWatcher TextWatcher} to the views specified.
+ * Bind a method to an {@link TextWatcher TextWatcher} on the view for each ID specified.
  * <pre><code>
  * {@literal @}OnTextChanged(R.id.example) void onTextChanged(CharSequence text) {
  *   Toast.makeText(this, "Text changed: " + text, LENGTH_SHORT).show();
@@ -40,10 +39,15 @@ import static java.lang.annotation.RetentionPolicy.CLASS;
     callbacks = OnTextChanged.Callback.class
 )
 public @interface OnTextChanged {
+  /** View IDs to which the method will be bound. */
   int[] value();
+
+  /** Listener callback to which the method will be bound. */
   Callback callback() default Callback.TEXT_CHANGED;
 
+  /** {@link TextWatcher} callback methods. */
   enum Callback {
+    /** {@link TextWatcher#onTextChanged(CharSequence, int, int, int)} */
     @ListenerMethod(
         name = "onTextChanged",
         parameters = {
@@ -55,6 +59,7 @@ public @interface OnTextChanged {
     )
     TEXT_CHANGED,
 
+    /** {@link TextWatcher#beforeTextChanged(CharSequence, int, int, int)} */
     @ListenerMethod(
         name = "beforeTextChanged",
         parameters = {
@@ -66,6 +71,7 @@ public @interface OnTextChanged {
     )
     BEFORE_TEXT_CHANGED,
 
+    /** {@link TextWatcher#afterTextChanged(android.text.Editable)} */
     @ListenerMethod(
         name = "afterTextChanged",
         parameters = "android.text.Editable"
