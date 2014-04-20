@@ -334,9 +334,9 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     // Assemble information on the injection point.
     Annotation annotation = element.getAnnotation(annotationClass);
     Method annotationValue = annotationClass.getDeclaredMethod("value");
-    if (annotationValue == null || annotationValue.getReturnType() != int[].class) {
+    if (annotationValue.getReturnType() != int[].class) {
       throw new IllegalStateException(
-          String.format("@%s annotation lacks int[] value property.", annotationClass));
+          String.format("@%s annotation value() type not int[].", annotationClass));
     }
 
     int[] ids = (int[]) annotationValue.invoke(annotation);
@@ -377,10 +377,6 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
       method = methods[0];
     } else {
       Method annotationCallback = annotationClass.getDeclaredMethod("callback");
-      if (annotationCallback == null) {
-        throw new IllegalStateException(
-            String.format("@%s annotation lacks callback property.", annotationClass));
-      }
       Enum<?> callback = (Enum<?>) annotationCallback.invoke(annotation);
       Field callbackField = callback.getDeclaringClass().getField(callback.name());
       method = callbackField.getAnnotation(ListenerMethod.class);
