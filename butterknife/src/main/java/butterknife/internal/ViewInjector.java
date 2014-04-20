@@ -183,8 +183,9 @@ final class ViewInjector {
       extraIndent = "  ";
     }
 
-    for (ListenerClass listener : bindings.keySet()) {
-      Map<ListenerMethod, ListenerBinding> methodBindings = bindings.get(listener);
+    for (Map.Entry<ListenerClass, Map<ListenerMethod, ListenerBinding>> e : bindings.entrySet()) {
+      ListenerClass listener = e.getKey();
+      Map<ListenerMethod, ListenerBinding> methodBindings = e.getValue();
 
       // Emit: ((OWNER_TYPE) view).SETTER_NAME(
       boolean needsCast = !VIEW_TYPE.equals(listener.targetType());
