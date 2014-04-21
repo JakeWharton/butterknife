@@ -19,40 +19,12 @@
           <img src="static/logo.png">
           <h1>Butter Knife</h1>
           <h2>View &quot;injection&quot; library for Android</h2>
+          <p><a href="javadoc/">Javadoc</a> &middot; <a href="http://stackoverflow.com/questions/ask?tags=butterknife">StackOverflow</a></p>
         </div>
         <div class="offset4 span8 main">
           <div class="main-inner">
             <h3 id="introduction">Introduction</h3>
-            <p>Android developers, like most developers, are lazy and do not want to write a bunch of code which looks like this:</p>
-            <pre class="prettyprint">class ExampleActivity extends Activity {
-  TextView title;
-  TextView subtitle;
-  TextView footer;
-
-  @Override public void onCreate(Bundle savedInstanceState) {
-    super.onCreate(savedInstanceState);
-    setContentView(R.layout.simple_activity);
-    title = (TextView) findViewById(R.id.title);
-    subtitle = (TextView) findViewById(R.id.subtitle);
-    footer = (TextView) findViewById(R.id.footer);
-
-    // TODO Use views...
-  }
-}</pre>
-            <p>Instead, they turn to helper libraries that they likely do not fully understand. These libraries might use annotations and magic to allow you to condense your code to:</p>
-            <pre class="prettyprint">class ExampleActivity extends Activity {
-  @Magic(R.id.title) TextView title;
-  @Magic(R.id.subtitle) TextView subtitle;
-  @Magic(R.id.footer) TextView footer;
-
-  @Override public void onCreate(Bundle savedInstanceState) {
-    super.onCreate(savedInstanceState);
-    setContentView(R.layout.simple_activity);
-    // TODO Use "injected" views...
-  }
-}</pre>
-            <p>While it looks pretty, magic is for children (and it also comes with a heavy runtime penalty).</p>
-            <p>Instead we can leverage a powerful part of the <code>javac</code> compiler to generate the first example's <code>findViewById</code> boilerplate while still allowing us to keep the terseness of the annotations:</p>
+            <p>Annotate fields with <code>@InjectView</code> and a view ID for Butter Knife to find and automatically cast the corresponding view in your layout.</p>
             <pre class="prettyprint">class ExampleActivity extends Activity {
   @InjectView(R.id.title) TextView title;
   @InjectView(R.id.subtitle) TextView subtitle;
@@ -65,13 +37,13 @@
     // TODO Use "injected" views...
   }
 }</pre>
-            <p>In place of magic we now call an <code>inject</code> method. This method delegates to generated code that you can see and debug:</p>
+            <p>Instead of slow reflection, code is generated to perform the view look-ups. Calling <code>inject</code> delegates to this generated code that you can see and debug.</p>
+            <p>The generated code for the above example is roughly equivalent to the following:</p>
             <pre class="prettyprint">public void inject(ExampleActivity activity) {
   activity.subtitle = (android.widget.TextView) activity.findViewById(2130968578);
   activity.footer = (android.widget.TextView) activity.findViewById(2130968579);
   activity.title = (android.widget.TextView) activity.findViewById(2130968577);
 }</pre>
-            <p>Some people call this view injection and lump it along with traditional dependency injection frameworks. They may be wrong in nomenclature, but perhaps there exists some use for it.</p>
 
             <h4 id="non-activity">Non-Activity Injection</h4>
             <p>You can also perform injection on arbitrary objects by supplying your own view root.</p>
@@ -122,6 +94,27 @@
    XML can use it in the <code>onLayoutInflated()</code> callback.</li>
             </ul>
 
+            <h4 id="view-lists">View Lists</h4>
+            <p>You can group multiple views into a <code>List</code> or array.</p>
+            <pre class="prettyprint">@InjectViews({ R.id.first_name, R.id.middle_name, R.id.last_name })
+List&lt;EditText> nameViews;</pre>
+            <p>The <code>apply</code> method allows you to act on all the views in a list at once.</p>
+            <pre class="prettyprint">ButterKnife.apply(nameViews, DISABLE);
+ButterKnife.apply(nameViews, ENABLED, false);</pre>
+            <p><code>Action</code> and <code>Setter</code> interfaces allow specifying simple behavior.</p>
+            <pre class="prettyprint">static final Action&lt;View> DISABLE = new Action&lt;>() {
+  @Override public void apply(View view, int index) {
+    view.setEnabled(false);
+  }
+}
+static final Setter&lt;View, Boolean> ENABLED = new Setter&lt;>() {
+  @Override public void set(View view, Boolean value, int index) {
+    view.setEnabled(value);
+  }
+}</pre>
+            <p>An Android <a href="https://developer.android.com/reference/android/util/Property.html"><code>Property</code></a> can also be used with the <code>apply</code> method.</p>
+            <pre class="prettyprint">ButterKnife.apply(nameViews, View.ALPHA, 0);</pre>
+
             <h4 id="click-injection">Click Listener Injection</h4>
             <p>Click listeners can also automatically be configured onto methods.</p>
             <pre class="prettyprint">@OnClick(R.id.submit)
@@ -171,6 +164,18 @@ public void pickDoor(DoorView door) {
   // TODO ...
 }</pre>
 
+            <h4 id="multi-method-listeners">Multi-Method Listeners</h4>
+            <p>Method annotations whose corresponding listener has multiple callbacks can be used to bind to any one of them. Each annotation has a default callback that it binds to. Specify an alternate using the <code>callback</code> parameter.</p>
+            <pre class="prettyprint">@OnItemSelected(R.id.list_view)
+void onItemSelected(int position) {
+  // TODO ...
+}
+
+@OnItemSelected(value = R.id.maybe_missing, callback = NOTHING_SELECTED)
+void onNothingSelected() {
+  // TODO ...
+}</pre>
+
             <h4 id="bonus">Bonus</h4>
             <p>Also included are two <code>findById</code> methods which simplify code that still has to find views on a <code>View</code> or <code>Activity</code>. It uses generics to infer the return type and automatically performs the cast.</p>
             <pre class="prettyprint">View view = LayoutInflater.from(context).inflate(R.layout.thing, null);
@@ -192,6 +197,17 @@ ImageView photo = ButterKnife.findById(view, R.id.photo);</pre>
   &lt;artifactId>butterknife&lt;/artifactId>
   &lt;version><span class="version"><em>(insert latest version)</em></span>&lt;/version>
 &lt;/dependency></pre>
+
+            <h4>Gradle</h4>
+            <pre class="prettyprint">compile 'com.jakewharton:butterknife:<span class="version"><em>(insert latest version)</em></span>'</pre>
+            <p>Be sure to supress this lint warning in your <code>build.gradle</code>.</p>
+            <pre class="prettyprint">lintOptions {
+  disable 'InvalidPackage'
+}</pre>
+            <p>Some configurations may also require additional exclusions.</p>
+            <pre class="prettyprint">packagingOptions {
+  exclude 'META-INF/services/javax.annotation.processing.Processor'
+}</pre>
 
             <h4 id="ide">IDE Configuration</h4>
             <p>Some IDEs require additional configuration in order to enable annotation processing.</p>
