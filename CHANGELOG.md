@@ -1,8 +1,8 @@
 Change Log
 ==========
 
-Version 5.0.0 *(In Development)*
---------------------------------
+Version 5.0.0 *(2014-04-21)*
+----------------------------
 
  * New: `@InjectViews` annotation groups multiple IDs into a `List` or array.
  * New: `ButterKnife.apply` method applies an `Action`, `Setter`, or Android `Property` to views in
@@ -12,7 +12,7 @@ Version 5.0.0 *(In Development)*
    * `AdapterView`: `@OnItemSelected`.
    * `TextView`: `@OnTextChanged`.
  * New: Multi-method listener support. Specify a `callback` argument to choose which method the
-   binding is for.
+   binding is for. *(See `@OnItemSelected` for an example)*
  * Fix: Support for generic types which are declared with an upper-bound.
  * Fix: Use less sophisticated method injection inspection in the annotation processor. The previous
    method caused problems with some Eclipse configurations.
