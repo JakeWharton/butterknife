@@ -7,6 +7,8 @@ import android.util.Log;
 import android.util.Property;
 import android.view.View;
 import butterknife.internal.ButterKnifeProcessor;
+
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -218,6 +220,9 @@ public final class ButterKnife {
     } catch (RuntimeException e) {
       throw e;
     } catch (Exception e) {
+      if (e instanceof InvocationTargetException) {
+          e = (Exception) e.getCause();
+      }
       throw new RuntimeException("Unable to inject views for " + target, e);
     }
   }
