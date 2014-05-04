@@ -2,6 +2,7 @@ package butterknife;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
+import android.app.Dialog;
 import android.os.Build;
 import android.util.Log;
 import android.util.Property;
@@ -30,9 +31,11 @@ import java.util.Map;
  *   }
  * }
  * </code></pre>
- * You can inject an {@linkplain #inject(Activity) activity directly} or a{@linkplain #inject(View)
- * view directly}, or inject an {@linkplain #inject(Object, Activity) activity into another object}
- * or a {@linkplain #inject(Object, View) view into another object}.
+ * Injection can be performed directly on an {@linkplain #inject(Activity) activity}, a
+ * {@linkplain #inject(View) view}, or a {@linkplain #inject(Dialog) dialog}. Alternate objects to
+ * inject can be specified along with an {@linkplain #inject(Object, Activity) activity},
+ * {@linkplain #inject(Object, View) view}, or
+ * {@linkplain #inject(Object, android.app.Dialog) dialog}.
  * <p>
  * Group multiple views together into a {@link List} or array.
  * <pre><code>
@@ -93,6 +96,11 @@ public final class ButterKnife {
     ACTIVITY {
       @Override public View findOptionalView(Object source, int id) {
         return ((Activity) source).findViewById(id);
+      }
+    },
+    DIALOG {
+      @Override public View findOptionalView(Object source, int id) {
+        return ((Dialog) source).findViewById(id);
       }
     };
 
@@ -164,6 +172,16 @@ public final class ButterKnife {
   }
 
   /**
+   * Inject annotated fields and methods in the specified {@link Dialog}. The current content
+   * view is used as the view root.
+   *
+   * @param target Target dialog for field injection.
+   */
+  public static void inject(Dialog target) {
+    inject(target, target, Finder.DIALOG);
+  }
+
+  /**
    * Inject annotated fields and methods in the specified {@code target} using the {@code source}
    * {@link Activity} as the view root.
    *
@@ -183,6 +201,17 @@ public final class ButterKnife {
    */
   public static void inject(Object target, View source) {
     inject(target, source, Finder.VIEW);
+  }
+
+  /**
+   * Inject annotated fields and methods in the specified {@code target} using the {@code source}
+   * {@link Dialog} as the view root.
+   *
+   * @param target Target class for field injection.
+   * @param source Dialog on which IDs will be looked up.
+   */
+  public static void inject(Object target, Dialog source) {
+    inject(target, source, Finder.DIALOG);
   }
 
   /**
