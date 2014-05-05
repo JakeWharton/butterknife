@@ -1,8 +1,8 @@
 Change Log
 ==========
 
-Version 5.0.1 *(In Development)*
---------------------------------
+Version 5.0.1 *(2014-05-04)*
+----------------------------
 
  * New: Support `Dialog` as injection source.
  * Fix: Unwrap `InvocationTargetException` causes for more helpful exceptions.
