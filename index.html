@@ -73,7 +73,7 @@
     holder.name.setText("John Doe");
     // etc...
 
-    return convertView;
+    return view;
   }
 
   static class ViewHolder {
@@ -91,7 +91,7 @@
               <li>Inject arbitrary objects using an activity as the view root. If you use a pattern like MVC you can inject the controller using its activity with <code>ButterKnife.inject(this, activity)</code>.</li>
               <li>Inject a view's children into fields using <code>ButterKnife.inject(this)</code>. If you use <code>&lt;merge></code> tags in a layout and inflate in a custom view constructor you can
    call this immediately after. Alternatively, custom view types inflated from
-   XML can use it in the <code>onLayoutInflated()</code> callback.</li>
+   XML can use it in the <code>onFinishInflate()</code> callback.</li>
             </ul>
 
             <h4 id="view-lists">View Lists</h4>
