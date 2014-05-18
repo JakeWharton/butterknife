@@ -97,8 +97,8 @@ public final class ButterKnife {
         return ((View) source).findViewById(id);
       }
 
-			@Override
-      public Context getContext(Object source) {
+			
+      @Override public Context getContext(Object source) {
 	      return ((View) source).getContext();
       }
     },
@@ -106,9 +106,8 @@ public final class ButterKnife {
       @Override public View findOptionalView(Object source, int id) {
         return ((Activity) source).findViewById(id);
       }
-
-			@Override
-      public Context getContext(Object source) {
+			
+      @Override public Context getContext(Object source) {
 	      return ((Activity) source).getApplicationContext();
       }
     },
@@ -116,9 +115,8 @@ public final class ButterKnife {
       @Override public View findOptionalView(Object source, int id) {
         return ((Dialog) source).findViewById(id);
       }
-
-			@Override
-      public Context getContext(Object source) {
+			
+      @Override public Context getContext(Object source) {
 	      return ((Dialog) source).getContext();
       }
     };
