@@ -15,6 +15,8 @@ for you.
 class ExampleActivity extends Activity {
   @InjectView(R.id.user) EditText username;
   @InjectView(R.id.pass) EditText password;
+  @InjectResource(R.string.user_name) String name;
+  @InjectResource(R.drawable.user_pic) Drawable userPic;
 
   @OnClick(R.id.submit) void submit() {
     // TODO call server...

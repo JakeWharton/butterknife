@@ -30,7 +30,7 @@
     <java.version>1.6</java.version>
     <fest.version>2.0M10</fest.version>
     <android.version>4.1.1.4</android.version>
-    <android.platform>16</android.platform>
+    <android.platform>19</android.platform>
     <junit.version>4.10</junit.version>
     <robolectric.version>2.2</robolectric.version>
     <fest.android.version>1.0.7</fest.android.version>

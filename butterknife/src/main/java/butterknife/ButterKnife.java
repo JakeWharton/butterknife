@@ -1,18 +1,22 @@
 package butterknife;
 
-import android.annotation.TargetApi;
-import android.app.Activity;
-import android.app.Dialog;
-import android.os.Build;
-import android.util.Log;
-import android.util.Property;
-import android.view.View;
-import butterknife.internal.ButterKnifeProcessor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+
+import android.annotation.TargetApi;
+import android.app.Activity;
+import android.app.Dialog;
+import android.content.Context;
+import android.graphics.drawable.Drawable;
+import android.os.Build;
+import android.util.Log;
+import android.util.Property;
+import android.view.View;
+import android.view.animation.Animation;
+import butterknife.internal.ButterKnifeProcessor;
 
 /**
  * View "injection" utilities. Use this class to simplify finding views and attaching listeners by
@@ -103,6 +107,8 @@ public final class ButterKnife {
         return ((Dialog) source).findViewById(id);
       }
     };
+    
+    private Context context;
 
     public static <T extends View> T[] arrayOf(T... views) {
       return views;
@@ -123,7 +129,42 @@ public final class ButterKnife {
       }
       return view;
     }
-
+    
+    public void setApplicationContext(Context context){
+    	this.context = context;
+    }
+    
+    public Object findRequiredResource(int id, String type, String who){
+    	Object resource = findOptionalResource(id, type);
+    	if(resource == null){
+    		throw new IllegalStateException("Required resource with id '"
+    				+ id
+    				+ "' for "
+    				+ who
+    				+ " was not found. If this resource is optional add '@Optional' annotation.");
+    	}
+    	return resource;
+    }
+    
+    public Object findOptionalResource(int id, String type){
+    	if(context == null){
+    		throw new NullPointerException("Context for finding the resource is not set");
+    	}
+    	Object resource = null;
+    	try{
+	    	if(type.equals(ButterKnifeProcessor.STRING_TYPE)){
+	    		resource = context.getResources().getString(id);
+	    	}else if (type.equals(ButterKnifeProcessor.DRAWABLE_TYPE)){
+	    		resource = context.getResources().getDrawable(id);
+	    	}else if(type.equals(ButterKnifeProcessor.ANIMATION_TYPE)){
+	    		resource = context.getResources().getAnimation(id);
+	    	}
+    	}catch(ClassCastException e){
+    		throw new ClassCastException("Resource with id '"+ id +"' cannot be casted to "+  type.toString());
+    	}
+    	return resource;
+    }
+    
     public abstract View findOptionalView(Object source, int id);
   }
 
@@ -158,7 +199,9 @@ public final class ButterKnife {
    * @param target Target activity for field injection.
    */
   public static void inject(Activity target) {
-    inject(target, target, Finder.ACTIVITY);
+  	Finder finder = Finder.ACTIVITY;
+  	finder.setApplicationContext(target);
+    inject(target, target, finder);
   }
 
   /**
@@ -170,6 +213,18 @@ public final class ButterKnife {
   public static void inject(View target) {
     inject(target, target, Finder.VIEW);
   }
+  
+  /**
+   * Inject annotated fields and methods in the specified {@link View}. The view and its children
+   * are used as the view root and resource context will be used to find resources for InjectResource
+   * @param target Target view for field injection
+   * @param resourceContext source context for field resource injection
+   */
+  public static void inject(View target, Context resourceContext){
+  	Finder finder = Finder.VIEW;
+  	finder.setApplicationContext(resourceContext);
+  	inject(target, target, finder);
+  }
 
   /**
    * Inject annotated fields and methods in the specified {@link Dialog}. The current content
@@ -180,6 +235,18 @@ public final class ButterKnife {
   public static void inject(Dialog target) {
     inject(target, target, Finder.DIALOG);
   }
+  
+  /**
+   * Inject annotated fields and methods in the specified {@link Dialog}. The current content
+   * view is used as the view root
+   * @param target Target dialog for field injection
+   * @param resourceContext source context for field resource injection
+   */
+  public static void inject(Dialog target, Context resourceContext){
+  	Finder finder = Finder.DIALOG;
+  	finder.setApplicationContext(resourceContext);
+  	inject(target, target, finder);
+  }
 
   /**
    * Inject annotated fields and methods in the specified {@code target} using the {@code source}
@@ -189,7 +256,9 @@ public final class ButterKnife {
    * @param source Activity on which IDs will be looked up.
    */
   public static void inject(Object target, Activity source) {
-    inject(target, source, Finder.ACTIVITY);
+  	Finder finder = Finder.ACTIVITY;
+  	finder.setApplicationContext(source);
+    inject(target, source, finder);    
   }
 
   /**
