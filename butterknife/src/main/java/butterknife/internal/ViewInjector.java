@@ -184,13 +184,13 @@ final class ViewInjector {
   		
   		emitCastIfNeeded(builder, "java.lang.Object", binding.getType());
   		if(!binding.isRequired()){
-  			builder.append("finder.findOptionalResource(")
+  			builder.append("finder.findOptionalResource(source, ")
   					.append(injection.getId())
   					.append(", ")
   					.append("\""+binding.getType())
   					.append("\");\n");
   		}else{
-  			builder.append("finder.findRequiredResource(")
+  			builder.append("finder.findRequiredResource(source, ")
   					.append(injection.getId())
   					.append(", ")
   					.append("\""+binding.getType()+"\", ")
