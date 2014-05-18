@@ -60,8 +60,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
   public static final String VIEW_TYPE = "android.view.View";
   public static final String STRING_TYPE = "java.lang.String";
   public static final String DRAWABLE_TYPE = "android.graphics.drawable.Drawable";
-  
-  
+
   public static final String ANIMATION_TYPE = "android.view.animation.Animation";
   private static final String LIST_TYPE = List.class.getCanonicalName();
   private static final List<Class<? extends Annotation>> LISTENERS = Arrays.asList(//
@@ -149,17 +148,19 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
         error(element, "Unable to generate view injector for @InjectViews.\n\n%s", stackTrace);
       }
     }
-    
+
     // Process each @InjectResource element
-    for (Element element: env.getElementsAnnotatedWith(InjectResource.class)){
-    	try{
-    		parseInjectResource(element, targetClassMap, erasedTargetNames);
-    	}catch(Exception e){
-    		StringWriter stackTrace = new StringWriter();
-    		e.printStackTrace(new PrintWriter(stackTrace));
-    		
-    		error(element, "Unable to generate resource injector for @InjectResource.\n\n%s", stackTrace);
-    	}
+    for (Element element : env.getElementsAnnotatedWith(InjectResource.class)) {
+      try {
+        parseInjectResource(element, targetClassMap, erasedTargetNames);
+      } catch (Exception e) {
+        StringWriter stackTrace = new StringWriter();
+        e.printStackTrace(new PrintWriter(stackTrace));
+
+        error(element,
+                "Unable to generate resource injector for @InjectResource.\n\n%s",
+                stackTrace);
+      }
     }
 
     // Process each annotation that corresponds to a listener.
@@ -255,45 +256,47 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     // Add the type-erased version to the valid injection targets set.
     erasedTargetNames.add(enclosingElement.toString());
   }
-  
-  private void parseInjectResource(Element element, Map<TypeElement, ViewInjector> targetClassMap,
-		  Set<String> erasedTargetNames){
-	boolean hasError = false;
-	TypeElement enclosingElement = (TypeElement) element.getEnclosingElement();
-	
-	TypeMirror elementType = element.asType();
-	
-	if (elementType instanceof TypeVariable) {
-		TypeVariable typeVariable = (TypeVariable) elementType;
-		elementType = typeVariable.getUpperBound();
-	}
-	
-	// Verify common generated code restrictions.
+
+  private void parseInjectResource(Element element,
+          Map<TypeElement, ViewInjector> targetClassMap,
+          Set<String> erasedTargetNames) {
+    boolean hasError = false;
+    TypeElement enclosingElement = (TypeElement) element.getEnclosingElement();
+
+    TypeMirror elementType = element.asType();
+
+    if (elementType instanceof TypeVariable) {
+      TypeVariable typeVariable = (TypeVariable) elementType;
+      elementType = typeVariable.getUpperBound();
+    }
+
+    // Verify common generated code restrictions.
     hasError = isValidForGeneratedCode(InjectResource.class, "fields", element);
-    
+
     String type = elementType.toString();
-    if(isSubtypeOfType(elementType, STRING_TYPE)){
-    	type = STRING_TYPE;
-    }else if(isSubtypeOfType(elementType, DRAWABLE_TYPE)){
-    	type = DRAWABLE_TYPE;
-    }else if(isSubtypeOfType(elementType, ANIMATION_TYPE)){
-    	type = ANIMATION_TYPE;
-    }else{
-    	error(element, "InjectResource is not supported for (%s.%s)",
+    if (isSubtypeOfType(elementType, STRING_TYPE)) {
+      type = STRING_TYPE;
+    } else if (isSubtypeOfType(elementType, DRAWABLE_TYPE)) {
+      type = DRAWABLE_TYPE;
+    } else if (isSubtypeOfType(elementType, ANIMATION_TYPE)) {
+      type = ANIMATION_TYPE;
+    } else {
+      error(element, "InjectResource is not supported for (%s.%s)",
               enclosingElement.getQualifiedName(), element.getSimpleName());
-    	hasError = true;
+      hasError = true;
     }
-    
-    if(hasError){
-    	return;
+
+    if (hasError) {
+      return;
     }
-	
+
     // Assemble information on the injection point.
     String name = element.getSimpleName().toString();
     int id = element.getAnnotation(InjectResource.class).value();
-    
+
     boolean required = element.getAnnotation(Optional.class) == null;
-    ViewInjector viewInjector = getOrCreateTargetClass(targetClassMap, enclosingElement);
+    ViewInjector viewInjector = getOrCreateTargetClass(targetClassMap,
+            enclosingElement);
     ResourceBinding resourceBinding = new ResourceBinding(name, type, required);
     viewInjector.addResource(id, resourceBinding);
     // Add the type-erased version to the valid injection targets set.

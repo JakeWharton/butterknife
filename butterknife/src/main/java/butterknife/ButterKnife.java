@@ -10,12 +10,10 @@ import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
-import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.util.Log;
 import android.util.Property;
 import android.view.View;
-import android.view.animation.Animation;
 import butterknife.internal.ButterKnifeProcessor;
 
 /**
@@ -93,31 +91,36 @@ public final class ButterKnife {
   /** DO NOT USE: Exposed for generated code. */
   public enum Finder {
     VIEW {
-      @Override public View findOptionalView(Object source, int id) {
+      @Override
+      public View findOptionalView(Object source, int id) {
         return ((View) source).findViewById(id);
       }
 
-			
-      @Override public Context getContext(Object source) {
-	      return ((View) source).getContext();
+      @Override
+      public Context getContext(Object source) {
+        return ((View) source).getContext();
       }
     },
     ACTIVITY {
-      @Override public View findOptionalView(Object source, int id) {
+      @Override
+      public View findOptionalView(Object source, int id) {
         return ((Activity) source).findViewById(id);
       }
-			
-      @Override public Context getContext(Object source) {
-	      return ((Activity) source).getApplicationContext();
+
+      @Override
+      public Context getContext(Object source) {
+        return ((Activity) source).getApplicationContext();
       }
     },
     DIALOG {
-      @Override public View findOptionalView(Object source, int id) {
+      @Override
+      public View findOptionalView(Object source, int id) {
         return ((Dialog) source).findViewById(id);
       }
-			
-      @Override public Context getContext(Object source) {
-	      return ((Dialog) source).getContext();
+
+      @Override
+      public Context getContext(Object source) {
+        return ((Dialog) source).getContext();
       }
     };
 
@@ -132,46 +135,51 @@ public final class ButterKnife {
     public View findRequiredView(Object source, int id, String who) {
       View view = findOptionalView(source, id);
       if (view == null) {
-        throw new IllegalStateException("Required view with id '"
-            + id
-            + "' for "
-            + who
-            + " was not found. If this view is optional add '@Optional' annotation.");
+        throw new IllegalStateException(
+                "Required view with id '"
+                        + id
+                        + "' for "
+                        + who
+                        + " was not found. If this view is optional add '@Optional' annotation.");
       }
       return view;
     }
-    
-    
-    public Object findRequiredResource(Object source, int id, String type, String who){
-    	Object resource = findOptionalResource(source, id, type);
-    	if(resource == null){
-    		throw new IllegalStateException("Required resource with id '"
-    				+ id
-    				+ "' for "
-    				+ who
-    				+ " was not found. If this resource is optional add '@Optional' annotation.");
-    	}
-    	return resource;
+
+    public Object findRequiredResource(Object source, int id, String type,
+            String who) {
+      Object resource = findOptionalResource(source, id, type);
+      if (resource == null) {
+        throw new IllegalStateException(
+                "Required resource with id '"
+                        + id
+                        + "' for "
+                        + who
+                        + " was not found. If this resource is optional add"
+                        + " '@Optional' annotation.");
+      }
+      return resource;
     }
-    
-    public Object findOptionalResource(Object source, int id, String type){
-    	Context context = getContext(source);
-    	Object resource = null;
-    	try{
-	    	if(type.equals(ButterKnifeProcessor.STRING_TYPE)){
-	    		resource = context.getResources().getString(id);
-	    	}else if (type.equals(ButterKnifeProcessor.DRAWABLE_TYPE)){
-	    		resource = context.getResources().getDrawable(id);
-	    	}else if(type.equals(ButterKnifeProcessor.ANIMATION_TYPE)){
-	    		resource = context.getResources().getAnimation(id);
-	    	}
-    	}catch(ClassCastException e){
-    		throw new ClassCastException("Resource with id '"+ id +"' cannot be casted to "+  type.toString());
-    	}
-    	return resource;
+
+    public Object findOptionalResource(Object source, int id, String type) {
+      Context context = getContext(source);
+      Object resource = null;
+      try {
+        if (type.equals(ButterKnifeProcessor.STRING_TYPE)) {
+          resource = context.getResources().getString(id);
+        } else if (type.equals(ButterKnifeProcessor.DRAWABLE_TYPE)) {
+          resource = context.getResources().getDrawable(id);
+        } else if (type.equals(ButterKnifeProcessor.ANIMATION_TYPE)) {
+          resource = context.getResources().getAnimation(id);
+        }
+      } catch (ClassCastException e) {
+        throw new ClassCastException("Resource with id '" + id
+                + "' cannot be casted to " + type.toString());
+      }
+      return resource;
     }
-    
+
     public abstract View findOptionalView(Object source, int id);
+
     public abstract Context getContext(Object source);
   }
 
@@ -218,7 +226,6 @@ public final class ButterKnife {
   public static void inject(View target) {
     inject(target, target, Finder.VIEW);
   }
-  
 
   /**
    * Inject annotated fields and methods in the specified {@link Dialog}. The current content
@@ -229,7 +236,6 @@ public final class ButterKnife {
   public static void inject(Dialog target) {
     inject(target, target, Finder.DIALOG);
   }
-  
 
   /**
    * Inject annotated fields and methods in the specified {@code target} using the {@code source}
