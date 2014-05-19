@@ -14,7 +14,6 @@ import butterknife.OnLongClick;
 import butterknife.OnPageChange;
 import butterknife.OnTextChanged;
 import butterknife.Optional;
-
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -29,7 +28,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.Filer;
 import javax.annotation.processing.ProcessingEnvironment;
@@ -60,7 +58,6 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
   public static final String VIEW_TYPE = "android.view.View";
   public static final String STRING_TYPE = "java.lang.String";
   public static final String DRAWABLE_TYPE = "android.graphics.drawable.Drawable";
-
   public static final String ANIMATION_TYPE = "android.view.animation.Animation";
   private static final String LIST_TYPE = List.class.getCanonicalName();
   private static final List<Class<? extends Annotation>> LISTENERS = Arrays.asList(//
@@ -149,7 +146,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
       }
     }
 
-    // Process each @InjectResource element
+    // Process each @InjectResource element.
     for (Element element : env.getElementsAnnotatedWith(InjectResource.class)) {
       try {
         parseInjectResource(element, targetClassMap, erasedTargetNames);

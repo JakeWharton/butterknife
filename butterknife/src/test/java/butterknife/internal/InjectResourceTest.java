@@ -40,8 +40,9 @@ public class InjectResourceTest {
                                     "    target.drawable = (android.graphics.drawable.Drawable) finder.findRequiredResource(source, 2, \"android.graphics.drawable.Drawable\", \"field 'drawable'\");",
                                     "  }",
                                     "  public static void reset(test.Test target) {",
-                                    "    target.thing = null;",
-                                    "    target.drawable = null;", "  }", "}"));
+                                    "  }",
+                                    "}"
+                                    ));
     ASSERT.about(javaSource()).that(source)
             .processedWith(butterknifeProcessors()).compilesWithoutError()
             .and().generatesSources(expectedSource);

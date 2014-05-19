@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Set;
 
 final class ResourceInjection {
-
   private final int id;
   private final Set<ResourceBinding> resourceBindings = new LinkedHashSet<ResourceBinding>();
 
@@ -36,5 +35,4 @@ final class ResourceInjection {
     }
     return requiredBindings;
   }
-
 }

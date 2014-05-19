@@ -1,7 +1,6 @@
 package butterknife.internal;
 
 final class ResourceBinding implements Binding {
-
   private final String name;
   private final String type;
   private final boolean required;

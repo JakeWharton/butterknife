@@ -11,7 +11,6 @@ import java.util.Map;
 import static butterknife.internal.ButterKnifeProcessor.VIEW_TYPE;
 
 final class ViewInjector {
-
   private final Map<Integer, ViewInjection> viewIdMap = new LinkedHashMap<Integer, ViewInjection>();
   private final Map<Integer, ResourceInjection> resourceIdMap =
           new LinkedHashMap<Integer, ResourceInjection>();
@@ -175,7 +174,6 @@ final class ViewInjector {
 
   private void emitResourceInjection(StringBuilder builder,
           ResourceInjection injection) {
-
     Collection<ResourceBinding> bindings = injection.getResourceBindings();
 
     for (ResourceBinding binding : bindings) {
@@ -362,12 +360,6 @@ final class ViewInjector {
     for (ViewInjection injection : viewIdMap.values()) {
       for (ViewBinding viewBinding : injection.getViewBindings()) {
         builder.append("    target.").append(viewBinding.getName())
-                .append(" = null;\n");
-      }
-    }
-    for (ResourceInjection injection : resourceIdMap.values()) {
-      for (ResourceBinding binding : injection.getResourceBindings()) {
-        builder.append("    target.").append(binding.getName())
                 .append(" = null;\n");
       }
     }

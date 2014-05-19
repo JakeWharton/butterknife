@@ -110,7 +110,7 @@ public final class ButterKnife {
 
       @Override
       public Context getContext(Object source) {
-        return ((Activity) source).getApplicationContext();
+        return ((Activity) source);
       }
     },
     DIALOG {
@@ -173,7 +173,7 @@ public final class ButterKnife {
           resource = context.getResources().getAnimation(id);
         }
       } catch (NotFoundException e) {
-        // Ignore resource not found exception for findOptionalResource
+        // Ignore resource not found exception for findOptionalResource.
         resource = null;
       }
       return resource;
