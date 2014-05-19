@@ -174,6 +174,7 @@ public final class ButterKnife {
         }
       } catch (NotFoundException e) {
         // Ignore resource not found exception for findOptionalResource
+        resource = null;
       }
       return resource;
     }
