@@ -180,16 +180,11 @@ final class ViewInjector {
       builder.append("    target.").append(binding.getName()).append(" = ");
 
       emitCastIfNeeded(builder, "java.lang.Object", binding.getType());
-      if (!binding.isRequired()) {
-        builder.append("finder.findOptionalResource(source, ")
-                .append(injection.getId()).append(", ")
-                .append("\"" + binding.getType()).append("\");\n");
-      } else {
-        builder.append("finder.findRequiredResource(source, ")
-                .append(injection.getId()).append(", ")
-                .append("\"" + binding.getType() + "\", ")
-                .append("\"" + binding.getDescription() + "\");\n");
-      }
+
+      builder.append("finder.findRequiredResource(source, ")
+              .append(injection.getId()).append(", ")
+              .append("\"" + binding.getType() + "\", ")
+              .append("\"" + binding.getDescription() + "\");\n");
     }
   }
 

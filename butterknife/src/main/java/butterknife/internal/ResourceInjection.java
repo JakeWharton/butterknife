@@ -1,8 +1,6 @@
 package butterknife.internal;
 
-import java.util.ArrayList;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Set;
 
 final class ResourceInjection {
@@ -23,16 +21,5 @@ final class ResourceInjection {
 
   public void addResourceBinding(ResourceBinding resourceBinding) {
     resourceBindings.add(resourceBinding);
-  }
-
-  public List<Binding> getRequiredBindings() {
-    List<Binding> requiredBindings = new ArrayList<Binding>();
-
-    for (ResourceBinding binding : resourceBindings) {
-      if (binding.isRequired()) {
-        requiredBindings.add(binding);
-      }
-    }
-    return requiredBindings;
   }
 }

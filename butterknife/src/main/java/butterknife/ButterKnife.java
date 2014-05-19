@@ -146,22 +146,7 @@ public final class ButterKnife {
       return view;
     }
 
-    public Object findRequiredResource(Object source, int id, String type,
-            String who) {
-      Object resource = findOptionalResource(source, id, type);
-      if (resource == null) {
-        throw new IllegalStateException(
-                "Required resource with id '"
-                        + id
-                        + "' for "
-                        + who
-                        + " was not found. If this resource is optional add"
-                        + " '@Optional' annotation.");
-      }
-      return resource;
-    }
-
-    public Object findOptionalResource(Object source, int id, String type) {
+    public Object findRequiredResource(Object source, int id, String type, String who) {
       Context context = getContext(source);
       Object resource = null;
       try {
@@ -173,8 +158,12 @@ public final class ButterKnife {
           resource = context.getResources().getAnimation(id);
         }
       } catch (NotFoundException e) {
-        // Ignore resource not found exception for findOptionalResource.
-        resource = null;
+        throw new NotFoundException(
+                "Required resource of type " + type + " with id '"
+                        + id
+                        + "' for "
+                        + who
+                        + " was not found.");
       }
       return resource;
     }

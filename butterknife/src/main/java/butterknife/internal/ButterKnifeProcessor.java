@@ -283,6 +283,13 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
       hasError = true;
     }
 
+    // Check for the @Optional field annotation.
+    if (element.getAnnotation(Optional.class) != null) {
+      error(element, "Using @Optional with @InjectResource is not allowed (%s.%s)",
+          enclosingElement.getQualifiedName(), element.getSimpleName());
+      hasError = true;
+    }
+
     if (hasError) {
       return;
     }
@@ -290,11 +297,9 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     // Assemble information on the injection point.
     String name = element.getSimpleName().toString();
     int id = element.getAnnotation(InjectResource.class).value();
-
-    boolean required = element.getAnnotation(Optional.class) == null;
     ViewInjector viewInjector = getOrCreateTargetClass(targetClassMap,
             enclosingElement);
-    ResourceBinding resourceBinding = new ResourceBinding(name, type, required);
+    ResourceBinding resourceBinding = new ResourceBinding(name, type);
     viewInjector.addResource(id, resourceBinding);
     // Add the type-erased version to the valid injection targets set.
     erasedTargetNames.add(enclosingElement.toString());
