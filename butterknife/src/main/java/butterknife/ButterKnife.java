@@ -10,6 +10,7 @@ import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
+import android.content.res.Resources.NotFoundException;
 import android.os.Build;
 import android.util.Log;
 import android.util.Property;
@@ -171,9 +172,8 @@ public final class ButterKnife {
         } else if (type.equals(ButterKnifeProcessor.ANIMATION_TYPE)) {
           resource = context.getResources().getAnimation(id);
         }
-      } catch (ClassCastException e) {
-        throw new ClassCastException("Resource with id '" + id
-                + "' cannot be casted to " + type.toString());
+      } catch (NotFoundException e) {
+        // Ignore resource not found exception for findOptionalResource
       }
       return resource;
     }
