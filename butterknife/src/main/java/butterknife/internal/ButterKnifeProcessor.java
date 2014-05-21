@@ -242,14 +242,14 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
     // Verify that the type is a List or an array.
     TypeMirror elementType = element.asType();
-    TypeMirror erasedType = typeUtils.erasure(elementType);
+    String erasedType = doubleErasure(elementType);
     TypeMirror viewType = null;
     CollectionBinding.Kind kind = null;
     if (elementType.getKind() == TypeKind.ARRAY) {
       ArrayType arrayType = (ArrayType) elementType;
       viewType = arrayType.getComponentType();
       kind = CollectionBinding.Kind.ARRAY;
-    } else if (LIST_TYPE.equals(erasedType.toString())) {
+    } else if (LIST_TYPE.equals(erasedType)) {
       DeclaredType declaredType = (DeclaredType) elementType;
       List<? extends TypeMirror> typeArguments = declaredType.getTypeArguments();
       if (typeArguments.size() != 1) {
@@ -302,6 +302,16 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     viewInjector.addCollection(ids, binding);
 
     erasedTargetNames.add(enclosingElement.toString());
+  }
+
+  /** Uses both {@link Types#erasure} and string manipulation to strip any generic types. */
+  private String doubleErasure(TypeMirror elementType) {
+    String name = typeUtils.erasure(elementType).toString();
+    int typeParamStart = name.indexOf('<');
+    if (typeParamStart != -1) {
+      name = name.substring(0, typeParamStart);
+    }
+    return name;
   }
 
   private void findAndParseListener(RoundEnvironment env,
