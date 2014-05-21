@@ -80,6 +80,7 @@ import java.util.Map;
  * @see OnLongClick
  * @see OnPageChange
  * @see OnTextChanged
+ * @see OnTouch
  */
 public final class ButterKnife {
   private ButterKnife() {

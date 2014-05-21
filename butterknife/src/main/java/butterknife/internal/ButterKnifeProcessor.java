@@ -12,6 +12,7 @@ import butterknife.OnItemSelected;
 import butterknife.OnLongClick;
 import butterknife.OnPageChange;
 import butterknife.OnTextChanged;
+import butterknife.OnTouch;
 import butterknife.Optional;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -66,7 +67,8 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
       OnItemSelected.class, //
       OnLongClick.class, //
       OnPageChange.class, //
-      OnTextChanged.class //
+      OnTextChanged.class, //
+      OnTouch.class //
   );
 
   private Elements elementUtils;
