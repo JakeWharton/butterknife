@@ -122,11 +122,17 @@ final class ViewInjector {
       }
       builder.append("\n        ");
       emitCastIfNeeded(builder, binding.getType());
-      builder.append("finder.findRequiredView(source, ")
-          .append(ids[i])
-          .append(", \"")
-          .append(binding.getName())
-          .append("\")");
+      if (binding.isRequired()) {
+        builder.append("finder.findRequiredView(source, ")
+            .append(ids[i])
+            .append(", \"")
+            .append(binding.getName())
+            .append("\")");
+      } else {
+        builder.append("finder.findOptionalView(source, ")
+            .append(ids[i])
+            .append(")");
+      }
     }
 
     builder.append("\n    );");

@@ -295,9 +295,10 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
     assert viewType != null; // Always false as hasError would have been true.
     String type = viewType.toString();
+    boolean required = element.getAnnotation(Optional.class) == null;
 
     ViewInjector viewInjector = getOrCreateTargetClass(targetClassMap, enclosingElement);
-    CollectionBinding binding = new CollectionBinding(name, type, kind);
+    CollectionBinding binding = new CollectionBinding(name, type, kind, required);
     viewInjector.addCollection(ids, binding);
 
     erasedTargetNames.add(enclosingElement.toString());
