@@ -5,7 +5,6 @@ import static javax.lang.model.element.ElementKind.METHOD;
 import static javax.lang.model.element.Modifier.PRIVATE;
 import static javax.lang.model.element.Modifier.STATIC;
 import static javax.tools.Diagnostic.Kind.ERROR;
-
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -55,6 +54,7 @@ import butterknife.OnItemSelected;
 import butterknife.OnLongClick;
 import butterknife.OnPageChange;
 import butterknife.OnTextChanged;
+import butterknife.OnTouch;
 import butterknife.Optional;
 
 public final class ButterKnifeProcessor extends AbstractProcessor {
@@ -71,7 +71,8 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
       OnItemSelected.class, //
       OnLongClick.class, //
       OnPageChange.class, //
-      OnTextChanged.class //
+      OnTextChanged.class, //
+      OnTouch.class //
   );
   private static final List<Class<? extends Annotation>> RESOURCES = Arrays.asList(//
           InjectString.class, //
@@ -259,14 +260,14 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
     // Verify that the type is a List or an array.
     TypeMirror elementType = element.asType();
-    TypeMirror erasedType = typeUtils.erasure(elementType);
+    String erasedType = doubleErasure(elementType);
     TypeMirror viewType = null;
     CollectionBinding.Kind kind = null;
     if (elementType.getKind() == TypeKind.ARRAY) {
       ArrayType arrayType = (ArrayType) elementType;
       viewType = arrayType.getComponentType();
       kind = CollectionBinding.Kind.ARRAY;
-    } else if (LIST_TYPE.equals(erasedType.toString())) {
+    } else if (LIST_TYPE.equals(erasedType)) {
       DeclaredType declaredType = (DeclaredType) elementType;
       List<? extends TypeMirror> typeArguments = declaredType.getTypeArguments();
       if (typeArguments.size() != 1) {
@@ -312,9 +313,10 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
     assert viewType != null; // Always false as hasError would have been true.
     String type = viewType.toString();
+    boolean required = element.getAnnotation(Optional.class) == null;
 
     ViewInjector viewInjector = getOrCreateTargetClass(targetClassMap, enclosingElement);
-    CollectionBinding binding = new CollectionBinding(name, type, kind);
+    CollectionBinding binding = new CollectionBinding(name, type, kind, required);
     viewInjector.addCollection(ids, binding);
 
     erasedTargetNames.add(enclosingElement.toString());
@@ -390,6 +392,16 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     ViewInjector viewInjector = getOrCreateTargetClass(targetClassMap, enclosingElement);
     viewInjector.addResource(id, resourceBinding);
     erasedTargetNames.add(enclosingElement.toString());
+  }
+
+  /** Uses both {@link Types#erasure} and string manipulation to strip any generic types. */
+  private String doubleErasure(TypeMirror elementType) {
+    String name = typeUtils.erasure(elementType).toString();
+    int typeParamStart = name.indexOf('<');
+    if (typeParamStart != -1) {
+      name = name.substring(0, typeParamStart);
+    }
+    return name;
   }
 
   private void findAndParseListener(RoundEnvironment env,

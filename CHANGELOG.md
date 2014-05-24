@@ -1,6 +1,15 @@
 Change Log
 ==========
 
+Version 5.1.0 *(2014-05-20)*
+----------------------------
+
+ * New listener!
+   * `View`: `@OnTouch`.
+ * Fix: `@Optional` now correctly works for `@InjectViews` fields.
+ * Fix: Correct erasure problem which may have prevented the processor from running in Eclipse.
+
+
 Version 5.0.1 *(2014-05-04)*
 ----------------------------
 

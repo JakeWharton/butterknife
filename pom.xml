@@ -11,7 +11,7 @@
 
   <groupId>com.jakewharton</groupId>
   <artifactId>butterknife-parent</artifactId>
-  <version>5.0.2-SNAPSHOT</version>
+  <version>5.1.1-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>Butter Knife (Parent)</name>

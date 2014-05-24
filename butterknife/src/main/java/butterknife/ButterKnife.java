@@ -82,6 +82,7 @@ import butterknife.internal.ButterKnifeProcessor;
  * @see OnLongClick
  * @see OnPageChange
  * @see OnTextChanged
+ * @see OnTouch
  */
 public final class ButterKnife {
   private ButterKnife() {

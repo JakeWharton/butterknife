@@ -9,11 +9,13 @@ final class CollectionBinding implements Binding {
   private final String name;
   private final String type;
   private final Kind kind;
+  private final boolean required;
 
-  CollectionBinding(String name, String type, Kind kind) {
+  CollectionBinding(String name, String type, Kind kind, boolean required) {
     this.name = name;
     this.type = type;
     this.kind = kind;
+    this.required = required;
   }
 
   public String getName() {
@@ -26,6 +28,10 @@ final class CollectionBinding implements Binding {
 
   public Kind getKind() {
     return kind;
+  }
+
+  public boolean isRequired() {
+    return required;
   }
 
   @Override public String getDescription() {

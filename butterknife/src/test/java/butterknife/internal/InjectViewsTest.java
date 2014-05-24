@@ -202,6 +202,46 @@ public class InjectViewsTest {
         .generatesSources(expectedSource);
   }
 
+  @Test public void optional() {
+    JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
+        "package test;",
+        "import android.app.Activity;",
+        "import android.view.View;",
+        "import butterknife.InjectViews;",
+        "import butterknife.Optional;",
+        "import java.util.List;",
+        "public class Test extends Activity {",
+        "    @Optional @InjectViews({1, 2, 3}) List<View> thing;",
+        "}"
+    ));
+
+    JavaFileObject expectedSource = JavaFileObjects.forSourceString("test/Test$$ViewInjector",
+        Joiner.on('\n').join(
+            "package test;",
+            "import android.view.View;",
+            "import butterknife.ButterKnife.Finder;",
+            "public class Test$$ViewInjector {",
+            "  public static void inject(Finder finder, final test.Test target, Object source) {",
+            "    View view;",
+            "    target.thing = Finder.listOf(",
+            "        finder.findOptionalView(source, 1),",
+            "        finder.findOptionalView(source, 2),",
+            "        finder.findOptionalView(source, 3)",
+            "    );",
+            "  }",
+            "  public static void reset(test.Test target) {",
+            "    target.thing = null;",
+            "  }",
+            "}"
+        ));
+
+    ASSERT.about(javaSource()).that(source)
+        .processedWith(butterknifeProcessors())
+        .compilesWithoutError()
+        .and()
+        .generatesSources(expectedSource);
+  }
+
   @Test public void failsIfNoIds() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
         "package test;",
