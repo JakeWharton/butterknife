@@ -9,8 +9,7 @@ import java.util.Map;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.Dialog;
-import android.content.Context;
-import android.content.res.Resources.NotFoundException;
+import android.content.res.Resources;
 import android.os.Build;
 import android.util.Log;
 import android.util.Property;
@@ -98,8 +97,8 @@ public final class ButterKnife {
       }
 
       @Override
-      public Context getContext(Object source) {
-        return ((View) source).getContext();
+      public Resources getResources(Object source) {
+        return ((View) source).getContext().getResources();
       }
     },
     ACTIVITY {
@@ -109,8 +108,8 @@ public final class ButterKnife {
       }
 
       @Override
-      public Context getContext(Object source) {
-        return ((Activity) source);
+      public Resources getResources(Object source) {
+        return ((Activity) source).getResources();
       }
     },
     DIALOG {
@@ -120,8 +119,8 @@ public final class ButterKnife {
       }
 
       @Override
-      public Context getContext(Object source) {
-        return ((Dialog) source).getContext();
+      public Resources getResources(Object source) {
+        return ((Dialog) source).getContext().getResources();
       }
     };
 
@@ -146,31 +145,9 @@ public final class ButterKnife {
       return view;
     }
 
-    public Object findRequiredResource(Object source, int id, String type, String who) {
-      Context context = getContext(source);
-      Object resource = null;
-      try {
-        if (type.equals(ButterKnifeProcessor.STRING_TYPE)) {
-          resource = context.getResources().getString(id);
-        } else if (type.equals(ButterKnifeProcessor.DRAWABLE_TYPE)) {
-          resource = context.getResources().getDrawable(id);
-        } else if (type.equals(ButterKnifeProcessor.ANIMATION_TYPE)) {
-          resource = context.getResources().getAnimation(id);
-        }
-      } catch (NotFoundException e) {
-        throw new NotFoundException(
-                "Required resource of type " + type + " with id '"
-                        + id
-                        + "' for "
-                        + who
-                        + " was not found.");
-      }
-      return resource;
-    }
-
     public abstract View findOptionalView(Object source, int id);
 
-    public abstract Context getContext(Object source);
+    public abstract Resources getResources(Object source);
   }
 
   /** An action that can be applied to a list of views. */

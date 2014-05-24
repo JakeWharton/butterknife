@@ -179,12 +179,10 @@ final class ViewInjector {
     for (ResourceBinding binding : bindings) {
       builder.append("    target.").append(binding.getName()).append(" = ");
 
-      emitCastIfNeeded(builder, "java.lang.Object", binding.getType());
+      builder.append("finder.getResources(source).")
+              .append(binding.getGetter())
+              .append("(" + injection.getId() + ");\n");
 
-      builder.append("finder.findRequiredResource(source, ")
-              .append(injection.getId()).append(", ")
-              .append("\"" + binding.getType() + "\", ")
-              .append("\"" + binding.getDescription() + "\");\n");
     }
   }
 

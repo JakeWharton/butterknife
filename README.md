@@ -9,14 +9,16 @@ for you.
  * Eliminate `findViewById` calls by using `@InjectView` on fields.
  * Group multiple views in a list using `@InjectViews`. Operate on all of them at once with actions,
    setters, or properties.
+ * Find resources using `@InjectString, @InjectDrawable & @InjectColor`
  * Eliminate anonymous inner-classes for listeners by annotating methods with `@OnClick` and others.
 
 ```java
 class ExampleActivity extends Activity {
   @InjectView(R.id.user) EditText username;
   @InjectView(R.id.pass) EditText password;
-  @InjectResource(R.string.user_name) String name;
-  @InjectResource(R.drawable.user_pic) Drawable userPic;
+  @InjectString(R.string.user_name) String name;
+  @InjectDrawable(R.drawable.user_pic) Drawable userPic;
+  @InjectColor(R.color.white) int whiteColor;
 
   @OnClick(R.id.submit) void submit() {
     // TODO call server...

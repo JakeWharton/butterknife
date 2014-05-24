@@ -21,10 +21,13 @@ public class InjectResourceTest {
                     "import android.app.Activity;",
                     "import android.view.View;",
                     "import android.graphics.drawable.Drawable;",
-                    "import butterknife.InjectResource;",
+                    "import butterknife.InjectString;",
+                    "import butterknife.InjectDrawable;",
+                    "import butterknife.InjectColor;",
                     "public class Test extends Activity {",
-                    "    @InjectResource(1) String thing;",
-                    "    @InjectResource(2) Drawable drawable;", "}"));
+                    "    @InjectString(1) String thing;",
+                    "    @InjectColor(2) int color;",
+                    "    @InjectDrawable(3) Drawable drawable;", "}"));
 
     JavaFileObject expectedSource = JavaFileObjects
             .forSourceString(
@@ -36,8 +39,9 @@ public class InjectResourceTest {
                                     "public class Test$$ViewInjector {",
                                     "  public static void inject(Finder finder, final test.Test target, Object source) {",
                                     "    View view;",
-                                    "    target.thing = (java.lang.String) finder.findRequiredResource(source, 1, \"java.lang.String\", \"field 'thing'\");",
-                                    "    target.drawable = (android.graphics.drawable.Drawable) finder.findRequiredResource(source, 2, \"android.graphics.drawable.Drawable\", \"field 'drawable'\");",
+                                    "    target.thing = finder.getResources(source).getString(1);",
+                                    "    target.color = finder.getResources(source).getColor(2);",
+                                    "    target.drawable = finder.getResources(source).getDrawable(3);",
                                     "  }",
                                     "  public static void reset(test.Test target) {",
                                     "  }",
