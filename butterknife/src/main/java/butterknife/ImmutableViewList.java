@@ -2,12 +2,13 @@ package butterknife;
 
 import android.view.View;
 import java.util.AbstractList;
+import java.util.RandomAccess;
 
 /**
  * An immutable list of views which is lighter than {@code
  * Collections.unmodifiableList(new ArrayList<>(Arrays.asList(foo, bar)))}.
  */
-final class ImmutableViewList<T extends View> extends AbstractList<T> {
+final class ImmutableViewList<T extends View> extends AbstractList<T> implements RandomAccess {
   private final T[] views;
 
   ImmutableViewList(T[] views) {
