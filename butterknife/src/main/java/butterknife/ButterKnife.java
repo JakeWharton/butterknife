@@ -252,10 +252,11 @@ public final class ButterKnife {
     } catch (RuntimeException e) {
       throw e;
     } catch (Exception e) {
-      if (e instanceof InvocationTargetException) {
-        e = (Exception) e.getCause();
+      Throwable t = e;
+      if (t instanceof InvocationTargetException) {
+        t = t.getCause();
       }
-      throw new RuntimeException("Unable to inject views for " + target, e);
+      throw new RuntimeException("Unable to inject views for " + target, t);
     }
   }
 
