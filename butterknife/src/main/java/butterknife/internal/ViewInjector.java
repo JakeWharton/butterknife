@@ -12,8 +12,10 @@ import static butterknife.internal.ButterKnifeProcessor.VIEW_TYPE;
 
 final class ViewInjector {
   private final Map<Integer, ViewInjection> viewIdMap = new LinkedHashMap<Integer, ViewInjection>();
+  private final Map<Integer, ResourceInjection> resourceIdMap =
+          new LinkedHashMap<Integer, ResourceInjection>();
   private final Map<CollectionBinding, int[]> collectionBindings =
-      new LinkedHashMap<CollectionBinding, int[]>();
+          new LinkedHashMap<CollectionBinding, int[]>();
   private final String classPackage;
   private final String className;
   private final String targetClass;
@@ -27,6 +29,10 @@ final class ViewInjector {
 
   void addView(int id, ViewBinding binding) {
     getOrCreateViewInjection(id).addViewBinding(binding);
+  }
+
+  void addResource(int id, ResourceBinding binding) {
+    getOrCreateResourceInjection(id).addResourceBinding(binding);
   }
 
   boolean addListener(int id, ListenerClass listener, ListenerMethod method,
@@ -54,6 +60,15 @@ final class ViewInjector {
       viewIdMap.put(id, viewId);
     }
     return viewId;
+  }
+
+  private ResourceInjection getOrCreateResourceInjection(int id) {
+    ResourceInjection resourceId = resourceIdMap.get(id);
+    if (resourceId == null) {
+      resourceId = new ResourceInjection(id);
+      resourceIdMap.put(id, resourceId);
+    }
+    return resourceId;
   }
 
   String getFqcn() {
@@ -92,6 +107,11 @@ final class ViewInjector {
     // Loop over each view injection and emit it.
     for (ViewInjection injection : viewIdMap.values()) {
       emitViewInjection(builder, injection);
+    }
+
+    // Loop over each resource injection and emit it.
+    for (ResourceInjection injection : resourceIdMap.values()) {
+      emitResourceInjection(builder, injection);
     }
 
     // Loop over each collection binding and emit it.
@@ -156,6 +176,20 @@ final class ViewInjector {
 
     emitViewBindings(builder, injection);
     emitListenerBindings(builder, injection);
+  }
+
+  private void emitResourceInjection(StringBuilder builder,
+          ResourceInjection injection) {
+    Collection<ResourceBinding> bindings = injection.getResourceBindings();
+
+    for (ResourceBinding binding : bindings) {
+      builder.append("    target.").append(binding.getName()).append(" = ");
+
+      builder.append("finder.getResources(source).")
+              .append(binding.getGetter())
+              .append("(" + injection.getId() + ");\n");
+
+    }
   }
 
   private void emitViewBindings(StringBuilder builder, ViewInjection injection) {
@@ -316,19 +350,21 @@ final class ViewInjector {
   }
 
   private void emitReset(StringBuilder builder) {
-    builder.append("  public static void reset(").append(targetClass).append(" target) {\n");
+    builder.append("  public static void reset(").append(targetClass)
+            .append(" target) {\n");
     if (parentInjector != null) {
-      builder.append("    ")
-          .append(parentInjector)
-          .append(".reset(target);\n\n");
+      builder.append("    ").append(parentInjector)
+              .append(".reset(target);\n\n");
     }
     for (ViewInjection injection : viewIdMap.values()) {
       for (ViewBinding viewBinding : injection.getViewBindings()) {
-        builder.append("    target.").append(viewBinding.getName()).append(" = null;\n");
+        builder.append("    target.").append(viewBinding.getName())
+                .append(" = null;\n");
       }
     }
     for (CollectionBinding collectionBinding : collectionBindings.keySet()) {
-      builder.append("    target.").append(collectionBinding.getName()).append(" = null;\n");
+      builder.append("    target.").append(collectionBinding.getName())
+              .append(" = null;\n");
     }
     builder.append("  }\n");
   }

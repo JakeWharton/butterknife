@@ -1,18 +1,20 @@
 package butterknife;
 
-import android.annotation.TargetApi;
-import android.app.Activity;
-import android.app.Dialog;
-import android.os.Build;
-import android.util.Log;
-import android.util.Property;
-import android.view.View;
-import butterknife.internal.ButterKnifeProcessor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+
+import android.annotation.TargetApi;
+import android.app.Activity;
+import android.app.Dialog;
+import android.content.res.Resources;
+import android.os.Build;
+import android.util.Log;
+import android.util.Property;
+import android.view.View;
+import butterknife.internal.ButterKnifeProcessor;
 
 /**
  * View "injection" utilities. Use this class to simplify finding views and attaching listeners by
@@ -90,18 +92,36 @@ public final class ButterKnife {
   /** DO NOT USE: Exposed for generated code. */
   public enum Finder {
     VIEW {
-      @Override public View findOptionalView(Object source, int id) {
+      @Override
+      public View findOptionalView(Object source, int id) {
         return ((View) source).findViewById(id);
+      }
+
+      @Override
+      public Resources getResources(Object source) {
+        return ((View) source).getContext().getResources();
       }
     },
     ACTIVITY {
-      @Override public View findOptionalView(Object source, int id) {
+      @Override
+      public View findOptionalView(Object source, int id) {
         return ((Activity) source).findViewById(id);
+      }
+
+      @Override
+      public Resources getResources(Object source) {
+        return ((Activity) source).getResources();
       }
     },
     DIALOG {
-      @Override public View findOptionalView(Object source, int id) {
+      @Override
+      public View findOptionalView(Object source, int id) {
         return ((Dialog) source).findViewById(id);
+      }
+
+      @Override
+      public Resources getResources(Object source) {
+        return ((Dialog) source).getContext().getResources();
       }
     };
 
@@ -116,16 +136,19 @@ public final class ButterKnife {
     public View findRequiredView(Object source, int id, String who) {
       View view = findOptionalView(source, id);
       if (view == null) {
-        throw new IllegalStateException("Required view with id '"
-            + id
-            + "' for "
-            + who
-            + " was not found. If this view is optional add '@Optional' annotation.");
+        throw new IllegalStateException(
+                "Required view with id '"
+                        + id
+                        + "' for "
+                        + who
+                        + " was not found. If this view is optional add '@Optional' annotation.");
       }
       return view;
     }
 
     public abstract View findOptionalView(Object source, int id);
+
+    public abstract Resources getResources(Object source);
   }
 
   /** An action that can be applied to a list of views. */

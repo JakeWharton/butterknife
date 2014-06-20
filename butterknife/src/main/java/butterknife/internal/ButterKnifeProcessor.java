@@ -1,19 +1,10 @@
 package butterknife.internal;
 
-import butterknife.InjectView;
-import butterknife.InjectViews;
-import butterknife.OnCheckedChanged;
-import butterknife.OnClick;
-import butterknife.OnEditorAction;
-import butterknife.OnFocusChange;
-import butterknife.OnItemClick;
-import butterknife.OnItemLongClick;
-import butterknife.OnItemSelected;
-import butterknife.OnLongClick;
-import butterknife.OnPageChange;
-import butterknife.OnTextChanged;
-import butterknife.OnTouch;
-import butterknife.Optional;
+import static javax.lang.model.element.ElementKind.CLASS;
+import static javax.lang.model.element.ElementKind.METHOD;
+import static javax.lang.model.element.Modifier.PRIVATE;
+import static javax.lang.model.element.Modifier.STATIC;
+import static javax.tools.Diagnostic.Kind.ERROR;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -28,6 +19,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.Filer;
 import javax.annotation.processing.ProcessingEnvironment;
@@ -47,15 +39,27 @@ import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 import javax.tools.JavaFileObject;
 
-import static javax.lang.model.element.ElementKind.CLASS;
-import static javax.lang.model.element.ElementKind.METHOD;
-import static javax.lang.model.element.Modifier.PRIVATE;
-import static javax.lang.model.element.Modifier.STATIC;
-import static javax.tools.Diagnostic.Kind.ERROR;
+import butterknife.InjectColor;
+import butterknife.InjectDrawable;
+import butterknife.InjectString;
+import butterknife.InjectView;
+import butterknife.InjectViews;
+import butterknife.OnCheckedChanged;
+import butterknife.OnClick;
+import butterknife.OnEditorAction;
+import butterknife.OnFocusChange;
+import butterknife.OnItemClick;
+import butterknife.OnItemLongClick;
+import butterknife.OnItemSelected;
+import butterknife.OnLongClick;
+import butterknife.OnPageChange;
+import butterknife.OnTextChanged;
+import butterknife.OnTouch;
+import butterknife.Optional;
 
 public final class ButterKnifeProcessor extends AbstractProcessor {
   public static final String SUFFIX = "$$ViewInjector";
-  static final String VIEW_TYPE = "android.view.View";
+  public static final String VIEW_TYPE = "android.view.View";
   private static final String LIST_TYPE = List.class.getCanonicalName();
   private static final List<Class<? extends Annotation>> LISTENERS = Arrays.asList(//
       OnCheckedChanged.class, //
@@ -69,6 +73,11 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
       OnPageChange.class, //
       OnTextChanged.class, //
       OnTouch.class //
+  );
+  private static final List<Class<? extends Annotation>> RESOURCES = Arrays.asList(//
+          InjectString.class, //
+          InjectColor.class, //
+          InjectDrawable.class //
   );
 
   private Elements elementUtils;
@@ -90,7 +99,9 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     for (Class<? extends Annotation> listener : LISTENERS) {
       supportTypes.add(listener.getCanonicalName());
     }
-
+    for (Class<? extends Annotation> resource : RESOURCES) {
+      supportTypes.add(resource.getCanonicalName());
+    }
     return supportTypes;
   }
 
@@ -141,6 +152,11 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
         error(element, "Unable to generate view injector for @InjectViews.\n\n%s", stackTrace);
       }
+    }
+
+    // Process each annotation that corresponds to a resource.
+    for (Class<? extends Annotation> resource : RESOURCES) {
+      findAndParseResource(env, resource, targetClassMap, erasedTargetNames);
     }
 
     // Process each annotation that corresponds to a listener.
@@ -303,6 +319,78 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     CollectionBinding binding = new CollectionBinding(name, type, kind, required);
     viewInjector.addCollection(ids, binding);
 
+    erasedTargetNames.add(enclosingElement.toString());
+  }
+
+  private void findAndParseResource(RoundEnvironment env,
+          Class<? extends Annotation> annotationClass,
+          Map<TypeElement, ViewInjector> targetClassMap,
+          Set<String> erasedTargetNames) {
+    for (Element element : env.getElementsAnnotatedWith(annotationClass)) {
+      try {
+        parseResourceAnnotation(annotationClass, element, targetClassMap, erasedTargetNames);
+      } catch (Exception e) {
+        StringWriter stackTrace = new StringWriter();
+        e.printStackTrace(new PrintWriter(stackTrace));
+
+        error(element, "Unable to generate resource injector for @%s.\n\n%s",
+                annotationClass.getSimpleName(), stackTrace.toString());
+      }
+    }
+  }
+
+  private void parseResourceAnnotation(
+          Class<? extends Annotation> annotationClass, Element element,
+          Map<TypeElement, ViewInjector> targetClassMap,
+          Set<String> erasedTargetNames) throws Exception {
+    boolean hasError = false;
+    TypeElement enclosingElement = (TypeElement) element.getEnclosingElement();
+
+    TypeMirror elementType = element.asType();
+
+    if (elementType instanceof TypeVariable) {
+      TypeVariable typeVariable = (TypeVariable) elementType;
+      elementType = typeVariable.getUpperBound();
+    }
+
+    // Check for the @Optional field annotation.
+    if (element.getAnnotation(Optional.class) != null) {
+      error(element, "Using @Optional with %s is not allowed (%s.%s)",
+              annotationClass.getSimpleName(),
+              enclosingElement.getQualifiedName(), element.getSimpleName());
+      hasError = true;
+    }
+
+    // Verify common generated code restrictions.
+    hasError = isValidForGeneratedCode(annotationClass, "fields", element);
+
+    ResourceClass resourceClass = annotationClass.getAnnotation(ResourceClass.class);
+    if (resourceClass == null) {
+      throw new IllegalStateException(String.format("No @%s defined on @%s.",
+              ResourceClass.class.getSimpleName(),
+              annotationClass.getSimpleName()));
+    }
+    String[] targetTypes = resourceClass.targetType();
+    String targetType = getMatchTypeIfAny(elementType, targetTypes);
+    if (targetType.length() == 0) {
+      error(element, "%s is not supported for (%s.%s)", annotationClass.getSimpleName(),
+              enclosingElement.getQualifiedName(), element.getSimpleName());
+      hasError = true;
+    }
+
+    if (hasError) {
+      return;
+    }
+    // Assemble information on the injection point.
+    Annotation annotation = element.getAnnotation(annotationClass);
+    Method annotationValue = annotationClass.getDeclaredMethod("value");
+
+    String getter = resourceClass.getter();
+    String name = element.getSimpleName().toString();
+    int id = (Integer) annotationValue.invoke(annotation);
+    ResourceBinding resourceBinding = new ResourceBinding(name, targetType, getter);
+    ViewInjector viewInjector = getOrCreateTargetClass(targetClassMap, enclosingElement);
+    viewInjector.addResource(id, resourceBinding);
     erasedTargetNames.add(enclosingElement.toString());
   }
 
@@ -501,6 +589,17 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
     // Add the type-erased version to the valid injection targets set.
     erasedTargetNames.add(enclosingElement.toString());
+  }
+
+  private String getMatchTypeIfAny(TypeMirror typeMirror, String[] otherTypes) {
+    String subType = "";
+    for (String otherType : otherTypes) {
+      if (isSubtypeOfType(typeMirror, otherType)) {
+        subType = otherType;
+        break;
+      }
+    }
+    return subType;
   }
 
   private boolean isSubtypeOfType(TypeMirror typeMirror, String otherType) {
