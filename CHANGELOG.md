@@ -1,6 +1,12 @@
 Change Log
 ==========
 
+Version 5.1.1 *(2014-06-19)*
+----------------------------
+
+ * Fix: Correct rare `ClassCastException` when unwinding an `InvocationTargetException`.
+
+
 Version 5.1.0 *(2014-05-20)*
 ----------------------------
 

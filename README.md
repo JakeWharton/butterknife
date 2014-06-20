@@ -43,12 +43,12 @@ Download [the latest JAR][2] or grab via Maven:
 <dependency>
   <groupId>com.jakewharton</groupId>
   <artifactId>butterknife</artifactId>
-  <version>5.1.0</version>
+  <version>5.1.1</version>
 </dependency>
 ```
 or Gradle:
 ```groovy
-compile 'com.jakewharton:butterknife:5.1.0'
+compile 'com.jakewharton:butterknife:5.1.1'
 ```
 
 
