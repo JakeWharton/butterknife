@@ -300,6 +300,41 @@ public class OnClickTest {
         .generatesSources(expectedSource);
   }
 
+
+  @Test public void failsInJavaPackage() {
+    JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
+        "package java.test;",
+        "import butterknife.OnClick;",
+        "public class Test {",
+        "  @OnClick(1) void doStuff() {}",
+        "}"
+    ));
+
+    ASSERT.about(javaSource()).that(source)
+        .processedWith(butterknifeProcessors())
+        .failsToCompile()
+        .withErrorContaining(
+            "@OnClick-annotated class incorrectly in Java framework package. (java.test.Test)")
+        .in(source).onLine(4);
+  }
+
+  @Test public void failsInAndroidPackage() {
+    JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
+        "package android.test;",
+        "import butterknife.OnClick;",
+        "public class Test {",
+        "  @OnClick(1) void doStuff() {}",
+        "}"
+    ));
+
+    ASSERT.about(javaSource()).that(source)
+        .processedWith(butterknifeProcessors())
+        .failsToCompile()
+        .withErrorContaining(
+            "@OnClick-annotated class incorrectly in Android framework package. (android.test.Test)")
+        .in(source).onLine(4);
+  }
+
   @Test public void failsIfHasReturnType() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
         "package test;",

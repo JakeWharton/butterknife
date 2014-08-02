@@ -14,6 +14,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import static butterknife.internal.ButterKnifeProcessor.ANDROID_PREFIX;
+import static butterknife.internal.ButterKnifeProcessor.JAVA_PREFIX;
+
 /**
  * View "injection" utilities. Use this class to simplify finding views and attaching listeners by
  * injecting them.
@@ -268,7 +271,7 @@ public final class ButterKnife {
       return inject;
     }
     String clsName = cls.getName();
-    if (clsName.startsWith("android.") || clsName.startsWith("java.")) {
+    if (clsName.startsWith(ANDROID_PREFIX) || clsName.startsWith(JAVA_PREFIX)) {
       if (debug) Log.d(TAG, "MISS: Reached framework class. Abandoning search.");
       return NO_OP;
     }
@@ -291,7 +294,7 @@ public final class ButterKnife {
       return inject;
     }
     String clsName = cls.getName();
-    if (clsName.startsWith("android.") || clsName.startsWith("java.")) {
+    if (clsName.startsWith(ANDROID_PREFIX) || clsName.startsWith(JAVA_PREFIX)) {
       if (debug) Log.d(TAG, "MISS: Reached framework class. Abandoning search.");
       return NO_OP;
     }

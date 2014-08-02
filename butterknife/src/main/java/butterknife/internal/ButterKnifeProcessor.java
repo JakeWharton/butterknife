@@ -55,6 +55,8 @@ import static javax.tools.Diagnostic.Kind.ERROR;
 
 public final class ButterKnifeProcessor extends AbstractProcessor {
   public static final String SUFFIX = "$$ViewInjector";
+  public static final String ANDROID_PREFIX = "android.";
+  public static final String JAVA_PREFIX = "java.";
   static final String VIEW_TYPE = "android.view.View";
   private static final String LIST_TYPE = List.class.getCanonicalName();
   private static final List<Class<? extends Annotation>> LISTENERS = Arrays.asList(//
@@ -192,6 +194,25 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     return hasError;
   }
 
+  private boolean isBindingInWrongPackage(Class<? extends Annotation> annotationClass,
+      Element element) {
+    TypeElement enclosingElement = (TypeElement) element.getEnclosingElement();
+    String qualifiedName = enclosingElement.getQualifiedName().toString();
+
+    if (qualifiedName.startsWith(ANDROID_PREFIX)) {
+      error(element, "@%s-annotated class incorrectly in Android framework package. (%s)",
+          annotationClass.getSimpleName(), qualifiedName);
+      return true;
+    }
+    if (qualifiedName.startsWith(JAVA_PREFIX)) {
+      error(element, "@%s-annotated class incorrectly in Java framework package. (%s)",
+          annotationClass.getSimpleName(), qualifiedName);
+      return true;
+    }
+
+    return false;
+  }
+
   private void parseInjectView(Element element, Map<TypeElement, ViewInjector> targetClassMap,
       Set<String> erasedTargetNames) {
     boolean hasError = false;
@@ -211,6 +232,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
     // Verify common generated code restrictions.
     hasError |= isValidForGeneratedCode(InjectView.class, "fields", element);
+    hasError |= isBindingInWrongPackage(InjectView.class, element);
 
     // Check for the other field annotation.
     if (element.getAnnotation(InjectViews.class) != null) {
@@ -281,6 +303,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
     // Verify common generated code restrictions.
     hasError |= isValidForGeneratedCode(InjectViews.class, "fields", element);
+    hasError |= isBindingInWrongPackage(InjectViews.class, element);
 
     if (hasError) {
       return;
@@ -358,6 +381,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
     // Verify that the method and its containing class are accessible via generated code.
     boolean hasError = isValidForGeneratedCode(annotationClass, "methods", element);
+    hasError |= isBindingInWrongPackage(annotationClass, element);
 
     Set<Integer> seenIds = new LinkedHashSet<Integer>();
     for (int id : ids) {

@@ -298,6 +298,42 @@ public class InjectViewTest {
         .generatesSources(expectedSource1, expectedSource2);
   }
 
+  @Test public void failsInJavaPackage() {
+    JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
+        "package java.test;",
+        "import android.view.View;",
+        "import butterknife.InjectView;",
+        "public class Test {",
+        "  @InjectView(1) View thing;",
+        "}"
+    ));
+
+    ASSERT.about(javaSource()).that(source)
+        .processedWith(butterknifeProcessors())
+        .failsToCompile()
+        .withErrorContaining(
+            "@InjectView-annotated class incorrectly in Java framework package. (java.test.Test)")
+        .in(source).onLine(5);
+  }
+
+  @Test public void failsInAndroidPackage() {
+    JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
+        "package android.test;",
+        "import android.view.View;",
+        "import butterknife.InjectView;",
+        "public class Test {",
+        "  @InjectView(1) View thing;",
+        "}"
+    ));
+
+    ASSERT.about(javaSource()).that(source)
+        .processedWith(butterknifeProcessors())
+        .failsToCompile()
+        .withErrorContaining(
+            "@InjectView-annotated class incorrectly in Android framework package. (android.test.Test)")
+        .in(source).onLine(5);
+  }
+
   @Test public void failsIfInPrivateClass() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
         "package test;",
