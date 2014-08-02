@@ -1,6 +1,13 @@
 Change Log
 ==========
 
+Version 5.1.2 *(2014-08-01)*
+----------------------------
+
+ * Report an error if the annotations are on a class inside the `android.*` or `java.*`
+   package. Since we ignore these packages in the runtime, injection would never work.
+
+
 Version 5.1.1 *(2014-06-19)*
 ----------------------------
 
