@@ -28,9 +28,9 @@ import static java.lang.annotation.RetentionPolicy.CLASS;
 @ListenerClass(
     targetType = "android.view.View",
     setter = "setOnClickListener",
-    type = "android.view.View.OnClickListener",
+    type = "butterknife.internal.DebouncedOnClickListener",
     method = @ListenerMethod(
-        name = "onClick",
+        name = "doClick",
         parameters = "android.view.View"
     )
 )
