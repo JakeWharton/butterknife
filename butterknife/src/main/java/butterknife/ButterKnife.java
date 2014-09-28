@@ -347,4 +347,10 @@ public final class ButterKnife {
   public static <T extends View> T findById(Activity activity, int id) {
     return (T) activity.findViewById(id);
   }
+
+  /** Simpler version of {@link Dialog#findViewById(int)} which infers the target type. */
+  @SuppressWarnings({ "unchecked", "UnusedDeclaration" }) // Checked by runtime cast. Public API.
+  public static <T extends View> T findById(Dialog dialog, int id) {
+    return (T) dialog.findViewById(id);
+  }
 }
