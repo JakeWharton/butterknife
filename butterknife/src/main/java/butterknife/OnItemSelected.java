@@ -1,5 +1,6 @@
 package butterknife;
 
+import android.view.View;
 import butterknife.internal.ListenerClass;
 import butterknife.internal.ListenerMethod;
 import java.lang.annotation.Retention;
@@ -42,7 +43,7 @@ import static java.lang.annotation.RetentionPolicy.CLASS;
 )
 public @interface OnItemSelected {
   /** View IDs to which the method will be bound. */
-  int[] value();
+  int[] value() default {View.NO_ID};
 
   /** Listener callback to which the method will be bound. */
   Callback callback() default Callback.ITEM_SELECTED;

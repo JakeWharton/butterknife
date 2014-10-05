@@ -1,5 +1,6 @@
 package butterknife.internal;
 
+import android.view.View;
 import butterknife.InjectView;
 import butterknife.InjectViews;
 import butterknife.OnCheckedChanged;
@@ -378,6 +379,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     int[] ids = (int[]) annotationValue.invoke(annotation);
     String name = executableElement.getSimpleName().toString();
     boolean required = element.getAnnotation(Optional.class) == null;
+    boolean isRootViewInjection = ids.length == 1 && ids[0] == View.NO_ID;
 
     // Verify that the method and its containing class are accessible via generated code.
     boolean hasError = isValidForGeneratedCode(annotationClass, "methods", element);
@@ -398,6 +400,18 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
       throw new IllegalStateException(
           String.format("No @%s defined on @%s.", ListenerClass.class.getSimpleName(),
               annotationClass.getSimpleName()));
+    }
+
+    if (isRootViewInjection) {
+      // Verify target type is valid for a binding without an id.
+      String targetType = listener.targetType();
+      if (!isSubtypeOfType(enclosingElement.asType(), targetType)) {
+        error(element,
+            "@%s annotation without an ID may only be used with an object of type \"%s\". (%s.%s)",
+            annotationClass.getSimpleName(), targetType,
+            enclosingElement.getQualifiedName(), element.getSimpleName());
+        hasError = true;
+      }
     }
 
     ListenerMethod method;

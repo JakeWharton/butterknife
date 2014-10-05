@@ -444,4 +444,30 @@ public class InjectViewTest {
             "Only one of @InjectView and @InjectViews is allowed. (test.Test.thing)")
         .in(source).onLine(7);
   }
+
+  @Test public void failsRootViewInjectionWithBadTarget() throws Exception {
+    JavaFileObject source = JavaFileObjects.forSourceString("test.Test",
+        Joiner.on('\n').join(
+            "package test;",
+            "import android.content.Context;",
+            "import android.view.View;",
+            "import butterknife.OnItemClick;",
+            "import butterknife.InjectView;",
+            "public class Test extends View {",
+            "  @OnItemClick void doStuff() {}",
+            "  public Test(Context context) {",
+            "    super(context);",
+            "  }",
+            "}"));
+
+    ASSERT.about(javaSource())
+        .that(source)
+        .processedWith(butterknifeProcessors())
+        .failsToCompile()
+        .withErrorContaining((
+            "@OnItemClick annotation without an ID may only be used with an object of type "
+                + "\"android.widget.AdapterView<?>\". (test.Test.doStuff)"))
+        .in(source)
+        .onLine(7);
+  }
 }

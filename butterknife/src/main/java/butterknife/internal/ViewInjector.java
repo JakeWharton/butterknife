@@ -1,5 +1,6 @@
 package butterknife.internal;
 
+import android.view.View;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -147,11 +148,15 @@ final class ViewInjector {
           .append(injection.getId())
           .append(");\n");
     } else {
-      builder.append("finder.findRequiredView(source, ")
-          .append(injection.getId())
-          .append(", \"");
-      emitHumanDescription(builder, requiredBindings);
-      builder.append("\");\n");
+      if (injection.getId() == View.NO_ID) {
+        builder.append("target;\n");
+      } else {
+        builder.append("finder.findRequiredView(source, ")
+            .append(injection.getId())
+            .append(", \"");
+        emitHumanDescription(builder, requiredBindings);
+        builder.append("\");\n");
+      }
     }
 
     emitViewBindings(builder, injection);
