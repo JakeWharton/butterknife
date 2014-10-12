@@ -2,10 +2,8 @@ package butterknife.internal;
 
 import com.google.common.base.Joiner;
 import com.google.testing.compile.JavaFileObjects;
-
-import org.junit.Test;
-
 import javax.tools.JavaFileObject;
+import org.junit.Test;
 
 import static butterknife.internal.ProcessorTestUtilities.butterknifeProcessors;
 import static com.google.testing.compile.JavaSourceSubjectFactory.javaSource;
@@ -40,6 +38,57 @@ public class OnClickTest {
             "  }",
             "}"
         ));
+
+    ASSERT.about(javaSource()).that(source)
+        .processedWith(butterknifeProcessors())
+        .compilesWithoutError()
+        .and()
+        .generatesSources(expectedSource);
+  }
+
+  @Test public void onClickMultipleInjections() {
+    JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
+        "package test;",
+        "import android.view.View;",
+        "import android.app.Activity;",
+        "import butterknife.OnClick;",
+        "public class Test extends Activity {",
+        "  @OnClick(1) void doStuff1() {}",
+        "  @OnClick(1) void doStuff2() {}",
+        "  @OnClick({1, 2}) void doStuff3(View v) {}",
+        "}"));
+
+    JavaFileObject expectedSource = JavaFileObjects.forSourceString("test/Test$$ViewInjector",
+        Joiner.on('\n').join(
+            "package test;",
+            "import android.view.View;",
+            "import butterknife.ButterKnife.Finder;",
+            "public class Test$$ViewInjector {",
+            "  public static void inject(Finder finder, final test.Test target, Object source) {",
+            "    View view;",
+            "    view = finder.findRequiredView(source, 1, \"method 'doStuff1', method 'doStuff2', and method 'doStuff3'\");",
+            "    view.setOnClickListener(",
+            "      new butterknife.internal.DebouncedOnClickListener() {",
+            "        @Override public void doClick(",
+            "          android.view.View p0",
+            "        ) {",
+            "          target.doStuff1();",
+            "          target.doStuff2();",
+            "          target.doStuff3(p0);",
+            "        }",
+            "      });",
+            "    view = finder.findRequiredView(source, 2, \"method 'doStuff3'\");",
+            "    view.setOnClickListener(",
+            "      new butterknife.internal.DebouncedOnClickListener() {",
+            "        @Override public void doClick(",
+            "          android.view.View p0",
+            "        ) {",
+            "          target.doStuff3(p0);",
+            "        }",
+            "      });",
+            "  }",
+            "  public static void reset(test.Test target) {",
+            "}"));
 
     ASSERT.about(javaSource()).that(source)
         .processedWith(butterknifeProcessors())
