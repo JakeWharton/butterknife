@@ -31,12 +31,15 @@ final class ViewInjector {
     getOrCreateViewInjection(id).addViewBinding(binding);
   }
 
-  void addListeners(int[] ids, ListenerClass listener, ListenerMethod method,
+  boolean addListener(int id, ListenerClass listener, ListenerMethod method,
       ListenerBinding binding) {
-    for (int id : ids) {
-      ViewInjection viewInjection = getOrCreateViewInjection(id);
-      viewInjection.addListenerBinding(listener, method, binding);
+    ViewInjection viewInjection = getOrCreateViewInjection(id);
+    if (viewInjection.hasListenerBinding(listener, method)
+        && !"void".equals(method.returnType())) {
+      return false;
     }
+    viewInjection.addListenerBinding(listener, method, binding);
+    return true;
   }
 
   void addCollection(int[] ids, CollectionBinding binding) {

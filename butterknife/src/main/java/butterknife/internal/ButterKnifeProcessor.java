@@ -515,7 +515,13 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
     ListenerBinding binding = new ListenerBinding(name, Arrays.asList(parameters), required);
     ViewInjector viewInjector = getOrCreateTargetClass(targetClassMap, enclosingElement);
-    viewInjector.addListeners(ids, listener, method, binding);
+    for (int id : ids) {
+      if (!viewInjector.addListener(id, listener, method, binding)) {
+        error(element, "Multiple listener methods with return value specified for ID %d. (%s.%s)",
+            id, enclosingElement.getQualifiedName(), element.getSimpleName());
+        return;
+      }
+    }
 
     // Add the type-erased version to the valid injection targets set.
     erasedTargetNames.add(enclosingElement.toString());

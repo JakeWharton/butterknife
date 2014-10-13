@@ -31,6 +31,11 @@ final class ViewInjection {
     return listenerBindings;
   }
 
+  public boolean hasListenerBinding(ListenerClass listener, ListenerMethod method) {
+    Map<ListenerMethod, Set<ListenerBinding>> methods = listenerBindings.get(listener);
+    return methods != null && methods.containsKey(method);
+  }
+
   public void addListenerBinding(ListenerClass listener, ListenerMethod method,
       ListenerBinding binding) {
     Map<ListenerMethod, Set<ListenerBinding>> methods = listenerBindings.get(listener);
