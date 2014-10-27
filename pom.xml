@@ -34,7 +34,7 @@
     <junit.version>4.10</junit.version>
     <robolectric.version>2.2</robolectric.version>
     <fest.android.version>1.0.7</fest.android.version>
-    <compile-test.version>0.5</compile-test.version>
+    <compile-test.version>0.6</compile-test.version>
   </properties>
 
   <scm>
