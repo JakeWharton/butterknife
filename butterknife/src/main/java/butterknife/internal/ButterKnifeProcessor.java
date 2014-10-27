@@ -23,6 +23,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.BitSet;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -249,10 +250,19 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     int id = element.getAnnotation(InjectView.class).value();
 
     ViewInjector injector = targetClassMap.get(enclosingElement);
-    if (injector != null && injector.viewIdMapContains(id)) {
-      error(element, "Attempt to use @InjectView for an already injected ID (%d). (%s.%s)", id,
-          enclosingElement.getQualifiedName(), element.getSimpleName());
-      return;
+    if (injector != null) {
+      ViewInjection viewInjection = injector.getViewInjection(id);
+      if (viewInjection != null) {
+        Iterator<ViewBinding> iterator = viewInjection.getViewBindings().iterator();
+        if (iterator.hasNext()) {
+          ViewBinding existingBinding = iterator.next();
+          error(element,
+              "Attempt to use @InjectView for an already injected ID %d on '%s'. (%s.%s)", id,
+              existingBinding.getName(), enclosingElement.getQualifiedName(),
+              element.getSimpleName());
+          return;
+        }
+      }
     }
 
     String name = element.getSimpleName().toString();
