@@ -4,9 +4,11 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static butterknife.internal.ButterKnifeProcessor.VIEW_TYPE;
 
@@ -32,7 +34,8 @@ final class ViewInjector {
   boolean addListener(int id, ListenerClass listener, ListenerMethod method,
       ListenerBinding binding) {
     ViewInjection viewInjection = getOrCreateViewInjection(id);
-    if (viewInjection.hasListenerBinding(listener, method)) {
+    if (viewInjection.hasListenerBinding(listener, method)
+        && !"void".equals(method.returnType())) {
       return false;
     }
     viewInjection.addListenerBinding(listener, method, binding);
@@ -174,7 +177,7 @@ final class ViewInjector {
   }
 
   private void emitListenerBindings(StringBuilder builder, ViewInjection injection) {
-    Map<ListenerClass, Map<ListenerMethod, ListenerBinding>> bindings =
+    Map<ListenerClass, Map<ListenerMethod, Set<ListenerBinding>>> bindings =
         injection.getListenerBindings();
     if (bindings.isEmpty()) {
       return;
@@ -189,9 +192,10 @@ final class ViewInjector {
       extraIndent = "  ";
     }
 
-    for (Map.Entry<ListenerClass, Map<ListenerMethod, ListenerBinding>> e : bindings.entrySet()) {
+    for (Map.Entry<ListenerClass, Map<ListenerMethod, Set<ListenerBinding>>> e
+        : bindings.entrySet()) {
       ListenerClass listener = e.getKey();
-      Map<ListenerMethod, ListenerBinding> methodBindings = e.getValue();
+      Map<ListenerMethod, Set<ListenerBinding>> methodBindings = e.getValue();
 
       // Emit: ((OWNER_TYPE) view).SETTER_NAME(
       boolean needsCast = !VIEW_TYPE.equals(listener.targetType());
@@ -259,20 +263,28 @@ final class ViewInjector {
         }
 
         if (methodBindings.containsKey(method)) {
-          ListenerBinding binding = methodBindings.get(method);
-          builder.append("target.").append(binding.getName()).append('(');
-          List<Parameter> parameters = binding.getParameters();
-          String[] listenerParameters = method.parameters();
-          for (int i = 0, count = parameters.size(); i < count; i++) {
-            Parameter parameter = parameters.get(i);
-            int listenerPosition = parameter.getListenerPosition();
-            emitCastIfNeeded(builder, listenerParameters[listenerPosition], parameter.getType());
-            builder.append('p').append(listenerPosition);
-            if (i < count - 1) {
-              builder.append(", ");
+          Set<ListenerBinding> set = methodBindings.get(method);
+          Iterator<ListenerBinding> iterator = set.iterator();
+
+          while (iterator.hasNext()) {
+            ListenerBinding binding = iterator.next();
+            builder.append("target.").append(binding.getName()).append('(');
+            List<Parameter> parameters = binding.getParameters();
+            String[] listenerParameters = method.parameters();
+            for (int i = 0, count = parameters.size(); i < count; i++) {
+              Parameter parameter = parameters.get(i);
+              int listenerPosition = parameter.getListenerPosition();
+              emitCastIfNeeded(builder, listenerParameters[listenerPosition], parameter.getType());
+              builder.append('p').append(listenerPosition);
+              if (i < count - 1) {
+                builder.append(", ");
+              }
+            }
+            builder.append(");");
+            if (iterator.hasNext()) {
+              builder.append("\n").append("          ");
             }
           }
-          builder.append(");");
         } else if (hasReturnType) {
           builder.append(method.defaultReturn()).append(';');
         }

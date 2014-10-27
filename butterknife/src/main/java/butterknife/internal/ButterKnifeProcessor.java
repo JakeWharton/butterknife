@@ -517,8 +517,8 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     ViewInjector viewInjector = getOrCreateTargetClass(targetClassMap, enclosingElement);
     for (int id : ids) {
       if (!viewInjector.addListener(id, listener, method, binding)) {
-        error(element, "Multiple @%s methods declared for ID %s in %s.",
-            annotationClass.getSimpleName(), id, enclosingElement.getQualifiedName());
+        error(element, "Multiple listener methods with return value specified for ID %d. (%s.%s)",
+            id, enclosingElement.getQualifiedName(), element.getSimpleName());
         return;
       }
     }

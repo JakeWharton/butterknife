@@ -11,8 +11,9 @@ import java.util.Set;
 final class ViewInjection {
   private final int id;
   private final Set<ViewBinding> viewBindings = new LinkedHashSet<ViewBinding>();
-  private final Map<ListenerClass, Map<ListenerMethod, ListenerBinding>> listenerBindings =
-      new LinkedHashMap<ListenerClass, Map<ListenerMethod, ListenerBinding>>();
+  private final LinkedHashMap<ListenerClass, Map<ListenerMethod, Set<ListenerBinding>>>
+      listenerBindings = new LinkedHashMap<ListenerClass,
+      Map<ListenerMethod, Set<ListenerBinding>>>();
 
   ViewInjection(int id) {
     this.id = id;
@@ -26,34 +27,30 @@ final class ViewInjection {
     return viewBindings;
   }
 
-  public Map<ListenerClass, Map<ListenerMethod, ListenerBinding>> getListenerBindings() {
+  public Map<ListenerClass, Map<ListenerMethod, Set<ListenerBinding>>> getListenerBindings() {
     return listenerBindings;
   }
 
   public boolean hasListenerBinding(ListenerClass listener, ListenerMethod method) {
-    Map<ListenerMethod, ListenerBinding> methods = listenerBindings.get(listener);
+    Map<ListenerMethod, Set<ListenerBinding>> methods = listenerBindings.get(listener);
     return methods != null && methods.containsKey(method);
   }
 
   public void addListenerBinding(ListenerClass listener, ListenerMethod method,
       ListenerBinding binding) {
-    Map<ListenerMethod, ListenerBinding> methods = listenerBindings.get(listener);
+    Map<ListenerMethod, Set<ListenerBinding>> methods = listenerBindings.get(listener);
+    Set<ListenerBinding> set = null;
     if (methods == null) {
-      methods = new LinkedHashMap<ListenerMethod, ListenerBinding>();
+      methods = new LinkedHashMap<ListenerMethod, Set<ListenerBinding>>();
       listenerBindings.put(listener, methods);
+    } else {
+      set = methods.get(method);
     }
-    ListenerBinding existing = methods.get(method);
-    if (existing != null) {
-      throw new IllegalStateException("View "
-          + id
-          + " already has listener binding for "
-          + listener.type()
-          + "."
-          + method.name()
-          + " on "
-          + existing.getDescription());
+    if (set == null) {
+      set = new LinkedHashSet<ListenerBinding>();
+      methods.put(method, set);
     }
-    methods.put(method, binding);
+    set.add(binding);
   }
 
   public void addViewBinding(ViewBinding viewBinding) {
@@ -67,10 +64,12 @@ final class ViewInjection {
         requiredBindings.add(viewBinding);
       }
     }
-    for (Map<ListenerMethod, ListenerBinding> methodBinding : listenerBindings.values()) {
-      for (ListenerBinding binding : methodBinding.values()) {
-        if (binding.isRequired()) {
-          requiredBindings.add(binding);
+    for (Map<ListenerMethod, Set<ListenerBinding>> methodBinding : listenerBindings.values()) {
+      for (Set<ListenerBinding> set : methodBinding.values()) {
+        for (ListenerBinding binding : set) {
+          if (binding.isRequired()) {
+            requiredBindings.add(binding);
+          }
         }
       }
     }

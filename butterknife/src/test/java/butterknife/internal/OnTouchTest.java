@@ -46,4 +46,22 @@ public class OnTouchTest {
         .and()
         .generatesSources(expectedSource);
   }
+
+  @Test public void failsMultipleListenersWithReturnValue() throws Exception {
+    JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
+        "package test;",
+        "import android.app.Activity;",
+        "import butterknife.OnTouch;",
+        "public class Test extends Activity {",
+        "  @OnTouch(1) boolean doStuff1() {}",
+        "  @OnTouch(1) boolean doStuff2() {}",
+        "}"));
+
+    ASSERT.about(javaSource()).that(source)
+        .processedWith(butterknifeProcessors())
+        .failsToCompile()
+        .withErrorContaining(
+            "Multiple listener methods with return value specified for ID 1. (test.Test.doStuff2)")
+        .in(source).onLine(6);
+  }
 }
