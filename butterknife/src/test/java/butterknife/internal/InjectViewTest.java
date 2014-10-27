@@ -465,7 +465,7 @@ public class InjectViewTest {
         .processedWith(butterknifeProcessors())
         .failsToCompile()
         .withErrorContaining(
-            "Attempt to use @InjectView for an already injected ID (1). (test.Test.thing2)")
+            "Attempt to use @InjectView for an already injected ID 1 on 'thing1'. (test.Test.thing2)")
         .in(source).onLine(7);
   }
 
