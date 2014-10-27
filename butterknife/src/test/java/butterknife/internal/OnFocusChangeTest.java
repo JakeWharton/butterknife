@@ -6,8 +6,8 @@ import javax.tools.JavaFileObject;
 import org.junit.Test;
 
 import static butterknife.internal.ProcessorTestUtilities.butterknifeProcessors;
+import static com.google.common.truth.Truth.ASSERT;
 import static com.google.testing.compile.JavaSourceSubjectFactory.javaSource;
-import static org.truth0.Truth.ASSERT;
 
 public class OnFocusChangeTest {
   @Test public void focusChange() {

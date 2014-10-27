@@ -1,7 +1,6 @@
 package butterknife.internal;
 
 import java.util.Arrays;
-
 import javax.annotation.processing.Processor;
 
 final class ProcessorTestUtilities {

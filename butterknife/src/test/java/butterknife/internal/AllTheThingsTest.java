@@ -28,8 +28,8 @@ import java.util.List;
 import org.junit.Test;
 
 import static butterknife.internal.ProcessorTestUtilities.butterknifeProcessors;
+import static com.google.common.truth.Truth.ASSERT;
 import static com.google.testing.compile.JavaSourceSubjectFactory.javaSource;
-import static org.truth0.Truth.ASSERT;
 
 @SuppressWarnings("UnusedDeclaration")
 public class AllTheThingsTest {

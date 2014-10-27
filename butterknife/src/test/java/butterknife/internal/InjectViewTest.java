@@ -2,14 +2,12 @@ package butterknife.internal;
 
 import com.google.common.base.Joiner;
 import com.google.testing.compile.JavaFileObjects;
-
+import javax.tools.JavaFileObject;
 import org.junit.Test;
 
-import javax.tools.JavaFileObject;
-
 import static butterknife.internal.ProcessorTestUtilities.butterknifeProcessors;
+import static com.google.common.truth.Truth.ASSERT;
 import static com.google.testing.compile.JavaSourceSubjectFactory.javaSource;
-import static org.truth0.Truth.ASSERT;
 
 public class InjectViewTest {
   @Test public void injectingView() {
