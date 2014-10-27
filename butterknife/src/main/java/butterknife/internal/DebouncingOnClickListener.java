@@ -11,7 +11,7 @@ import android.view.View;
  * A click on one button disables all buttons.
  *
  */
-public abstract class DebouncedOnClickListener implements View.OnClickListener {
+public abstract class DebouncingOnClickListener implements View.OnClickListener {
 
   /**
    * This is static because we want to disable clicks for all click listeners.

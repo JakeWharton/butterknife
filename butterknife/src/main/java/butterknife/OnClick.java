@@ -29,7 +29,7 @@ import static java.lang.annotation.RetentionPolicy.CLASS;
 @ListenerClass(
     targetType = "android.view.View",
     setter = "setOnClickListener",
-    type = "butterknife.internal.DebouncedOnClickListener",
+    type = "butterknife.internal.DebouncingOnClickListener",
     method = @ListenerMethod(
         name = "doClick",
         parameters = "android.view.View"
