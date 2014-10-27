@@ -246,8 +246,16 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     }
 
     // Assemble information on the injection point.
-    String name = element.getSimpleName().toString();
     int id = element.getAnnotation(InjectView.class).value();
+
+    ViewInjector injector = targetClassMap.get(enclosingElement);
+    if (injector != null && injector.viewIdMapContains(id)) {
+      error(element, "Attempt to use @InjectView for an already injected ID (%d). (%s.%s)", id,
+          enclosingElement.getQualifiedName(), element.getSimpleName());
+      return;
+    }
+
+    String name = element.getSimpleName().toString();
     String type = elementType.toString();
     boolean required = element.getAnnotation(Optional.class) == null;
 
@@ -318,6 +326,12 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
       return;
     }
 
+    Integer duplicateId = findDuplicate(ids);
+    if (duplicateId != null) {
+      error(element, "@InjectViews annotation contains duplicate ID %d. (%s.%s)", duplicateId,
+          enclosingElement.getQualifiedName(), element.getSimpleName());
+    }
+
     assert viewType != null; // Always false as hasError would have been true.
     String type = viewType.toString();
     boolean required = element.getAnnotation(Optional.class) == null;
@@ -327,6 +341,19 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     viewInjector.addCollection(ids, binding);
 
     erasedTargetNames.add(enclosingElement.toString());
+  }
+
+  /** Returns the first duplicate element inside an array, null if there are no duplicates. */
+  private static Integer findDuplicate(int[] array) {
+    Set<Integer> seenElements = new LinkedHashSet<Integer>();
+
+    for (int element : array) {
+      if (!seenElements.add(element)) {
+        return element;
+      }
+    }
+
+    return null;
   }
 
   /** Uses both {@link Types#erasure} and string manipulation to strip any generic types. */
@@ -383,14 +410,12 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     boolean hasError = isValidForGeneratedCode(annotationClass, "methods", element);
     hasError |= isBindingInWrongPackage(annotationClass, element);
 
-    Set<Integer> seenIds = new LinkedHashSet<Integer>();
-    for (int id : ids) {
-      if (!seenIds.add(id)) {
-        error(element, "@%s annotation for method contains duplicate ID %d. (%s.%s)",
-            annotationClass.getSimpleName(), id, enclosingElement.getQualifiedName(),
-            element.getSimpleName());
-        hasError = true;
-      }
+    Integer duplicateId = findDuplicate(ids);
+    if (duplicateId != null) {
+      error(element, "@%s annotation for method contains duplicate ID %d. (%s.%s)",
+          annotationClass.getSimpleName(), duplicateId, enclosingElement.getQualifiedName(),
+          element.getSimpleName());
+      hasError = true;
     }
 
     ListenerClass listener = annotationClass.getAnnotation(ListenerClass.class);

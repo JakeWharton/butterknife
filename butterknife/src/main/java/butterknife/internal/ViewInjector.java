@@ -50,6 +50,10 @@ final class ViewInjector {
     this.parentInjector = parentInjector;
   }
 
+  boolean viewIdMapContains(int id) {
+    return viewIdMap.containsKey(id);
+  }
+
   private ViewInjection getOrCreateViewInjection(int id) {
     ViewInjection viewId = viewIdMap.get(id);
     if (viewId == null) {

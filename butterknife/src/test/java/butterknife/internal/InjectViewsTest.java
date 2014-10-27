@@ -327,7 +327,6 @@ public class InjectViewsTest {
         .in(source).onLine(5);
   }
 
-
   @Test public void failsInJavaPackage() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
         "package java.test;",
@@ -439,6 +438,26 @@ public class InjectViewsTest {
         .processedWith(butterknifeProcessors())
         .failsToCompile()
         .withErrorContaining("@InjectViews fields must not be private or static. (test.Test.thing)")
+        .in(source).onLine(7);
+  }
+
+  @Test public void failsIfContainsDuplicateIds() throws Exception {
+    JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
+        "package test;",
+        "import android.app.Activity;",
+        "import android.view.View;",
+        "import butterknife.InjectViews;",
+        "import java.util.List;",
+        "public class Test extends Activity {",
+        "    @InjectViews({1, 1}) List<View> thing;",
+        "}"
+    ));
+
+    ASSERT.about(javaSource()).that(source)
+        .processedWith(butterknifeProcessors())
+        .failsToCompile()
+        .withErrorContaining(
+            "@InjectViews annotation contains duplicate ID 1. (test.Test.thing)")
         .in(source).onLine(7);
   }
 }

@@ -306,7 +306,6 @@ public class OnClickTest {
         .generatesSources(expectedSource);
   }
 
-
   @Test public void optionalAndRequiredSkipsNullCheck() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
         "package test;",
@@ -348,7 +347,6 @@ public class OnClickTest {
         .and()
         .generatesSources(expectedSource);
   }
-
 
   @Test public void failsInJavaPackage() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(

@@ -89,10 +89,11 @@ public class InjectViewTest {
         "import android.app.Activity;",
         "import android.view.View;",
         "import butterknife.InjectView;",
+        "import butterknife.OnClick;",
+        "import java.util.List;",
         "public class Test extends Activity {",
         "  @InjectView(1) View thing1;",
-        "  @InjectView(1) View thing2;",
-        "  @InjectView(1) View thing3;",
+        "  @OnClick(1) void doStuff() {}",
         "}"
     ));
 
@@ -104,15 +105,19 @@ public class InjectViewTest {
             "public class Test$$ViewInjector {",
             "  public static void inject(Finder finder, final test.Test target, Object source) {",
             "    View view;",
-            "    view = finder.findRequiredView(source, 1, \"field 'thing1', field 'thing2', and field 'thing3'\");",
+            "    view = finder.findRequiredView(source, 1, \"field 'thing1' and method 'doStuff'\");",
             "    target.thing1 = view;",
-            "    target.thing2 = view;",
-            "    target.thing3 = view;",
+            "    view.setOnClickListener(",
+            "      new butterknife.internal.DebouncedOnClickListener() {",
+            "        @Override public void doClick(",
+            "          android.view.View p0",
+            "        ) {",
+            "          target.doStuff();",
+            "        }",
+            "      });",
             "  }",
             "  public static void reset(test.Test target) {",
             "    target.thing1 = null;",
-            "    target.thing2 = null;",
-            "    target.thing3 = null;",
             "  }",
             "}"
         ));
@@ -132,8 +137,8 @@ public class InjectViewTest {
         "import butterknife.InjectView;",
         "public class Test extends Activity {",
         "  @InjectView(1) public View thing1;",
-        "  @InjectView(1) View thing2;",
-        "  @InjectView(1) protected View thing3;",
+        "  @InjectView(2) View thing2;",
+        "  @InjectView(3) protected View thing3;",
         "}"
     ));
 
@@ -442,6 +447,26 @@ public class InjectViewTest {
         .failsToCompile()
         .withErrorContaining(
             "Only one of @InjectView and @InjectViews is allowed. (test.Test.thing)")
+        .in(source).onLine(7);
+  }
+
+  @Test public void failsIfAlreadyInjected() throws Exception {
+    JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
+        "package test;",
+        "import android.app.Activity;",
+        "import android.view.View;",
+        "import butterknife.InjectView;",
+        "public class Test extends Activity {",
+        "    @InjectView(1) View thing1;",
+        "    @InjectView(1) View thing2;",
+        "}"
+    ));
+
+    ASSERT.about(javaSource()).that(source)
+        .processedWith(butterknifeProcessors())
+        .failsToCompile()
+        .withErrorContaining(
+            "Attempt to use @InjectView for an already injected ID (1). (test.Test.thing2)")
         .in(source).onLine(7);
   }
 }
