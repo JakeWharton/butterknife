@@ -1,5 +1,6 @@
 package butterknife.internal;
 
+import android.view.View;
 import butterknife.InjectView;
 import butterknife.InjectViews;
 import butterknife.OnCheckedChanged;
@@ -423,6 +424,32 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
       throw new IllegalStateException(
           String.format("No @%s defined on @%s.", ListenerClass.class.getSimpleName(),
               annotationClass.getSimpleName()));
+    }
+
+    for (int id : ids) {
+      if (id == View.NO_ID) {
+        if (ids.length == 1) {
+          if (!required) {
+            error(element, "ID free injection must not be annotated with @Optional. (%s.%s)",
+                enclosingElement.getQualifiedName(), element.getSimpleName());
+            hasError = true;
+          }
+
+          // Verify target type is valid for a binding without an id.
+          String targetType = listener.targetType();
+          if (!isSubtypeOfType(enclosingElement.asType(), targetType)) {
+            error(element, "@%s annotation without an ID may only be used with an object of type "
+                    + "\"%s\". (%s.%s)", annotationClass.getSimpleName(), targetType,
+                enclosingElement.getQualifiedName(), element.getSimpleName());
+            hasError = true;
+          }
+        } else {
+          error(element, "@%s annotation contains invalid ID %d. (%s.%s)",
+              annotationClass.getSimpleName(), id, enclosingElement.getQualifiedName(),
+              element.getSimpleName());
+          hasError = true;
+        }
+      }
     }
 
     ListenerMethod method;
