@@ -90,7 +90,6 @@ public class InjectViewTest {
         "import android.view.View;",
         "import butterknife.InjectView;",
         "import butterknife.OnClick;",
-        "import java.util.List;",
         "public class Test extends Activity {",
         "  @InjectView(1) View thing1;",
         "  @OnClick(1) void doStuff() {}",
@@ -468,5 +467,55 @@ public class InjectViewTest {
         .withErrorContaining(
             "Attempt to use @InjectView for an already injected ID (1). (test.Test.thing2)")
         .in(source).onLine(7);
+  }
+
+  @Test public void failsRootViewInjectionWithBadTarget() throws Exception {
+    JavaFileObject source = JavaFileObjects.forSourceString("test.Test",
+        Joiner.on('\n').join(
+            "package test;",
+            "import android.content.Context;",
+            "import android.view.View;",
+            "import butterknife.OnItemClick;",
+            "public class Test extends View {",
+            "  @OnItemClick void doStuff() {}",
+            "  public Test(Context context) {",
+            "    super(context);",
+            "  }",
+            "}"));
+
+    ASSERT.about(javaSource())
+        .that(source)
+        .processedWith(butterknifeProcessors())
+        .failsToCompile()
+        .withErrorContaining((
+            "@OnItemClick annotation without an ID may only be used with an object of type "
+                + "\"android.widget.AdapterView<?>\". (test.Test.doStuff)"))
+        .in(source)
+        .onLine(6);
+  }
+
+  @Test public void failsOptionalRootViewInjection() throws Exception {
+    JavaFileObject source = JavaFileObjects.forSourceString("test.Test",
+        Joiner.on('\n').join(
+            "package test;",
+            "import android.content.Context;",
+            "import android.view.View;",
+            "import butterknife.Optional;",
+            "import butterknife.OnClick;",
+            "public class Test extends View {",
+            "  @Optional @OnClick void doStuff() {}",
+            "  public Test(Context context) {",
+            "    super(context);",
+            "  }",
+            "}"));
+
+    ASSERT.about(javaSource())
+        .that(source)
+        .processedWith(butterknifeProcessors())
+        .failsToCompile()
+        .withErrorContaining(
+            ("ID free injection must not be annotated with @Optional. (test.Test.doStuff)"))
+        .in(source)
+        .onLine(7);
   }
 }

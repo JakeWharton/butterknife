@@ -180,6 +180,69 @@ public class OnItemClickTest {
         .generatesSources(expectedSource);
   }
 
+  @Test public void onClickRootViewInjection() {
+    JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
+        "package test;",
+        "import android.content.Context;",
+        "import android.widget.ListView;",
+        "import butterknife.OnItemClick;",
+        "public class Test extends ListView {",
+        "  @OnItemClick void doStuff() {}",
+        "  public Test(Context context) {",
+        "    super(context);",
+        "  }",
+        "}"));
+
+    JavaFileObject expectedSource = JavaFileObjects.forSourceString("test/Test$$ViewInjector",
+        Joiner.on('\n').join(
+            "package test;",
+            "import android.view.View;",
+            "import butterknife.ButterKnife.Finder;",
+            "public class Test$$ViewInjector {",
+            "  public static void inject(Finder finder, final test.Test target, Object source) {",
+            "    View view;",
+            "    view = target;",
+            "    ((android.widget.AdapterView<?>) view).setOnItemClickListener(",
+            "      new android.widget.AdapterView.OnItemClickListener() {",
+            "        @Override public void onItemClick(",
+            "          android.widget.AdapterView<?> p0,",
+            "          android.view.View p1,",
+            "          int p2,",
+            "          long p3",
+            "        ) {",
+            "          target.doStuff();",
+            "        }",
+            "      });",
+            "  }",
+            "  public static void reset(test.Test target) {",
+            "  }",
+            "}"
+        ));
+
+    ASSERT.about(javaSource()).that(source)
+        .processedWith(butterknifeProcessors())
+        .compilesWithoutError()
+        .and()
+        .generatesSources(expectedSource);
+  }
+
+  @Test public void failsWithInvalidId() {
+    JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
+        "package test;",
+        "import android.content.Context;",
+        "import android.app.Activity;",
+        "import butterknife.OnItemClick;",
+        "public class Test extends Activity {",
+        "  @OnItemClick({1, -1}) void doStuff() {}",
+        "}"));
+
+    ASSERT.about(javaSource()).that(source)
+        .processedWith(butterknifeProcessors())
+        .failsToCompile()
+        .withErrorContaining("@OnItemClick annotation contains invalid ID -1. (test.Test.doStuff)")
+        .in(source).onLine(6);
+  }
+
   @Test public void failsWithInvalidParameterConfiguration() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
         "package test;",

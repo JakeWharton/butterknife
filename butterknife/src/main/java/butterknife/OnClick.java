@@ -1,5 +1,6 @@
 package butterknife;
 
+import android.view.View;
 import butterknife.internal.ListenerClass;
 import butterknife.internal.ListenerMethod;
 import java.lang.annotation.Retention;
@@ -36,5 +37,5 @@ import static java.lang.annotation.RetentionPolicy.CLASS;
 )
 public @interface OnClick {
   /** View IDs to which the method will be bound. */
-  int[] value();
+  int[] value() default { View.NO_ID };
 }
