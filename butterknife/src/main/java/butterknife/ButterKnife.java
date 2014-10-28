@@ -91,6 +91,7 @@ public final class ButterKnife {
   }
 
   /** DO NOT USE: Exposed for generated code. */
+  @SuppressWarnings("UnusedDeclaration") // Used by generated code.
   public enum Finder {
     VIEW {
       @Override public View findOptionalView(Object source, int id) {
