@@ -3,19 +3,10 @@ package butterknife.internal;
 import android.view.View;
 
 /**
- * A {@link View.OnClickListener} that enables debouncing of multiple clicks posted in a row.
- *
- * Once a click is fired, a post is enqueued to the main thread looper queue and no further click
- * is allowed until that post is dequeued.
- *
- * A click on one button disables all buttons.
- *
+ * A {@linkplain View.OnClickListener click listener} that debounces multiple clicks posted in the
+ * same frame. A click on one button disables all buttons for that frame.
  */
 public abstract class DebouncingOnClickListener implements View.OnClickListener {
-
-  /**
-   * This is static because we want to disable clicks for all click listeners.
-   */
   private static boolean enabled = true;
 
   private static final Runnable ENABLE_AGAIN = new Runnable() {
