@@ -116,13 +116,18 @@ static final Setter&lt;View, Boolean> ENABLED = new Setter&lt;>() {
             <p>An Android <a href="https://developer.android.com/reference/android/util/Property.html"><code>Property</code></a> can also be used with the <code>apply</code> method.</p>
             <pre class="prettyprint">ButterKnife.apply(nameViews, View.ALPHA, 0);</pre>
 
-            <h4 id="click-injection">Click Listener Injection</h4>
-            <p>Click listeners can also automatically be configured onto methods.</p>
+            <h4 id="click-injection">Listener Injection</h4>
+            <p>Listeners can also automatically be configured onto methods.</p>
+            <pre class="prettyprint">@OnClick(R.id.submit)
+public void submit(View view) {
+  // TODO submit data to server...
+}</pre>
+            <p>All arguments to the listener method are optional.</p>
             <pre class="prettyprint">@OnClick(R.id.submit)
 public void submit() {
   // TODO submit data to server...
 }</pre>
-            <p>You can add the view as an argument to the method. Define a specific type and it will automatically be cast.</p>
+            <p>Define a specific type and it will automatically be cast.</p>
             <pre class="prettyprint">@OnClick(R.id.submit)
 public void sayHi(Button button) {
   button.setText("Hello!");
@@ -136,6 +141,14 @@ public void pickDoor(DoorView door) {
     Toast.makeText(this, "Try again", LENGTH_SHORT).show();
   }
 }</pre>
+            <p>Custom views can bind to their own listeners by not specifying an ID.</p>
+            <pre class="prettyprint">public class FancyButton extends Button {
+  @OnClick
+  public void onClick() {
+    // TODO do something!
+  }
+}
+</pre>
 
             <h4 id="reset">Injection Reset</h4>
             <p>Fragments have a different view lifecycle than activities. When injecting a fragment in <code>onCreateView</code>, set the views to <code>null</code> in <code>onDestroyView</code>. Butter Knife has a <code>reset</code> method to do this automatically.</p>
@@ -157,7 +170,7 @@ public void pickDoor(DoorView door) {
 }</pre>
 
             <h4 id="optional">Optional Injections</h4>
-            <p>By default, both <code>@InjectView</code> and <code>@OnClick</code> injections are required. An exception will be thrown if the target view cannot be found.</p>
+            <p>By default, both <code>@InjectView</code> and listener injections are required. An exception will be thrown if the target view cannot be found.</p>
             <p>To suppress this behavior and create an optional injection, add the <code>@Optional</code> annotation to the field or method.</p>
             <pre class="prettyprint">@Optional @InjectView(R.id.might_not_be_there) TextView mightNotBeThere;
 
@@ -178,7 +191,7 @@ void onNothingSelected() {
 }</pre>
 
             <h4 id="bonus">Bonus</h4>
-            <p>Also included are two <code>findById</code> methods which simplify code that still has to find views on a <code>View</code> or <code>Activity</code>. It uses generics to infer the return type and automatically performs the cast.</p>
+            <p>Also included are <code>findById</code> methods which simplify code that still has to find views on a <code>View</code>, <code>Activity</code>, or <code>Dialog</code>. It uses generics to infer the return type and automatically performs the cast.</p>
             <pre class="prettyprint">View view = LayoutInflater.from(context).inflate(R.layout.thing, null);
 TextView firstName = ButterKnife.findById(view, R.id.first_name);
 TextView lastName = ButterKnife.findById(view, R.id.last_name);
