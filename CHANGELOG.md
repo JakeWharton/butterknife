@@ -1,6 +1,18 @@
 Change Log
 ==========
 
+Version 6.0.0 *(In Development)*
+--------------------------------
+
+ * New: Listeners can bind to the root view being injected by omitting a view ID on the annotation.
+ * Multiple fields binding to the same ID is now considered an error.
+ * `findById` overload for view lookup on `Dialog` instances.
+ * Experimental: Click listeners are now globally debounced per frame. This means that only a single click
+   will be processed per frame preventing race conditions due to queued input events.
+ * Experimental: Multiple methods can bind to the same listener provided that listener's callback method
+   does not require a return value.
+
+
 Version 5.1.2 *(2014-08-01)*
 ----------------------------
 
