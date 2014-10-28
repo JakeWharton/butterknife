@@ -124,4 +124,15 @@ public class ButterKnifeTest {
     ButterKnife.reset(new Activity());
     assertThat(ButterKnife.RESETTERS).isEmpty();
   }
+
+  @Test public void finderThrowsNiceError() {
+    View view = new View(Robolectric.application);
+    try {
+      ButterKnife.Finder.VIEW.findRequiredView(view, android.R.id.button1, "yo mama");
+    } catch (IllegalStateException e) {
+      assertThat(e).hasMessage("Required view 'button1' with ID "
+          + android.R.id.button1
+          + " for yo mama was not found. If this view is optional add '@Optional' annotation.");
+    }
+  }
 }

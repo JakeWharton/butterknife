@@ -3,6 +3,7 @@ package butterknife;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.Dialog;
+import android.content.Context;
 import android.os.Build;
 import android.util.Log;
 import android.util.Property;
@@ -97,15 +98,27 @@ public final class ButterKnife {
       @Override public View findOptionalView(Object source, int id) {
         return ((View) source).findViewById(id);
       }
+
+      @Override protected Context getContext(Object source) {
+        return ((View) source).getContext();
+      }
     },
     ACTIVITY {
       @Override public View findOptionalView(Object source, int id) {
         return ((Activity) source).findViewById(id);
       }
+
+      @Override protected Context getContext(Object source) {
+        return (Activity) source;
+      }
     },
     DIALOG {
       @Override public View findOptionalView(Object source, int id) {
         return ((Dialog) source).findViewById(id);
+      }
+
+      @Override protected Context getContext(Object source) {
+        return ((Dialog) source).getContext();
       }
     };
 
@@ -120,9 +133,12 @@ public final class ButterKnife {
     public View findRequiredView(Object source, int id, String who) {
       View view = findOptionalView(source, id);
       if (view == null) {
-        throw new IllegalStateException("Required view with id '"
+        String name = getContext(source).getResources().getResourceEntryName(id);
+        throw new IllegalStateException("Required view '"
+            + name
+            + "' with ID "
             + id
-            + "' for "
+            + " for "
             + who
             + " was not found. If this view is optional add '@Optional' annotation.");
       }
@@ -130,6 +146,8 @@ public final class ButterKnife {
     }
 
     public abstract View findOptionalView(Object source, int id);
+
+    protected abstract Context getContext(Object source);
   }
 
   /** An action that can be applied to a list of views. */
