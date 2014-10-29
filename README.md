@@ -48,7 +48,7 @@ Download [the latest JAR][2] or grab via Maven:
 ```
 or Gradle:
 ```groovy
-compile 'com.jakewharton:butterknife:6.0.0'
+compile 'com.jakewharton.butterknife:6.0.0'
 ```
 
 
