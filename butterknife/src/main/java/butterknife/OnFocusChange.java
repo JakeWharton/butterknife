@@ -14,7 +14,7 @@ import static java.lang.annotation.RetentionPolicy.CLASS;
  * Bind a method to an {@link OnFocusChangeListener OnFocusChangeListener} on the view for each ID
  * specified.
  * <pre><code>
- * {@literal @}OnFocusChanged(R.id.example) void onFocusChanged(boolean focused) {
+ * {@literal @}OnFocusChange(R.id.example) void onFocusChanged(boolean focused) {
  *   Toast.makeText(this, focused ? "Gained focus" : "Lost focus", LENGTH_SHORT).show();
  * }
  * </code></pre>
