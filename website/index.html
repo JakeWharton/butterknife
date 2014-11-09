@@ -51,7 +51,7 @@
   @InjectView(R.id.button1) Button button1;
   @InjectView(R.id.button2) Button button2;
 
-  @Override View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+  @Override public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
     View view = inflater.inflate(R.layout.fancy_fragment, container, false);
     ButterKnife.inject(this, view);
     // TODO Use "injected" views...
@@ -156,14 +156,14 @@ public void pickDoor(DoorView door) {
   @InjectView(R.id.button1) Button button1;
   @InjectView(R.id.button2) Button button2;
 
-  @Override View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+  @Override public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
     View view = inflater.inflate(R.layout.fancy_fragment, container, false);
     ButterKnife.inject(this, view);
     // TODO Use "injected" views...
     return view;
   }
 
-  @Override void onDestroyView() {
+  @Override public void onDestroyView() {
     super.onDestroyView();
     ButterKnife.reset(this);
   }
