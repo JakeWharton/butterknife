@@ -15,6 +15,7 @@ import butterknife.OnPageChange;
 import butterknife.OnTextChanged;
 import butterknife.OnTouch;
 import butterknife.Optional;
+import com.google.auto.common.SuperficialValidation;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -125,25 +126,41 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
     // Process each @InjectView element.
     for (Element element : env.getElementsAnnotatedWith(InjectView.class)) {
-      try {
-        parseInjectView(element, targetClassMap, erasedTargetNames);
-      } catch (Exception e) {
-        StringWriter stackTrace = new StringWriter();
-        e.printStackTrace(new PrintWriter(stackTrace));
+      if (SuperficialValidation.validateElement(element)) {
+        try {
+          parseInjectView(element, targetClassMap, erasedTargetNames);
+        } catch (ClassCastException e) {
+          // TODO(cgruber): Strip this out once SuperficialValidation handles AnnotationValue right.
+          continue;
+        } catch (Exception e) {
+          StringWriter stackTrace = new StringWriter();
+          e.printStackTrace(new PrintWriter(stackTrace));
 
-        error(element, "Unable to generate view injector for @InjectView.\n\n%s", stackTrace);
+          error(element, "Unable to generate view injector for @InjectView.\n\n%s", stackTrace);
+        }
+      } else {
+        // TODO (cgruber): Track skipped elements and re-try.
+        continue; // To pass checkstyle.
       }
     }
 
     // Process each @InjectViews element.
     for (Element element : env.getElementsAnnotatedWith(InjectViews.class)) {
-      try {
-        parseInjectViews(element, targetClassMap, erasedTargetNames);
-      } catch (Exception e) {
-        StringWriter stackTrace = new StringWriter();
-        e.printStackTrace(new PrintWriter(stackTrace));
+      if (SuperficialValidation.validateElement(element)) {
+        try {
+          parseInjectViews(element, targetClassMap, erasedTargetNames);
+        } catch (ClassCastException e) {
+          // TODO(cgruber): Strip this out once SuperficialValidation handles AnnotationValue right.
+          continue;
+        } catch (Exception e) {
+          StringWriter stackTrace = new StringWriter();
+          e.printStackTrace(new PrintWriter(stackTrace));
 
-        error(element, "Unable to generate view injector for @InjectViews.\n\n%s", stackTrace);
+          error(element, "Unable to generate view injector for @InjectViews.\n\n%s", stackTrace);
+        }
+      } else {
+        // TODO (cgruber): Track skipped elements and re-try.
+        continue; // To pass checkstyle.
       }
     }
 
@@ -396,197 +413,202 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
   private void parseListenerAnnotation(Class<? extends Annotation> annotationClass, Element element,
       Map<TypeElement, ViewInjector> targetClassMap, Set<String> erasedTargetNames)
       throws Exception {
-    // This should be guarded by the annotation's @Target but it's worth a check for safe casting.
-    if (!(element instanceof ExecutableElement) || element.getKind() != METHOD) {
-      throw new IllegalStateException(
-          String.format("@%s annotation must be on a method.", annotationClass.getSimpleName()));
-    }
-
-    ExecutableElement executableElement = (ExecutableElement) element;
-    TypeElement enclosingElement = (TypeElement) element.getEnclosingElement();
-
-    // Assemble information on the injection point.
-    Annotation annotation = element.getAnnotation(annotationClass);
-    Method annotationValue = annotationClass.getDeclaredMethod("value");
-    if (annotationValue.getReturnType() != int[].class) {
-      throw new IllegalStateException(
-          String.format("@%s annotation value() type not int[].", annotationClass));
-    }
-
-    int[] ids = (int[]) annotationValue.invoke(annotation);
-    String name = executableElement.getSimpleName().toString();
-    boolean required = element.getAnnotation(Optional.class) == null;
-
-    // Verify that the method and its containing class are accessible via generated code.
-    boolean hasError = isValidForGeneratedCode(annotationClass, "methods", element);
-    hasError |= isBindingInWrongPackage(annotationClass, element);
-
-    Integer duplicateId = findDuplicate(ids);
-    if (duplicateId != null) {
-      error(element, "@%s annotation for method contains duplicate ID %d. (%s.%s)",
-          annotationClass.getSimpleName(), duplicateId, enclosingElement.getQualifiedName(),
-          element.getSimpleName());
-      hasError = true;
-    }
-
-    ListenerClass listener = annotationClass.getAnnotation(ListenerClass.class);
-    if (listener == null) {
-      throw new IllegalStateException(
-          String.format("No @%s defined on @%s.", ListenerClass.class.getSimpleName(),
-              annotationClass.getSimpleName()));
-    }
-
-    for (int id : ids) {
-      if (id == View.NO_ID) {
-        if (ids.length == 1) {
-          if (!required) {
-            error(element, "ID free injection must not be annotated with @Optional. (%s.%s)",
-                enclosingElement.getQualifiedName(), element.getSimpleName());
-            hasError = true;
-          }
-
-          // Verify target type is valid for a binding without an id.
-          String targetType = listener.targetType();
-          if (!isSubtypeOfType(enclosingElement.asType(), targetType)) {
-            error(element, "@%s annotation without an ID may only be used with an object of type "
-                    + "\"%s\". (%s.%s)", annotationClass.getSimpleName(), targetType,
-                enclosingElement.getQualifiedName(), element.getSimpleName());
-            hasError = true;
-          }
-        } else {
-          error(element, "@%s annotation contains invalid ID %d. (%s.%s)",
-              annotationClass.getSimpleName(), id, enclosingElement.getQualifiedName(),
-              element.getSimpleName());
-          hasError = true;
-        }
-      }
-    }
-
-    ListenerMethod method;
-    ListenerMethod[] methods = listener.method();
-    if (methods.length > 1) {
-      throw new IllegalStateException(String.format("Multiple listener methods specified on @%s.",
-          annotationClass.getSimpleName()));
-    } else if (methods.length == 1) {
-      if (listener.callbacks() != ListenerClass.NONE.class) {
+    if (SuperficialValidation.validateElement(element)) {
+      // This should be guarded by the annotation's @Target but it's worth a check for safe casting.
+      if (!(element instanceof ExecutableElement) || element.getKind() != METHOD) {
         throw new IllegalStateException(
-            String.format("Both method() and callback() defined on @%s.",
+            String.format("@%s annotation must be on a method.", annotationClass.getSimpleName()));
+      }
+
+      ExecutableElement executableElement = (ExecutableElement) element;
+      TypeElement enclosingElement = (TypeElement) element.getEnclosingElement();
+
+      // Assemble information on the injection point.
+      Annotation annotation = element.getAnnotation(annotationClass);
+      Method annotationValue = annotationClass.getDeclaredMethod("value");
+      if (annotationValue.getReturnType() != int[].class) {
+        throw new IllegalStateException(
+            String.format("@%s annotation value() type not int[].", annotationClass));
+      }
+
+      int[] ids = (int[]) annotationValue.invoke(annotation);
+      String name = executableElement.getSimpleName().toString();
+      boolean required = element.getAnnotation(Optional.class) == null;
+
+      // Verify that the method and its containing class are accessible via generated code.
+      boolean hasError = isValidForGeneratedCode(annotationClass, "methods", element);
+      hasError |= isBindingInWrongPackage(annotationClass, element);
+
+      Integer duplicateId = findDuplicate(ids);
+      if (duplicateId != null) {
+        error(element, "@%s annotation for method contains duplicate ID %d. (%s.%s)",
+            annotationClass.getSimpleName(), duplicateId, enclosingElement.getQualifiedName(),
+            element.getSimpleName());
+        hasError = true;
+      }
+
+      ListenerClass listener = annotationClass.getAnnotation(ListenerClass.class);
+      if (listener == null) {
+        throw new IllegalStateException(
+            String.format("No @%s defined on @%s.", ListenerClass.class.getSimpleName(),
                 annotationClass.getSimpleName()));
       }
-      method = methods[0];
-    } else {
-      Method annotationCallback = annotationClass.getDeclaredMethod("callback");
-      Enum<?> callback = (Enum<?>) annotationCallback.invoke(annotation);
-      Field callbackField = callback.getDeclaringClass().getField(callback.name());
-      method = callbackField.getAnnotation(ListenerMethod.class);
-      if (method == null) {
-        throw new IllegalStateException(
-            String.format("No @%s defined on @%s's %s.%s.", ListenerMethod.class.getSimpleName(),
-                annotationClass.getSimpleName(), callback.getDeclaringClass().getSimpleName(),
-                callback.name()));
+
+      for (int id : ids) {
+        if (id == View.NO_ID) {
+          if (ids.length == 1) {
+            if (!required) {
+              error(element, "ID free injection must not be annotated with @Optional. (%s.%s)",
+                  enclosingElement.getQualifiedName(), element.getSimpleName());
+              hasError = true;
+            }
+
+            // Verify target type is valid for a binding without an id.
+            String targetType = listener.targetType();
+            if (!isSubtypeOfType(enclosingElement.asType(), targetType)) {
+              error(element, "@%s annotation without an ID may only be used with an object of type "
+                      + "\"%s\". (%s.%s)", annotationClass.getSimpleName(), targetType,
+                  enclosingElement.getQualifiedName(), element.getSimpleName());
+              hasError = true;
+            }
+          } else {
+            error(element, "@%s annotation contains invalid ID %d. (%s.%s)",
+                annotationClass.getSimpleName(), id, enclosingElement.getQualifiedName(),
+                element.getSimpleName());
+            hasError = true;
+          }
+        }
       }
-    }
 
-    // Verify that the method has equal to or less than the number of parameters as the listener.
-    List<? extends VariableElement> methodParameters = executableElement.getParameters();
-    if (methodParameters.size() > method.parameters().length) {
-      error(element, "@%s methods can have at most %s parameter(s). (%s.%s)",
-          annotationClass.getSimpleName(), method.parameters().length,
-          enclosingElement.getQualifiedName(), element.getSimpleName());
-      hasError = true;
-    }
-
-    // Verify method return type matches the listener.
-    TypeMirror returnType = executableElement.getReturnType();
-    if (returnType instanceof TypeVariable) {
-      TypeVariable typeVariable = (TypeVariable) returnType;
-      returnType = typeVariable.getUpperBound();
-    }
-    if (!returnType.toString().equals(method.returnType())) {
-      error(element, "@%s methods must have a '%s' return type. (%s.%s)",
-          annotationClass.getSimpleName(), method.returnType(),
-          enclosingElement.getQualifiedName(), element.getSimpleName());
-      hasError = true;
-    }
-
-    if (hasError) {
-      return;
-    }
-
-    Parameter[] parameters = Parameter.NONE;
-    if (!methodParameters.isEmpty()) {
-      parameters = new Parameter[methodParameters.size()];
-      BitSet methodParameterUsed = new BitSet(methodParameters.size());
-      String[] parameterTypes = method.parameters();
-      for (int i = 0; i < methodParameters.size(); i++) {
-        VariableElement methodParameter = methodParameters.get(i);
-        TypeMirror methodParameterType = methodParameter.asType();
-        if (methodParameterType instanceof TypeVariable) {
-          TypeVariable typeVariable = (TypeVariable) methodParameterType;
-          methodParameterType = typeVariable.getUpperBound();
+      ListenerMethod method;
+      ListenerMethod[] methods = listener.method();
+      if (methods.length > 1) {
+        throw new IllegalStateException(String.format("Multiple listener methods specified on @%s.",
+            annotationClass.getSimpleName()));
+      } else if (methods.length == 1) {
+        if (listener.callbacks() != ListenerClass.NONE.class) {
+          throw new IllegalStateException(
+              String.format("Both method() and callback() defined on @%s.",
+                  annotationClass.getSimpleName()));
         }
-
-        for (int j = 0; j < parameterTypes.length; j++) {
-          if (methodParameterUsed.get(j)) {
-            continue;
-          }
-          if (isSubtypeOfType(methodParameterType, parameterTypes[j])) {
-            parameters[i] = new Parameter(j, methodParameterType.toString());
-            methodParameterUsed.set(j);
-            break;
-          }
+        method = methods[0];
+      } else {
+        Method annotationCallback = annotationClass.getDeclaredMethod("callback");
+        Enum<?> callback = (Enum<?>) annotationCallback.invoke(annotation);
+        Field callbackField = callback.getDeclaringClass().getField(callback.name());
+        method = callbackField.getAnnotation(ListenerMethod.class);
+        if (method == null) {
+          throw new IllegalStateException(
+              String.format("No @%s defined on @%s's %s.%s.", ListenerMethod.class.getSimpleName(),
+                  annotationClass.getSimpleName(), callback.getDeclaringClass().getSimpleName(),
+                  callback.name()));
         }
-        if (parameters[i] == null) {
-          StringBuilder builder = new StringBuilder();
-          builder.append("Unable to match @")
-              .append(annotationClass.getSimpleName())
-              .append(" method arguments. (")
-              .append(enclosingElement.getQualifiedName())
-              .append('.')
-              .append(element.getSimpleName())
-              .append(')');
-          for (int j = 0; j < parameters.length; j++) {
-            Parameter parameter = parameters[j];
-            builder.append("\n\n  Parameter #")
-                .append(j + 1)
-                .append(": ")
-                .append(methodParameters.get(j).asType().toString())
-                .append("\n    ");
-            if (parameter == null) {
-              builder.append("did not match any listener parameters");
-            } else {
-              builder.append("matched listener parameter #")
-                  .append(parameter.getListenerPosition() + 1)
-                  .append(": ")
-                  .append(parameter.getType());
+      }
+
+      // Verify that the method has equal to or less than the number of parameters as the listener.
+      List<? extends VariableElement> methodParameters = executableElement.getParameters();
+      if (methodParameters.size() > method.parameters().length) {
+        error(element, "@%s methods can have at most %s parameter(s). (%s.%s)",
+            annotationClass.getSimpleName(), method.parameters().length,
+            enclosingElement.getQualifiedName(), element.getSimpleName());
+        hasError = true;
+      }
+
+      // Verify method return type matches the listener.
+      TypeMirror returnType = executableElement.getReturnType();
+      if (returnType instanceof TypeVariable) {
+        TypeVariable typeVariable = (TypeVariable) returnType;
+        returnType = typeVariable.getUpperBound();
+      }
+      if (!returnType.toString().equals(method.returnType())) {
+        error(element, "@%s methods must have a '%s' return type. (%s.%s)",
+            annotationClass.getSimpleName(), method.returnType(),
+            enclosingElement.getQualifiedName(), element.getSimpleName());
+        hasError = true;
+      }
+
+      if (hasError) {
+        return;
+      }
+
+      Parameter[] parameters = Parameter.NONE;
+      if (!methodParameters.isEmpty()) {
+        parameters = new Parameter[methodParameters.size()];
+        BitSet methodParameterUsed = new BitSet(methodParameters.size());
+        String[] parameterTypes = method.parameters();
+        for (int i = 0; i < methodParameters.size(); i++) {
+          VariableElement methodParameter = methodParameters.get(i);
+          TypeMirror methodParameterType = methodParameter.asType();
+          if (methodParameterType instanceof TypeVariable) {
+            TypeVariable typeVariable = (TypeVariable) methodParameterType;
+            methodParameterType = typeVariable.getUpperBound();
+          }
+
+          for (int j = 0; j < parameterTypes.length; j++) {
+            if (methodParameterUsed.get(j)) {
+              continue;
+            }
+            if (isSubtypeOfType(methodParameterType, parameterTypes[j])) {
+              parameters[i] = new Parameter(j, methodParameterType.toString());
+              methodParameterUsed.set(j);
+              break;
             }
           }
-          builder.append("\n\nMethods may have up to ")
-              .append(method.parameters().length)
-              .append(" parameter(s):\n");
-          for (String parameterType : method.parameters()) {
-            builder.append("\n  ").append(parameterType);
+          if (parameters[i] == null) {
+            StringBuilder builder = new StringBuilder();
+            builder.append("Unable to match @")
+                .append(annotationClass.getSimpleName())
+                .append(" method arguments. (")
+                .append(enclosingElement.getQualifiedName())
+                .append('.')
+                .append(element.getSimpleName())
+                .append(')');
+            for (int j = 0; j < parameters.length; j++) {
+              Parameter parameter = parameters[j];
+              builder.append("\n\n  Parameter #")
+                  .append(j + 1)
+                  .append(": ")
+                  .append(methodParameters.get(j).asType().toString())
+                  .append("\n    ");
+              if (parameter == null) {
+                builder.append("did not match any listener parameters");
+              } else {
+                builder.append("matched listener parameter #")
+                    .append(parameter.getListenerPosition() + 1)
+                    .append(": ")
+                    .append(parameter.getType());
+              }
+            }
+            builder.append("\n\nMethods may have up to ")
+                .append(method.parameters().length)
+                .append(" parameter(s):\n");
+            for (String parameterType : method.parameters()) {
+              builder.append("\n  ").append(parameterType);
+            }
+            builder.append("\n\nThese may be listed in any order ")
+                .append("but will be searched for from top to bottom.");
+            error(executableElement, builder.toString());
+            return;
           }
-          builder.append(
-              "\n\nThese may be listed in any order but will be searched for from top to bottom.");
-          error(executableElement, builder.toString());
+        }
+      }
+
+      ListenerBinding binding = new ListenerBinding(name, Arrays.asList(parameters), required);
+      ViewInjector viewInjector = getOrCreateTargetClass(targetClassMap, enclosingElement);
+      for (int id : ids) {
+        if (!viewInjector.addListener(id, listener, method, binding)) {
+          error(element, "Multiple listener methods with return value specified for ID %d. (%s.%s)",
+              id, enclosingElement.getQualifiedName(), element.getSimpleName());
           return;
         }
       }
-    }
 
-    ListenerBinding binding = new ListenerBinding(name, Arrays.asList(parameters), required);
-    ViewInjector viewInjector = getOrCreateTargetClass(targetClassMap, enclosingElement);
-    for (int id : ids) {
-      if (!viewInjector.addListener(id, listener, method, binding)) {
-        error(element, "Multiple listener methods with return value specified for ID %d. (%s.%s)",
-            id, enclosingElement.getQualifiedName(), element.getSimpleName());
-        return;
-      }
+      // Add the type-erased version to the valid injection targets set.
+      erasedTargetNames.add(enclosingElement.toString());
+    } else {
+      // TODO (cgruber): Track skipped elements and re-try.
+      if (false) { this.hashCode(); }
     }
-
-    // Add the type-erased version to the valid injection targets set.
-    erasedTargetNames.add(enclosingElement.toString());
   }
 
   private boolean isSubtypeOfType(TypeMirror typeMirror, String otherType) {
