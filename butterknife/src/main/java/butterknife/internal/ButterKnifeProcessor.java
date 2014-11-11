@@ -607,7 +607,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
       erasedTargetNames.add(enclosingElement.toString());
     } else {
       // TODO (cgruber): Track skipped elements and re-try.
-      if (false) { this.hashCode(); }
+      if (false) { hashCode(); }
     }
   }
 
