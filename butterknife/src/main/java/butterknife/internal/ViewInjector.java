@@ -1,6 +1,7 @@
 package butterknife.internal;
 
 import android.view.View;
+
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -68,12 +69,41 @@ final class ViewInjector {
     return classPackage + "." + className;
   }
 
+  static String brewUtils(String classPackage, String className) {
+    StringBuilder builder = new StringBuilder();
+    builder.append("// Generated code from Butter Knife. Do not modify!\n");
+    builder.append("package ").append(classPackage).append(";\n\n");
+    builder.append("import java.lang.reflect.Field;\n\n");
+    builder.append("public class ").append(className).append(" {\n");
+    builder.append("  public static void setMember(Object target, Class<?> clazz, String fieldName, Object value, boolean exactMatch) {\n");
+    builder.append("    try {\n");
+    builder.append("      final Field fld = clazz.getDeclaredField(fieldName);\n");
+    builder.append("      final boolean wasAccessible = fld.isAccessible();\n");
+    builder.append("      fld.setAccessible(true);\n");
+    builder.append("      fld.set(target, value);\n");
+    builder.append("      fld.setAccessible(wasAccessible);\n");
+    builder.append("    } catch (NoSuchFieldException e) {\n");
+    builder.append("      if (!exactMatch) {\n");
+    builder.append("        final Class<?> superClazz = clazz.getSuperclass();\n");
+    builder.append("        if (superClazz != null) {\n");
+    builder.append("          setMember(target, superClazz, fieldName, value, exactMatch);\n");
+    builder.append("        }\n");
+    builder.append("      }\n");
+    builder.append("    } catch (IllegalAccessException e) {\n");
+    builder.append("    } catch (IllegalArgumentException e) {\n");
+    builder.append("    }\n");
+    builder.append("  }\n");
+    builder.append("}");
+    return builder.toString();
+  }
+
   String brewJava() {
     StringBuilder builder = new StringBuilder();
     builder.append("// Generated code from Butter Knife. Do not modify!\n");
     builder.append("package ").append(classPackage).append(";\n\n");
     builder.append("import android.view.View;\n");
-    builder.append("import butterknife.ButterKnife.Finder;\n\n");
+    builder.append("import butterknife.ButterKnife.Finder;\n");
+    builder.append("import butterknife.InjectUtils;\n\n");
     builder.append("public class ").append(className).append(" {\n");
     emitInject(builder);
     builder.append('\n');
@@ -85,13 +115,13 @@ final class ViewInjector {
   private void emitInject(StringBuilder builder) {
     builder.append("  public static void inject(Finder finder, final ")
         .append(targetClass)
-        .append(" target, Object source) {\n");
+        .append(" target, Object source, boolean exactMatch) {\n");
 
     // Emit a call to the superclass injector, if any.
     if (parentInjector != null) {
-      builder.append("    ")
-          .append(parentInjector)
-          .append(".inject(finder, target, source);\n\n");
+    builder.append("    ")
+        .append(parentInjector)
+        .append(".inject(finder, target, source, exactMatch);\n\n");
     }
 
     // Local variable in which all views will be temporarily stored.
@@ -111,7 +141,9 @@ final class ViewInjector {
   }
 
   private void emitCollectionBinding(StringBuilder builder, CollectionBinding binding, int[] ids) {
-    builder.append("    target.").append(binding.getName()).append(" = ");
+    builder.append("    InjectUtils.setMember(target, target.getClass(), \"");
+    builder.append(binding.getName());
+    builder.append("\", ");
 
     switch (binding.getKind()) {
       case ARRAY:
@@ -143,7 +175,7 @@ final class ViewInjector {
       }
     }
 
-    builder.append("\n    );");
+    builder.append("\n    ), exactMatch);\n");
   }
 
   private void emitViewInjection(StringBuilder builder, ViewInjection injection) {
@@ -166,8 +198,10 @@ final class ViewInjector {
       }
     }
 
+    builder.append("    if (view != null) {\n");
     emitViewBindings(builder, injection);
     emitListenerBindings(builder, injection);
+    builder.append("    }\n");
   }
 
   private void emitViewBindings(StringBuilder builder, ViewInjection injection) {
@@ -177,11 +211,8 @@ final class ViewInjector {
     }
 
     for (ViewBinding viewBinding : viewBindings) {
-      builder.append("    target.")
-          .append(viewBinding.getName())
-          .append(" = ");
-      emitCastIfNeeded(builder, viewBinding.getType());
-      builder.append("view;\n");
+      builder.append("      InjectUtils.setMember(target, target.getClass(), \"").append(viewBinding.getName());
+      builder.append("\", view, exactMatch);\n");
     }
   }
 
@@ -192,15 +223,6 @@ final class ViewInjector {
       return;
     }
 
-    String extraIndent = "";
-
-    // We only need to emit the null check if there are zero required bindings.
-    boolean needsNullChecked = injection.getRequiredBindings().isEmpty();
-    if (needsNullChecked) {
-      builder.append("    if (view != null) {\n");
-      extraIndent = "  ";
-    }
-
     for (Map.Entry<ListenerClass, Map<ListenerMethod, Set<ListenerBinding>>> e
         : bindings.entrySet()) {
       ListenerClass listener = e.getKey();
@@ -208,8 +230,7 @@ final class ViewInjector {
 
       // Emit: ((OWNER_TYPE) view).SETTER_NAME(
       boolean needsCast = !VIEW_TYPE.equals(listener.targetType());
-      builder.append(extraIndent)
-          .append("    ");
+      builder.append("      ");
       if (needsCast) {
         builder.append("((").append(listener.targetType());
         if (listener.genericArguments() > 0) {
@@ -233,15 +254,13 @@ final class ViewInjector {
           .append("(\n");
 
       // Emit: new TYPE() {
-      builder.append(extraIndent)
-          .append("      new ")
+      builder.append("        new ")
           .append(listener.type())
           .append("() {\n");
 
       for (ListenerMethod method : getListenerMethods(listener)) {
         // Emit: @Override public RETURN_TYPE METHOD_NAME(
-        builder.append(extraIndent)
-            .append("        @Override public ")
+        builder.append("          @Override public ")
             .append(method.returnType())
             .append(' ')
             .append(method.name())
@@ -250,8 +269,7 @@ final class ViewInjector {
         // Emit listener method arguments, each on their own line.
         String[] parameterTypes = method.parameters();
         for (int i = 0, count = parameterTypes.length; i < count; i++) {
-          builder.append(extraIndent)
-              .append("          ")
+          builder.append("            ")
               .append(parameterTypes[i])
               .append(" p")
               .append(i);
@@ -262,10 +280,10 @@ final class ViewInjector {
         }
 
         // Emit end of parameters, start of body.
-        builder.append(extraIndent).append("        ) {\n");
+        builder.append("          ) {\n");
 
         // Set up the return statement, if needed.
-        builder.append(extraIndent).append("          ");
+        builder.append("            ");
         boolean hasReturnType = !"void".equals(method.returnType());
         if (hasReturnType) {
           builder.append("return ");
@@ -300,15 +318,11 @@ final class ViewInjector {
         builder.append('\n');
 
         // Emit end of listener method.
-        builder.append(extraIndent).append("        }\n");
+        builder.append("          }\n");
       }
 
       // Emit end of listener class body and close the setter method call.
-      builder.append(extraIndent).append("      });\n");
-    }
-
-    if (needsNullChecked) {
-      builder.append("    }\n");
+      builder.append("        });\n");
     }
   }
 
@@ -337,19 +351,21 @@ final class ViewInjector {
   }
 
   private void emitReset(StringBuilder builder) {
-    builder.append("  public static void reset(").append(targetClass).append(" target) {\n");
+    builder.append("  public static void reset(").append(targetClass).append(" target, boolean exactMatch) {\n");
     if (parentInjector != null) {
       builder.append("    ")
           .append(parentInjector)
-          .append(".reset(target);\n\n");
+          .append(".reset(target, exactMatch);\n\n");
     }
     for (ViewInjection injection : viewIdMap.values()) {
       for (ViewBinding viewBinding : injection.getViewBindings()) {
-        builder.append("    target.").append(viewBinding.getName()).append(" = null;\n");
+        builder.append("    InjectUtils.setMember(target, target.getClass(), \"");
+        builder.append(viewBinding.getName()).append("\", null, exactMatch);\n");
       }
     }
     for (CollectionBinding collectionBinding : collectionBindings.keySet()) {
-      builder.append("    target.").append(collectionBinding.getName()).append(" = null;\n");
+      builder.append("    InjectUtils.setMember(target, target.getClass(), \"");
+      builder.append(collectionBinding.getName()).append("\", null, exactMatch);\n");
     }
     builder.append("  }\n");
   }

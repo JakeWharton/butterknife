@@ -8,7 +8,9 @@ import android.os.Build;
 import android.util.Log;
 import android.util.Property;
 import android.view.View;
+
 import butterknife.internal.ButterKnifeProcessor;
+
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.LinkedHashMap;
@@ -131,18 +133,7 @@ public final class ButterKnife {
     }
 
     public View findRequiredView(Object source, int id, String who) {
-      View view = findOptionalView(source, id);
-      if (view == null) {
-        String name = getContext(source).getResources().getResourceEntryName(id);
-        throw new IllegalStateException("Required view '"
-            + name
-            + "' with ID "
-            + id
-            + " for "
-            + who
-            + " was not found. If this view is optional add '@Optional' annotation.");
-      }
-      return view;
+      return findOptionalView(source, id);
     }
 
     public abstract View findOptionalView(Object source, int id);
@@ -181,7 +172,19 @@ public final class ButterKnife {
    * @param target Target activity for field injection.
    */
   public static void inject(Activity target) {
-    inject(target, target, Finder.ACTIVITY);
+    inject(target, target.getClass(), target, Finder.ACTIVITY, false);
+  }
+
+  /**
+   * Inject annotated fields and methods in the specified {@link Activity}. The current content
+   * view is used as the view root.
+   *
+   * @param target Target object for field injection
+   * @param targetClass The class-layer limit
+   * @param source The activity source to find the views
+   */
+  public static void inject(Object target, Class<?> targetClass, Activity source) {
+    inject(target, targetClass, source, Finder.ACTIVITY, true);
   }
 
   /**
@@ -191,7 +194,19 @@ public final class ButterKnife {
    * @param target Target view for field injection.
    */
   public static void inject(View target) {
-    inject(target, target, Finder.VIEW);
+    inject(target, target.getClass(), target, Finder.VIEW, false);
+  }
+
+  /**
+   * Inject annotated fields and methods in the specified {@link View}. The view and its children
+   * are used as the view root.
+   *
+   * @param target Target object for field injection
+   * @param targetClass The class-layer limit
+   * @param source The view source to find the views
+   */
+  public static void inject(Object target, Class<?> targetClass, View source) {
+    inject(target, targetClass, source, Finder.VIEW, true);
   }
 
   /**
@@ -201,7 +216,19 @@ public final class ButterKnife {
    * @param target Target dialog for field injection.
    */
   public static void inject(Dialog target) {
-    inject(target, target, Finder.DIALOG);
+    inject(target, target.getClass(), target, Finder.DIALOG, false);
+  }
+
+  /**
+   * Inject annotated fields and methods in the specified {@link Dialog}. The current content
+   * view is used as the view root.
+   *
+   * @param target Target object for field injection
+   * @param targetClass The class-layer limit
+   * @param source The dialog source to find the views
+   */
+  public static void inject(Object target, Class<?> targetClass, Dialog source) {
+    inject(target, targetClass, source, Finder.DIALOG, true);
   }
 
   /**
@@ -212,7 +239,7 @@ public final class ButterKnife {
    * @param source Activity on which IDs will be looked up.
    */
   public static void inject(Object target, Activity source) {
-    inject(target, source, Finder.ACTIVITY);
+    inject(target, target.getClass(), source, Finder.ACTIVITY, false);
   }
 
   /**
@@ -223,7 +250,7 @@ public final class ButterKnife {
    * @param source View root on which IDs will be looked up.
    */
   public static void inject(Object target, View source) {
-    inject(target, source, Finder.VIEW);
+    inject(target, target.getClass(), source, Finder.VIEW, false);
   }
 
   /**
@@ -234,24 +261,34 @@ public final class ButterKnife {
    * @param source Dialog on which IDs will be looked up.
    */
   public static void inject(Object target, Dialog source) {
-    inject(target, source, Finder.DIALOG);
+    inject(target, target.getClass(), source, Finder.DIALOG, true);
   }
 
   /**
-   * Reset fields annotated with {@link InjectView @InjectView} and {@link InjectViews @InjectViews}
-   * to {@code null}.
+   * Equals to call {@code inject(target, target.getClass())}
+   *
+   * @param target Target object for field reset.
+   */
+  public static void reset(Object target) {
+    reset(target, target.getClass(), false);
+  }
+
+  /**
+   * Reset fields annotated with {@link InjectView @InjectView} and
+   * {@link InjectViews @InjectViews} to {@code null}.
    * <p>
    * This should only be used in the {@code onDestroyView} method of a fragment.
    *
-   * @param target Target class for field reset.
+   * @param target Target object for field reset.
+   * @param targetClass The class-layer whose members should be reset.
+   * @param exactMatch Should exclude members in super classes of {@code targetClass}
    */
-  public static void reset(Object target) {
-    Class<?> targetClass = target.getClass();
+  public static void reset(Object target, Class<?> targetClass, boolean exactMatch) {
     try {
       if (debug) Log.d(TAG, "Looking up view injector for " + targetClass.getName());
       Method reset = findResettersForClass(targetClass);
       if (reset != null) {
-        reset.invoke(null, target);
+        reset.invoke(null, target, exactMatch);
       }
     } catch (RuntimeException e) {
       throw e;
@@ -264,13 +301,22 @@ public final class ButterKnife {
     }
   }
 
-  static void inject(Object target, Object source, Finder finder) {
-    Class<?> targetClass = target.getClass();
+  /**
+   * For an object may have multiple class-layers, the {@code targetClass}
+   * parameter is used to confine the layer whose direct members or the members
+   * declared in its super or super-super class should be injected.
+   * @param target The object whose member should be injected
+   * @param targetClass The class-layer limit
+   * @param source The source to find the views to be injected
+   * @param finder An enum instance for {@link Finder}
+   * @param exactMatch Should exclude members in super classes of {@code targetClass}
+   */
+  static void inject(Object target, Class<?> targetClass, Object source, Finder finder, boolean exactMatch) {
     try {
       if (debug) Log.d(TAG, "Looking up view injector for " + targetClass.getName());
       Method inject = findInjectorForClass(targetClass);
       if (inject != null) {
-        inject.invoke(null, finder, target, source);
+        inject.invoke(null, finder, target, source, exactMatch);
       }
     } catch (RuntimeException e) {
       throw e;
@@ -296,7 +342,7 @@ public final class ButterKnife {
     }
     try {
       Class<?> injector = Class.forName(clsName + ButterKnifeProcessor.SUFFIX);
-      inject = injector.getMethod("inject", Finder.class, cls, Object.class);
+      inject = injector.getMethod("inject", Finder.class, cls, Object.class, Boolean.TYPE);
       if (debug) Log.d(TAG, "HIT: Class loaded injection class.");
     } catch (ClassNotFoundException e) {
       if (debug) Log.d(TAG, "Not found. Trying superclass " + cls.getSuperclass().getName());
@@ -319,7 +365,7 @@ public final class ButterKnife {
     }
     try {
       Class<?> injector = Class.forName(clsName + ButterKnifeProcessor.SUFFIX);
-      inject = injector.getMethod("reset", cls);
+      inject = injector.getMethod("reset", cls, Boolean.TYPE);
       if (debug) Log.d(TAG, "HIT: Class loaded injection class.");
     } catch (ClassNotFoundException e) {
       if (debug) Log.d(TAG, "Not found. Trying superclass " + cls.getSuperclass().getName());

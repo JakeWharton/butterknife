@@ -3,8 +3,10 @@ package butterknife;
 import android.app.Activity;
 import android.util.Property;
 import android.view.View;
+
 import java.util.Arrays;
 import java.util.List;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -101,7 +103,8 @@ public class ButterKnifeTest {
     }
 
     Example example = new Example();
-    ButterKnife.inject(example, null, null);
+    ButterKnife.inject(example, Example.class, null, null, false);
+    ButterKnife.inject(example, Example.class, null, null, true);
     assertThat(ButterKnife.INJECTORS).contains(entry(Example.class, ButterKnife.NO_OP));
   }
 

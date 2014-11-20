@@ -6,6 +6,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.CompoundButton;
 import android.widget.TextView;
+
 import butterknife.InjectView;
 import butterknife.InjectViews;
 import butterknife.OnCheckedChanged;
@@ -19,12 +20,15 @@ import butterknife.OnLongClick;
 import butterknife.OnPageChange;
 import butterknife.OnTextChanged;
 import butterknife.Optional;
+
 import com.google.common.io.Files;
 import com.google.testing.compile.JavaFileObjects;
+
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
+import java.nio.charset.Charset;
 import java.util.List;
+
 import org.junit.Test;
 
 import static butterknife.internal.ProcessorTestUtilities.butterknifeProcessors;
@@ -35,7 +39,7 @@ import static com.google.testing.compile.JavaSourceSubjectFactory.javaSource;
 public class AllTheThingsTest {
   @Test public void allTheThings() throws IOException {
     File file = new File("src/test/java/butterknife/internal/AllTheThingsTest.java");
-    String content = Files.toString(file, StandardCharsets.UTF_8);
+    String content = Files.toString(file, Charset.forName("UTF-8"));
 
     ASSERT.about(javaSource())
         .that(JavaFileObjects.forSourceString("butterknife.internal.AllTheThingsTest", content))

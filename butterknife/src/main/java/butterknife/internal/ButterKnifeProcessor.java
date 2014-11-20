@@ -1,6 +1,7 @@
 package butterknife.internal;
 
 import android.view.View;
+
 import butterknife.InjectView;
 import butterknife.InjectViews;
 import butterknife.OnCheckedChanged;
@@ -15,6 +16,7 @@ import butterknife.OnPageChange;
 import butterknife.OnTextChanged;
 import butterknife.OnTouch;
 import butterknife.Optional;
+
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -30,12 +32,14 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.Filer;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
@@ -60,7 +64,10 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
   public static final String ANDROID_PREFIX = "android.";
   public static final String JAVA_PREFIX = "java.";
   static final String VIEW_TYPE = "android.view.View";
+  private static final String UTIL_CLASS_NAME = "InjectUtils";
+  private static final String UTIL_PKG = "butterknife";
   private static final String LIST_TYPE = List.class.getCanonicalName();
+  @SuppressWarnings("unchecked")
   private static final List<Class<? extends Annotation>> LISTENERS = Arrays.asList(//
       OnCheckedChanged.class, //
       OnClick.class, //
@@ -85,6 +92,8 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     elementUtils = env.getElementUtils();
     typeUtils = env.getTypeUtils();
     filer = env.getFiler();
+
+    generateUtils();
   }
 
   @Override public Set<String> getSupportedAnnotationTypes() {
@@ -117,6 +126,19 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     }
 
     return true;
+  }
+
+  private void generateUtils() {
+    try {
+      JavaFileObject jfo = filer.createSourceFile(UTIL_PKG + "." + UTIL_CLASS_NAME);
+      Writer writer = jfo.openWriter();
+      writer.write(ViewInjector.brewUtils(UTIL_PKG, UTIL_CLASS_NAME));
+      writer.flush();
+      writer.close();
+    } catch (IOException e) {
+      processingEnv.getMessager().printMessage(ERROR,
+          "Unable to write injector for util class: " + UTIL_CLASS_NAME + " error=" + e.getMessage());
+    }
   }
 
   private Map<TypeElement, ViewInjector> findAndParseTargets(RoundEnvironment env) {
@@ -170,11 +192,18 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
     // Verify method modifiers.
     Set<Modifier> modifiers = element.getModifiers();
-    if (modifiers.contains(PRIVATE) || modifiers.contains(STATIC)) {
-      error(element, "@%s %s must not be private or static. (%s.%s)",
-          annotationClass.getSimpleName(), targetThing, enclosingElement.getQualifiedName(),
-          element.getSimpleName());
-      hasError = true;
+    if (element.getKind() == ElementKind.FIELD) {
+      if (modifiers.contains(STATIC)) {
+        error(element, "@%s %s must not be static. (%s.%s)",
+            annotationClass.getSimpleName(), targetThing, enclosingElement.getQualifiedName(),
+            element.getSimpleName());
+        hasError = true;
+      }
+    } else if (modifiers.contains(PRIVATE) || modifiers.contains(STATIC)) {
+        error(element, "@%s %s must not be private or static. (%s.%s)",
+            annotationClass.getSimpleName(), targetThing, enclosingElement.getQualifiedName(),
+            element.getSimpleName());
+        hasError = true;
     }
 
     // Verify containing type.
