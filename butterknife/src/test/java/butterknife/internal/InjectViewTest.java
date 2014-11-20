@@ -416,24 +416,6 @@ public class InjectViewTest {
         .in(source).onLine(4);
   }
 
-  @Test public void failsIfPrivate() {
-    JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
-        "package test;",
-        "import android.app.Activity;",
-        "import android.view.View;",
-        "import butterknife.InjectView;",
-        "public class Test extends Activity {",
-        "    @InjectView(1) private View thing;",
-        "}"
-    ));
-
-    ASSERT.about(javaSource()).that(source)
-        .processedWith(butterknifeProcessors())
-        .failsToCompile()
-        .withErrorContaining("@InjectView fields must not be private or static. (test.Test.thing)")
-        .in(source).onLine(6);
-  }
-
   @Test public void failsIfStatic() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
         "package test;",
@@ -448,7 +430,7 @@ public class InjectViewTest {
     ASSERT.about(javaSource()).that(source)
         .processedWith(butterknifeProcessors())
         .failsToCompile()
-        .withErrorContaining("@InjectView fields must not be private or static. (test.Test.thing)")
+        .withErrorContaining("@InjectView fields must not be static. (test.Test.thing)")
         .in(source).onLine(6);
   }
 

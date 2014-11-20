@@ -39,6 +39,7 @@ import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
@@ -191,11 +192,18 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
     // Verify method modifiers.
     Set<Modifier> modifiers = element.getModifiers();
-    if (modifiers.contains(PRIVATE) || modifiers.contains(STATIC)) {
-      error(element, "@%s %s must not be private or static. (%s.%s)",
-          annotationClass.getSimpleName(), targetThing, enclosingElement.getQualifiedName(),
-          element.getSimpleName());
-      hasError = true;
+    if (element.getKind() == ElementKind.FIELD) {
+      if (modifiers.contains(STATIC)) {
+        error(element, "@%s %s must not be static. (%s.%s)",
+            annotationClass.getSimpleName(), targetThing, enclosingElement.getQualifiedName(),
+            element.getSimpleName());
+        hasError = true;
+      }
+    } else if (modifiers.contains(PRIVATE) || modifiers.contains(STATIC)) {
+        error(element, "@%s %s must not be private or static. (%s.%s)",
+            annotationClass.getSimpleName(), targetThing, enclosingElement.getQualifiedName(),
+            element.getSimpleName());
+        hasError = true;
     }
 
     // Verify containing type.
