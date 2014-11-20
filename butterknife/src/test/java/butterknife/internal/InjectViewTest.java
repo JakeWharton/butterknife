@@ -2,7 +2,9 @@ package butterknife.internal;
 
 import com.google.common.base.Joiner;
 import com.google.testing.compile.JavaFileObjects;
+
 import javax.tools.JavaFileObject;
+
 import org.junit.Test;
 
 import static butterknife.internal.ProcessorTestUtilities.butterknifeProcessors;
@@ -26,14 +28,17 @@ public class InjectViewTest {
             "package test;",
             "import android.view.View;",
             "import butterknife.ButterKnife.Finder;",
+            "import butterknife.InjectUtils;",
             "public class Test$$ViewInjector {",
-            "  public static void inject(Finder finder, final test.Test target, Object source) {",
+            "  public static void inject(Finder finder, final test.Test target, Object source, boolean exactMatch) {",
             "    View view;",
             "    view = finder.findRequiredView(source, 1, \"field 'thing'\");",
-            "    target.thing = view;",
+            "    if (view != null) {",
+            "      InjectUtils.setMember(target, target.getClass(), \"thing\", view, exactMatch);",
+            "    }",
             "  }",
-            "  public static void reset(test.Test target) {",
-            "    target.thing = null;",
+            "  public static void reset(test.Test target, boolean exactMatch) {",
+            "    InjectUtils.setMember(target, target.getClass(), \"thing\", null, exactMatch);",
             "  }",
             "}"
         ));
@@ -62,14 +67,17 @@ public class InjectViewTest {
             "package test;",
             "import android.view.View;",
             "import butterknife.ButterKnife.Finder;",
+            "import butterknife.InjectUtils;",
             "public class Test$$ViewInjector {",
-            "  public static void inject(Finder finder, final test.Test target, Object source) {",
+            "  public static void inject(Finder finder, final test.Test target, Object source, boolean exactMatch) {",
             "    View view;",
             "    view = finder.findRequiredView(source, 1, \"field 'thing'\");",
-            "    target.thing = (android.widget.TextView) view;",
+            "    if (view != null) {",
+            "      InjectUtils.setMember(target, target.getClass(), \"thing\", view, exactMatch);",
+            "    }",
             "  }",
-            "  public static void reset(test.Test target) {",
-            "    target.thing = null;",
+            "  public static void reset(test.Test target, boolean exactMatch) {",
+            "    InjectUtils.setMember(target, target.getClass(), \"thing\", null, exactMatch);",
             "  }",
             "}"
         ));
@@ -99,22 +107,25 @@ public class InjectViewTest {
             "package test;",
             "import android.view.View;",
             "import butterknife.ButterKnife.Finder;",
+            "import butterknife.InjectUtils;",
             "public class Test$$ViewInjector {",
-            "  public static void inject(Finder finder, final test.Test target, Object source) {",
+            "  public static void inject(Finder finder, final test.Test target, Object source, boolean exactMatch) {",
             "    View view;",
             "    view = finder.findRequiredView(source, 1, \"field 'thing1' and method 'doStuff'\");",
-            "    target.thing1 = view;",
-            "    view.setOnClickListener(",
-            "      new butterknife.internal.DebouncingOnClickListener() {",
-            "        @Override public void doClick(",
-            "          android.view.View p0",
-            "        ) {",
-            "          target.doStuff();",
-            "        }",
+            "    if (view != null) {",
+            "      InjectUtils.setMember(target, target.getClass(), \"thing1\", view, exactMatch);",
+            "      view.setOnClickListener(",
+            "        new butterknife.internal.DebouncingOnClickListener() {",
+            "          @Override public void doClick(",
+            "            android.view.View p0",
+            "          ) {",
+            "            target.doStuff();",
+            "          }",
             "      });",
+            "    }",
             "  }",
-            "  public static void reset(test.Test target) {",
-            "    target.thing1 = null;",
+            "  public static void reset(test.Test target, boolean exactMatch) {",
+            "    InjectUtils.setMember(target, target.getClass(), \"thing1\", null, exactMatch);",
             "  }",
             "}"
         ));
@@ -161,14 +172,17 @@ public class InjectViewTest {
             "package test;",
             "import android.view.View;",
             "import butterknife.ButterKnife.Finder;",
+            "import butterknife.InjectUtils;",
             "public class Test$$ViewInjector {",
-            "  public static void inject(Finder finder, final test.Test target, Object source) {",
+            "  public static void inject(Finder finder, final test.Test target, Object source, boolean exactMatch) {",
             "    View view;",
             "    view = finder.findOptionalView(source, 1);",
-            "    target.view = view;",
+            "    if (view != null) {",
+            "      InjectUtils.setMember(target, target.getClass(), \"view\", view, exactMatch);",
+            "    }",
             "  }",
-            "  public static void reset(test.Test target) {",
-            "    target.view = null;",
+            "  public static void reset(test.Test target, boolean exactMatch) {",
+            "    InjectUtils.setMember(target, target.getClass(), \"view\", null, exactMatch);",
             "  }",
             "}"
         ));
@@ -202,14 +216,17 @@ public class InjectViewTest {
             "package test;",
             "import android.view.View;",
             "import butterknife.ButterKnife.Finder;",
+            "import butterknife.InjectUtils;",
             "public class Test$$ViewInjector {",
-            "  public static void inject(Finder finder, final test.Test target, Object source) {",
+            "  public static void inject(Finder finder, final test.Test target, Object source, boolean exactMatch) {",
             "    View view;",
             "    view = finder.findRequiredView(source, 1, \"field 'view'\");",
-            "    target.view = view;",
+            "    if (view != null) {",
+            "      InjectUtils.setMember(target, target.getClass(), \"view\", view, exactMatch);",
+            "    }",
             "  }",
-            "  public static void reset(test.Test target) {",
-            "    target.view = null;",
+            "  public static void reset(test.Test target, boolean exactMatch) {",
+            "    InjectUtils.setMember(target, target.getClass(), \"view\", null, exactMatch);",
             "  }",
             "}"
         ));
@@ -219,24 +236,26 @@ public class InjectViewTest {
             "package test;",
             "import android.view.View;",
             "import butterknife.ButterKnife.Finder;",
+            "import butterknife.InjectUtils;",
             "public class TestOne$$ViewInjector {",
-            "  public static void inject(Finder finder, final test.TestOne target, Object source) {",
-            "    test.Test$$ViewInjector.inject(finder, target, source);",
+            "  public static void inject(Finder finder, final test.TestOne target, Object source, boolean exactMatch) {",
+            "    test.Test$$ViewInjector.inject(finder, target, source, exactMatch);",
             "    View view;",
             "    view = finder.findRequiredView(source, 1, \"field 'thing'\");",
-            "    target.thing = view;",
+            "    if (view != null) {",
+            "      InjectUtils.setMember(target, target.getClass(), \"thing\", view, exactMatch);",
+            "    }",
             "  }",
-            "  public static void reset(test.TestOne target) {",
-            "    test.Test$$ViewInjector.reset(target);",
-            "    target.thing = null;",
+            "  public static void reset(test.TestOne target, boolean exactMatch) {",
+            "    test.Test$$ViewInjector.reset(target, exactMatch);",
+            "    InjectUtils.setMember(target, target.getClass(), \"thing\", null, exactMatch);",
             "  }",
             "}"
         ));
 
     ASSERT.about(javaSource()).that(source)
         .processedWith(butterknifeProcessors())
-        .compilesWithoutError()
-        .and()
+.compilesWithoutError().and()
         .generatesSources(expectedSource1, expectedSource2);
   }
 
@@ -262,14 +281,17 @@ public class InjectViewTest {
             "package test;",
             "import android.view.View;",
             "import butterknife.ButterKnife.Finder;",
+            "import butterknife.InjectUtils;",
             "public class Test$$ViewInjector {",
-            "  public static void inject(Finder finder, final test.Test target, Object source) {",
+            "  public static void inject(Finder finder, final test.Test target, Object source, boolean exactMatch) {",
             "    View view;",
             "    view = finder.findRequiredView(source, 1, \"field 'view'\");",
-            "    target.view = view;",
+            "    if (view != null) {",
+            "      InjectUtils.setMember(target, target.getClass(), \"view\", view, exactMatch);",
+            "    }",
             "  }",
-            "  public static void reset(test.Test target) {",
-            "    target.view = null;",
+            "  public static void reset(test.Test target, boolean exactMatch) {",
+            "    InjectUtils.setMember(target, target.getClass(), \"view\", null, exactMatch);",
             "  }",
             "}"
         ));
@@ -279,16 +301,19 @@ public class InjectViewTest {
             "package test;",
             "import android.view.View;",
             "import butterknife.ButterKnife.Finder;",
+            "import butterknife.InjectUtils;",
             "public class TestOne$$ViewInjector {",
-            "  public static void inject(Finder finder, final test.TestOne target, Object source) {",
-            "    test.Test$$ViewInjector.inject(finder, target, source);",
+            "  public static void inject(Finder finder, final test.TestOne target, Object source, boolean exactMatch) {",
+            "    test.Test$$ViewInjector.inject(finder, target, source, exactMatch);",
             "    View view;",
             "    view = finder.findRequiredView(source, 1, \"field 'thing'\");",
-            "    target.thing = view;",
+            "    if (view != null) {",
+            "      InjectUtils.setMember(target, target.getClass(), \"thing\", view, exactMatch);",
+            "    }",
             "  }",
-            "  public static void reset(test.TestOne target) {",
-            "    test.Test$$ViewInjector.reset(target);",
-            "    target.thing = null;",
+            "  public static void reset(test.TestOne target, boolean exactMatch) {",
+            "    test.Test$$ViewInjector.reset(target, exactMatch);",
+            "    InjectUtils.setMember(target, target.getClass(), \"thing\", null, exactMatch);",
             "  }",
             "}"
         ));

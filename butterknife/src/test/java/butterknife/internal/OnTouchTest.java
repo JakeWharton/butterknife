@@ -2,7 +2,9 @@ package butterknife.internal;
 
 import com.google.common.base.Joiner;
 import com.google.testing.compile.JavaFileObjects;
+
 import javax.tools.JavaFileObject;
+
 import org.junit.Test;
 
 import static butterknife.internal.ProcessorTestUtilities.butterknifeProcessors;
@@ -25,17 +27,20 @@ public class OnTouchTest {
             "package test;",
             "import android.view.View;",
             "import butterknife.ButterKnife.Finder;",
+            "import butterknife.InjectUtils;",
             "public class Test$$ViewInjector {",
-            "  public static void inject(Finder finder, final test.Test target, Object source) {",
+            "  public static void inject(Finder finder, final test.Test target, Object source, boolean exactMatch) {",
             "    View view;",
             "    view = finder.findRequiredView(source, 1, \"method 'doStuff'\");",
-            "    view.setOnTouchListener(new android.view.View.OnTouchListener() {",
-            "      @Override public boolean onTouch(android.view.View p0, android.view.MotionEvent p1) {",
-            "        return target.doStuff();",
-            "      }",
-            "    });",
+            "    if (view != null) {",
+            "      view.setOnTouchListener(new android.view.View.OnTouchListener() {",
+            "        @Override public boolean onTouch(android.view.View p0, android.view.MotionEvent p1) {",
+            "          return target.doStuff();",
+            "        }",
+            "      });",
+            "    }",
             "  }",
-            "  public static void reset(test.Test target) {",
+            "  public static void reset(test.Test target, boolean exactMatch) {",
             "  }",
             "}"
         ));

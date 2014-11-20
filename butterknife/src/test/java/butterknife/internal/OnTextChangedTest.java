@@ -2,7 +2,9 @@ package butterknife.internal;
 
 import com.google.common.base.Joiner;
 import com.google.testing.compile.JavaFileObjects;
+
 import javax.tools.JavaFileObject;
+
 import org.junit.Test;
 
 import static butterknife.internal.ProcessorTestUtilities.butterknifeProcessors;
@@ -25,21 +27,24 @@ public class OnTextChangedTest {
             "package test;",
             "import android.view.View;",
             "import butterknife.ButterKnife.Finder;",
+            "import butterknife.InjectUtils;",
             "public class Test$$ViewInjector {",
-            "  public static void inject(Finder finder, final test.Test target, Object source) {",
+            "  public static void inject(Finder finder, final test.Test target, Object source, boolean exactMatch) {",
             "    View view;",
             "    view = finder.findRequiredView(source, 1, \"method 'doStuff'\");",
-            "    ((android.widget.TextView) view).addTextChangedListener(new android.text.TextWatcher() {",
-            "      @Override public void onTextChanged(java.lang.CharSequence p0, int p1, int p2, int p3) {",
-            "        target.doStuff();",
-            "      }",
-            "      @Override public void beforeTextChanged(java.lang.CharSequence p0, int p1, int p2, int p3) {",
-            "      }",
-            "      @Override public void afterTextChanged(android.text.Editable p0) {",
-            "      }",
-            "    });",
+            "    if (view != null) {",
+            "      ((android.widget.TextView) view).addTextChangedListener(new android.text.TextWatcher() {",
+            "        @Override public void onTextChanged(java.lang.CharSequence p0, int p1, int p2, int p3) {",
+            "          target.doStuff();",
+            "        }",
+            "        @Override public void beforeTextChanged(java.lang.CharSequence p0, int p1, int p2, int p3) {",
+            "        }",
+            "        @Override public void afterTextChanged(android.text.Editable p0) {",
+            "        }",
+            "      });",
+            "    }",
             "  }",
-            "  public static void reset(test.Test target) {",
+            "  public static void reset(test.Test target, boolean exactMatch) {",
             "  }",
             "}"
         ));
