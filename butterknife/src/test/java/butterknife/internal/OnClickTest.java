@@ -88,6 +88,7 @@ public class OnClickTest {
             "      });",
             "  }",
             "  public static void reset(test.Test target) {",
+            "  }",
             "}"));
 
     ASSERT.about(javaSource()).that(source)
@@ -452,15 +453,15 @@ public class OnClickTest {
         .failsToCompile()
         .withErrorContaining(Joiner.on('\n').join(
             "Unable to match @OnClick method arguments. (test.Test.doStuff)",
-            "  ",
-            "    Parameter #1: java.lang.String",
-            "      did not match any listener parameters",
-            "  ",
-            "  Methods may have up to 1 parameter(s):",
-            "  ",
-            "    android.view.View",
-            "  ",
-            "  These may be listed in any order but will be searched for from top to bottom."))
+            "",
+            "  Parameter #1: java.lang.String",
+            "    did not match any listener parameters",
+            "",
+            "Methods may have up to 1 parameter(s):",
+            "",
+            "  android.view.View",
+            "",
+            "These may be listed in any order but will be searched for from top to bottom."))
         .in(source).onLine(6);
   }
 
