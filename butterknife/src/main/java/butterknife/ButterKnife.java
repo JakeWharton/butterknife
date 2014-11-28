@@ -83,6 +83,7 @@ import static butterknife.internal.ButterKnifeProcessor.JAVA_PREFIX;
  * @see OnItemSelected
  * @see OnLongClick
  * @see OnPageChange
+ * @see OnTabChanged
  * @see OnTextChanged
  * @see OnTouch
  */
