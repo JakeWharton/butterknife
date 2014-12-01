@@ -163,7 +163,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     return targetClassMap;
   }
 
-  private boolean isValidForGeneratedCode(Class<? extends Annotation> annotationClass,
+  private boolean isInaccessibleViaGeneratedCode(Class<? extends Annotation> annotationClass,
       String targetThing, Element element) {
     boolean hasError = false;
     TypeElement enclosingElement = (TypeElement) element.getEnclosingElement();
@@ -233,7 +233,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     }
 
     // Verify common generated code restrictions.
-    hasError |= isValidForGeneratedCode(InjectView.class, "fields", element);
+    hasError |= isInaccessibleViaGeneratedCode(InjectView.class, "fields", element);
     hasError |= isBindingInWrongPackage(InjectView.class, element);
 
     // Check for the other field annotation.
@@ -321,7 +321,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     }
 
     // Verify common generated code restrictions.
-    hasError |= isValidForGeneratedCode(InjectViews.class, "fields", element);
+    hasError |= isInaccessibleViaGeneratedCode(InjectViews.class, "fields", element);
     hasError |= isBindingInWrongPackage(InjectViews.class, element);
 
     if (hasError) {
@@ -418,7 +418,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     boolean required = element.getAnnotation(Optional.class) == null;
 
     // Verify that the method and its containing class are accessible via generated code.
-    boolean hasError = isValidForGeneratedCode(annotationClass, "methods", element);
+    boolean hasError = isInaccessibleViaGeneratedCode(annotationClass, "methods", element);
     hasError |= isBindingInWrongPackage(annotationClass, element);
 
     Integer duplicateId = findDuplicate(ids);
