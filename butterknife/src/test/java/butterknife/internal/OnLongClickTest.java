@@ -2,8 +2,9 @@ package butterknife.internal;
 
 import com.google.common.base.Joiner;
 import com.google.testing.compile.JavaFileObjects;
-import javax.tools.JavaFileObject;
 import org.junit.Test;
+
+import javax.tools.JavaFileObject;
 
 import static butterknife.internal.ProcessorTestUtilities.butterknifeProcessors;
 import static com.google.common.truth.Truth.ASSERT;
@@ -27,8 +28,8 @@ public class OnLongClickTest {
             "package test;",
             "import android.view.View;",
             "import butterknife.ButterKnife.Finder;",
-            "public class Test$$ViewInjector {",
-            "  public static void inject(Finder finder, final test.Test target, Object source) {",
+            "public class Test$$ViewInjector implements butterknife.Injector<test.Test> {",
+            "  public void inject(Finder finder, final test.Test target, Object source) {",
             "    View view;",
             "    view = finder.findRequiredView(source, 1, \"method 'doStuff'\");",
             "    view.setOnLongClickListener(",
@@ -38,7 +39,7 @@ public class OnLongClickTest {
             "        }",
             "      });",
             "  }",
-            "  public static void reset(test.Test target) {",
+            "  public void reset(test.Test target) {",
             "  }",
             "}"
         ));

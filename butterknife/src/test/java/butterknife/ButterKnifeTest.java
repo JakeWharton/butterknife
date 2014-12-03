@@ -3,8 +3,6 @@ package butterknife;
 import android.app.Activity;
 import android.util.Property;
 import android.view.View;
-import java.util.Arrays;
-import java.util.List;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -12,6 +10,9 @@ import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
+
+import java.util.Arrays;
+import java.util.List;
 
 import static org.fest.assertions.api.ANDROID.assertThat;
 import static org.fest.assertions.api.Assertions.assertThat;
@@ -45,7 +46,6 @@ public class ButterKnifeTest {
   @Before @After // Clear out cache of injectors and resetters before and after each test.
   public void resetViewsCache() {
     ButterKnife.INJECTORS.clear();
-    ButterKnife.RESETTERS.clear();
   }
 
   @Test public void propertyAppliedToEveryView() {
@@ -102,7 +102,7 @@ public class ButterKnifeTest {
 
     Example example = new Example();
     ButterKnife.inject(example, null, null);
-    assertThat(ButterKnife.INJECTORS).contains(entry(Example.class, ButterKnife.NO_OP));
+    assertThat(ButterKnife.INJECTORS).contains(entry(Example.class, ButterKnife.NOP_INJECTOR));
   }
 
   @Test public void zeroInjectionsResetDoesNotThrowException() {
@@ -111,7 +111,7 @@ public class ButterKnifeTest {
 
     Example example = new Example();
     ButterKnife.reset(example);
-    assertThat(ButterKnife.RESETTERS).contains(entry(Example.class, ButterKnife.NO_OP));
+    assertThat(ButterKnife.INJECTORS).contains(entry(Example.class, ButterKnife.NOP_INJECTOR));
   }
 
   @Test public void injectingKnownPackagesIsNoOp() {
@@ -119,10 +119,6 @@ public class ButterKnifeTest {
     assertThat(ButterKnife.INJECTORS).isEmpty();
     ButterKnife.inject(new Object(), new Activity());
     assertThat(ButterKnife.INJECTORS).isEmpty();
-    ButterKnife.reset(new Object());
-    assertThat(ButterKnife.RESETTERS).isEmpty();
-    ButterKnife.reset(new Activity());
-    assertThat(ButterKnife.RESETTERS).isEmpty();
   }
 
   @Test public void finderThrowsNiceError() {

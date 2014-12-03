@@ -2,8 +2,9 @@ package butterknife.internal;
 
 import com.google.common.base.Joiner;
 import com.google.testing.compile.JavaFileObjects;
-import javax.tools.JavaFileObject;
 import org.junit.Test;
+
+import javax.tools.JavaFileObject;
 
 import static butterknife.internal.ProcessorTestUtilities.butterknifeProcessors;
 import static com.google.common.truth.Truth.ASSERT;
@@ -24,8 +25,8 @@ public class OnClickTest {
             "package test;",
             "import android.view.View;",
             "import butterknife.ButterKnife.Finder;",
-            "public class Test$$ViewInjector {",
-            "  public static void inject(Finder finder, final test.Test target, Object source) {",
+            "public class Test$$ViewInjector implements butterknife.Injector<test.Test> {",
+            "  public void inject(Finder finder, final test.Test target, Object source) {",
             "    View view;",
             "    view = finder.findRequiredView(source, 1, \"method 'doStuff'\");",
             "    view.setOnClickListener(new butterknife.internal.DebouncingOnClickListener() {",
@@ -34,7 +35,7 @@ public class OnClickTest {
             "      }",
             "    });",
             "  }",
-            "  public static void reset(test.Test target) {",
+            "  public void reset(test.Test target) {",
             "  }",
             "}"
         ));
@@ -63,8 +64,8 @@ public class OnClickTest {
             "package test;",
             "import android.view.View;",
             "import butterknife.ButterKnife.Finder;",
-            "public class Test$$ViewInjector {",
-            "  public static void inject(Finder finder, final test.Test target, Object source) {",
+            "public class Test$$ViewInjector implements butterknife.Injector<test.Test> {",
+            "  public void inject(Finder finder, final test.Test target, Object source) {",
             "    View view;",
             "    view = finder.findRequiredView(source, 1, \"method 'doStuff1', method 'doStuff2', and method 'doStuff3'\");",
             "    view.setOnClickListener(",
@@ -87,7 +88,7 @@ public class OnClickTest {
             "        }",
             "      });",
             "  }",
-            "  public static void reset(test.Test target) {",
+            "  public void reset(test.Test target) {",
             "}"));
 
     ASSERT.about(javaSource()).that(source)
@@ -114,8 +115,8 @@ public class OnClickTest {
             "package test;",
             "import android.view.View;",
             "import butterknife.ButterKnife.Finder;",
-            "public class Test$$ViewInjector {",
-            "  public static void inject(Finder finder, final test.Test target, Object source) {",
+            "public class Test$$ViewInjector implements butterknife.Injector<test.Test> {",
+            "  public void inject(Finder finder, final test.Test target, Object source) {",
             "    View view;",
             "    view = finder.findRequiredView(source, 1, \"field 'view' and method 'doStuff'\");",
             "    target.view = view;",
@@ -125,7 +126,7 @@ public class OnClickTest {
             "      }",
             "    });",
             "  }",
-            "  public static void reset(test.Test target) {",
+            "  public void reset(test.Test target) {",
             "    target.view = null;",
             "  }",
             "}"
@@ -177,8 +178,8 @@ public class OnClickTest {
             "package test;",
             "import android.view.View;",
             "import butterknife.ButterKnife.Finder;",
-            "public class Test$$ViewInjector {",
-            "  public static void inject(Finder finder, final test.Test target, Object source) {",
+            "public class Test$$ViewInjector implements butterknife.Injector<test.Test> {",
+            "  public void inject(Finder finder, final test.Test target, Object source) {",
             "    View view;",
             "    view = finder.findRequiredView(source, 0, \"method 'click0'\");",
             "    view.setOnClickListener(new butterknife.internal.DebouncingOnClickListener() {",
@@ -205,7 +206,7 @@ public class OnClickTest {
             "      }",
             "    });",
             "  }",
-            "  public static void reset(test.Test target) {",
+            "  public void reset(test.Test target) {",
             "  }",
             "}"
         ));
@@ -233,8 +234,8 @@ public class OnClickTest {
             "package test;",
             "import android.view.View;",
             "import butterknife.ButterKnife.Finder;",
-            "public class Test$$ViewInjector {",
-            "  public static void inject(Finder finder, final test.Test target, Object source) {",
+            "public class Test$$ViewInjector implements butterknife.Injector<test.Test> {",
+            "  public void inject(Finder finder, final test.Test target, Object source) {",
             "    View view;",
             "    view = finder.findRequiredView(source, 1, \"method 'click'\");",
             "    view.setOnClickListener(new butterknife.internal.DebouncingOnClickListener() {",
@@ -255,7 +256,7 @@ public class OnClickTest {
             "      }",
             "    });",
             "  }",
-            "  public static void reset(test.Test target) {",
+            "  public void reset(test.Test target) {",
             "  }",
             "}"
         ));
@@ -282,8 +283,8 @@ public class OnClickTest {
             "package test;",
             "import android.view.View;",
             "import butterknife.ButterKnife.Finder;",
-            "public class Test$$ViewInjector {",
-            "  public static void inject(Finder finder, final test.Test target, Object source) {",
+            "public class Test$$ViewInjector implements butterknife.Injector<test.Test> {",
+            "  public void inject(Finder finder, final test.Test target, Object source) {",
             "    View view;",
             "    view = finder.findOptionalView(source, 1);",
             "    if (view != null) {",
@@ -294,7 +295,7 @@ public class OnClickTest {
             "      });",
             "    }",
             "  }",
-            "  public static void reset(test.Test target) {",
+            "  public void reset(test.Test target) {",
             "  }",
             "}"
         ));
@@ -324,8 +325,8 @@ public class OnClickTest {
             "package test;",
             "import android.view.View;",
             "import butterknife.ButterKnife.Finder;",
-            "public class Test$$ViewInjector {",
-            "  public static void inject(Finder finder, final test.Test target, Object source) {",
+            "public class Test$$ViewInjector implements butterknife.Injector<test.Test> {",
+            "  public void inject(Finder finder, final test.Test target, Object source) {",
             "    View view;",
             "    view = finder.findRequiredView(source, 1, \"field 'view'\");",
             "    target.view = view;",
@@ -335,7 +336,7 @@ public class OnClickTest {
             "      }",
             "    });",
             "  }",
-            "  public static void reset(test.Test target) {",
+            "  public void reset(test.Test target) {",
             "    target.view = null;",
             "  }",
             "}"
