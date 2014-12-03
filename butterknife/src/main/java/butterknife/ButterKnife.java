@@ -9,8 +9,6 @@ import android.util.Log;
 import android.util.Property;
 import android.view.View;
 import butterknife.internal.ButterKnifeProcessor;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -150,6 +148,12 @@ public final class ButterKnife {
     protected abstract Context getContext(Object source);
   }
 
+  /** DO NOT USE: Exposed for generated code. */
+  public interface Injector<T> {
+    void inject(Finder finder, T target, Object source);
+    void reset(T target);
+  }
+
   /** An action that can be applied to a list of views. */
   public interface Action<T extends View> {
     /** Apply the action on the {@code view} which is at {@code index} in the list. */
@@ -165,9 +169,12 @@ public final class ButterKnife {
   private static final String TAG = "ButterKnife";
   private static boolean debug = false;
 
-  static final Map<Class<?>, Method> INJECTORS = new LinkedHashMap<Class<?>, Method>();
-  static final Map<Class<?>, Method> RESETTERS = new LinkedHashMap<Class<?>, Method>();
-  static final Method NO_OP = null;
+  static final Map<Class<?>, Injector<Object>> INJECTORS =
+      new LinkedHashMap<Class<?>, Injector<Object>>();
+  static final Injector<Object> NOP_INJECTOR = new Injector<Object>() {
+    @Override public void inject(Finder finder, Object target, Object source) { }
+    @Override public void reset(Object target) { }
+  };
 
   /** Control whether debug logging is enabled. */
   public static void setDebug(boolean debug) {
@@ -249,18 +256,14 @@ public final class ButterKnife {
     Class<?> targetClass = target.getClass();
     try {
       if (debug) Log.d(TAG, "Looking up view injector for " + targetClass.getName());
-      Method reset = findResettersForClass(targetClass);
-      if (reset != null) {
-        reset.invoke(null, target);
+      Injector<Object> injector = findInjectorForClass(targetClass);
+      if (injector != null) {
+        injector.reset(target);
       }
     } catch (RuntimeException e) {
       throw e;
     } catch (Exception e) {
-      Throwable t = e;
-      if (t instanceof InvocationTargetException) {
-        t = t.getCause();
-      }
-      throw new RuntimeException("Unable to reset views for " + target, t);
+      throw new RuntimeException("Unable to reset views for " + target, e);
     }
   }
 
@@ -268,65 +271,40 @@ public final class ButterKnife {
     Class<?> targetClass = target.getClass();
     try {
       if (debug) Log.d(TAG, "Looking up view injector for " + targetClass.getName());
-      Method inject = findInjectorForClass(targetClass);
-      if (inject != null) {
-        inject.invoke(null, finder, target, source);
+      Injector<Object> injector = findInjectorForClass(targetClass);
+      if (injector != null) {
+        injector.inject(finder, target, source);
       }
     } catch (RuntimeException e) {
       throw e;
     } catch (Exception e) {
-      Throwable t = e;
-      if (t instanceof InvocationTargetException) {
-        t = t.getCause();
-      }
-      throw new RuntimeException("Unable to inject views for " + target, t);
+      throw new RuntimeException("Unable to inject views for " + target, e);
     }
   }
 
-  private static Method findInjectorForClass(Class<?> cls) throws NoSuchMethodException {
-    Method inject = INJECTORS.get(cls);
-    if (inject != null) {
+  private static Injector<Object> findInjectorForClass(Class<?> cls)
+      throws IllegalAccessException, InstantiationException {
+    Injector<Object> injector = INJECTORS.get(cls);
+    if (injector != null) {
       if (debug) Log.d(TAG, "HIT: Cached in injector map.");
-      return inject;
+      return injector;
     }
     String clsName = cls.getName();
     if (clsName.startsWith(ANDROID_PREFIX) || clsName.startsWith(JAVA_PREFIX)) {
       if (debug) Log.d(TAG, "MISS: Reached framework class. Abandoning search.");
-      return NO_OP;
+      return NOP_INJECTOR;
     }
     try {
-      Class<?> injector = Class.forName(clsName + ButterKnifeProcessor.SUFFIX);
-      inject = injector.getMethod("inject", Finder.class, cls, Object.class);
+      Class<?> injectorClass = Class.forName(clsName + ButterKnifeProcessor.SUFFIX);
+      //noinspection unchecked
+      injector = (Injector<Object>) injectorClass.newInstance();
       if (debug) Log.d(TAG, "HIT: Class loaded injection class.");
     } catch (ClassNotFoundException e) {
       if (debug) Log.d(TAG, "Not found. Trying superclass " + cls.getSuperclass().getName());
-      inject = findInjectorForClass(cls.getSuperclass());
+      injector = findInjectorForClass(cls.getSuperclass());
     }
-    INJECTORS.put(cls, inject);
-    return inject;
-  }
-
-  private static Method findResettersForClass(Class<?> cls) throws NoSuchMethodException {
-    Method inject = RESETTERS.get(cls);
-    if (inject != null) {
-      if (debug) Log.d(TAG, "HIT: Cached in injector map.");
-      return inject;
-    }
-    String clsName = cls.getName();
-    if (clsName.startsWith(ANDROID_PREFIX) || clsName.startsWith(JAVA_PREFIX)) {
-      if (debug) Log.d(TAG, "MISS: Reached framework class. Abandoning search.");
-      return NO_OP;
-    }
-    try {
-      Class<?> injector = Class.forName(clsName + ButterKnifeProcessor.SUFFIX);
-      inject = injector.getMethod("reset", cls);
-      if (debug) Log.d(TAG, "HIT: Class loaded injection class.");
-    } catch (ClassNotFoundException e) {
-      if (debug) Log.d(TAG, "Not found. Trying superclass " + cls.getSuperclass().getName());
-      inject = findResettersForClass(cls.getSuperclass());
-    }
-    RESETTERS.put(cls, inject);
-    return inject;
+    INJECTORS.put(cls, injector);
+    return injector;
   }
 
   /** Apply the specified {@code action} across the {@code list} of views. */
