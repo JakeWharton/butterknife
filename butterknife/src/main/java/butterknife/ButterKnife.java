@@ -154,7 +154,7 @@ public final class ButterKnife {
    *
    * @param <T> the type of target to be injected
    */
-  public static interface Injector<T> {
+  public interface Injector<T> {
     void inject(Finder finder, T target, Object source);
     void reset(T target);
   }
