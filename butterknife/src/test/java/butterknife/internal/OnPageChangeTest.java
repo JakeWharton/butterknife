@@ -26,8 +26,9 @@ public class OnPageChangeTest {
             "package test;",
             "import android.view.View;",
             "import butterknife.ButterKnife.Finder;",
-            "public class Test$$ViewInjector implements butterknife.Injector<test.Test> {",
-            "  public void inject(Finder finder, final test.Test target, Object source) {",
+            "public class Test$$ViewInjector<T extends test.Test> ",
+            "  implements butterknife.ButterKnife.Injector<T> {",
+            "  public void inject(Finder finder, final T target, Object source) {",
             "    View view;",
             "    view = finder.findRequiredView(source, 1, \"method 'doStuff'\");",
             "    ((android.support.v4.view.ViewPager) view).setOnPageChangeListener(new android.support.v4.view.ViewPager.OnPageChangeListener() {",
@@ -40,7 +41,7 @@ public class OnPageChangeTest {
             "      }",
             "    });",
             "  }",
-            "  public void reset(test.Test target) {",
+            "  public void reset(T target) {",
             "  }",
             "}"
         ));
