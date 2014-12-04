@@ -9,9 +9,9 @@ import android.util.Log;
 import android.util.Property;
 import android.view.View;
 import butterknife.internal.ButterKnifeProcessor;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.WeakHashMap;
 
 import static butterknife.internal.ButterKnifeProcessor.ANDROID_PREFIX;
 import static butterknife.internal.ButterKnifeProcessor.JAVA_PREFIX;
@@ -148,6 +148,17 @@ public final class ButterKnife {
     protected abstract Context getContext(Object source);
   }
 
+  /**
+   * An interface for all generated ViewInjector classes
+   * DO NOT USE: Exposed for generated code.
+   *
+   * @param <T> the type of target to be injected
+   */
+  public static interface Injector<T> {
+    void inject(Finder finder, T target, Object source);
+    void reset(T target);
+  }
+
   /** An action that can be applied to a list of views. */
   public interface Action<T extends View> {
     /** Apply the action on the {@code view} which is at {@code index} in the list. */
@@ -163,7 +174,7 @@ public final class ButterKnife {
   private static final String TAG = "ButterKnife";
   private static boolean debug = false;
 
-  static final Map<Class<?>, Injector<?>> INJECTORS = new WeakHashMap<Class<?>, Injector<?>>();
+  static final Map<Class<?>, Injector<?>> INJECTORS = new LinkedHashMap<Class<?>, Injector<?>>();
   static final Injector<?> NOP_INJECTOR = new Injector<Object>() {
     @Override public void inject(Finder finder, Object target, Object source) { }
     @Override public void reset(Object target) { }
