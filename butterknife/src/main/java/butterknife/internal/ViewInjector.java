@@ -75,13 +75,12 @@ final class ViewInjector {
     builder.append("import android.view.View;\n");
     builder.append("import butterknife.ButterKnife.Finder;\n\n");
     builder.append("public class ").append(className);
+    builder.append("<T extends ").append(targetClass).append(">");
 
     if (parentInjector != null) {
-      builder.append(" extends ").append(parentInjector);
+      builder.append(" extends ").append(parentInjector).append("<T>");
     } else {
-      builder.append(" implements butterknife.Injector<")
-          .append(targetClass)
-          .append(">");
+      builder.append(" implements butterknife.ButterKnife.Injector<T>");
     }
 
     builder.append(" {\n");
@@ -93,9 +92,7 @@ final class ViewInjector {
   }
 
   private void emitInject(StringBuilder builder) {
-    builder.append("  public void inject(Finder finder, final ")
-        .append(targetClass)
-        .append(" target, Object source) {\n");
+    builder.append("  public void inject(Finder finder, final T target, Object source) {\n");
 
     // Emit a call to the superclass injector, if any.
     if (parentInjector != null) {
@@ -345,7 +342,7 @@ final class ViewInjector {
   }
 
   private void emitReset(StringBuilder builder) {
-    builder.append("  public void reset(").append(targetClass).append(" target) {\n");
+    builder.append("  public void reset(T target) {\n");
     if (parentInjector != null) {
       builder.append("    super.reset(target);\n\n");
     }
