@@ -92,7 +92,7 @@ final class ViewInjector {
   }
 
   private void emitInject(StringBuilder builder) {
-    builder.append("  public void inject(Finder finder, final T target, Object source) {\n");
+    builder.append("  @Override public void inject(Finder finder, final T target, Object source) {\n");
 
     // Emit a call to the superclass injector, if any.
     if (parentInjector != null) {
@@ -342,7 +342,7 @@ final class ViewInjector {
   }
 
   private void emitReset(StringBuilder builder) {
-    builder.append("  public void reset(T target) {\n");
+    builder.append("  @Override public void reset(T target) {\n");
     if (parentInjector != null) {
       builder.append("    super.reset(target);\n\n");
     }

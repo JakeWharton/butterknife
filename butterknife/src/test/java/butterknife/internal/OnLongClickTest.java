@@ -30,7 +30,7 @@ public class OnLongClickTest {
             "import butterknife.ButterKnife.Finder;",
             "public class Test$$ViewInjector<T extends test.Test> ",
             "  implements butterknife.ButterKnife.Injector<T> {",
-            "  public void inject(Finder finder, final T target, Object source) {",
+            "  @Override public void inject(Finder finder, final T target, Object source) {",
             "    View view;",
             "    view = finder.findRequiredView(source, 1, \"method 'doStuff'\");",
             "    view.setOnLongClickListener(",
@@ -40,7 +40,7 @@ public class OnLongClickTest {
             "        }",
             "      });",
             "  }",
-            "  public void reset(T target) {",
+            "  @Override public void reset(T target) {",
             "  }",
             "}"
         ));

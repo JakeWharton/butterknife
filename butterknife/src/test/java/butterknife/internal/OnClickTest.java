@@ -27,7 +27,7 @@ public class OnClickTest {
             "import butterknife.ButterKnife.Finder;",
             "public class Test$$ViewInjector<T extends test.Test> ",
             "  implements butterknife.ButterKnife.Injector<T> {",
-            "  public void inject(Finder finder, final T target, Object source) {",
+            "  @Override public void inject(Finder finder, final T target, Object source) {",
             "    View view;",
             "    view = finder.findRequiredView(source, 1, \"method 'doStuff'\");",
             "    view.setOnClickListener(new butterknife.internal.DebouncingOnClickListener() {",
@@ -36,7 +36,7 @@ public class OnClickTest {
             "      }",
             "    });",
             "  }",
-            "  public void reset(T target) {",
+            "  @Override public void reset(T target) {",
             "  }",
             "}"
         ));
@@ -67,7 +67,7 @@ public class OnClickTest {
             "import butterknife.ButterKnife.Finder;",
             "public class Test$$ViewInjector<T extends test.Test> ",
             "  implements butterknife.ButterKnife.Injector<T> {",
-            "  public void inject(Finder finder, final T target, Object source) {",
+            "  @Override public void inject(Finder finder, final T target, Object source) {",
             "    View view;",
             "    view = finder.findRequiredView(source, 1, \"method 'doStuff1', method 'doStuff2', and method 'doStuff3'\");",
             "    view.setOnClickListener(",
@@ -90,7 +90,7 @@ public class OnClickTest {
             "        }",
             "      });",
             "  }",
-            "  public void reset(T target) {",
+            "  @Override public void reset(T target) {",
             "}"));
 
     ASSERT.about(javaSource()).that(source)
@@ -119,7 +119,7 @@ public class OnClickTest {
             "import butterknife.ButterKnife.Finder;",
             "public class Test$$ViewInjector<T extends test.Test> ",
             "  implements butterknife.ButterKnife.Injector<T> {",
-            "  public void inject(Finder finder, final T target, Object source) {",
+            "  @Override public void inject(Finder finder, final T target, Object source) {",
             "    View view;",
             "    view = finder.findRequiredView(source, 1, \"field 'view' and method 'doStuff'\");",
             "    target.view = view;",
@@ -129,7 +129,7 @@ public class OnClickTest {
             "      }",
             "    });",
             "  }",
-            "  public void reset(T target) {",
+            "  @Override public void reset(T target) {",
             "    target.view = null;",
             "  }",
             "}"
@@ -183,7 +183,7 @@ public class OnClickTest {
             "import butterknife.ButterKnife.Finder;",
             "public class Test$$ViewInjector<T extends test.Test> ",
             "  implements butterknife.ButterKnife.Injector<T> {",
-            "  public void inject(Finder finder, final T target, Object source) {",
+            "  @Override public void inject(Finder finder, final T target, Object source) {",
             "    View view;",
             "    view = finder.findRequiredView(source, 0, \"method 'click0'\");",
             "    view.setOnClickListener(new butterknife.internal.DebouncingOnClickListener() {",
@@ -210,7 +210,7 @@ public class OnClickTest {
             "      }",
             "    });",
             "  }",
-            "  public void reset(T target) {",
+            "  @Override public void reset(T target) {",
             "  }",
             "}"
         ));
@@ -240,7 +240,7 @@ public class OnClickTest {
             "import butterknife.ButterKnife.Finder;",
             "public class Test$$ViewInjector<T extends test.Test> ",
             "  implements butterknife.ButterKnife.Injector<T> {",
-            "  public void inject(Finder finder, final T target, Object source) {",
+            "  @Override public void inject(Finder finder, final T target, Object source) {",
             "    View view;",
             "    view = finder.findRequiredView(source, 1, \"method 'click'\");",
             "    view.setOnClickListener(new butterknife.internal.DebouncingOnClickListener() {",
@@ -261,7 +261,7 @@ public class OnClickTest {
             "      }",
             "    });",
             "  }",
-            "  public void reset(T target) {",
+            "  @Override public void reset(T target) {",
             "  }",
             "}"
         ));
@@ -290,7 +290,7 @@ public class OnClickTest {
             "import butterknife.ButterKnife.Finder;",
             "public class Test$$ViewInjector<T extends test.Test> ",
             "  implements butterknife.ButterKnife.Injector<T> {",
-            "  public void inject(Finder finder, final T target, Object source) {",
+            "  @Override public void inject(Finder finder, final T target, Object source) {",
             "    View view;",
             "    view = finder.findOptionalView(source, 1);",
             "    if (view != null) {",
@@ -301,7 +301,7 @@ public class OnClickTest {
             "      });",
             "    }",
             "  }",
-            "  public void reset(T target) {",
+            "  @Override public void reset(T target) {",
             "  }",
             "}"
         ));
@@ -333,7 +333,7 @@ public class OnClickTest {
             "import butterknife.ButterKnife.Finder;",
             "public class Test$$ViewInjector<T extends test.Test> ",
             "  implements butterknife.ButterKnife.Injector<T> {",
-            "  public void inject(Finder finder, final T target, Object source) {",
+            "  @Override public void inject(Finder finder, final T target, Object source) {",
             "    View view;",
             "    view = finder.findRequiredView(source, 1, \"field 'view'\");",
             "    target.view = view;",
@@ -343,7 +343,7 @@ public class OnClickTest {
             "      }",
             "    });",
             "  }",
-            "  public void reset(T target) {",
+            "  @Override public void reset(T target) {",
             "    target.view = null;",
             "  }",
             "}"
