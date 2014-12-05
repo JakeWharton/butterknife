@@ -92,7 +92,8 @@ final class ViewInjector {
   }
 
   private void emitInject(StringBuilder builder) {
-    builder.append("  @Override public void inject(Finder finder, final T target, Object source) {\n");
+    builder.append("  @Override ")
+        .append("public void inject(Finder finder, final T target, Object source) {\n");
 
     // Emit a call to the superclass injector, if any.
     if (parentInjector != null) {
