@@ -74,7 +74,16 @@ final class ViewInjector {
     builder.append("package ").append(classPackage).append(";\n\n");
     builder.append("import android.view.View;\n");
     builder.append("import butterknife.ButterKnife.Finder;\n\n");
-    builder.append("public class ").append(className).append(" {\n");
+    builder.append("public class ").append(className);
+    builder.append("<T extends ").append(targetClass).append(">");
+
+    if (parentInjector != null) {
+      builder.append(" extends ").append(parentInjector).append("<T>");
+    } else {
+      builder.append(" implements butterknife.ButterKnife.Injector<T>");
+    }
+
+    builder.append(" {\n");
     emitInject(builder);
     builder.append('\n');
     emitReset(builder);
@@ -83,15 +92,12 @@ final class ViewInjector {
   }
 
   private void emitInject(StringBuilder builder) {
-    builder.append("  public static void inject(Finder finder, final ")
-        .append(targetClass)
-        .append(" target, Object source) {\n");
+    builder.append("  @Override ")
+        .append("public void inject(Finder finder, final T target, Object source) {\n");
 
     // Emit a call to the superclass injector, if any.
     if (parentInjector != null) {
-      builder.append("    ")
-          .append(parentInjector)
-          .append(".inject(finder, target, source);\n\n");
+      builder.append("    super.inject(finder, target, source);\n\n");
     }
 
     // Local variable in which all views will be temporarily stored.
@@ -337,11 +343,9 @@ final class ViewInjector {
   }
 
   private void emitReset(StringBuilder builder) {
-    builder.append("  public static void reset(").append(targetClass).append(" target) {\n");
+    builder.append("  @Override public void reset(T target) {\n");
     if (parentInjector != null) {
-      builder.append("    ")
-          .append(parentInjector)
-          .append(".reset(target);\n\n");
+      builder.append("    super.reset(target);\n\n");
     }
     for (ViewInjection injection : viewIdMap.values()) {
       for (ViewBinding viewBinding : injection.getViewBindings()) {
