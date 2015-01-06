@@ -33,11 +33,6 @@
       <artifactId>robolectric</artifactId>
       <scope>test</scope>
     </dependency>
-    <dependency>
-      <groupId>com.google.testing.compile</groupId>
-      <artifactId>compile-testing</artifactId>
-      <scope>test</scope>
-    </dependency>
 
     <dependency>
       <groupId>com.google.android</groupId>

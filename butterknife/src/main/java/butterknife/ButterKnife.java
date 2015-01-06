@@ -8,15 +8,13 @@ import android.os.Build;
 import android.util.Log;
 import android.util.Property;
 import android.view.View;
-import butterknife.internal.ButterKnifeProcessor;
+import butterknife.internal.Constants;
+
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-
-import static butterknife.internal.ButterKnifeProcessor.ANDROID_PREFIX;
-import static butterknife.internal.ButterKnifeProcessor.JAVA_PREFIX;
 
 /**
  * View "injection" utilities. Use this class to simplify finding views and attaching listeners by
@@ -87,6 +85,7 @@ import static butterknife.internal.ButterKnifeProcessor.JAVA_PREFIX;
  * @see OnTouch
  */
 public final class ButterKnife {
+
   private ButterKnife() {
     throw new AssertionError("No instances.");
   }
@@ -290,12 +289,12 @@ public final class ButterKnife {
       return inject;
     }
     String clsName = cls.getName();
-    if (clsName.startsWith(ANDROID_PREFIX) || clsName.startsWith(JAVA_PREFIX)) {
+    if (clsName.startsWith(Constants.ANDROID_PREFIX) || clsName.startsWith(Constants.JAVA_PREFIX)) {
       if (debug) Log.d(TAG, "MISS: Reached framework class. Abandoning search.");
       return NO_OP;
     }
     try {
-      Class<?> injector = Class.forName(clsName + ButterKnifeProcessor.SUFFIX);
+      Class<?> injector = Class.forName(clsName + Constants.SUFFIX);
       inject = injector.getMethod("inject", Finder.class, cls, Object.class);
       if (debug) Log.d(TAG, "HIT: Class loaded injection class.");
     } catch (ClassNotFoundException e) {
@@ -313,12 +312,12 @@ public final class ButterKnife {
       return inject;
     }
     String clsName = cls.getName();
-    if (clsName.startsWith(ANDROID_PREFIX) || clsName.startsWith(JAVA_PREFIX)) {
+    if (clsName.startsWith(Constants.ANDROID_PREFIX) || clsName.startsWith(Constants.JAVA_PREFIX)) {
       if (debug) Log.d(TAG, "MISS: Reached framework class. Abandoning search.");
       return NO_OP;
     }
     try {
-      Class<?> injector = Class.forName(clsName + ButterKnifeProcessor.SUFFIX);
+      Class<?> injector = Class.forName(clsName + Constants.SUFFIX);
       inject = injector.getMethod("reset", cls);
       if (debug) Log.d(TAG, "HIT: Class loaded injection class.");
     } catch (ClassNotFoundException e) {
