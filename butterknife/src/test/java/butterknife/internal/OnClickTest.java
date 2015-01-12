@@ -165,10 +165,12 @@ public class OnClickTest {
         "import android.widget.TextView;",
         "import butterknife.OnClick;",
         "public class Test extends Activity {",
+        "  interface TestInterface {}",
         "  @OnClick(0) void click0() {}",
         "  @OnClick(1) void click1(View view) {}",
         "  @OnClick(2) void click2(TextView view) {}",
         "  @OnClick(3) void click3(Button button) {}",
+        "  @OnClick(4) void click4(TestInterface thing) {}",
         "}"
     ));
 
@@ -202,6 +204,12 @@ public class OnClickTest {
             "    view.setOnClickListener(new butterknife.internal.DebouncingOnClickListener() {",
             "      @Override public void doClick(android.view.View p0) {",
             "        target.click3((android.widget.Button) p0);",
+            "      }",
+            "    });",
+            "    view = finder.findRequiredView(source, 4, \"method 'click4'\");",
+            "    view.setOnClickListener(new butterknife.internal.DebouncingOnClickListener() {",
+            "      @Override public void doClick(android.view.View p0) {",
+            "        target.click4((test.Test.TestInterface) p0);",
             "      }",
             "    });",
             "  }",

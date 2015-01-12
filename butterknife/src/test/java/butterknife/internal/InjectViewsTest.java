@@ -163,6 +163,45 @@ public class InjectViewsTest {
         .generatesSources(expectedSource);
   }
 
+  @Test public void injectingListOfInterface() {
+    JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
+        "package test;",
+        "import android.app.Activity;",
+        "import butterknife.InjectViews;",
+        "import java.util.List;",
+        "public class Test {",
+        "    interface TestInterface {}",
+        "    @InjectViews({1, 2, 3}) List<TestInterface> thing;",
+        "}"
+    ));
+
+    JavaFileObject expectedSource = JavaFileObjects.forSourceString("test/Test$$ViewInjector",
+        Joiner.on('\n').join(
+            "package test;",
+            "import android.view.View;",
+            "import butterknife.ButterKnife.Finder;",
+            "public class Test$$ViewInjector {",
+            "  public static void inject(Finder finder, final test.Test target, Object source) {",
+            "    View view;",
+            "    target.thing = Finder.listOf(",
+            "        (test.Test.TestInterface) finder.findRequiredView(source, 1, \"thing\"),",
+            "        (test.Test.TestInterface) finder.findRequiredView(source, 2, \"thing\"),",
+            "        (test.Test.TestInterface) finder.findRequiredView(source, 3, \"thing\")",
+            "    );",
+            "  }",
+            "  public static void reset(test.Test target) {",
+            "    target.thing = null;",
+            "  }",
+            "}"
+        ));
+
+    ASSERT.about(javaSource()).that(source)
+        .processedWith(butterknifeProcessors())
+        .compilesWithoutError()
+        .and()
+        .generatesSources(expectedSource);
+  }
+
   @Test public void injectingListWithGenerics() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
         "package test;",
