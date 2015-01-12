@@ -145,7 +145,7 @@ public final class ButterKnife {
       return view;
     }
 
-    public <T> T cast(View view, int id, Class<T> expectedType) {
+    public <T> T castView(View view, int id, Class<T> expectedType) {
       if (!expectedType.isInstance(view)) {
         String name = view.getContext().getResources().getResourceEntryName(id);
         throw new ClassCastException("View '"
@@ -158,6 +158,20 @@ public final class ButterKnife {
             + expectedType.getName());
       }
       return (T) view;
+    }
+
+    public <T> T castParam(Object param, String methodName, int position, Class<T> expectedType) {
+      if (!expectedType.isInstance(param)) {
+        throw new ClassCastException("Parameter "
+            + position
+            + " of method '"
+            + methodName
+            + "' was of type "
+            + param.getClass().getName()
+            + " but was expexted to have type "
+            + expectedType.getName());
+      }
+      return (T) param;
     }
 
     public abstract View findOptionalView(Object source, int id);

@@ -130,7 +130,7 @@ final class ViewInjector {
       }
       builder.append("\n        ");
       if (binding.requiresCast()) {
-        builder.append("finder.cast(");
+        builder.append("finder.castView(");
       }
       if (binding.isRequired()) {
         builder.append("finder.findRequiredView(source, ")
@@ -188,7 +188,7 @@ final class ViewInjector {
           .append(viewBinding.getName())
           .append(" = ");
       if (viewBinding.requiresCast()) {
-        builder.append("finder.cast(view");
+        builder.append("finder.castView(view");
         builder.append(", " + injection.getId());
         builder.append(", " + viewBinding.getType() + ".class");
         builder.append(");\n");
