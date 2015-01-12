@@ -145,6 +145,21 @@ public final class ButterKnife {
       return view;
     }
 
+    public <T> T cast(View view, int id, Class<T> expectedType) {
+      if (!expectedType.isInstance(view)) {
+        String name = view.getContext().getResources().getResourceEntryName(id);
+        throw new ClassCastException("View '"
+            + name
+            + "' with ID "
+            + id
+            + " was of type "
+            + view.getClass().getName()
+            + " but was expexted to have type "
+            + expectedType.getName());
+      }
+      return (T) view;
+    }
+
     public abstract View findOptionalView(Object source, int id);
 
     protected abstract Context getContext(Object source);
