@@ -129,7 +129,7 @@ final class ViewInjector {
         builder.append(',');
       }
       builder.append("\n        ");
-      if (!binding.getType().equals(VIEW_TYPE)) {
+      if (binding.requiresCast()) {
         builder.append("finder.cast(");
       }
       if (binding.isRequired()) {
@@ -143,7 +143,7 @@ final class ViewInjector {
             .append(ids[i])
             .append(")");
       }
-      if (!binding.getType().equals(VIEW_TYPE)) {
+      if (binding.requiresCast()) {
         builder.append(", " + ids[i]);
         builder.append(", " + binding.getType() + ".class");
         builder.append(")");
@@ -187,13 +187,13 @@ final class ViewInjector {
       builder.append("    target.")
           .append(viewBinding.getName())
           .append(" = ");
-      if (viewBinding.getType().equals(VIEW_TYPE)) {
-        builder.append("view;\n");
-      } else {
+      if (viewBinding.requiresCast()) {
         builder.append("finder.cast(view");
         builder.append(", " + injection.getId());
         builder.append(", " + viewBinding.getType() + ".class");
         builder.append(");\n");
+      } else {
+        builder.append("view;\n");
       }
     }
   }
