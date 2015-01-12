@@ -228,8 +228,8 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
       elementType = typeVariable.getUpperBound();
     }
     if (!isSubtypeOfType(elementType, VIEW_TYPE) && !isInterface(elementType)) {
-      error(element, "@InjectView fields must extend from View. (%s.%s)   %s",
-          enclosingElement.getQualifiedName(), element.getSimpleName(), element.getKind().toString());
+      error(element, "@InjectView fields must extend from View. (%s.%s)",
+          enclosingElement.getQualifiedName(), element.getSimpleName());
       hasError = true;
     }
 
