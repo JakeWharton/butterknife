@@ -296,8 +296,18 @@ final class ViewInjector {
             for (int i = 0, count = parameters.size(); i < count; i++) {
               Parameter parameter = parameters.get(i);
               int listenerPosition = parameter.getListenerPosition();
-              emitCastIfNeeded(builder, listenerParameters[listenerPosition], parameter.getType());
-              builder.append('p').append(listenerPosition);
+
+              if (parameter.requiresCast(listenerParameters[listenerPosition])) {
+                builder.append("finder.castParam(");
+                builder.append('p').append(listenerPosition);
+                builder.append(", \"" + method.name());
+                builder.append("\", " + listenerPosition);
+                builder.append(", " + parameter.getType() + ".class");
+                builder.append(")");
+              } else {
+                builder.append('p').append(listenerPosition);
+              }
+
               if (i < count - 1) {
                 builder.append(", ");
               }
