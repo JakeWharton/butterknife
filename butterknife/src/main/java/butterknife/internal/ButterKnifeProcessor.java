@@ -50,6 +50,7 @@ import javax.lang.model.util.Types;
 import javax.tools.JavaFileObject;
 
 import static javax.lang.model.element.ElementKind.CLASS;
+import static javax.lang.model.element.ElementKind.INTERFACE;
 import static javax.lang.model.element.ElementKind.METHOD;
 import static javax.lang.model.element.Modifier.PRIVATE;
 import static javax.lang.model.element.Modifier.STATIC;
@@ -226,8 +227,8 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
       TypeVariable typeVariable = (TypeVariable) elementType;
       elementType = typeVariable.getUpperBound();
     }
-    if (!isSubtypeOfType(elementType, VIEW_TYPE)) {
-      error(element, "@InjectView fields must extend from View. (%s.%s)",
+    if (!isSubtypeOfType(elementType, VIEW_TYPE) && !isInterface(elementType)) {
+      error(element, "@InjectView fields must extend from View or be an interface. (%s.%s)",
           enclosingElement.getQualifiedName(), element.getSimpleName());
       hasError = true;
     }
@@ -314,8 +315,8 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     }
 
     // Verify that the target type extends from View.
-    if (viewType != null && !isSubtypeOfType(viewType, VIEW_TYPE)) {
-      error(element, "@InjectViews type must extend from View. (%s.%s)",
+    if (viewType != null && !isSubtypeOfType(viewType, VIEW_TYPE) && !isInterface(viewType)) {
+      error(element, "@InjectViews type must extend from View or be an interface. (%s.%s)",
           enclosingElement.getQualifiedName(), element.getSimpleName());
       hasError = true;
     }
@@ -447,9 +448,11 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
           // Verify target type is valid for a binding without an id.
           String targetType = listener.targetType();
-          if (!isSubtypeOfType(enclosingElement.asType(), targetType)) {
+          if (!isSubtypeOfType(enclosingElement.asType(), targetType)
+              && !isInterface(enclosingElement.asType())) {
             error(element, "@%s annotation without an ID may only be used with an object of type "
-                    + "\"%s\". (%s.%s)", annotationClass.getSimpleName(), targetType,
+                    + "\"%s\" or an interface. (%s.%s)",
+                    annotationClass.getSimpleName(), targetType,
                 enclosingElement.getQualifiedName(), element.getSimpleName());
             hasError = true;
           }
@@ -530,7 +533,8 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
           if (methodParameterUsed.get(j)) {
             continue;
           }
-          if (isSubtypeOfType(methodParameterType, parameterTypes[j])) {
+          if (isSubtypeOfType(methodParameterType, parameterTypes[j])
+              || isInterface(methodParameterType)) {
             parameters[i] = new Parameter(j, methodParameterType.toString());
             methodParameterUsed.set(j);
             break;
@@ -587,6 +591,13 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
     // Add the type-erased version to the valid injection targets set.
     erasedTargetNames.add(enclosingElement.toString());
+  }
+
+  private boolean isInterface(TypeMirror typeMirror) {
+    if (!(typeMirror instanceof DeclaredType)) {
+      return false;
+    }
+    return ((DeclaredType) typeMirror).asElement().getKind() == INTERFACE;
   }
 
   private boolean isSubtypeOfType(TypeMirror typeMirror, String otherType) {

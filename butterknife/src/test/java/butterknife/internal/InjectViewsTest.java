@@ -27,7 +27,7 @@ public class InjectViewsTest {
             "import android.view.View;",
             "import butterknife.ButterKnife.Finder;",
             "public class Test$$ViewInjector {",
-            "  public static void inject(Finder finder, final test.Test target, Object source) {",
+            "  public static void inject(final Finder finder, final test.Test target, Object source) {",
             "    View view;",
             "    target.thing = Finder.arrayOf(",
             "        finder.findRequiredView(source, 1, \"thing\"),",
@@ -65,7 +65,7 @@ public class InjectViewsTest {
             "import android.view.View;",
             "import butterknife.ButterKnife.Finder;",
             "public class Test$$ViewInjector {",
-            "  public static void inject(Finder finder, final test.Test target, Object source) {",
+            "  public static void inject(final Finder finder, final test.Test target, Object source) {",
             "    View view;",
             "    target.thing = Finder.arrayOf(",
             "        finder.findRequiredView(source, 1, \"thing\"),",
@@ -103,12 +103,12 @@ public class InjectViewsTest {
             "import android.view.View;",
             "import butterknife.ButterKnife.Finder;",
             "public class Test$$ViewInjector {",
-            "  public static void inject(Finder finder, final test.Test target, Object source) {",
+            "  public static void inject(final Finder finder, final test.Test target, Object source) {",
             "    View view;",
             "    target.thing = Finder.arrayOf(",
-            "        (android.widget.TextView) finder.findRequiredView(source, 1, \"thing\"),",
-            "        (android.widget.TextView) finder.findRequiredView(source, 2, \"thing\"),",
-            "        (android.widget.TextView) finder.findRequiredView(source, 3, \"thing\")",
+            "        finder.castView(finder.findRequiredView(source, 1, \"thing\"), 1, android.widget.TextView.class),",
+            "        finder.castView(finder.findRequiredView(source, 2, \"thing\"), 2, android.widget.TextView.class),",
+            "        finder.castView(finder.findRequiredView(source, 3, \"thing\"), 3, android.widget.TextView.class)",
             "    );",
             "  }",
             "  public static void reset(test.Test target) {",
@@ -142,12 +142,51 @@ public class InjectViewsTest {
             "import android.view.View;",
             "import butterknife.ButterKnife.Finder;",
             "public class Test$$ViewInjector {",
-            "  public static void inject(Finder finder, final test.Test target, Object source) {",
+            "  public static void inject(final Finder finder, final test.Test target, Object source) {",
             "    View view;",
             "    target.thing = Finder.listOf(",
             "        finder.findRequiredView(source, 1, \"thing\"),",
             "        finder.findRequiredView(source, 2, \"thing\"),",
             "        finder.findRequiredView(source, 3, \"thing\")",
+            "    );",
+            "  }",
+            "  public static void reset(test.Test target) {",
+            "    target.thing = null;",
+            "  }",
+            "}"
+        ));
+
+    ASSERT.about(javaSource()).that(source)
+        .processedWith(butterknifeProcessors())
+        .compilesWithoutError()
+        .and()
+        .generatesSources(expectedSource);
+  }
+
+  @Test public void injectingListOfInterface() {
+    JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
+        "package test;",
+        "import android.app.Activity;",
+        "import butterknife.InjectViews;",
+        "import java.util.List;",
+        "public class Test {",
+        "    interface TestInterface {}",
+        "    @InjectViews({1, 2, 3}) List<TestInterface> thing;",
+        "}"
+    ));
+
+    JavaFileObject expectedSource = JavaFileObjects.forSourceString("test/Test$$ViewInjector",
+        Joiner.on('\n').join(
+            "package test;",
+            "import android.view.View;",
+            "import butterknife.ButterKnife.Finder;",
+            "public class Test$$ViewInjector {",
+            "  public static void inject(final Finder finder, final test.Test target, Object source) {",
+            "    View view;",
+            "    target.thing = Finder.listOf(",
+            "        finder.castView(finder.findRequiredView(source, 1, \"thing\"), 1, test.Test.TestInterface.class),",
+            "        finder.castView(finder.findRequiredView(source, 2, \"thing\"), 2, test.Test.TestInterface.class),",
+            "        finder.castView(finder.findRequiredView(source, 3, \"thing\"), 3, test.Test.TestInterface.class)",
             "    );",
             "  }",
             "  public static void reset(test.Test target) {",
@@ -181,7 +220,7 @@ public class InjectViewsTest {
             "import android.view.View;",
             "import butterknife.ButterKnife.Finder;",
             "public class Test$$ViewInjector {",
-            "  public static void inject(Finder finder, final test.Test target, Object source) {",
+            "  public static void inject(final Finder finder, final test.Test target, Object source) {",
             "    View view;",
             "    target.thing = Finder.listOf(",
             "        finder.findRequiredView(source, 1, \"thing\"),",
@@ -221,7 +260,7 @@ public class InjectViewsTest {
             "import android.view.View;",
             "import butterknife.ButterKnife.Finder;",
             "public class Test$$ViewInjector {",
-            "  public static void inject(Finder finder, final test.Test target, Object source) {",
+            "  public static void inject(final Finder finder, final test.Test target, Object source) {",
             "    View view;",
             "    target.thing = Finder.listOf(",
             "        finder.findOptionalView(source, 1),",
@@ -311,7 +350,7 @@ public class InjectViewsTest {
     ASSERT.about(javaSource()).that(source)
         .processedWith(butterknifeProcessors())
         .failsToCompile()
-        .withErrorContaining("@InjectViews type must extend from View. (test.Test.thing)")
+        .withErrorContaining("@InjectViews type must extend from View or be an interface. (test.Test.thing)")
         .in(source).onLine(6);
   }
 
@@ -323,7 +362,7 @@ public class InjectViewsTest {
     ASSERT.about(javaSource()).that(source)
         .processedWith(butterknifeProcessors())
         .failsToCompile()
-        .withErrorContaining("@InjectViews type must extend from View. (test.Test.thing)")
+        .withErrorContaining("@InjectViews type must extend from View or be an interface. (test.Test.thing)")
         .in(source).onLine(5);
   }
 

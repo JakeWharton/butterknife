@@ -122,12 +122,12 @@ public final class ButterKnife {
       }
     };
 
-    public static <T extends View> T[] arrayOf(T... views) {
+    public static <T> T[] arrayOf(T... views) {
       return views;
     }
 
-    public static <T extends View> List<T> listOf(T... views) {
-      return new ImmutableViewList<T>(views);
+    public static <T> List<T> listOf(T... views) {
+      return new ImmutableList<T>(views);
     }
 
     public View findRequiredView(Object source, int id, String who) {
@@ -143,6 +143,35 @@ public final class ButterKnife {
             + " was not found. If this view is optional add '@Optional' annotation.");
       }
       return view;
+    }
+
+    public <T> T castView(View view, int id, Class<T> expectedType) {
+      if (!expectedType.isInstance(view)) {
+        String name = view.getContext().getResources().getResourceEntryName(id);
+        throw new ClassCastException("View '"
+            + name
+            + "' with ID "
+            + id
+            + " was of type "
+            + view.getClass().getName()
+            + " but was expexted to have type "
+            + expectedType.getName());
+      }
+      return (T) view;
+    }
+
+    public <T> T castParam(Object param, String methodName, int position, Class<T> expectedType) {
+      if (!expectedType.isInstance(param)) {
+        throw new ClassCastException("Parameter "
+            + position
+            + " of method '"
+            + methodName
+            + "' was of type "
+            + param.getClass().getName()
+            + " but was expexted to have type "
+            + expectedType.getName());
+      }
+      return (T) param;
     }
 
     public abstract View findOptionalView(Object source, int id);

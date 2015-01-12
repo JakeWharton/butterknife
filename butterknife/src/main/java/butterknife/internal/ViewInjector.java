@@ -83,7 +83,7 @@ final class ViewInjector {
   }
 
   private void emitInject(StringBuilder builder) {
-    builder.append("  public static void inject(Finder finder, final ")
+    builder.append("  public static void inject(final Finder finder, final ")
         .append(targetClass)
         .append(" target, Object source) {\n");
 
@@ -129,7 +129,9 @@ final class ViewInjector {
         builder.append(',');
       }
       builder.append("\n        ");
-      emitCastIfNeeded(builder, binding.getType());
+      if (binding.requiresCast()) {
+        builder.append("finder.castView(");
+      }
       if (binding.isRequired()) {
         builder.append("finder.findRequiredView(source, ")
             .append(ids[i])
@@ -140,6 +142,11 @@ final class ViewInjector {
         builder.append("finder.findOptionalView(source, ")
             .append(ids[i])
             .append(")");
+      }
+      if (binding.requiresCast()) {
+        builder.append(", " + ids[i]);
+        builder.append(", " + binding.getType() + ".class");
+        builder.append(")");
       }
     }
 
@@ -180,8 +187,14 @@ final class ViewInjector {
       builder.append("    target.")
           .append(viewBinding.getName())
           .append(" = ");
-      emitCastIfNeeded(builder, viewBinding.getType());
-      builder.append("view;\n");
+      if (viewBinding.requiresCast()) {
+        builder.append("finder.castView(view");
+        builder.append(", " + injection.getId());
+        builder.append(", " + viewBinding.getType() + ".class");
+        builder.append(");\n");
+      } else {
+        builder.append("view;\n");
+      }
     }
   }
 
@@ -283,8 +296,18 @@ final class ViewInjector {
             for (int i = 0, count = parameters.size(); i < count; i++) {
               Parameter parameter = parameters.get(i);
               int listenerPosition = parameter.getListenerPosition();
-              emitCastIfNeeded(builder, listenerParameters[listenerPosition], parameter.getType());
-              builder.append('p').append(listenerPosition);
+
+              if (parameter.requiresCast(listenerParameters[listenerPosition])) {
+                builder.append("finder.castParam(");
+                builder.append('p').append(listenerPosition);
+                builder.append(", \"" + method.name());
+                builder.append("\", " + listenerPosition);
+                builder.append(", " + parameter.getType() + ".class");
+                builder.append(")");
+              } else {
+                builder.append('p').append(listenerPosition);
+              }
+
               if (i < count - 1) {
                 builder.append(", ");
               }
@@ -352,17 +375,6 @@ final class ViewInjector {
       builder.append("    target.").append(collectionBinding.getName()).append(" = null;\n");
     }
     builder.append("  }\n");
-  }
-
-  static void emitCastIfNeeded(StringBuilder builder, String viewType) {
-    emitCastIfNeeded(builder, VIEW_TYPE, viewType);
-  }
-
-  static void emitCastIfNeeded(StringBuilder builder, String sourceType, String destinationType) {
-    // Only emit a cast if the source and destination type do not match.
-    if (!sourceType.equals(destinationType)) {
-      builder.append('(').append(destinationType).append(") ");
-    }
   }
 
   static void emitHumanDescription(StringBuilder builder, List<Binding> bindings) {

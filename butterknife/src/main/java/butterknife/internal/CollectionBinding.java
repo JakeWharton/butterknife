@@ -1,5 +1,7 @@
 package butterknife.internal;
 
+import static butterknife.internal.ButterKnifeProcessor.VIEW_TYPE;
+
 final class CollectionBinding implements Binding {
   enum Kind {
     ARRAY,
@@ -36,5 +38,9 @@ final class CollectionBinding implements Binding {
 
   @Override public String getDescription() {
     return "field '" + name + "'";
+  }
+
+  public boolean requiresCast() {
+    return !VIEW_TYPE.equals(type);
   }
 }
