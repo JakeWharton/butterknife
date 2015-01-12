@@ -448,9 +448,11 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
           // Verify target type is valid for a binding without an id.
           String targetType = listener.targetType();
-          if (!isSubtypeOfType(enclosingElement.asType(), targetType) && !isInterface(enclosingElement.asType())) {
+          if (!isSubtypeOfType(enclosingElement.asType(), targetType)
+              && !isInterface(enclosingElement.asType())) {
             error(element, "@%s annotation without an ID may only be used with an object of type "
-                    + "\"%s\" or an interface. (%s.%s)", annotationClass.getSimpleName(), targetType,
+                    + "\"%s\" or an interface. (%s.%s)",
+                    annotationClass.getSimpleName(), targetType,
                 enclosingElement.getQualifiedName(), element.getSimpleName());
             hasError = true;
           }
@@ -531,7 +533,8 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
           if (methodParameterUsed.get(j)) {
             continue;
           }
-          if (isSubtypeOfType(methodParameterType, parameterTypes[j]) || isInterface(methodParameterType)) {
+          if (isSubtypeOfType(methodParameterType, parameterTypes[j])
+              || isInterface(methodParameterType)) {
             parameters[i] = new Parameter(j, methodParameterType.toString());
             methodParameterUsed.set(j);
             break;
@@ -594,7 +597,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     if (!(typeMirror instanceof DeclaredType)) {
       return false;
     }
-    return ((DeclaredType)typeMirror).asElement().getKind() == INTERFACE;
+    return ((DeclaredType) typeMirror).asElement().getKind() == INTERFACE;
   }
 
   private boolean isSubtypeOfType(TypeMirror typeMirror, String otherType) {

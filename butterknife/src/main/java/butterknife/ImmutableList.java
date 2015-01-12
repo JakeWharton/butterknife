@@ -1,6 +1,5 @@
 package butterknife;
 
-import android.view.View;
 import java.util.AbstractList;
 import java.util.RandomAccess;
 

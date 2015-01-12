@@ -187,7 +187,6 @@ final class ViewInjector {
       builder.append("    target.")
           .append(viewBinding.getName())
           .append(" = ");
-          
       if (viewBinding.getType().equals(VIEW_TYPE)) {
         builder.append("view;\n");
       } else {
