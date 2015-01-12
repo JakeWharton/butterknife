@@ -122,12 +122,12 @@ public final class ButterKnife {
       }
     };
 
-    public static <T extends View> T[] arrayOf(T... views) {
+    public static <T> T[] arrayOf(T... views) {
       return views;
     }
 
-    public static <T extends View> List<T> listOf(T... views) {
-      return new ImmutableViewList<T>(views);
+    public static <T> List<T> listOf(T... views) {
+      return new ImmutableList<T>(views);
     }
 
     public View findRequiredView(Object source, int id, String who) {
