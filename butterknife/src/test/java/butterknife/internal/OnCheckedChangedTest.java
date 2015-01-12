@@ -28,7 +28,7 @@ public class OnCheckedChangedTest {
             "import butterknife.ButterKnife.Finder;",
             "import butterknife.ButterKnife.Injector;",
             "public class Test$$ViewInjector<T extends test.Test> implements Injector<T> {",
-            "  @Override public void inject(Finder finder, final T target, Object source) {",
+            "  @Override public void inject(final Finder finder, final T target, Object source) {",
             "    View view;",
             "    view = finder.findRequiredView(source, 1, \"method 'doStuff'\");",
             "    ((android.widget.CompoundButton) view).setOnCheckedChangeListener(new android.widget.CompoundButton.OnCheckedChangeListener() {",
