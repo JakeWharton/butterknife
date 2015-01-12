@@ -83,7 +83,7 @@ final class ViewInjector {
   }
 
   private void emitInject(StringBuilder builder) {
-    builder.append("  public static void inject(Finder finder, final ")
+    builder.append("  public static void inject(final Finder finder, final ")
         .append(targetClass)
         .append(" target, Object source) {\n");
 
