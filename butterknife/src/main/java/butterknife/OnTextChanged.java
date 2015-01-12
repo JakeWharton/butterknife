@@ -36,7 +36,7 @@ import static java.lang.annotation.RetentionPolicy.CLASS;
 @ListenerClass(
     targetType = "android.widget.TextView",
     setter = "addTextChangedListener",
-    type = "android.text.TextWatcher",
+    type = "butterknife.internal.DebouncingTextWatcher",
     callbacks = OnTextChanged.Callback.class
 )
 public @interface OnTextChanged {
@@ -50,7 +50,7 @@ public @interface OnTextChanged {
   enum Callback {
     /** {@link TextWatcher#onTextChanged(CharSequence, int, int, int)} */
     @ListenerMethod(
-        name = "onTextChanged",
+        name = "doTextChanged",
         parameters = {
             "java.lang.CharSequence",
             "int",
@@ -62,7 +62,7 @@ public @interface OnTextChanged {
 
     /** {@link TextWatcher#beforeTextChanged(CharSequence, int, int, int)} */
     @ListenerMethod(
-        name = "beforeTextChanged",
+        name = "doBeforeTextChanged",
         parameters = {
             "java.lang.CharSequence",
             "int",
@@ -74,7 +74,7 @@ public @interface OnTextChanged {
 
     /** {@link TextWatcher#afterTextChanged(android.text.Editable)} */
     @ListenerMethod(
-        name = "afterTextChanged",
+        name = "doAfterTextChanged",
         parameters = "android.text.Editable"
     )
     AFTER_TEXT_CHANGED,
