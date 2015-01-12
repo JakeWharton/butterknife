@@ -350,7 +350,7 @@ public class InjectViewsTest {
     ASSERT.about(javaSource()).that(source)
         .processedWith(butterknifeProcessors())
         .failsToCompile()
-        .withErrorContaining("@InjectViews type must extend from View. (test.Test.thing)")
+        .withErrorContaining("@InjectViews type must extend from View or be an interface. (test.Test.thing)")
         .in(source).onLine(6);
   }
 
@@ -362,7 +362,7 @@ public class InjectViewsTest {
     ASSERT.about(javaSource()).that(source)
         .processedWith(butterknifeProcessors())
         .failsToCompile()
-        .withErrorContaining("@InjectViews type must extend from View. (test.Test.thing)")
+        .withErrorContaining("@InjectViews type must extend from View or be an interface. (test.Test.thing)")
         .in(source).onLine(5);
   }
 

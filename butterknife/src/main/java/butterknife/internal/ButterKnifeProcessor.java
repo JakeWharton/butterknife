@@ -228,7 +228,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
       elementType = typeVariable.getUpperBound();
     }
     if (!isSubtypeOfType(elementType, VIEW_TYPE) && !isInterface(elementType)) {
-      error(element, "@InjectView fields must extend from View. (%s.%s)",
+      error(element, "@InjectView fields must extend from View or be an interface. (%s.%s)",
           enclosingElement.getQualifiedName(), element.getSimpleName());
       hasError = true;
     }
@@ -316,7 +316,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
     // Verify that the target type extends from View.
     if (viewType != null && !isSubtypeOfType(viewType, VIEW_TYPE) && !isInterface(viewType)) {
-      error(element, "@InjectViews type must extend from View. (%s.%s)",
+      error(element, "@InjectViews type must extend from View or be an interface. (%s.%s)",
           enclosingElement.getQualifiedName(), element.getSimpleName());
       hasError = true;
     }
@@ -450,7 +450,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
           String targetType = listener.targetType();
           if (!isSubtypeOfType(enclosingElement.asType(), targetType) && !isInterface(enclosingElement.asType())) {
             error(element, "@%s annotation without an ID may only be used with an object of type "
-                    + "\"%s\". (%s.%s)", annotationClass.getSimpleName(), targetType,
+                    + "\"%s\" or an interface. (%s.%s)", annotationClass.getSimpleName(), targetType,
                 enclosingElement.getQualifiedName(), element.getSimpleName());
             hasError = true;
           }

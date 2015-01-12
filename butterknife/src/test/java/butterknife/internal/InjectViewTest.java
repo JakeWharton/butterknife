@@ -405,7 +405,7 @@ public class InjectViewTest {
     ASSERT.about(javaSource()).that(source)
         .processedWith(butterknifeProcessors())
         .failsToCompile()
-        .withErrorContaining("@InjectView fields must extend from View. (test.Test.thing)")
+        .withErrorContaining("@InjectView fields must extend from View or be an interface. (test.Test.thing)")
         .in(source).onLine(5);
   }
 
@@ -523,7 +523,7 @@ public class InjectViewTest {
         .failsToCompile()
         .withErrorContaining((
             "@OnItemClick annotation without an ID may only be used with an object of type "
-                + "\"android.widget.AdapterView<?>\". (test.Test.doStuff)"))
+                + "\"android.widget.AdapterView<?>\" or an interface. (test.Test.doStuff)"))
         .in(source)
         .onLine(6);
   }
