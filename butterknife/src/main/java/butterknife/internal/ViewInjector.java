@@ -377,17 +377,6 @@ final class ViewInjector {
     builder.append("  }\n");
   }
 
-  static void emitCastIfNeeded(StringBuilder builder, String viewType) {
-    emitCastIfNeeded(builder, VIEW_TYPE, viewType);
-  }
-
-  static void emitCastIfNeeded(StringBuilder builder, String sourceType, String destinationType) {
-    // Only emit a cast if the source and destination type do not match.
-    if (!sourceType.equals(destinationType)) {
-      builder.append('(').append(destinationType).append(") ");
-    }
-  }
-
   static void emitHumanDescription(StringBuilder builder, List<Binding> bindings) {
     switch (bindings.size()) {
       case 1:
