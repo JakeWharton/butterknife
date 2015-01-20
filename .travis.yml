@@ -1,4 +1,6 @@
 language: android
+before_install: sudo pip install codecov
+after_success: codecov
 
 android:
   components:

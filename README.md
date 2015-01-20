@@ -1,4 +1,4 @@
-Butter Knife
+Butter Knife [![codecov.io](https://codecov.io/github/JakeWharton/butterknife/coverage.svg?branch=master)](https://codecov.io/github/JakeWharton/butterknife?branch=master)
 ============
 
 ![Logo](website/static/logo.png)
