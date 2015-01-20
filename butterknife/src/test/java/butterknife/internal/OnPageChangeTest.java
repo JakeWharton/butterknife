@@ -2,8 +2,9 @@ package butterknife.internal;
 
 import com.google.common.base.Joiner;
 import com.google.testing.compile.JavaFileObjects;
-import javax.tools.JavaFileObject;
 import org.junit.Test;
+
+import javax.tools.JavaFileObject;
 
 import static butterknife.internal.ProcessorTestUtilities.butterknifeProcessors;
 import static com.google.common.truth.Truth.ASSERT;
@@ -25,8 +26,9 @@ public class OnPageChangeTest {
             "package test;",
             "import android.view.View;",
             "import butterknife.ButterKnife.Finder;",
-            "public class Test$$ViewInjector {",
-            "  public static void inject(Finder finder, final test.Test target, Object source) {",
+            "import butterknife.ButterKnife.Injector;",
+            "public class Test$$ViewInjector<T extends test.Test> implements Injector<T> {",
+            "  @Override public void inject(Finder finder, final T target, Object source) {",
             "    View view;",
             "    view = finder.findRequiredView(source, 1, \"method 'doStuff'\");",
             "    ((android.support.v4.view.ViewPager) view).setOnPageChangeListener(new android.support.v4.view.ViewPager.OnPageChangeListener() {",
@@ -39,7 +41,7 @@ public class OnPageChangeTest {
             "      }",
             "    });",
             "  }",
-            "  public static void reset(test.Test target) {",
+            "  @Override public void reset(T target) {",
             "  }",
             "}"
         ));
