@@ -1,5 +1,7 @@
 package butterknife.internal;
 
+import static butterknife.internal.ButterKnifeProcessor.VIEW_TYPE;
+
 final class ViewBinding implements Binding {
   private final String name;
   private final String type;
@@ -25,5 +27,9 @@ final class ViewBinding implements Binding {
 
   public boolean isRequired() {
     return required;
+  }
+
+  public boolean requiresCast() {
+    return !VIEW_TYPE.equals(type);
   }
 }

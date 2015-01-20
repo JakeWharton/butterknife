@@ -93,7 +93,7 @@ public final class ButterKnife {
   @SuppressWarnings("UnusedDeclaration") // Used by generated code.
   public enum Finder {
     VIEW {
-      @Override public View findOptionalView(Object source, int id) {
+      @Override protected View findView(Object source, int id) {
         return ((View) source).findViewById(id);
       }
 
@@ -102,7 +102,7 @@ public final class ButterKnife {
       }
     },
     ACTIVITY {
-      @Override public View findOptionalView(Object source, int id) {
+      @Override protected View findView(Object source, int id) {
         return ((Activity) source).findViewById(id);
       }
 
@@ -111,7 +111,7 @@ public final class ButterKnife {
       }
     },
     DIALOG {
-      @Override public View findOptionalView(Object source, int id) {
+      @Override protected View findView(Object source, int id) {
         return ((Dialog) source).findViewById(id);
       }
 
@@ -120,16 +120,16 @@ public final class ButterKnife {
       }
     };
 
-    public static <T extends View> T[] arrayOf(T... views) {
+    public static <T> T[] arrayOf(T... views) {
       return views;
     }
 
-    public static <T extends View> List<T> listOf(T... views) {
-      return new ImmutableViewList<T>(views);
+    public static <T> List<T> listOf(T... views) {
+      return new ImmutableList<T>(views);
     }
 
-    public View findRequiredView(Object source, int id, String who) {
-      View view = findOptionalView(source, id);
+    public <T> T findRequiredView(Object source, int id, String who) {
+      T view = findOptionalView(source, id, who);
       if (view == null) {
         String name = getContext(source).getResources().getResourceEntryName(id);
         throw new IllegalStateException("Required view '"
@@ -143,7 +143,48 @@ public final class ButterKnife {
       return view;
     }
 
-    public abstract View findOptionalView(Object source, int id);
+    public <T> T findOptionalView(Object source, int id, String who) {
+      View view = findView(source, id);
+      return castView(view, id, who);
+    }
+
+    @SuppressWarnings("unchecked") // That's the point.
+    public <T> T castView(View view, int id, String who) {
+      try {
+        return (T) view;
+      } catch (ClassCastException e) {
+        if (who == null) {
+          throw new AssertionError();
+        }
+        String name = view.getResources().getResourceEntryName(id);
+        throw new IllegalStateException("View '"
+            + name
+            + "' with ID "
+            + id
+            + " for "
+            + who
+            + " was of the wrong type. See cause for more info.", e);
+      }
+    }
+
+    @SuppressWarnings("unchecked") // That's the point.
+    public <T> T castParam(Object value, String from, int fromPosition, String to, int toPosition) {
+      try {
+        return (T) value;
+      } catch (ClassCastException e) {
+        throw new IllegalStateException("Parameter #"
+            + (fromPosition + 1)
+            + " of method '"
+            + from
+            + "' was of the wrong type for parameter #"
+            + (toPosition + 1)
+            + " of method '"
+            + to
+            + "'. See cause for more info.", e);
+      }
+    }
+
+    protected abstract View findView(Object source, int id);
 
     protected abstract Context getContext(Object source);
   }

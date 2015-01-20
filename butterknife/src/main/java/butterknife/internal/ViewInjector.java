@@ -5,6 +5,7 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -100,7 +101,7 @@ final class ViewInjector {
 
   private void emitInject(StringBuilder builder) {
     builder.append("  @Override ")
-        .append("public void inject(Finder finder, final T target, Object source) {\n");
+        .append("public void inject(final Finder finder, final T target, Object source) {\n");
 
     // Emit a call to the superclass injector, if any.
     if (parentInjector != null) {
@@ -141,22 +142,18 @@ final class ViewInjector {
       if (i > 0) {
         builder.append(',');
       }
-      builder.append("\n        ");
-      emitCastIfNeeded(builder, binding.getType());
-      if (binding.isRequired()) {
-        builder.append("finder.findRequiredView(source, ")
-            .append(ids[i])
-            .append(", \"")
-            .append(binding.getName())
-            .append("\")");
-      } else {
-        builder.append("finder.findOptionalView(source, ")
-            .append(ids[i])
-            .append(")");
-      }
+      builder.append("\n        finder.<")
+          .append(binding.getType())
+          .append(">")
+          .append(binding.isRequired() ? "findRequiredView" : "findOptionalView")
+          .append("(source, ")
+          .append(ids[i])
+          .append(", \"");
+      emitHumanDescription(builder, Collections.singleton(binding));
+      builder.append("\")");
     }
 
-    builder.append("\n    );");
+    builder.append("\n    );\n");
   }
 
   private void emitViewInjection(StringBuilder builder, ViewInjection injection) {
@@ -166,7 +163,7 @@ final class ViewInjector {
     if (requiredBindings.isEmpty()) {
       builder.append("finder.findOptionalView(source, ")
           .append(injection.getId())
-          .append(");\n");
+          .append(", null);\n");
     } else {
       if (injection.getId() == View.NO_ID) {
         builder.append("target;\n");
@@ -193,8 +190,16 @@ final class ViewInjector {
       builder.append("    target.")
           .append(viewBinding.getName())
           .append(" = ");
-      emitCastIfNeeded(builder, viewBinding.getType());
-      builder.append("view;\n");
+      if (viewBinding.requiresCast()) {
+        builder.append("finder.castView(view")
+            .append(", ")
+            .append(injection.getId())
+            .append(", \"");
+        emitHumanDescription(builder, viewBindings);
+        builder.append("\");\n");
+      } else {
+        builder.append("view;\n");
+      }
     }
   }
 
@@ -296,8 +301,25 @@ final class ViewInjector {
             for (int i = 0, count = parameters.size(); i < count; i++) {
               Parameter parameter = parameters.get(i);
               int listenerPosition = parameter.getListenerPosition();
-              emitCastIfNeeded(builder, listenerParameters[listenerPosition], parameter.getType());
-              builder.append('p').append(listenerPosition);
+
+              if (parameter.requiresCast(listenerParameters[listenerPosition])) {
+                builder.append("finder.<")
+                    .append(parameter.getType())
+                    .append(">castParam(p")
+                    .append(listenerPosition)
+                    .append(", \"")
+                    .append(method.name())
+                    .append("\", ")
+                    .append(listenerPosition)
+                    .append(", \"")
+                    .append(binding.getName())
+                    .append("\", ")
+                    .append(i)
+                    .append(")");
+              } else {
+                builder.append('p').append(listenerPosition);
+              }
+
               if (i < count - 1) {
                 builder.append(", ");
               }
@@ -365,37 +387,26 @@ final class ViewInjector {
     builder.append("  }\n");
   }
 
-  static void emitCastIfNeeded(StringBuilder builder, String viewType) {
-    emitCastIfNeeded(builder, VIEW_TYPE, viewType);
-  }
-
-  static void emitCastIfNeeded(StringBuilder builder, String sourceType, String destinationType) {
-    // Only emit a cast if the source and destination type do not match.
-    if (!sourceType.equals(destinationType)) {
-      builder.append('(').append(destinationType).append(") ");
-    }
-  }
-
-  static void emitHumanDescription(StringBuilder builder, List<Binding> bindings) {
+  static void emitHumanDescription(StringBuilder builder, Collection<? extends Binding> bindings) {
+    Iterator<? extends Binding> iterator = bindings.iterator();
     switch (bindings.size()) {
       case 1:
-        builder.append(bindings.get(0).getDescription());
+        builder.append(iterator.next().getDescription());
         break;
       case 2:
-        builder.append(bindings.get(0).getDescription())
+        builder.append(iterator.next().getDescription())
             .append(" and ")
-            .append(bindings.get(1).getDescription());
+            .append(iterator.next().getDescription());
         break;
       default:
         for (int i = 0, count = bindings.size(); i < count; i++) {
-          Binding requiredField = bindings.get(i);
           if (i != 0) {
             builder.append(", ");
           }
           if (i == count - 1) {
             builder.append("and ");
           }
-          builder.append(requiredField.getDescription());
+          builder.append(iterator.next().getDescription());
         }
         break;
     }

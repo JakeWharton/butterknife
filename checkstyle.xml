@@ -106,7 +106,7 @@
 
     <!-- Checks for common coding problems               -->
     <!-- See http://checkstyle.sf.net/config_coding.html -->
-    <module name="AvoidInlineConditionals"/>
+    <!--<module name="AvoidInlineConditionals"/>-->
     <module name="CovariantEquals"/>
     <module name="DoubleCheckedLocking"/>
     <module name="EmptyStatement"/>
