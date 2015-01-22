@@ -232,10 +232,18 @@ ImageView photo = ButterKnife.findById(view, R.id.photo);</pre>
 
             <h4 id="proguard">ProGuard</h4>
             <p>Butter Knife generates and uses classes dynamically which means that static analysis tools like ProGuard may think they are unused. In order to prevent them from being removed, explicitly mark them to be kept.
-                To prevent ProGuard renaming classes that use @InjectView on a member field the <code>keepnames</code> option is used.</p>
-            <pre>-dontwarn butterknife.internal.**
+                To prevent ProGuard renaming classes that use @InjectView on a member field the <code>keepclasseswithmembernames</code> option is used.</p>
+            <pre>-keep class butterknife.** { *; }
+-dontwarn butterknife.internal.**
 -keep class **$$ViewInjector { *; }
--keepnames class * { @butterknife.InjectView *;}</pre>
+
+-keepclasseswithmembernames class * {
+    @butterknife.* <fields>;
+}
+
+-keepclasseswithmembernames class * {
+    @butterknife.* <methods>;
+}</pre>
 
             <h3 id="license">License</h3>
             <pre class="license">Copyright 2013 Jake Wharton

@@ -21,11 +21,12 @@ import butterknife.OnTextChanged;
 import butterknife.Optional;
 import com.google.common.io.Files;
 import com.google.testing.compile.JavaFileObjects;
+import org.junit.Test;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
-import org.junit.Test;
 
 import static butterknife.compiler.ProcessorTestUtilities.butterknifeProcessors;
 import static com.google.common.truth.Truth.ASSERT;

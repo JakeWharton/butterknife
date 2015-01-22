@@ -1,9 +1,7 @@
 package butterknife.compiler;
 
-import butterknife.compiler.ButterKnifeProcessor;
-
-import java.util.Arrays;
 import javax.annotation.processing.Processor;
+import java.util.Arrays;
 
 final class ProcessorTestUtilities {
   static Iterable<? extends Processor> butterknifeProcessors() {

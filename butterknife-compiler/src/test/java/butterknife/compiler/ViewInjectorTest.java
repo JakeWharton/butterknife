@@ -1,6 +1,5 @@
 package butterknife.compiler;
 
-import butterknife.compiler.Binding;
 import org.junit.Test;
 
 import static butterknife.compiler.ViewInjector.emitHumanDescription;

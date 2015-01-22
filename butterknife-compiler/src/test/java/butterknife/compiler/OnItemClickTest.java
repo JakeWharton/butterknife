@@ -2,8 +2,9 @@ package butterknife.compiler;
 
 import com.google.common.base.Joiner;
 import com.google.testing.compile.JavaFileObjects;
-import javax.tools.JavaFileObject;
 import org.junit.Test;
+
+import javax.tools.JavaFileObject;
 
 import static butterknife.compiler.ProcessorTestUtilities.butterknifeProcessors;
 import static com.google.common.truth.Truth.ASSERT;
@@ -25,8 +26,9 @@ public class OnItemClickTest {
             "package test;",
             "import android.view.View;",
             "import butterknife.ButterKnife.Finder;",
-            "public class Test$$ViewInjector {",
-            "  public static void inject(Finder finder, final test.Test target, Object source) {",
+            "import butterknife.ButterKnife.Injector;",
+            "public class Test$$ViewInjector<T extends test.Test> implements Injector<T> {",
+            "  @Override public void inject(final Finder finder, final T target, Object source) {",
             "    View view;",
             "    view = finder.findRequiredView(source, 1, \"method 'doStuff'\");",
             "    ((android.widget.AdapterView<?>) view).setOnItemClickListener(",
@@ -37,7 +39,7 @@ public class OnItemClickTest {
             "        }",
             "      });",
             "  }",
-            "  public static void reset(test.Test target) {",
+            "  @Override public void reset(T target) {",
             "  }",
             "}"
         ));
@@ -70,8 +72,9 @@ public class OnItemClickTest {
             "package test;",
             "import android.view.View;",
             "import butterknife.ButterKnife.Finder;",
-            "public class Test$$ViewInjector {",
-            "  public static void inject(Finder finder, final test.Test target, Object source) {",
+            "import butterknife.ButterKnife.Injector;",
+            "public class Test$$ViewInjector<T extends test.Test> implements Injector<T> {",
+            "  @Override public void inject(final Finder finder, final T target, Object source) {",
             "    View view;",
             "    view = finder.findRequiredView(source, 1, \"method 'doStuff'\");",
             "    ((android.widget.AdapterView<?>) view).setOnItemClickListener(",
@@ -82,7 +85,7 @@ public class OnItemClickTest {
             "        }",
             "      });",
             "  }",
-            "  public static void reset(test.Test target) {",
+            "  @Override public void reset(T target) {",
             "  }",
             "}"
         ));
@@ -113,19 +116,20 @@ public class OnItemClickTest {
             "package test;",
             "import android.view.View;",
             "import butterknife.ButterKnife.Finder;",
-            "public class Test$$ViewInjector {",
-            "  public static void inject(Finder finder, final test.Test target, Object source) {",
+            "import butterknife.ButterKnife.Injector;",
+            "public class Test$$ViewInjector<T extends test.Test> implements Injector<T> {",
+            "  @Override public void inject(final Finder finder, final T target, Object source) {",
             "    View view;",
             "    view = finder.findRequiredView(source, 1, \"method 'doStuff'\");",
             "    ((android.widget.AdapterView<?>) view).setOnItemClickListener(",
             "      new android.widget.AdapterView.OnItemClickListener() {",
             "        @Override public void onItemClick(",
             "            android.widget.AdapterView<?> p0, android.view.View p1, int p2, long p3) {",
-            "          target.doStuff((android.widget.ListView) p0, p2);",
+            "          target.doStuff(finder.<android.widget.ListView>castParam(p0, \"onItemClick\", 0, \"doStuff\", 0), p2);",
             "        }",
             "      });",
             "  }",
-            "  public static void reset(test.Test target) {",
+            "  @Override public void reset(T target) {",
             "  }",
             "}"
         ));
@@ -156,19 +160,20 @@ public class OnItemClickTest {
             "package test;",
             "import android.view.View;",
             "import butterknife.ButterKnife.Finder;",
-            "public class Test$$ViewInjector {",
-            "  public static void inject(Finder finder, final test.Test target, Object source) {",
+            "import butterknife.ButterKnife.Injector;",
+            "public class Test$$ViewInjector<T extends test.Test> implements Injector<T> {",
+            "  @Override public void inject(final Finder finder, final T target, Object source) {",
             "    View view;",
             "    view = finder.findRequiredView(source, 1, \"method 'doStuff'\");",
             "    ((android.widget.AdapterView<?>) view).setOnItemClickListener(",
             "      new android.widget.AdapterView.OnItemClickListener() {",
             "        @Override public void onItemClick(",
             "            android.widget.AdapterView<?> p0, android.view.View p1, int p2, long p3) {",
-            "          target.doStuff((android.widget.ListView) p0, p2);",
+            "          target.doStuff(finder.<android.widget.ListView>castParam(p0, \"onItemClick\", 0, \"doStuff\", 0), p2);",
             "        }",
             "      });",
             "  }",
-            "  public static void reset(test.Test target) {",
+            "  @Override public void reset(T target) {",
             "  }",
             "}"
         ));
@@ -198,8 +203,9 @@ public class OnItemClickTest {
             "package test;",
             "import android.view.View;",
             "import butterknife.ButterKnife.Finder;",
-            "public class Test$$ViewInjector {",
-            "  public static void inject(Finder finder, final test.Test target, Object source) {",
+            "import butterknife.ButterKnife.Injector;",
+            "public class Test$$ViewInjector<T extends test.Test> implements Injector<T> {",
+            "  @Override public void inject(final Finder finder, final T target, Object source) {",
             "    View view;",
             "    view = target;",
             "    ((android.widget.AdapterView<?>) view).setOnItemClickListener(",
@@ -214,7 +220,7 @@ public class OnItemClickTest {
             "        }",
             "      });",
             "  }",
-            "  public static void reset(test.Test target) {",
+            "  @Override public void reset(T target) {",
             "  }",
             "}"
         ));

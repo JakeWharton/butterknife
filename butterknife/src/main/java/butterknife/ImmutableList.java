@@ -1,6 +1,5 @@
 package butterknife;
 
-import android.view.View;
 import java.util.AbstractList;
 import java.util.RandomAccess;
 
@@ -8,10 +7,10 @@ import java.util.RandomAccess;
  * An immutable list of views which is lighter than {@code
  * Collections.unmodifiableList(new ArrayList<>(Arrays.asList(foo, bar)))}.
  */
-final class ImmutableViewList<T extends View> extends AbstractList<T> implements RandomAccess {
+final class ImmutableList<T> extends AbstractList<T> implements RandomAccess {
   private final T[] views;
 
-  ImmutableViewList(T[] views) {
+  ImmutableList(T[] views) {
     this.views = views;
   }
 
@@ -24,7 +23,7 @@ final class ImmutableViewList<T extends View> extends AbstractList<T> implements
   }
 
   @Override public boolean contains(Object o) {
-    for (View view : views) {
+    for (T view : views) {
       if (view == o) {
         return true;
       }

@@ -19,4 +19,8 @@ final class Parameter {
   String getType() {
     return type;
   }
+
+  public boolean requiresCast(String toType) {
+    return !type.equals(toType);
+  }
 }

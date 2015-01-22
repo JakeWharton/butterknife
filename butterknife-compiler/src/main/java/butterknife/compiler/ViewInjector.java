@@ -8,6 +8,7 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -73,26 +74,39 @@ final class ViewInjector {
     StringBuilder builder = new StringBuilder();
     builder.append("// Generated code from Butter Knife. Do not modify!\n");
     builder.append("package ").append(classPackage).append(";\n\n");
+
     builder.append("import android.view.View;\n");
-    builder.append("import butterknife.ButterKnife.Finder;\n\n");
-    builder.append("public class ").append(className).append(" {\n");
+    builder.append("import butterknife.ButterKnife.Finder;\n");
+    if (parentInjector == null) {
+      builder.append("import butterknife.ButterKnife.Injector;\n");
+    }
+    builder.append('\n');
+
+    builder.append("public class ").append(className);
+    builder.append("<T extends ").append(targetClass).append(">");
+
+    if (parentInjector != null) {
+      builder.append(" extends ").append(parentInjector).append("<T>");
+    } else {
+      builder.append(" implements Injector<T>");
+    }
+    builder.append(" {\n");
+
     emitInject(builder);
     builder.append('\n');
     emitReset(builder);
+
     builder.append("}\n");
     return builder.toString();
   }
 
   private void emitInject(StringBuilder builder) {
-    builder.append("  public static void inject(Finder finder, final ")
-        .append(targetClass)
-        .append(" target, Object source) {\n");
+    builder.append("  @Override ")
+        .append("public void inject(final Finder finder, final T target, Object source) {\n");
 
     // Emit a call to the superclass injector, if any.
     if (parentInjector != null) {
-      builder.append("    ")
-          .append(parentInjector)
-          .append(".inject(finder, target, source);\n\n");
+      builder.append("    super.inject(finder, target, source);\n\n");
     }
 
     // Local variable in which all views will be temporarily stored.
@@ -129,22 +143,18 @@ final class ViewInjector {
       if (i > 0) {
         builder.append(',');
       }
-      builder.append("\n        ");
-      emitCastIfNeeded(builder, binding.getType());
-      if (binding.isRequired()) {
-        builder.append("finder.findRequiredView(source, ")
-            .append(ids[i])
-            .append(", \"")
-            .append(binding.getName())
-            .append("\")");
-      } else {
-        builder.append("finder.findOptionalView(source, ")
-            .append(ids[i])
-            .append(")");
-      }
+      builder.append("\n        finder.<")
+          .append(binding.getType())
+          .append(">")
+          .append(binding.isRequired() ? "findRequiredView" : "findOptionalView")
+          .append("(source, ")
+          .append(ids[i])
+          .append(", \"");
+      emitHumanDescription(builder, Collections.singleton(binding));
+      builder.append("\")");
     }
 
-    builder.append("\n    );");
+    builder.append("\n    );\n");
   }
 
   private void emitViewInjection(StringBuilder builder, ViewInjection injection) {
@@ -154,7 +164,7 @@ final class ViewInjector {
     if (requiredBindings.isEmpty()) {
       builder.append("finder.findOptionalView(source, ")
           .append(injection.getId())
-          .append(");\n");
+          .append(", null);\n");
     } else {
       if (injection.getId() == View.NO_ID) {
         builder.append("target;\n");
@@ -181,8 +191,16 @@ final class ViewInjector {
       builder.append("    target.")
           .append(viewBinding.getName())
           .append(" = ");
-      emitCastIfNeeded(builder, viewBinding.getType());
-      builder.append("view;\n");
+      if (viewBinding.requiresCast()) {
+        builder.append("finder.castView(view")
+            .append(", ")
+            .append(injection.getId())
+            .append(", \"");
+        emitHumanDescription(builder, viewBindings);
+        builder.append("\");\n");
+      } else {
+        builder.append("view;\n");
+      }
     }
   }
 
@@ -284,8 +302,25 @@ final class ViewInjector {
             for (int i = 0, count = parameters.size(); i < count; i++) {
               Parameter parameter = parameters.get(i);
               int listenerPosition = parameter.getListenerPosition();
-              emitCastIfNeeded(builder, listenerParameters[listenerPosition], parameter.getType());
-              builder.append('p').append(listenerPosition);
+
+              if (parameter.requiresCast(listenerParameters[listenerPosition])) {
+                builder.append("finder.<")
+                    .append(parameter.getType())
+                    .append(">castParam(p")
+                    .append(listenerPosition)
+                    .append(", \"")
+                    .append(method.name())
+                    .append("\", ")
+                    .append(listenerPosition)
+                    .append(", \"")
+                    .append(binding.getName())
+                    .append("\", ")
+                    .append(i)
+                    .append(")");
+              } else {
+                builder.append('p').append(listenerPosition);
+              }
+
               if (i < count - 1) {
                 builder.append(", ");
               }
@@ -338,11 +373,9 @@ final class ViewInjector {
   }
 
   private void emitReset(StringBuilder builder) {
-    builder.append("  public static void reset(").append(targetClass).append(" target) {\n");
+    builder.append("  @Override public void reset(T target) {\n");
     if (parentInjector != null) {
-      builder.append("    ")
-          .append(parentInjector)
-          .append(".reset(target);\n\n");
+      builder.append("    super.reset(target);\n\n");
     }
     for (ViewInjection injection : viewIdMap.values()) {
       for (ViewBinding viewBinding : injection.getViewBindings()) {
@@ -355,37 +388,26 @@ final class ViewInjector {
     builder.append("  }\n");
   }
 
-  static void emitCastIfNeeded(StringBuilder builder, String viewType) {
-    emitCastIfNeeded(builder, ButterKnifeProcessor.VIEW_TYPE, viewType);
-  }
-
-  static void emitCastIfNeeded(StringBuilder builder, String sourceType, String destinationType) {
-    // Only emit a cast if the source and destination type do not match.
-    if (!sourceType.equals(destinationType)) {
-      builder.append('(').append(destinationType).append(") ");
-    }
-  }
-
-  static void emitHumanDescription(StringBuilder builder, List<Binding> bindings) {
+  static void emitHumanDescription(StringBuilder builder, Collection<? extends Binding> bindings) {
+    Iterator<? extends Binding> iterator = bindings.iterator();
     switch (bindings.size()) {
       case 1:
-        builder.append(bindings.get(0).getDescription());
+        builder.append(iterator.next().getDescription());
         break;
       case 2:
-        builder.append(bindings.get(0).getDescription())
+        builder.append(iterator.next().getDescription())
             .append(" and ")
-            .append(bindings.get(1).getDescription());
+            .append(iterator.next().getDescription());
         break;
       default:
         for (int i = 0, count = bindings.size(); i < count; i++) {
-          Binding requiredField = bindings.get(i);
           if (i != 0) {
             builder.append(", ");
           }
           if (i == count - 1) {
             builder.append("and ");
           }
-          builder.append(requiredField.getDescription());
+          builder.append(iterator.next().getDescription());
         }
         break;
     }
