@@ -151,7 +151,7 @@ public void pickDoor(DoorView door) {
 </pre>
 
             <h4 id="reset">Injection Reset</h4>
-            <p>Fragments have a different view lifecycle than activities. When injecting a fragment in <code>onCreateView</code>, set the views to <code>null</code> in <code>onDestroyView</code>. Butter Knife has a <code>reset</code> method to do this automatically.</p>
+            <p>Fragments have a different view lifecycle than activities. When injecting views in <code>onCreateView</code>, set the views to <code>null</code> in <code>onDestroyView</code>. Butter Knife has a <code>reset</code> method to do this automatically.</p>
             <pre class="prettyprint">public class FancyFragment extends Fragment {
   @InjectView(R.id.button1) Button button1;
   @InjectView(R.id.button2) Button button2;
