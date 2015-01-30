@@ -5,7 +5,7 @@ Version 6.1.0 *(2015-01-29)*
 ----------------------------
 
  * New: Support for injecting interface types everywhere that views were previously supported (e.g., `Checkable`).
- * Eliminate reflection-based method invocation for injection and resetting. This makes performace slightly faster
+ * Eliminate reflection-based method invocation for injection and resetting. This makes performance slightly faster
    (although if you are worried about the performance of Butter Knife you have other problems). The only reflection
    in the library is a single `Class.forName` lookup for each type.
 
