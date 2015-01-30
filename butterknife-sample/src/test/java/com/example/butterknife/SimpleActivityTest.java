@@ -5,10 +5,12 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.annotation.Config;
 
 import static org.fest.assertions.api.ANDROID.assertThat;
 
-@RunWith(RobolectricTestRunner.class)
+@RunWith(RobolectricTestRunner.class) //
+@Config(manifest = "src/main/AndroidManifest.xml")
 public class SimpleActivityTest {
   @Test public void verifyContentViewInjection() {
     SimpleActivity activity = Robolectric.buildActivity(SimpleActivity.class) //
