@@ -23,7 +23,7 @@ import static java.lang.annotation.RetentionPolicy.CLASS;
  * To bind to methods other than {@code onTextChanged}, specify a different {@code callback}.
  * <pre><code>
  * {@literal @}OnTextChanged(value = R.id.example, callback = BEFORE_TEXT_CHANGED)
- * void onBeforeTextChanged(CharSequence text {
+ * void onBeforeTextChanged(CharSequence text) {
  *   Toast.makeText(this, "Before text changed: " + text, LENGTH_SHORT).show();
  * }
  * </code></pre>
