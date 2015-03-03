@@ -301,10 +301,8 @@ public final class ButterKnife {
       if (injector != null) {
         injector.reset(target);
       }
-    } catch (RuntimeException e) {
-      throw e;
     } catch (Exception e) {
-      throw new RuntimeException("Unable to reset views for " + target, e);
+      throw new RuntimeException("Unable to reset views for " + targetClass.getName(), e);
     }
   }
 
@@ -316,10 +314,8 @@ public final class ButterKnife {
       if (injector != null) {
         injector.inject(finder, target, source);
       }
-    } catch (RuntimeException e) {
-      throw e;
     } catch (Exception e) {
-      throw new RuntimeException("Unable to inject views for " + target, e);
+      throw new RuntimeException("Unable to inject views for " + targetClass.getName(), e);
     }
   }
 
