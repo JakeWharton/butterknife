@@ -120,12 +120,33 @@ public final class ButterKnife {
       }
     };
 
+    private static <T> T[] filterNull(T[] views) {
+      int newSize = views.length;
+      for (T view : views) {
+        if (view == null) {
+          newSize -= 1;
+        }
+      }
+      if (newSize == views.length) {
+        return views;
+      }
+      //noinspection unchecked
+      T[] newViews = (T[]) new Object[newSize];
+      int nextIndex = 0;
+      for (T view : views) {
+        if (view != null) {
+          newViews[nextIndex++] = view;
+        }
+      }
+      return newViews;
+    }
+
     public static <T> T[] arrayOf(T... views) {
-      return views;
+      return filterNull(views);
     }
 
     public static <T> List<T> listOf(T... views) {
-      return new ImmutableList<T>(views);
+      return new ImmutableList<T>(filterNull(views));
     }
 
     public <T> T findRequiredView(Object source, int id, String who) {
