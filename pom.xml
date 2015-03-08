@@ -22,6 +22,7 @@
   <modules>
     <module>butterknife</module>
     <module>butterknife-sample</module>
+    <module>butterknife-compiler</module>
   </modules>
 
   <properties>
@@ -35,6 +36,7 @@
     <robolectric.version>2.2</robolectric.version>
     <fest.android.version>1.0.7</fest.android.version>
     <compile-test.version>0.6</compile-test.version>
+    <auto-service.version>1.0-rc2</auto-service.version>
   </properties>
 
   <scm>
@@ -87,6 +89,11 @@
         <groupId>com.google.testing.compile</groupId>
         <artifactId>compile-testing</artifactId>
         <version>${compile-test.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.google.auto.service</groupId>
+        <artifactId>auto-service</artifactId>
+        <version>${auto-service.version}</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
