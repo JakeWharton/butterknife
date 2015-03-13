@@ -3,7 +3,6 @@ package butterknife.internal;
 import android.view.View;
 import butterknife.InjectView;
 import butterknife.InjectViews;
-import butterknife.Nullable;
 import butterknife.OnCheckedChanged;
 import butterknife.OnClick;
 import butterknife.OnEditorAction;
@@ -62,6 +61,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
   public static final String ANDROID_PREFIX = "android.";
   public static final String JAVA_PREFIX = "java.";
   static final String VIEW_TYPE = "android.view.View";
+  private static final String NULLABLE_ANNOTATION_NAME = "Nullable";
   private static final String LIST_TYPE = List.class.getCanonicalName();
   private static final List<Class<? extends Annotation>> LISTENERS = Arrays.asList(//
       OnCheckedChanged.class, //
@@ -702,6 +702,6 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
   }
 
   private static boolean isRequiredInjection(Element element) {
-    return !hasAnnotationWithName(element, Nullable.class.getSimpleName());
+    return !hasAnnotationWithName(element, NULLABLE_ANNOTATION_NAME);
   }
 }
