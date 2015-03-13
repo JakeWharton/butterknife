@@ -23,7 +23,7 @@ import static java.lang.annotation.RetentionPolicy.CLASS;
  * on the method.
  *
  * @see OnTouchListener
- * @see Optional
+ * @see Nullable
  */
 @Target(METHOD)
 @Retention(CLASS)

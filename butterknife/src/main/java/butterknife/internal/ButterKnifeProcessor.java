@@ -3,6 +3,7 @@ package butterknife.internal;
 import android.view.View;
 import butterknife.InjectView;
 import butterknife.InjectViews;
+import butterknife.Nullable;
 import butterknife.OnCheckedChanged;
 import butterknife.OnClick;
 import butterknife.OnEditorAction;
@@ -14,7 +15,6 @@ import butterknife.OnLongClick;
 import butterknife.OnPageChange;
 import butterknife.OnTextChanged;
 import butterknife.OnTouch;
-import butterknife.Optional;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -35,6 +35,7 @@ import javax.annotation.processing.Filer;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.SourceVersion;
+import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
@@ -269,7 +270,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
     String name = element.getSimpleName().toString();
     String type = elementType.toString();
-    boolean required = element.getAnnotation(Optional.class) == null;
+    boolean required = isRequiredInjection(element);
 
     ViewInjector viewInjector = getOrCreateTargetClass(targetClassMap, enclosingElement);
     ViewBinding binding = new ViewBinding(name, type, required);
@@ -346,7 +347,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
     assert viewType != null; // Always false as hasError would have been true.
     String type = viewType.toString();
-    boolean required = element.getAnnotation(Optional.class) == null;
+    boolean required = isRequiredInjection(element);
 
     ViewInjector viewInjector = getOrCreateTargetClass(targetClassMap, enclosingElement);
     CollectionBinding binding = new CollectionBinding(name, type, kind, required);
@@ -416,7 +417,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
     int[] ids = (int[]) annotationValue.invoke(annotation);
     String name = executableElement.getSimpleName().toString();
-    boolean required = element.getAnnotation(Optional.class) == null;
+    boolean required = isRequiredInjection(element);
 
     // Verify that the method and its containing class are accessible via generated code.
     boolean hasError = isInaccessibleViaGeneratedCode(annotationClass, "methods", element);
@@ -441,7 +442,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
       if (id == View.NO_ID) {
         if (ids.length == 1) {
           if (!required) {
-            error(element, "ID free injection must not be annotated with @Optional. (%s.%s)",
+            error(element, "ID free injection must not be annotated with @Nullable. (%s.%s)",
                 enclosingElement.getQualifiedName(), element.getSimpleName());
             hasError = true;
           }
@@ -688,5 +689,19 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
   private String getPackageName(TypeElement type) {
     return elementUtils.getPackageOf(type).getQualifiedName().toString();
+  }
+
+  private static boolean hasAnnotationWithName(Element element, String simpleName) {
+    for (AnnotationMirror mirror : element.getAnnotationMirrors()) {
+      String annotationName = mirror.getAnnotationType().asElement().getSimpleName().toString();
+      if (simpleName.equals(annotationName)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private static boolean isRequiredInjection(Element element) {
+    return !hasAnnotationWithName(element, Nullable.class.getSimpleName());
   }
 }

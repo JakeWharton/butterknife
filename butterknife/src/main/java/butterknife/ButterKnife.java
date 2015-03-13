@@ -65,9 +65,9 @@ import static butterknife.internal.ButterKnifeProcessor.JAVA_PREFIX;
  * </code></pre>
  * <p>
  * Be default, views are required to be present in the layout for both field and method injections.
- * If a view is optional add the {@link Optional @Optional} annotation.
+ * If a view is optional add the {@link Nullable @Nullable} annotation.
  * <pre><code>
- * {@literal @}Optional @InjectView(R.id.title) TextView subtitleView;
+ * {@literal @}Nullable @InjectView(R.id.title) TextView subtitleView;
  * </code></pre>
  *
  * @see InjectView
@@ -159,7 +159,7 @@ public final class ButterKnife {
             + id
             + " for "
             + who
-            + " was not found. If this view is optional add '@Optional' annotation.");
+            + " was not found. If this view is optional add '@Nullable' annotation.");
       }
       return view;
     }

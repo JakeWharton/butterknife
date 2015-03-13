@@ -10,9 +10,9 @@ import static java.lang.annotation.RetentionPolicy.CLASS;
 /**
  * Denote that the view specified by the injection is not required to be present.
  * <pre><code>
- * {@literal @}Optional @InjectView(R.id.title) TextView subtitleView;
+ * {@literal @}Nullable @InjectView(R.id.title) TextView subtitleView;
  * </code></pre>
  */
 @Retention(CLASS) @Target({ FIELD, METHOD })
-public @interface Optional {
+public @interface Nullable {
 }

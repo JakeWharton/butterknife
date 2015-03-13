@@ -18,7 +18,7 @@ import butterknife.OnItemSelected;
 import butterknife.OnLongClick;
 import butterknife.OnPageChange;
 import butterknife.OnTextChanged;
-import butterknife.Optional;
+import butterknife.Nullable;
 import com.google.common.io.Files;
 import com.google.testing.compile.JavaFileObjects;
 import java.io.File;
@@ -46,10 +46,10 @@ public class AllTheThingsTest {
   /////////////////////////////////////////////////////////////////////////////////////////////////
 
   @InjectView(10) View injectView;
-  @Optional @InjectView(20) View optinalInjectView;
+  @Nullable @InjectView(20) View optinalInjectView;
 
   @InjectView(30) TextView injectTextView;
-  @Optional @InjectView(40) TextView optinalInjectTextView;
+  @Nullable @InjectView(40) TextView optinalInjectTextView;
 
   /////////////////////////////////////////////////////////////////////////////////////////////////
 

@@ -248,16 +248,16 @@ public class InjectViewsTest {
         .generatesSources(expectedSource);
   }
 
-  @Test public void optional() {
+  @Test public void nullable() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
         "package test;",
         "import android.app.Activity;",
         "import android.view.View;",
         "import butterknife.InjectViews;",
-        "import butterknife.Optional;",
+        "import butterknife.Nullable;",
         "import java.util.List;",
         "public class Test extends Activity {",
-        "    @Optional @InjectViews({1, 2, 3}) List<View> thing;",
+        "    @Nullable @InjectViews({1, 2, 3}) List<View> thing;",
         "}"
     ));
 

@@ -286,9 +286,9 @@ public class OnClickTest {
         "package test;",
         "import android.app.Activity;",
         "import butterknife.OnClick;",
-        "import butterknife.Optional;",
+        "import butterknife.Nullable;",
         "public class Test extends Activity {",
-        "  @Optional @OnClick(1) void doStuff() {}",
+        "  @Nullable @OnClick(1) void doStuff() {}",
         "}"));
 
     JavaFileObject expectedSource = JavaFileObjects.forSourceString("test/Test$$ViewInjector",
@@ -328,10 +328,10 @@ public class OnClickTest {
         "import android.view.View;",
         "import butterknife.InjectView;",
         "import butterknife.OnClick;",
-        "import butterknife.Optional;",
+        "import butterknife.Nullable;",
         "public class Test extends Activity {",
         "  @InjectView(1) View view;",
-        "  @Optional @OnClick(1) void doStuff() {}",
+        "  @Nullable @OnClick(1) void doStuff() {}",
         "}"));
 
     JavaFileObject expectedSource = JavaFileObjects.forSourceString("test/Test$$ViewInjector",
