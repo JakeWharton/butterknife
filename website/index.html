@@ -171,10 +171,11 @@ public void pickDoor(DoorView door) {
 
             <h4 id="optional">Optional Injections</h4>
             <p>By default, both <code>@InjectView</code> and listener injections are required. An exception will be thrown if the target view cannot be found.</p>
-            <p>To suppress this behavior and create an optional injection, add the <code>@Optional</code> annotation to the field or method.</p>
-            <pre class="prettyprint">@Optional @InjectView(R.id.might_not_be_there) TextView mightNotBeThere;
+            <p>To suppress this behavior and create an optional injection, add a <code>@Nullable</code> annotation to the field or method.</p>
+            <p>Note: Any annotation named <code>@Nullable</code> can be used for this purpose, either from Butter Knife or from a different package. It is encouraged to use the <code>@Nullable</code> annotation from Android's "support-annotations" library, see <a href="http://tools.android.com/tech-docs/support-annotations">Android Tools Project</a>.</p>
+            <pre class="prettyprint">@Nullable @InjectView(R.id.might_not_be_there) TextView mightNotBeThere;
 
-@Optional @OnClick(R.id.maybe_missing) void onMaybeMissingClicked() {
+@Nullable @OnClick(R.id.maybe_missing) void onMaybeMissingClicked() {
   // TODO ...
 }</pre>
 

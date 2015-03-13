@@ -149,7 +149,7 @@ public class ButterKnifeTest {
     } catch (IllegalStateException e) {
       assertThat(e).hasMessage("Required view 'button1' with ID "
           + android.R.id.button1
-          + " for yo mama was not found. If this view is optional add '@Optional' annotation.");
+          + " for yo mama was not found. If this view is optional add '@Nullable' annotation.");
     }
   }
 }

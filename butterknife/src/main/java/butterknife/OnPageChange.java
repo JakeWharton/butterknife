@@ -26,7 +26,7 @@ import static java.lang.annotation.RetentionPolicy.CLASS;
  * }
  * </code></pre>
  *
- * @see Optional
+ * @see Nullable
  */
 @Target(METHOD)
 @Retention(CLASS)

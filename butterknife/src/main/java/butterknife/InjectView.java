@@ -13,7 +13,7 @@ import static java.lang.annotation.RetentionPolicy.CLASS;
  * {@literal @}InjectView(R.id.title) TextView title;
  * </code></pre>
  *
- * @see Optional
+ * @see Nullable
  */
 @Retention(CLASS) @Target(FIELD)
 public @interface InjectView {

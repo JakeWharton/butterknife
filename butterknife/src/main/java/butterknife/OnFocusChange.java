@@ -22,7 +22,7 @@ import static java.lang.annotation.RetentionPolicy.CLASS;
  * boolean) onFocusChange} may be used on the method.
  *
  * @see OnFocusChangeListener
- * @see Optional
+ * @see Nullable
  */
 @Target(METHOD)
 @Retention(CLASS)

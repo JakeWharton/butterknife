@@ -184,15 +184,59 @@ public class InjectViewTest {
         .compilesWithoutError();
   }
 
-  @Test public void optional() {
+  @Test public void nullable() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
         "package test;",
         "import android.app.Activity;",
         "import android.view.View;",
         "import butterknife.InjectView;",
-        "import butterknife.Optional;",
+        "import butterknife.Nullable;",
         "public class Test extends Activity {",
-        "  @Optional @InjectView(1) View view;",
+        "  @Nullable @InjectView(1) View view;",
+        "}"
+    ));
+
+    JavaFileObject expectedSource = JavaFileObjects.forSourceString("test/Test$$ViewInjector",
+        Joiner.on('\n').join(
+            "package test;",
+            "import android.view.View;",
+            "import butterknife.ButterKnife.Finder;",
+            "import butterknife.ButterKnife.Injector;",
+            "public class Test$$ViewInjector<T extends test.Test> implements Injector<T> {",
+            "  @Override public void inject(final Finder finder, final T target, Object source) {",
+            "    View view;",
+            "    view = finder.findOptionalView(source, 1, null);",
+            "    target.view = view;",
+            "  }",
+            "  @Override public void reset(T target) {",
+            "    target.view = null;",
+            "  }",
+            "}"
+        ));
+
+    ASSERT.about(javaSource()).that(source)
+        .processedWith(butterknifeProcessors())
+        .compilesWithoutError()
+        .and()
+        .generatesSources(expectedSource);
+  }
+
+  @Test public void nullableExternalPackage() {
+    JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
+        "package test;",
+        "import android.app.Activity;",
+        "import android.view.View;",
+        "import butterknife.InjectView;",
+        "import java.lang.annotation.Retention;",
+        "import java.lang.annotation.Target;",
+        "import static java.lang.annotation.ElementType.FIELD;",
+        "import static java.lang.annotation.ElementType.METHOD;",
+        "import static java.lang.annotation.RetentionPolicy.CLASS;",
+        "public class Test extends Activity {",
+        "  @Retention(CLASS) @Target({ FIELD, METHOD })",
+        "  @interface Nullable {",
+        "  }",
+        "  @Nullable @InjectView(1) View view;",
         "}"
     ));
 
@@ -227,7 +271,6 @@ public class InjectViewTest {
         "import android.app.Activity;",
         "import android.view.View;",
         "import butterknife.InjectView;",
-        "import butterknife.Optional;",
         "public class Test extends Activity {",
         "  @InjectView(1) View view;",
         "}",
@@ -289,7 +332,6 @@ public class InjectViewTest {
         "import android.app.Activity;",
         "import android.view.View;",
         "import butterknife.InjectView;",
-        "import butterknife.Optional;",
         "public class Test<T> extends Activity {",
         "  @InjectView(1) View view;",
         "}",
@@ -543,10 +585,10 @@ public class InjectViewTest {
             "package test;",
             "import android.content.Context;",
             "import android.view.View;",
-            "import butterknife.Optional;",
+            "import butterknife.Nullable;",
             "import butterknife.OnClick;",
             "public class Test extends View {",
-            "  @Optional @OnClick void doStuff() {}",
+            "  @Nullable @OnClick void doStuff() {}",
             "  public Test(Context context) {",
             "    super(context);",
             "  }",
@@ -557,7 +599,7 @@ public class InjectViewTest {
         .processedWith(butterknifeProcessors())
         .failsToCompile()
         .withErrorContaining(
-            ("ID free injection must not be annotated with @Optional. (test.Test.doStuff)"))
+            ("ID free injection must not be annotated with @Nullable. (test.Test.doStuff)"))
         .in(source)
         .onLine(7);
   }
