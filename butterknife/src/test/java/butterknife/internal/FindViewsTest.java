@@ -10,26 +10,26 @@ import static butterknife.internal.ProcessorTestUtilities.butterknifeProcessors;
 import static com.google.common.truth.Truth.ASSERT;
 import static com.google.testing.compile.JavaSourceSubjectFactory.javaSource;
 
-public class InjectViewsTest {
+public class FindViewsTest {
   @Test public void injectingArray() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
         "package test;",
         "import android.app.Activity;",
         "import android.view.View;",
-        "import butterknife.InjectViews;",
+        "import butterknife.FindViews;",
         "public class Test extends Activity {",
-        "    @InjectViews({1, 2, 3}) View[] thing;",
+        "    @FindViews({1, 2, 3}) View[] thing;",
         "}"
     ));
 
-    JavaFileObject expectedSource = JavaFileObjects.forSourceString("test/Test$$ViewInjector",
+    JavaFileObject expectedSource = JavaFileObjects.forSourceString("test/Test$$ViewBinding",
         Joiner.on('\n').join(
             "package test;",
             "import android.view.View;",
             "import butterknife.ButterKnife.Finder;",
-            "import butterknife.ButterKnife.Injector;",
-            "public class Test$$ViewInjector<T extends test.Test> implements Injector<T> {",
-            "  @Override public void inject(final Finder finder, final T target, Object source) {",
+            "import butterknife.ButterKnife.ViewBinder;",
+            "public class Test$$ViewBinder<T extends test.Test> implements ViewBinder<T> {",
+            "  @Override public void bind(final Finder finder, final T target, Object source) {",
             "    View view;",
             "    target.thing = Finder.arrayOf(",
             "        finder.<android.view.View>findRequiredView(source, 1, \"field 'thing'\"),",
@@ -37,7 +37,7 @@ public class InjectViewsTest {
             "        finder.<android.view.View>findRequiredView(source, 3, \"field 'thing'\")",
             "    );",
             "  }",
-            "  @Override public void reset(T target) {",
+            "  @Override public void unbind(T target) {",
             "    target.thing = null;",
             "  }",
             "}"
@@ -55,20 +55,20 @@ public class InjectViewsTest {
         "package test;",
         "import android.app.Activity;",
         "import android.view.View;",
-        "import butterknife.InjectViews;",
+        "import butterknife.FindViews;",
         "public class Test<T extends View> extends Activity {",
-        "    @InjectViews({1, 2, 3}) T[] thing;",
+        "    @FindViews({1, 2, 3}) T[] thing;",
         "}"
     ));
 
-    JavaFileObject expectedSource = JavaFileObjects.forSourceString("test/Test$$ViewInjector",
+    JavaFileObject expectedSource = JavaFileObjects.forSourceString("test/Test$$ViewBinder",
         Joiner.on('\n').join(
             "package test;",
             "import android.view.View;",
             "import butterknife.ButterKnife.Finder;",
-            "import butterknife.ButterKnife.Injector;",
-            "public class Test$$ViewInjector<T extends test.Test> implements Injector<T> {",
-            "  @Override public void inject(final Finder finder, final T target, Object source) {",
+            "import butterknife.ButterKnife.ViewBinder;",
+            "public class Test$$ViewBinder<T extends test.Test> implements ViewBinder<T> {",
+            "  @Override public void bind(final Finder finder, final T target, Object source) {",
             "    View view;",
             "    target.thing = Finder.arrayOf(",
             "        finder.<android.view.View>findRequiredView(source, 1, \"field 'thing'\"),",
@@ -76,7 +76,7 @@ public class InjectViewsTest {
             "        finder.<android.view.View>findRequiredView(source, 3, \"field 'thing'\")",
             "    );",
             "  }",
-            "  @Override public void reset(T target) {",
+            "  @Override public void unbind(T target) {",
             "    target.thing = null;",
             "  }",
             "}"
@@ -94,20 +94,20 @@ public class InjectViewsTest {
         "package test;",
         "import android.app.Activity;",
         "import android.widget.TextView;",
-        "import butterknife.InjectViews;",
+        "import butterknife.FindViews;",
         "public class Test extends Activity {",
-        "    @InjectViews({1, 2, 3}) TextView[] thing;",
+        "    @FindViews({1, 2, 3}) TextView[] thing;",
         "}"
     ));
 
-    JavaFileObject expectedSource = JavaFileObjects.forSourceString("test/Test$$ViewInjector",
+    JavaFileObject expectedSource = JavaFileObjects.forSourceString("test/Test$$ViewBinder",
         Joiner.on('\n').join(
             "package test;",
             "import android.view.View;",
             "import butterknife.ButterKnife.Finder;",
-            "import butterknife.ButterKnife.Injector;",
-            "public class Test$$ViewInjector<T extends test.Test> implements Injector<T> {",
-            "  @Override public void inject(final Finder finder, final T target, Object source) {",
+            "import butterknife.ButterKnife.ViewBinder;",
+            "public class Test$$ViewBinder<T extends test.Test> implements ViewBinder<T> {",
+            "  @Override public void bind(final Finder finder, final T target, Object source) {",
             "    View view;",
             "    target.thing = Finder.arrayOf(",
             "        finder.<android.widget.TextView>findRequiredView(source, 1, \"field 'thing'\"),",
@@ -115,7 +115,7 @@ public class InjectViewsTest {
             "        finder.<android.widget.TextView>findRequiredView(source, 3, \"field 'thing'\")",
             "    );",
             "  }",
-            "  @Override public void reset(T target) {",
+            "  @Override public void unbind(T target) {",
             "    target.thing = null;",
             "  }",
             "}"
@@ -133,21 +133,21 @@ public class InjectViewsTest {
         "package test;",
         "import android.app.Activity;",
         "import android.view.View;",
-        "import butterknife.InjectViews;",
+        "import butterknife.FindViews;",
         "import java.util.List;",
         "public class Test extends Activity {",
-        "    @InjectViews({1, 2, 3}) List<View> thing;",
+        "    @FindViews({1, 2, 3}) List<View> thing;",
         "}"
     ));
 
-    JavaFileObject expectedSource = JavaFileObjects.forSourceString("test/Test$$ViewInjector",
+    JavaFileObject expectedSource = JavaFileObjects.forSourceString("test/Test$$ViewBinder",
         Joiner.on('\n').join(
             "package test;",
             "import android.view.View;",
             "import butterknife.ButterKnife.Finder;",
-            "import butterknife.ButterKnife.Injector;",
-            "public class Test$$ViewInjector<T extends test.Test> implements Injector<T> {",
-            "  @Override public void inject(final Finder finder, final T target, Object source) {",
+            "import butterknife.ButterKnife.ViewBinder;",
+            "public class Test$$ViewBinder<T extends test.Test> implements ViewBinder<T> {",
+            "  @Override public void bind(final Finder finder, final T target, Object source) {",
             "    View view;",
             "    target.thing = Finder.listOf(",
             "        finder.<android.view.View>findRequiredView(source, 1, \"field 'thing'\"),",
@@ -155,7 +155,7 @@ public class InjectViewsTest {
             "        finder.<android.view.View>findRequiredView(source, 3, \"field 'thing'\")",
             "    );",
             "  }",
-            "  @Override public void reset(T target) {",
+            "  @Override public void unbind(T target) {",
             "    target.thing = null;",
             "  }",
             "}"
@@ -172,22 +172,22 @@ public class InjectViewsTest {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
         "package test;",
         "import android.app.Activity;",
-        "import butterknife.InjectViews;",
+        "import butterknife.FindViews;",
         "import java.util.List;",
         "public class Test {",
         "    interface TestInterface {}",
-        "    @InjectViews({1, 2, 3}) List<TestInterface> thing;",
+        "    @FindViews({1, 2, 3}) List<TestInterface> thing;",
         "}"
     ));
 
-    JavaFileObject expectedSource = JavaFileObjects.forSourceString("test/Test$$ViewInjector",
+    JavaFileObject expectedSource = JavaFileObjects.forSourceString("test/Test$$ViewBinder",
         Joiner.on('\n').join(
             "package test;",
             "import android.view.View;",
             "import butterknife.ButterKnife.Finder;",
-            "import butterknife.ButterKnife.Injector;",
-            "public class Test$$ViewInjector<T extends test.Test> implements Injector<T> {",
-            "  @Override public void inject(final Finder finder, final T target, Object source) {",
+            "import butterknife.ButterKnife.ViewBinder;",
+            "public class Test$$ViewBinder<T extends test.Test> implements ViewBinder<T> {",
+            "  @Override public void bind(final Finder finder, final T target, Object source) {",
             "    View view;",
             "    target.thing = Finder.listOf(",
             "        finder.<test.Test.TestInterface>findRequiredView(source, 1, \"field 'thing'\"),",
@@ -195,7 +195,7 @@ public class InjectViewsTest {
             "        finder.<test.Test.TestInterface>findRequiredView(source, 3, \"field 'thing'\")",
             "    );",
             "  }",
-            "  @Override public void reset(T target) {",
+            "  @Override public void unbind(T target) {",
             "    target.thing = null;",
             "  }",
             "}"
@@ -213,21 +213,21 @@ public class InjectViewsTest {
         "package test;",
         "import android.app.Activity;",
         "import android.view.View;",
-        "import butterknife.InjectViews;",
+        "import butterknife.FindViews;",
         "import java.util.List;",
         "public class Test<T extends View> extends Activity {",
-        "    @InjectViews({1, 2, 3}) List<T> thing;",
+        "    @FindViews({1, 2, 3}) List<T> thing;",
         "}"
     ));
 
-    JavaFileObject expectedSource = JavaFileObjects.forSourceString("test/Test$$ViewInjector",
+    JavaFileObject expectedSource = JavaFileObjects.forSourceString("test/Test$$ViewBinder",
         Joiner.on('\n').join(
             "package test;",
             "import android.view.View;",
             "import butterknife.ButterKnife.Finder;",
-            "import butterknife.ButterKnife.Injector;",
-            "public class Test$$ViewInjector<T extends test.Test> implements Injector<T> {",
-            "  @Override public void inject(final Finder finder, final T target, Object source) {",
+            "import butterknife.ButterKnife.ViewBinder;",
+            "public class Test$$ViewBinder<T extends test.Test> implements ViewBinder<T> {",
+            "  @Override public void bind(final Finder finder, final T target, Object source) {",
             "    View view;",
             "    target.thing = Finder.listOf(",
             "        finder.<android.view.View>findRequiredView(source, 1, \"field 'thing'\"),",
@@ -235,7 +235,7 @@ public class InjectViewsTest {
             "        finder.<android.view.View>findRequiredView(source, 3, \"field 'thing'\")",
             "    );",
             "  }",
-            "  @Override public void reset(T target) {",
+            "  @Override public void unbind(T target) {",
             "    target.thing = null;",
             "  }",
             "}"
@@ -253,22 +253,22 @@ public class InjectViewsTest {
         "package test;",
         "import android.app.Activity;",
         "import android.view.View;",
-        "import butterknife.InjectViews;",
-        "import butterknife.Nullable;",
+        "import butterknife.FindViews;",
         "import java.util.List;",
         "public class Test extends Activity {",
-        "    @Nullable @InjectViews({1, 2, 3}) List<View> thing;",
+        "    @interface Nullable {}",
+        "    @Nullable @FindViews({1, 2, 3}) List<View> thing;",
         "}"
     ));
 
-    JavaFileObject expectedSource = JavaFileObjects.forSourceString("test/Test$$ViewInjector",
+    JavaFileObject expectedSource = JavaFileObjects.forSourceString("test/Test$$ViewBinder",
         Joiner.on('\n').join(
             "package test;",
             "import android.view.View;",
             "import butterknife.ButterKnife.Finder;",
-            "import butterknife.ButterKnife.Injector;",
-            "public class Test$$ViewInjector<T extends test.Test> implements Injector<T> {",
-            "  @Override public void inject(final Finder finder, final T target, Object source) {",
+            "import butterknife.ButterKnife.ViewBinder;",
+            "public class Test$$ViewBinder<T extends test.Test> implements ViewBinder<T> {",
+            "  @Override public void bind(final Finder finder, final T target, Object source) {",
             "    View view;",
             "    target.thing = Finder.listOf(",
             "        finder.<android.view.View>findOptionalView(source, 1, \"field 'thing'\"),",
@@ -276,7 +276,7 @@ public class InjectViewsTest {
             "        finder.<android.view.View>findOptionalView(source, 3, \"field 'thing'\")",
             "    );",
             "  }",
-            "  @Override public void reset(T target) {",
+            "  @Override public void unbind(T target) {",
             "    target.thing = null;",
             "  }",
             "}"
@@ -293,27 +293,27 @@ public class InjectViewsTest {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
         "package test;",
         "import android.view.View;",
-        "import butterknife.InjectViews;",
+        "import butterknife.FindViews;",
         "import java.util.List;",
         "public class Test {",
-        "  @InjectViews({}) List<View> thing;",
+        "  @FindViews({}) List<View> thing;",
         "}"
     ));
 
     ASSERT.about(javaSource()).that(source)
         .processedWith(butterknifeProcessors())
         .failsToCompile()
-        .withErrorContaining("@InjectViews must specify at least one ID. (test.Test.thing)")
+        .withErrorContaining("@FindViews must specify at least one ID. (test.Test.thing)")
         .in(source).onLine(6);
   }
 
   @Test public void failsIfNoGenericType() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
         "package test;",
-        "import butterknife.InjectViews;",
+        "import butterknife.FindViews;",
         "import java.util.List;",
         "public class Test {",
-        "  @InjectViews(1) List thing;",
+        "  @FindViews(1) List thing;",
         "}"
     ));
 
@@ -321,7 +321,7 @@ public class InjectViewsTest {
         .processedWith(butterknifeProcessors())
         .failsToCompile()
         .withErrorContaining(
-            "@InjectViews List must have a generic component. (test.Test.thing)")
+            "@FindViews List must have a generic component. (test.Test.thing)")
         .in(source).onLine(5);
   }
 
@@ -329,10 +329,10 @@ public class InjectViewsTest {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
         "package test;",
         "import android.view.View;",
-        "import butterknife.InjectViews;",
+        "import butterknife.FindViews;",
         "import java.util.Deque;",
         "public class Test {",
-        "  @InjectViews(1) Deque<View> thing;",
+        "  @FindViews(1) Deque<View> thing;",
         "}"
     ));
 
@@ -340,7 +340,7 @@ public class InjectViewsTest {
         .processedWith(butterknifeProcessors())
         .failsToCompile()
         .withErrorContaining(
-            "@InjectViews must be a List or array. (test.Test.thing)")
+            "@FindViews must be a List or array. (test.Test.thing)")
         .in(source).onLine(6);
   }
 
@@ -348,29 +348,29 @@ public class InjectViewsTest {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
         "package test;",
         "import android.app.Activity;",
-        "import butterknife.InjectViews;",
+        "import butterknife.FindViews;",
         "import java.util.List;",
         "public class Test extends Activity {",
-        "  @InjectViews(1) List<String> thing;",
+        "  @FindViews(1) List<String> thing;",
         "}"
     ));
 
     ASSERT.about(javaSource()).that(source)
         .processedWith(butterknifeProcessors())
         .failsToCompile()
-        .withErrorContaining("@InjectViews type must extend from View or be an interface. (test.Test.thing)")
+        .withErrorContaining("@FindViews type must extend from View or be an interface. (test.Test.thing)")
         .in(source).onLine(6);
   }
 
   @Test public void failsIfArrayNotView() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
-        "package test;", "import android.app.Activity;", "import butterknife.InjectViews;",
-        "public class Test extends Activity {", "  @InjectViews(1) String[] thing;", "}"));
+        "package test;", "import android.app.Activity;", "import butterknife.FindViews;",
+        "public class Test extends Activity {", "  @FindViews(1) String[] thing;", "}"));
 
     ASSERT.about(javaSource()).that(source)
         .processedWith(butterknifeProcessors())
         .failsToCompile()
-        .withErrorContaining("@InjectViews type must extend from View or be an interface. (test.Test.thing)")
+        .withErrorContaining("@FindViews type must extend from View or be an interface. (test.Test.thing)")
         .in(source).onLine(5);
   }
 
@@ -378,9 +378,9 @@ public class InjectViewsTest {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
         "package java.test;",
         "import android.view.View;",
-        "import butterknife.InjectViews;",
+        "import butterknife.FindViews;",
         "public class Test {",
-        "  @InjectViews(1) View[] thing;",
+        "  @FindViews(1) View[] thing;",
         "}"
     ));
 
@@ -388,7 +388,7 @@ public class InjectViewsTest {
         .processedWith(butterknifeProcessors())
         .failsToCompile()
         .withErrorContaining(
-            "@InjectViews-annotated class incorrectly in Java framework package. (java.test.Test)")
+            "@FindViews-annotated class incorrectly in Java framework package. (java.test.Test)")
         .in(source).onLine(5);
   }
 
@@ -396,9 +396,9 @@ public class InjectViewsTest {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
         "package android.test;",
         "import android.view.View;",
-        "import butterknife.InjectViews;",
+        "import butterknife.FindViews;",
         "public class Test {",
-        "  @InjectViews(1) View[] thing;",
+        "  @FindViews(1) View[] thing;",
         "}"
     ));
 
@@ -406,7 +406,7 @@ public class InjectViewsTest {
         .processedWith(butterknifeProcessors())
         .failsToCompile()
         .withErrorContaining(
-            "@InjectViews-annotated class incorrectly in Android framework package. (android.test.Test)")
+            "@FindViews-annotated class incorrectly in Android framework package. (android.test.Test)")
         .in(source).onLine(5);
   }
 
@@ -414,11 +414,11 @@ public class InjectViewsTest {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
         "package test;",
         "import android.view.View;",
-        "import butterknife.InjectViews;",
+        "import butterknife.FindViews;",
         "import java.util.List;",
         "public class Test {",
         "  private static class Inner {",
-        "    @InjectViews(1) List<View> thing;",
+        "    @FindViews(1) List<View> thing;",
         "  }",
         "}"
     ));
@@ -427,7 +427,7 @@ public class InjectViewsTest {
         .processedWith(butterknifeProcessors())
         .failsToCompile()
         .withErrorContaining(
-            "@InjectViews fields may not be contained in private classes. (test.Test.Inner.thing)")
+            "@FindViews fields may not be contained in private classes. (test.Test.Inner.thing)")
         .in(source).onLine(6);
   }
 
@@ -435,10 +435,10 @@ public class InjectViewsTest {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
         "package test;",
         "import android.view.View;",
-        "import butterknife.InjectViews;",
+        "import butterknife.FindViews;",
         "import java.util.List;",
         "public interface Test {",
-        "    @InjectViews(1) List<View> thing = null;",
+        "    @FindViews(1) List<View> thing = null;",
         "}"
     ));
 
@@ -446,7 +446,7 @@ public class InjectViewsTest {
         .processedWith(butterknifeProcessors())
         .failsToCompile()
         .withErrorContaining(
-            "@InjectViews fields may only be contained in classes. (test.Test.thing)")
+            "@FindViews fields may only be contained in classes. (test.Test.thing)")
         .in(source).onLine(5);
   }
 
@@ -455,17 +455,17 @@ public class InjectViewsTest {
         "package test;",
         "import android.app.Activity;",
         "import android.view.View;",
-        "import butterknife.InjectViews;",
+        "import butterknife.FindViews;",
         "import java.util.List;",
         "public class Test extends Activity {",
-        "    @InjectViews(1) private List<View> thing;",
+        "    @FindViews(1) private List<View> thing;",
         "}"
     ));
 
     ASSERT.about(javaSource()).that(source)
         .processedWith(butterknifeProcessors())
         .failsToCompile()
-        .withErrorContaining("@InjectViews fields must not be private or static. (test.Test.thing)")
+        .withErrorContaining("@FindViews fields must not be private or static. (test.Test.thing)")
         .in(source).onLine(7);
   }
 
@@ -474,17 +474,17 @@ public class InjectViewsTest {
         "package test;",
         "import android.app.Activity;",
         "import android.view.View;",
-        "import butterknife.InjectViews;",
+        "import butterknife.FindViews;",
         "import java.util.List;",
         "public class Test extends Activity {",
-        "    @InjectViews(1) static List<View> thing;",
+        "    @FindViews(1) static List<View> thing;",
         "}"
     ));
 
     ASSERT.about(javaSource()).that(source)
         .processedWith(butterknifeProcessors())
         .failsToCompile()
-        .withErrorContaining("@InjectViews fields must not be private or static. (test.Test.thing)")
+        .withErrorContaining("@FindViews fields must not be private or static. (test.Test.thing)")
         .in(source).onLine(7);
   }
 
@@ -493,10 +493,10 @@ public class InjectViewsTest {
         "package test;",
         "import android.app.Activity;",
         "import android.view.View;",
-        "import butterknife.InjectViews;",
+        "import butterknife.FindViews;",
         "import java.util.List;",
         "public class Test extends Activity {",
-        "    @InjectViews({1, 1}) List<View> thing;",
+        "    @FindViews({1, 1}) List<View> thing;",
         "}"
     ));
 
@@ -504,7 +504,7 @@ public class InjectViewsTest {
         .processedWith(butterknifeProcessors())
         .failsToCompile()
         .withErrorContaining(
-            "@InjectViews annotation contains duplicate ID 1. (test.Test.thing)")
+            "@FindViews annotation contains duplicate ID 1. (test.Test.thing)")
         .in(source).onLine(7);
   }
 }

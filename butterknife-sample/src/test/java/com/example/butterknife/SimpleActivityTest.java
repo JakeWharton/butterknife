@@ -23,7 +23,7 @@ public class SimpleActivityTest {
     assertThat(activity.listOfThings).hasId(R.id.list_of_things);
     assertThat(activity.footer).hasId(R.id.footer);
 
-    ButterKnife.reset(activity);
+    ButterKnife.unbind(activity);
     assertThat(activity.title).isNull();
     assertThat(activity.subtitle).isNull();
     assertThat(activity.hello).isNull();

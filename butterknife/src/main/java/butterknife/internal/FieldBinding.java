@@ -1,20 +1,15 @@
 package butterknife.internal;
 
-final class CollectionBinding implements Binding {
-  enum Kind {
-    ARRAY,
-    LIST
-  }
+import static butterknife.internal.ButterKnifeProcessor.VIEW_TYPE;
 
+final class FieldBinding implements Binding {
   private final String name;
   private final String type;
-  private final Kind kind;
   private final boolean required;
 
-  CollectionBinding(String name, String type, Kind kind, boolean required) {
+  FieldBinding(String name, String type, boolean required) {
     this.name = name;
     this.type = type;
-    this.kind = kind;
     this.required = required;
   }
 
@@ -26,15 +21,15 @@ final class CollectionBinding implements Binding {
     return type;
   }
 
-  public Kind getKind() {
-    return kind;
+  @Override public String getDescription() {
+    return "field '" + name + "'";
   }
 
   public boolean isRequired() {
     return required;
   }
 
-  @Override public String getDescription() {
-    return "field '" + name + "'";
+  public boolean requiresCast() {
+    return !VIEW_TYPE.equals(type);
   }
 }

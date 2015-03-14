@@ -20,14 +20,14 @@ public class OnClickTest {
         "  @OnClick(1) void doStuff() {}",
         "}"));
 
-    JavaFileObject expectedSource = JavaFileObjects.forSourceString("test/Test$$ViewInjector",
+    JavaFileObject expectedSource = JavaFileObjects.forSourceString("test/Test$$ViewBinder",
         Joiner.on('\n').join(
             "package test;",
             "import android.view.View;",
             "import butterknife.ButterKnife.Finder;",
-            "import butterknife.ButterKnife.Injector;",
-            "public class Test$$ViewInjector<T extends test.Test> implements Injector<T> {",
-            "  @Override public void inject(final Finder finder, final T target, Object source) {",
+            "import butterknife.ButterKnife.ViewBinder;",
+            "public class Test$$ViewBinder<T extends test.Test> implements ViewBinder<T> {",
+            "  @Override public void bind(final Finder finder, final T target, Object source) {",
             "    View view;",
             "    view = finder.findRequiredView(source, 1, \"method 'doStuff'\");",
             "    view.setOnClickListener(new butterknife.internal.DebouncingOnClickListener() {",
@@ -36,7 +36,7 @@ public class OnClickTest {
             "      }",
             "    });",
             "  }",
-            "  @Override public void reset(T target) {",
+            "  @Override public void unbind(T target) {",
             "  }",
             "}"
         ));
@@ -60,14 +60,14 @@ public class OnClickTest {
         "  @OnClick({1, 2}) void doStuff3(View v) {}",
         "}"));
 
-    JavaFileObject expectedSource = JavaFileObjects.forSourceString("test/Test$$ViewInjector",
+    JavaFileObject expectedSource = JavaFileObjects.forSourceString("test/Test$$ViewBinder",
         Joiner.on('\n').join(
             "package test;",
             "import android.view.View;",
             "import butterknife.ButterKnife.Finder;",
-            "import butterknife.ButterKnife.Injector;",
-            "public class Test$$ViewInjector<T extends test.Test> implements Injector<T> {",
-            "  @Override public void inject(final Finder finder, final T target, Object source) {",
+            "import butterknife.ButterKnife.ViewBinder;",
+            "public class Test$$ViewBinder<T extends test.Test> implements ViewBinder<T> {",
+            "  @Override public void bind(final Finder finder, final T target, Object source) {",
             "    View view;",
             "    view = finder.findRequiredView(source, 1, \"method 'doStuff1', method 'doStuff2', and method 'doStuff3'\");",
             "    view.setOnClickListener(",
@@ -90,7 +90,7 @@ public class OnClickTest {
             "        }",
             "      });",
             "  }",
-            "  @Override public void reset(T target) {",
+            "  @Override public void unbind(T target) {",
             "}"));
 
     ASSERT.about(javaSource()).that(source)
@@ -105,21 +105,21 @@ public class OnClickTest {
         "package test;",
         "import android.app.Activity;",
         "import android.view.View;",
-        "import butterknife.InjectView;",
+        "import butterknife.FindView;",
         "import butterknife.OnClick;",
         "public class Test extends Activity {",
-        "  @InjectView(1) View view;",
+        "  @FindView(1) View view;",
         "  @OnClick(1) void doStuff() {}",
         "}"));
 
-    JavaFileObject expectedSource = JavaFileObjects.forSourceString("test/Test$$ViewInjector",
+    JavaFileObject expectedSource = JavaFileObjects.forSourceString("test/Test$$ViewBinder",
         Joiner.on('\n').join(
             "package test;",
             "import android.view.View;",
             "import butterknife.ButterKnife.Finder;",
-            "import butterknife.ButterKnife.Injector;",
-            "public class Test$$ViewInjector<T extends test.Test> implements Injector<T> {",
-            "  @Override public void inject(final Finder finder, final T target, Object source) {",
+            "import butterknife.ButterKnife.ViewBinder;",
+            "public class Test$$ViewBinder<T extends test.Test> implements ViewBinder<T> {",
+            "  @Override public void bind(final Finder finder, final T target, Object source) {",
             "    View view;",
             "    view = finder.findRequiredView(source, 1, \"field 'view' and method 'doStuff'\");",
             "    target.view = view;",
@@ -129,7 +129,7 @@ public class OnClickTest {
             "      }",
             "    });",
             "  }",
-            "  @Override public void reset(T target) {",
+            "  @Override public void unbind(T target) {",
             "    target.view = null;",
             "  }",
             "}"
@@ -178,14 +178,14 @@ public class OnClickTest {
         "}"
     ));
 
-    JavaFileObject expectedSource = JavaFileObjects.forSourceString("test/Test$$ViewInjector",
+    JavaFileObject expectedSource = JavaFileObjects.forSourceString("test/Test$$ViewBinder",
         Joiner.on('\n').join(
             "package test;",
             "import android.view.View;",
             "import butterknife.ButterKnife.Finder;",
-            "import butterknife.ButterKnife.Injector;",
-            "public class Test$$ViewInjector<T extends test.Test> implements Injector<T> {",
-            "  @Override public void inject(final Finder finder, final T target, Object source) {",
+            "import butterknife.ButterKnife.ViewBinder;",
+            "public class Test$$ViewBinder<T extends test.Test> implements ViewBinder<T> {",
+            "  @Override public void bind(final Finder finder, final T target, Object source) {",
             "    View view;",
             "    view = finder.findRequiredView(source, 0, \"method 'click0'\");",
             "    view.setOnClickListener(new butterknife.internal.DebouncingOnClickListener() {",
@@ -218,7 +218,7 @@ public class OnClickTest {
             "      }",
             "    });",
             "  }",
-            "  @Override public void reset(T target) {",
+            "  @Override public void unbind(T target) {",
             "  }",
             "}"
         ));
@@ -241,14 +241,14 @@ public class OnClickTest {
         "}"
     ));
 
-    JavaFileObject expectedSource = JavaFileObjects.forSourceString("test/Test$$ViewInjector",
+    JavaFileObject expectedSource = JavaFileObjects.forSourceString("test/Test$$ViewBinder",
         Joiner.on('\n').join(
             "package test;",
             "import android.view.View;",
             "import butterknife.ButterKnife.Finder;",
-            "import butterknife.ButterKnife.Injector;",
-            "public class Test$$ViewInjector<T extends test.Test> implements Injector<T> {",
-            "  @Override public void inject(final Finder finder, final T target, Object source) {",
+            "import butterknife.ButterKnife.ViewBinder;",
+            "public class Test$$ViewBinder<T extends test.Test> implements ViewBinder<T> {",
+            "  @Override public void bind(final Finder finder, final T target, Object source) {",
             "    View view;",
             "    view = finder.findRequiredView(source, 1, \"method 'click'\");",
             "    view.setOnClickListener(new butterknife.internal.DebouncingOnClickListener() {",
@@ -269,7 +269,7 @@ public class OnClickTest {
             "      }",
             "    });",
             "  }",
-            "  @Override public void reset(T target) {",
+            "  @Override public void unbind(T target) {",
             "  }",
             "}"
         ));
@@ -286,19 +286,19 @@ public class OnClickTest {
         "package test;",
         "import android.app.Activity;",
         "import butterknife.OnClick;",
-        "import butterknife.Nullable;",
         "public class Test extends Activity {",
+        "  @interface Nullable {}",
         "  @Nullable @OnClick(1) void doStuff() {}",
         "}"));
 
-    JavaFileObject expectedSource = JavaFileObjects.forSourceString("test/Test$$ViewInjector",
+    JavaFileObject expectedSource = JavaFileObjects.forSourceString("test/Test$$ViewBinder",
         Joiner.on('\n').join(
             "package test;",
             "import android.view.View;",
             "import butterknife.ButterKnife.Finder;",
-            "import butterknife.ButterKnife.Injector;",
-            "public class Test$$ViewInjector<T extends test.Test> implements Injector<T> {",
-            "  @Override public void inject(final Finder finder, final T target, Object source) {",
+            "import butterknife.ButterKnife.ViewBinder;",
+            "public class Test$$ViewBinder<T extends test.Test> implements ViewBinder<T> {",
+            "  @Override public void bind(final Finder finder, final T target, Object source) {",
             "    View view;",
             "    view = finder.findOptionalView(source, 1, null);",
             "    if (view != null) {",
@@ -309,7 +309,7 @@ public class OnClickTest {
             "      });",
             "    }",
             "  }",
-            "  @Override public void reset(T target) {",
+            "  @Override public void unbind(T target) {",
             "  }",
             "}"
         ));
@@ -326,22 +326,22 @@ public class OnClickTest {
         "package test;",
         "import android.app.Activity;",
         "import android.view.View;",
-        "import butterknife.InjectView;",
+        "import butterknife.FindView;",
         "import butterknife.OnClick;",
-        "import butterknife.Nullable;",
         "public class Test extends Activity {",
-        "  @InjectView(1) View view;",
+        "  @interface Nullable {}",
+        "  @FindView(1) View view;",
         "  @Nullable @OnClick(1) void doStuff() {}",
         "}"));
 
-    JavaFileObject expectedSource = JavaFileObjects.forSourceString("test/Test$$ViewInjector",
+    JavaFileObject expectedSource = JavaFileObjects.forSourceString("test/Test$$ViewBinder",
         Joiner.on('\n').join(
             "package test;",
             "import android.view.View;",
             "import butterknife.ButterKnife.Finder;",
-            "import butterknife.ButterKnife.Injector;",
-            "public class Test$$ViewInjector<T extends test.Test> implements Injector<T> {",
-            "  @Override public void inject(final Finder finder, final T target, Object source) {",
+            "import butterknife.ButterKnife.ViewBinder;",
+            "public class Test$$ViewBinder<T extends test.Test> implements ViewBinder<T> {",
+            "  @Override public void bind(final Finder finder, final T target, Object source) {",
             "    View view;",
             "    view = finder.findRequiredView(source, 1, \"field 'view'\");",
             "    target.view = view;",
@@ -351,7 +351,7 @@ public class OnClickTest {
             "      }",
             "    });",
             "  }",
-            "  @Override public void reset(T target) {",
+            "  @Override public void unbind(T target) {",
             "    target.view = null;",
             "  }",
             "}"

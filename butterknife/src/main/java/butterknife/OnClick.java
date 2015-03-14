@@ -22,7 +22,6 @@ import static java.lang.annotation.RetentionPolicy.CLASS;
  * method.
  *
  * @see OnClickListener
- * @see Nullable
  */
 @Target(METHOD)
 @Retention(CLASS)

@@ -2,11 +2,11 @@ package butterknife.internal;
 
 import org.junit.Test;
 
-import static butterknife.internal.ViewInjector.emitHumanDescription;
+import static butterknife.internal.BindingClass.emitHumanDescription;
 import static java.util.Arrays.asList;
 import static org.fest.assertions.api.Assertions.assertThat;
 
-public class ViewInjectorTest {
+public class BindingClassTest {
   @Test public void humanDescriptionJoinWorks() {
     Binding one = new TestBinding("one");
     Binding two = new TestBinding("two");
