@@ -72,6 +72,7 @@ import static butterknife.internal.ButterKnifeProcessor.JAVA_PREFIX;
  *
  * @see InjectView
  * @see InjectViews
+ * @see OnAutoCompleteItemClick
  * @see OnCheckedChanged
  * @see OnClick
  * @see OnEditorAction
