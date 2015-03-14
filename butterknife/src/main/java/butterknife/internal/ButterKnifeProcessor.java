@@ -3,6 +3,7 @@ package butterknife.internal;
 import android.view.View;
 import butterknife.InjectView;
 import butterknife.InjectViews;
+import butterknife.OnAutoCompleteItemClick;
 import butterknife.OnCheckedChanged;
 import butterknife.OnClick;
 import butterknife.OnEditorAction;
@@ -63,6 +64,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
   static final String VIEW_TYPE = "android.view.View";
   private static final String LIST_TYPE = List.class.getCanonicalName();
   private static final List<Class<? extends Annotation>> LISTENERS = Arrays.asList(//
+      OnAutoCompleteItemClick.class, //
       OnCheckedChanged.class, //
       OnClick.class, //
       OnEditorAction.class, //
