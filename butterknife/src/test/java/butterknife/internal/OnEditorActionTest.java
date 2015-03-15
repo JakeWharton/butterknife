@@ -21,14 +21,14 @@ public class OnEditorActionTest {
         "}"
     ));
 
-    JavaFileObject expectedSource = JavaFileObjects.forSourceString("test/Test$$ViewInjector",
+    JavaFileObject expectedSource = JavaFileObjects.forSourceString("test/Test$$ViewBinder",
         Joiner.on('\n').join(
             "package test;",
             "import android.view.View;",
             "import butterknife.ButterKnife.Finder;",
-            "import butterknife.ButterKnife.Injector;",
-            "public class Test$$ViewInjector<T extends test.Test> implements Injector<T> {",
-            "  @Override public void inject(final Finder finder, final T target, Object source) {",
+            "import butterknife.ButterKnife.ViewBinder;",
+            "public class Test$$ViewBinder<T extends test.Test> implements ViewBinder<T> {",
+            "  @Override public void bind(final Finder finder, final T target, Object source) {",
             "    View view;",
             "    view = finder.findRequiredView(source, 1, \"method 'doStuff'\");",
             "    ((android.widget.TextView) view).setOnEditorActionListener(new android.widget.TextView.OnEditorActionListener() {",
@@ -37,7 +37,7 @@ public class OnEditorActionTest {
             "      }",
             "    });",
             "  }",
-            "  @Override public void reset(T target) {",
+            "  @Override public void unbind(T target) {",
             "  }",
             "}"
         ));

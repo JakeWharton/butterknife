@@ -1,8 +1,8 @@
 package butterknife.internal;
 
 import android.view.View;
-import butterknife.InjectView;
-import butterknife.InjectViews;
+import butterknife.FindView;
+import butterknife.FindViews;
 import butterknife.OnCheckedChanged;
 import butterknife.OnClick;
 import butterknife.OnEditorAction;
@@ -57,7 +57,7 @@ import static javax.lang.model.element.Modifier.STATIC;
 import static javax.tools.Diagnostic.Kind.ERROR;
 
 public final class ButterKnifeProcessor extends AbstractProcessor {
-  public static final String SUFFIX = "$$ViewInjector";
+  public static final String SUFFIX = "$$ViewBinder";
   public static final String ANDROID_PREFIX = "android.";
   public static final String JAVA_PREFIX = "java.";
   static final String VIEW_TYPE = "android.view.View";
@@ -91,8 +91,8 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
   @Override public Set<String> getSupportedAnnotationTypes() {
     Set<String> supportTypes = new LinkedHashSet<String>();
-    supportTypes.add(InjectView.class.getCanonicalName());
-    supportTypes.add(InjectViews.class.getCanonicalName());
+    supportTypes.add(FindView.class.getCanonicalName());
+    supportTypes.add(FindViews.class.getCanonicalName());
     for (Class<? extends Annotation> listener : LISTENERS) {
       supportTypes.add(listener.getCanonicalName());
     }
@@ -101,51 +101,52 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
   }
 
   @Override public boolean process(Set<? extends TypeElement> elements, RoundEnvironment env) {
-    Map<TypeElement, ViewInjector> targetClassMap = findAndParseTargets(env);
+    Map<TypeElement, BindingClass> targetClassMap = findAndParseTargets(env);
 
-    for (Map.Entry<TypeElement, ViewInjector> entry : targetClassMap.entrySet()) {
+    for (Map.Entry<TypeElement, BindingClass> entry : targetClassMap.entrySet()) {
       TypeElement typeElement = entry.getKey();
-      ViewInjector viewInjector = entry.getValue();
+      BindingClass bindingClass = entry.getValue();
 
       try {
-        JavaFileObject jfo = filer.createSourceFile(viewInjector.getFqcn(), typeElement);
+        JavaFileObject jfo = filer.createSourceFile(bindingClass.getFqcn(), typeElement);
         Writer writer = jfo.openWriter();
-        writer.write(viewInjector.brewJava());
+        writer.write(bindingClass.brewJava());
         writer.flush();
         writer.close();
       } catch (IOException e) {
-        error(typeElement, "Unable to write injector for type %s: %s", typeElement, e.getMessage());
+        error(typeElement, "Unable to write view binder for type %s: %s", typeElement,
+            e.getMessage());
       }
     }
 
     return true;
   }
 
-  private Map<TypeElement, ViewInjector> findAndParseTargets(RoundEnvironment env) {
-    Map<TypeElement, ViewInjector> targetClassMap = new LinkedHashMap<TypeElement, ViewInjector>();
+  private Map<TypeElement, BindingClass> findAndParseTargets(RoundEnvironment env) {
+    Map<TypeElement, BindingClass> targetClassMap = new LinkedHashMap<TypeElement, BindingClass>();
     Set<String> erasedTargetNames = new LinkedHashSet<String>();
 
-    // Process each @InjectView element.
-    for (Element element : env.getElementsAnnotatedWith(InjectView.class)) {
+    // Process each @FindView element.
+    for (Element element : env.getElementsAnnotatedWith(FindView.class)) {
       try {
-        parseInjectView(element, targetClassMap, erasedTargetNames);
+        parseFindView(element, targetClassMap, erasedTargetNames);
       } catch (Exception e) {
         StringWriter stackTrace = new StringWriter();
         e.printStackTrace(new PrintWriter(stackTrace));
 
-        error(element, "Unable to generate view injector for @InjectView.\n\n%s", stackTrace);
+        error(element, "Unable to generate view binder for @FindView.\n\n%s", stackTrace);
       }
     }
 
-    // Process each @InjectViews element.
-    for (Element element : env.getElementsAnnotatedWith(InjectViews.class)) {
+    // Process each @FindViews element.
+    for (Element element : env.getElementsAnnotatedWith(FindViews.class)) {
       try {
-        parseInjectViews(element, targetClassMap, erasedTargetNames);
+        parseFindViews(element, targetClassMap, erasedTargetNames);
       } catch (Exception e) {
         StringWriter stackTrace = new StringWriter();
         e.printStackTrace(new PrintWriter(stackTrace));
 
-        error(element, "Unable to generate view injector for @InjectViews.\n\n%s", stackTrace);
+        error(element, "Unable to generate view binder for @FindViews.\n\n%s", stackTrace);
       }
     }
 
@@ -154,11 +155,11 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
       findAndParseListener(env, listener, targetClassMap, erasedTargetNames);
     }
 
-    // Try to find a parent injector for each injector.
-    for (Map.Entry<TypeElement, ViewInjector> entry : targetClassMap.entrySet()) {
+    // Try to find a parent binder for each.
+    for (Map.Entry<TypeElement, BindingClass> entry : targetClassMap.entrySet()) {
       String parentClassFqcn = findParentFqcn(entry.getKey(), erasedTargetNames);
       if (parentClassFqcn != null) {
-        entry.getValue().setParentInjector(parentClassFqcn + SUFFIX);
+        entry.getValue().setParentViewBinder(parentClassFqcn + SUFFIX);
       }
     }
 
@@ -217,7 +218,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     return false;
   }
 
-  private void parseInjectView(Element element, Map<TypeElement, ViewInjector> targetClassMap,
+  private void parseFindView(Element element, Map<TypeElement, BindingClass> targetClassMap,
       Set<String> erasedTargetNames) {
     boolean hasError = false;
     TypeElement enclosingElement = (TypeElement) element.getEnclosingElement();
@@ -229,18 +230,18 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
       elementType = typeVariable.getUpperBound();
     }
     if (!isSubtypeOfType(elementType, VIEW_TYPE) && !isInterface(elementType)) {
-      error(element, "@InjectView fields must extend from View or be an interface. (%s.%s)",
+      error(element, "@FindView fields must extend from View or be an interface. (%s.%s)",
           enclosingElement.getQualifiedName(), element.getSimpleName());
       hasError = true;
     }
 
     // Verify common generated code restrictions.
-    hasError |= isInaccessibleViaGeneratedCode(InjectView.class, "fields", element);
-    hasError |= isBindingInWrongPackage(InjectView.class, element);
+    hasError |= isInaccessibleViaGeneratedCode(FindView.class, "fields", element);
+    hasError |= isBindingInWrongPackage(FindView.class, element);
 
     // Check for the other field annotation.
-    if (element.getAnnotation(InjectViews.class) != null) {
-      error(element, "Only one of @InjectView and @InjectViews is allowed. (%s.%s)",
+    if (element.getAnnotation(FindViews.class) != null) {
+      error(element, "Only one of @FindView and @FindViews is allowed. (%s.%s)",
           enclosingElement.getQualifiedName(), element.getSimpleName());
       hasError = true;
     }
@@ -249,38 +250,39 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
       return;
     }
 
-    // Assemble information on the injection point.
-    int id = element.getAnnotation(InjectView.class).value();
+    // Assemble information on the field.
+    int id = element.getAnnotation(FindView.class).value();
 
-    ViewInjector injector = targetClassMap.get(enclosingElement);
-    if (injector != null) {
-      ViewInjection viewInjection = injector.getViewInjection(id);
-      if (viewInjection != null) {
-        Iterator<ViewBinding> iterator = viewInjection.getViewBindings().iterator();
+    BindingClass bindingClass = targetClassMap.get(enclosingElement);
+    if (bindingClass != null) {
+      ViewBindings viewBindings = bindingClass.getViewInjection(id);
+      if (viewBindings != null) {
+        Iterator<FieldBinding> iterator = viewBindings.getFieldBindings().iterator();
         if (iterator.hasNext()) {
-          ViewBinding existingBinding = iterator.next();
+          FieldBinding existingBinding = iterator.next();
           error(element,
-              "Attempt to use @InjectView for an already injected ID %d on '%s'. (%s.%s)", id,
+              "Attempt to use @FindView for an already bound ID %d on '%s'. (%s.%s)", id,
               existingBinding.getName(), enclosingElement.getQualifiedName(),
               element.getSimpleName());
           return;
         }
       }
+    } else {
+      bindingClass = getOrCreateTargetClass(targetClassMap, enclosingElement);
     }
 
     String name = element.getSimpleName().toString();
     String type = elementType.toString();
     boolean required = isRequiredInjection(element);
 
-    ViewInjector viewInjector = getOrCreateTargetClass(targetClassMap, enclosingElement);
-    ViewBinding binding = new ViewBinding(name, type, required);
-    viewInjector.addView(id, binding);
+    FieldBinding binding = new FieldBinding(name, type, required);
+    bindingClass.addField(id, binding);
 
-    // Add the type-erased version to the valid injection targets set.
+    // Add the type-erased version to the valid binding targets set.
     erasedTargetNames.add(enclosingElement.toString());
   }
 
-  private void parseInjectViews(Element element, Map<TypeElement, ViewInjector> targetClassMap,
+  private void parseFindViews(Element element, Map<TypeElement, BindingClass> targetClassMap,
       Set<String> erasedTargetNames) {
     boolean hasError = false;
     TypeElement enclosingElement = (TypeElement) element.getEnclosingElement();
@@ -289,24 +291,24 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     TypeMirror elementType = element.asType();
     String erasedType = doubleErasure(elementType);
     TypeMirror viewType = null;
-    CollectionBinding.Kind kind = null;
+    FieldCollectionBinding.Kind kind = null;
     if (elementType.getKind() == TypeKind.ARRAY) {
       ArrayType arrayType = (ArrayType) elementType;
       viewType = arrayType.getComponentType();
-      kind = CollectionBinding.Kind.ARRAY;
+      kind = FieldCollectionBinding.Kind.ARRAY;
     } else if (LIST_TYPE.equals(erasedType)) {
       DeclaredType declaredType = (DeclaredType) elementType;
       List<? extends TypeMirror> typeArguments = declaredType.getTypeArguments();
       if (typeArguments.size() != 1) {
-        error(element, "@InjectViews List must have a generic component. (%s.%s)",
+        error(element, "@FindViews List must have a generic component. (%s.%s)",
             enclosingElement.getQualifiedName(), element.getSimpleName());
         hasError = true;
       } else {
         viewType = typeArguments.get(0);
       }
-      kind = CollectionBinding.Kind.LIST;
+      kind = FieldCollectionBinding.Kind.LIST;
     } else {
-      error(element, "@InjectViews must be a List or array. (%s.%s)",
+      error(element, "@FindViews must be a List or array. (%s.%s)",
           enclosingElement.getQualifiedName(), element.getSimpleName());
       hasError = true;
     }
@@ -317,31 +319,31 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
     // Verify that the target type extends from View.
     if (viewType != null && !isSubtypeOfType(viewType, VIEW_TYPE) && !isInterface(viewType)) {
-      error(element, "@InjectViews type must extend from View or be an interface. (%s.%s)",
+      error(element, "@FindViews type must extend from View or be an interface. (%s.%s)",
           enclosingElement.getQualifiedName(), element.getSimpleName());
       hasError = true;
     }
 
     // Verify common generated code restrictions.
-    hasError |= isInaccessibleViaGeneratedCode(InjectViews.class, "fields", element);
-    hasError |= isBindingInWrongPackage(InjectViews.class, element);
+    hasError |= isInaccessibleViaGeneratedCode(FindViews.class, "fields", element);
+    hasError |= isBindingInWrongPackage(FindViews.class, element);
 
     if (hasError) {
       return;
     }
 
-    // Assemble information on the injection point.
+    // Assemble information on the field.
     String name = element.getSimpleName().toString();
-    int[] ids = element.getAnnotation(InjectViews.class).value();
+    int[] ids = element.getAnnotation(FindViews.class).value();
     if (ids.length == 0) {
-      error(element, "@InjectViews must specify at least one ID. (%s.%s)",
+      error(element, "@FindViews must specify at least one ID. (%s.%s)",
           enclosingElement.getQualifiedName(), element.getSimpleName());
       return;
     }
 
     Integer duplicateId = findDuplicate(ids);
     if (duplicateId != null) {
-      error(element, "@InjectViews annotation contains duplicate ID %d. (%s.%s)", duplicateId,
+      error(element, "@FindViews annotation contains duplicate ID %d. (%s.%s)", duplicateId,
           enclosingElement.getQualifiedName(), element.getSimpleName());
     }
 
@@ -349,9 +351,9 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     String type = viewType.toString();
     boolean required = isRequiredInjection(element);
 
-    ViewInjector viewInjector = getOrCreateTargetClass(targetClassMap, enclosingElement);
-    CollectionBinding binding = new CollectionBinding(name, type, kind, required);
-    viewInjector.addCollection(ids, binding);
+    BindingClass bindingClass = getOrCreateTargetClass(targetClassMap, enclosingElement);
+    FieldCollectionBinding binding = new FieldCollectionBinding(name, type, kind, required);
+    bindingClass.addFieldCollection(ids, binding);
 
     erasedTargetNames.add(enclosingElement.toString());
   }
@@ -380,7 +382,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
   }
 
   private void findAndParseListener(RoundEnvironment env,
-      Class<? extends Annotation> annotationClass, Map<TypeElement, ViewInjector> targetClassMap,
+      Class<? extends Annotation> annotationClass, Map<TypeElement, BindingClass> targetClassMap,
       Set<String> erasedTargetNames) {
     for (Element element : env.getElementsAnnotatedWith(annotationClass)) {
       try {
@@ -389,14 +391,14 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
         StringWriter stackTrace = new StringWriter();
         e.printStackTrace(new PrintWriter(stackTrace));
 
-        error(element, "Unable to generate view injector for @%s.\n\n%s",
+        error(element, "Unable to generate view binder for @%s.\n\n%s",
             annotationClass.getSimpleName(), stackTrace.toString());
       }
     }
   }
 
   private void parseListenerAnnotation(Class<? extends Annotation> annotationClass, Element element,
-      Map<TypeElement, ViewInjector> targetClassMap, Set<String> erasedTargetNames)
+      Map<TypeElement, BindingClass> targetClassMap, Set<String> erasedTargetNames)
       throws Exception {
     // This should be guarded by the annotation's @Target but it's worth a check for safe casting.
     if (!(element instanceof ExecutableElement) || element.getKind() != METHOD) {
@@ -407,7 +409,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     ExecutableElement executableElement = (ExecutableElement) element;
     TypeElement enclosingElement = (TypeElement) element.getEnclosingElement();
 
-    // Assemble information on the injection point.
+    // Assemble information on the method.
     Annotation annotation = element.getAnnotation(annotationClass);
     Method annotationValue = annotationClass.getDeclaredMethod("value");
     if (annotationValue.getReturnType() != int[].class) {
@@ -442,7 +444,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
       if (id == View.NO_ID) {
         if (ids.length == 1) {
           if (!required) {
-            error(element, "ID free injection must not be annotated with @Nullable. (%s.%s)",
+            error(element, "ID free binding must not be annotated with @Nullable. (%s.%s)",
                 enclosingElement.getQualifiedName(), element.getSimpleName());
             hasError = true;
           }
@@ -580,17 +582,17 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
       }
     }
 
-    ListenerBinding binding = new ListenerBinding(name, Arrays.asList(parameters), required);
-    ViewInjector viewInjector = getOrCreateTargetClass(targetClassMap, enclosingElement);
+    MethodBinding binding = new MethodBinding(name, Arrays.asList(parameters), required);
+    BindingClass bindingClass = getOrCreateTargetClass(targetClassMap, enclosingElement);
     for (int id : ids) {
-      if (!viewInjector.addListener(id, listener, method, binding)) {
+      if (!bindingClass.addMethod(id, listener, method, binding)) {
         error(element, "Multiple listener methods with return value specified for ID %d. (%s.%s)",
             id, enclosingElement.getQualifiedName(), element.getSimpleName());
         return;
       }
     }
 
-    // Add the type-erased version to the valid injection targets set.
+    // Add the type-erased version to the valid binding targets set.
     erasedTargetNames.add(enclosingElement.toString());
   }
 
@@ -641,18 +643,18 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     return false;
   }
 
-  private ViewInjector getOrCreateTargetClass(Map<TypeElement, ViewInjector> targetClassMap,
+  private BindingClass getOrCreateTargetClass(Map<TypeElement, BindingClass> targetClassMap,
       TypeElement enclosingElement) {
-    ViewInjector viewInjector = targetClassMap.get(enclosingElement);
-    if (viewInjector == null) {
+    BindingClass bindingClass = targetClassMap.get(enclosingElement);
+    if (bindingClass == null) {
       String targetType = enclosingElement.getQualifiedName().toString();
       String classPackage = getPackageName(enclosingElement);
       String className = getClassName(enclosingElement, classPackage) + SUFFIX;
 
-      viewInjector = new ViewInjector(classPackage, className, targetType);
-      targetClassMap.put(enclosingElement, viewInjector);
+      bindingClass = new BindingClass(classPackage, className, targetType);
+      targetClassMap.put(enclosingElement, bindingClass);
     }
-    return viewInjector;
+    return bindingClass;
   }
 
   private static String getClassName(TypeElement type, String packageName) {
@@ -660,7 +662,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     return type.getQualifiedName().toString().substring(packageLen).replace('.', '$');
   }
 
-  /** Finds the parent injector type in the supplied set, if any. */
+  /** Finds the parent binder type in the supplied set, if any. */
   private String findParentFqcn(TypeElement typeElement, Set<String> parents) {
     TypeMirror type;
     while (true) {

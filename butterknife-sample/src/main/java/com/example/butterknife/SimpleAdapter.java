@@ -7,7 +7,7 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
 import butterknife.ButterKnife;
-import butterknife.InjectView;
+import butterknife.FindView;
 
 public class SimpleAdapter extends BaseAdapter {
   private static final String[] CONTENTS =
@@ -51,12 +51,12 @@ public class SimpleAdapter extends BaseAdapter {
   }
 
   static class ViewHolder {
-    @InjectView(R.id.word) TextView word;
-    @InjectView(R.id.length) TextView length;
-    @InjectView(R.id.position) TextView position;
+    @FindView(R.id.word) TextView word;
+    @FindView(R.id.length) TextView length;
+    @FindView(R.id.position) TextView position;
 
     ViewHolder(View view) {
-      ButterKnife.inject(this, view);
+      ButterKnife.bind(this, view);
     }
   }
 }

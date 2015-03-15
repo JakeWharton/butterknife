@@ -9,8 +9,8 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 import butterknife.ButterKnife;
-import butterknife.InjectView;
-import butterknife.InjectViews;
+import butterknife.FindView;
+import butterknife.FindViews;
 import butterknife.OnClick;
 import butterknife.OnItemClick;
 import butterknife.OnLongClick;
@@ -29,13 +29,13 @@ public class SimpleActivity extends Activity {
     }
   };
 
-  @InjectView(R.id.title) TextView title;
-  @InjectView(R.id.subtitle) TextView subtitle;
-  @InjectView(R.id.hello) Button hello;
-  @InjectView(R.id.list_of_things) ListView listOfThings;
-  @InjectView(R.id.footer) TextView footer;
+  @FindView(R.id.title) TextView title;
+  @FindView(R.id.subtitle) TextView subtitle;
+  @FindView(R.id.hello) Button hello;
+  @FindView(R.id.list_of_things) ListView listOfThings;
+  @FindView(R.id.footer) TextView footer;
 
-  @InjectViews({ R.id.title, R.id.subtitle, R.id.hello })
+  @FindViews({ R.id.title, R.id.subtitle, R.id.hello })
   List<View> headerViews;
 
   private SimpleAdapter adapter;
@@ -57,11 +57,11 @@ public class SimpleActivity extends Activity {
   @Override protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.simple_activity);
-    ButterKnife.inject(this);
+    ButterKnife.bind(this);
 
-    // Contrived code to use the "injected" views.
+    // Contrived code to use the bound fields.
     title.setText("Butter Knife");
-    subtitle.setText("View \"injection\" for Android.");
+    subtitle.setText("Field and method binding for Android views.");
     footer.setText("by Jake Wharton");
     hello.setText("Say Hello");
 

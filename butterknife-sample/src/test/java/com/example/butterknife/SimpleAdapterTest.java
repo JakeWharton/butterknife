@@ -26,7 +26,7 @@ public class SimpleAdapterTest {
     assertThat(holder.length).hasId(R.id.length);
     assertThat(holder.position).hasId(R.id.position);
 
-    ButterKnife.reset(holder);
+    ButterKnife.unbind(holder);
     assertThat(holder.word).isNull();
     assertThat(holder.length).isNull();
     assertThat(holder.position).isNull();

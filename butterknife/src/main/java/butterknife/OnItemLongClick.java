@@ -24,7 +24,6 @@ import static java.lang.annotation.RetentionPolicy.CLASS;
  * int, long) onItemLongClick} may be used on the method.
  *
  * @see OnItemLongClickListener
- * @see Nullable
  */
 @Target(METHOD)
 @Retention(CLASS)

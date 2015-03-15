@@ -122,8 +122,8 @@ public class ButterKnifeTest {
     }
 
     Example example = new Example();
-    ButterKnife.inject(example, null, null);
-    assertThat(ButterKnife.INJECTORS).contains(entry(Example.class, ButterKnife.NOP_INJECTOR));
+    ButterKnife.bind(example, null, null);
+    assertThat(ButterKnife.INJECTORS).contains(entry(Example.class, ButterKnife.NOP_VIEW_BINDER));
   }
 
   @Test public void zeroInjectionsResetDoesNotThrowException() {
@@ -131,14 +131,14 @@ public class ButterKnifeTest {
     }
 
     Example example = new Example();
-    ButterKnife.reset(example);
-    assertThat(ButterKnife.INJECTORS).contains(entry(Example.class, ButterKnife.NOP_INJECTOR));
+    ButterKnife.unbind(example);
+    assertThat(ButterKnife.INJECTORS).contains(entry(Example.class, ButterKnife.NOP_VIEW_BINDER));
   }
 
   @Test public void injectingKnownPackagesIsNoOp() {
-    ButterKnife.inject(new Activity());
+    ButterKnife.bind(new Activity());
     assertThat(ButterKnife.INJECTORS).isEmpty();
-    ButterKnife.inject(new Object(), new Activity());
+    ButterKnife.bind(new Object(), new Activity());
     assertThat(ButterKnife.INJECTORS).isEmpty();
   }
 

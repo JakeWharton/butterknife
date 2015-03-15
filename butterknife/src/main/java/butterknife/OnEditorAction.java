@@ -24,7 +24,6 @@ import static java.lang.annotation.RetentionPolicy.CLASS;
  * onEditorAction} may be used on the method.
  *
  * @see OnEditorActionListener
- * @see Nullable
  */
 @Target(METHOD)
 @Retention(CLASS)

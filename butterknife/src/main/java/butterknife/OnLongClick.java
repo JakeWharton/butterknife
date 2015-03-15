@@ -23,7 +23,6 @@ import static java.lang.annotation.RetentionPolicy.CLASS;
  * used on the method.
  *
  * @see OnLongClickListener
- * @see Nullable
  */
 @Retention(CLASS) @Target(METHOD)
 @ListenerClass(

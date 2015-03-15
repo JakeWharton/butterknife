@@ -14,52 +14,51 @@ import java.util.Set;
 
 import static butterknife.internal.ButterKnifeProcessor.VIEW_TYPE;
 
-final class ViewInjector {
-  private final Map<Integer, ViewInjection> viewIdMap = new LinkedHashMap<Integer, ViewInjection>();
-  private final Map<CollectionBinding, int[]> collectionBindings =
-      new LinkedHashMap<CollectionBinding, int[]>();
+final class BindingClass {
+  private final Map<Integer, ViewBindings> viewIdMap = new LinkedHashMap<Integer, ViewBindings>();
+  private final Map<FieldCollectionBinding, int[]> collectionBindings =
+      new LinkedHashMap<FieldCollectionBinding, int[]>();
   private final String classPackage;
   private final String className;
   private final String targetClass;
-  private String parentInjector;
+  private String parentViewBinder;
 
-  ViewInjector(String classPackage, String className, String targetClass) {
+  BindingClass(String classPackage, String className, String targetClass) {
     this.classPackage = classPackage;
     this.className = className;
     this.targetClass = targetClass;
   }
 
-  void addView(int id, ViewBinding binding) {
-    getOrCreateViewInjection(id).addViewBinding(binding);
+  void addField(int id, FieldBinding binding) {
+    getOrCreateViewBindings(id).addFieldBinding(binding);
   }
 
-  boolean addListener(int id, ListenerClass listener, ListenerMethod method,
-      ListenerBinding binding) {
-    ViewInjection viewInjection = getOrCreateViewInjection(id);
-    if (viewInjection.hasListenerBinding(listener, method)
-        && !"void".equals(method.returnType())) {
-      return false;
-    }
-    viewInjection.addListenerBinding(listener, method, binding);
-    return true;
-  }
-
-  void addCollection(int[] ids, CollectionBinding binding) {
+  void addFieldCollection(int[] ids, FieldCollectionBinding binding) {
     collectionBindings.put(binding, ids);
   }
 
-  void setParentInjector(String parentInjector) {
-    this.parentInjector = parentInjector;
+  boolean addMethod(int id, ListenerClass listener, ListenerMethod method, MethodBinding binding) {
+    ViewBindings viewBindings = getOrCreateViewBindings(id);
+    if (viewBindings.hasMethodBinding(listener, method)
+        && !"void".equals(method.returnType())) {
+      return false;
+    }
+    viewBindings.addMethodBinding(listener, method, binding);
+    return true;
   }
 
-  ViewInjection getViewInjection(int id) {
+  void setParentViewBinder(String parentViewBinder) {
+    this.parentViewBinder = parentViewBinder;
+  }
+
+  ViewBindings getViewInjection(int id) {
     return viewIdMap.get(id);
   }
 
-  private ViewInjection getOrCreateViewInjection(int id) {
-    ViewInjection viewId = viewIdMap.get(id);
+  private ViewBindings getOrCreateViewBindings(int id) {
+    ViewBindings viewId = viewIdMap.get(id);
     if (viewId == null) {
-      viewId = new ViewInjection(id);
+      viewId = new ViewBindings(id);
       viewIdMap.put(id, viewId);
     }
     return viewId;
@@ -76,55 +75,56 @@ final class ViewInjector {
 
     builder.append("import android.view.View;\n");
     builder.append("import butterknife.ButterKnife.Finder;\n");
-    if (parentInjector == null) {
-      builder.append("import butterknife.ButterKnife.Injector;\n");
+    if (parentViewBinder == null) {
+      builder.append("import butterknife.ButterKnife.ViewBinder;\n");
     }
     builder.append('\n');
 
     builder.append("public class ").append(className);
     builder.append("<T extends ").append(targetClass).append(">");
 
-    if (parentInjector != null) {
-      builder.append(" extends ").append(parentInjector).append("<T>");
+    if (parentViewBinder != null) {
+      builder.append(" extends ").append(parentViewBinder).append("<T>");
     } else {
-      builder.append(" implements Injector<T>");
+      builder.append(" implements ViewBinder<T>");
     }
     builder.append(" {\n");
 
-    emitInject(builder);
+    emitBindMethod(builder);
     builder.append('\n');
-    emitReset(builder);
+    emitUnbindMethod(builder);
 
     builder.append("}\n");
     return builder.toString();
   }
 
-  private void emitInject(StringBuilder builder) {
+  private void emitBindMethod(StringBuilder builder) {
     builder.append("  @Override ")
-        .append("public void inject(final Finder finder, final T target, Object source) {\n");
+        .append("public void bind(final Finder finder, final T target, Object source) {\n");
 
-    // Emit a call to the superclass injector, if any.
-    if (parentInjector != null) {
-      builder.append("    super.inject(finder, target, source);\n\n");
+    // Emit a call to the superclass binder, if any.
+    if (parentViewBinder != null) {
+      builder.append("    super.bind(finder, target, source);\n\n");
     }
 
     // Local variable in which all views will be temporarily stored.
     builder.append("    View view;\n");
 
-    // Loop over each view injection and emit it.
-    for (ViewInjection injection : viewIdMap.values()) {
-      emitViewInjection(builder, injection);
+    // Loop over each view bindings and emit it.
+    for (ViewBindings bindings : viewIdMap.values()) {
+      emitViewBindings(builder, bindings);
     }
 
     // Loop over each collection binding and emit it.
-    for (Map.Entry<CollectionBinding, int[]> entry : collectionBindings.entrySet()) {
+    for (Map.Entry<FieldCollectionBinding, int[]> entry : collectionBindings.entrySet()) {
       emitCollectionBinding(builder, entry.getKey(), entry.getValue());
     }
 
     builder.append("  }\n");
   }
 
-  private void emitCollectionBinding(StringBuilder builder, CollectionBinding binding, int[] ids) {
+  private void emitCollectionBinding(StringBuilder builder, FieldCollectionBinding binding,
+      int[] ids) {
     builder.append("    target.").append(binding.getName()).append(" = ");
 
     switch (binding.getKind()) {
@@ -156,46 +156,46 @@ final class ViewInjector {
     builder.append("\n    );\n");
   }
 
-  private void emitViewInjection(StringBuilder builder, ViewInjection injection) {
+  private void emitViewBindings(StringBuilder builder, ViewBindings bindings) {
     builder.append("    view = ");
 
-    List<Binding> requiredBindings = injection.getRequiredBindings();
+    List<Binding> requiredBindings = bindings.getRequiredBindings();
     if (requiredBindings.isEmpty()) {
       builder.append("finder.findOptionalView(source, ")
-          .append(injection.getId())
+          .append(bindings.getId())
           .append(", null);\n");
     } else {
-      if (injection.getId() == View.NO_ID) {
+      if (bindings.getId() == View.NO_ID) {
         builder.append("target;\n");
       } else {
         builder.append("finder.findRequiredView(source, ")
-            .append(injection.getId())
+            .append(bindings.getId())
             .append(", \"");
         emitHumanDescription(builder, requiredBindings);
         builder.append("\");\n");
       }
     }
 
-    emitViewBindings(builder, injection);
-    emitListenerBindings(builder, injection);
+    emitFieldBindings(builder, bindings);
+    emitMethodBindings(builder, bindings);
   }
 
-  private void emitViewBindings(StringBuilder builder, ViewInjection injection) {
-    Collection<ViewBinding> viewBindings = injection.getViewBindings();
-    if (viewBindings.isEmpty()) {
+  private void emitFieldBindings(StringBuilder builder, ViewBindings bindings) {
+    Collection<FieldBinding> fieldBindings = bindings.getFieldBindings();
+    if (fieldBindings.isEmpty()) {
       return;
     }
 
-    for (ViewBinding viewBinding : viewBindings) {
+    for (FieldBinding fieldBinding : fieldBindings) {
       builder.append("    target.")
-          .append(viewBinding.getName())
+          .append(fieldBinding.getName())
           .append(" = ");
-      if (viewBinding.requiresCast()) {
+      if (fieldBinding.requiresCast()) {
         builder.append("finder.castView(view")
             .append(", ")
-            .append(injection.getId())
+            .append(bindings.getId())
             .append(", \"");
-        emitHumanDescription(builder, viewBindings);
+        emitHumanDescription(builder, fieldBindings);
         builder.append("\");\n");
       } else {
         builder.append("view;\n");
@@ -203,26 +203,26 @@ final class ViewInjector {
     }
   }
 
-  private void emitListenerBindings(StringBuilder builder, ViewInjection injection) {
-    Map<ListenerClass, Map<ListenerMethod, Set<ListenerBinding>>> bindings =
-        injection.getListenerBindings();
-    if (bindings.isEmpty()) {
+  private void emitMethodBindings(StringBuilder builder, ViewBindings bindings) {
+    Map<ListenerClass, Map<ListenerMethod, Set<MethodBinding>>> classMethodBindings =
+        bindings.getMethodBindings();
+    if (classMethodBindings.isEmpty()) {
       return;
     }
 
     String extraIndent = "";
 
     // We only need to emit the null check if there are zero required bindings.
-    boolean needsNullChecked = injection.getRequiredBindings().isEmpty();
+    boolean needsNullChecked = bindings.getRequiredBindings().isEmpty();
     if (needsNullChecked) {
       builder.append("    if (view != null) {\n");
       extraIndent = "  ";
     }
 
-    for (Map.Entry<ListenerClass, Map<ListenerMethod, Set<ListenerBinding>>> e
-        : bindings.entrySet()) {
+    for (Map.Entry<ListenerClass, Map<ListenerMethod, Set<MethodBinding>>> e
+        : classMethodBindings.entrySet()) {
       ListenerClass listener = e.getKey();
-      Map<ListenerMethod, Set<ListenerBinding>> methodBindings = e.getValue();
+      Map<ListenerMethod, Set<MethodBinding>> methodBindings = e.getValue();
 
       // Emit: ((OWNER_TYPE) view).SETTER_NAME(
       boolean needsCast = !VIEW_TYPE.equals(listener.targetType());
@@ -290,11 +290,11 @@ final class ViewInjector {
         }
 
         if (methodBindings.containsKey(method)) {
-          Set<ListenerBinding> set = methodBindings.get(method);
-          Iterator<ListenerBinding> iterator = set.iterator();
+          Set<MethodBinding> set = methodBindings.get(method);
+          Iterator<MethodBinding> iterator = set.iterator();
 
           while (iterator.hasNext()) {
-            ListenerBinding binding = iterator.next();
+            MethodBinding binding = iterator.next();
             builder.append("target.").append(binding.getName()).append('(');
             List<Parameter> parameters = binding.getParameters();
             String[] listenerParameters = method.parameters();
@@ -371,18 +371,18 @@ final class ViewInjector {
     }
   }
 
-  private void emitReset(StringBuilder builder) {
-    builder.append("  @Override public void reset(T target) {\n");
-    if (parentInjector != null) {
-      builder.append("    super.reset(target);\n\n");
+  private void emitUnbindMethod(StringBuilder builder) {
+    builder.append("  @Override public void unbind(T target) {\n");
+    if (parentViewBinder != null) {
+      builder.append("    super.unbind(target);\n\n");
     }
-    for (ViewInjection injection : viewIdMap.values()) {
-      for (ViewBinding viewBinding : injection.getViewBindings()) {
-        builder.append("    target.").append(viewBinding.getName()).append(" = null;\n");
+    for (ViewBindings bindings : viewIdMap.values()) {
+      for (FieldBinding fieldBinding : bindings.getFieldBindings()) {
+        builder.append("    target.").append(fieldBinding.getName()).append(" = null;\n");
       }
     }
-    for (CollectionBinding collectionBinding : collectionBindings.keySet()) {
-      builder.append("    target.").append(collectionBinding.getName()).append(" = null;\n");
+    for (FieldCollectionBinding fieldCollectionBinding : collectionBindings.keySet()) {
+      builder.append("    target.").append(fieldCollectionBinding.getName()).append(" = null;\n");
     }
     builder.append("  }\n");
   }
