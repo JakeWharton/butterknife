@@ -16,8 +16,9 @@ import static butterknife.internal.ButterKnifeProcessor.VIEW_TYPE;
 
 final class BindingClass {
   private final Map<Integer, ViewBindings> viewIdMap = new LinkedHashMap<Integer, ViewBindings>();
-  private final Map<FieldCollectionBinding, int[]> collectionBindings =
-      new LinkedHashMap<FieldCollectionBinding, int[]>();
+  private final Map<FieldCollectionViewBinding, int[]> collectionBindings =
+      new LinkedHashMap<FieldCollectionViewBinding, int[]>();
+  private final List<FieldResourceBinding> resourceBindings = new ArrayList<FieldResourceBinding>();
   private final String classPackage;
   private final String className;
   private final String targetClass;
@@ -29,15 +30,16 @@ final class BindingClass {
     this.targetClass = targetClass;
   }
 
-  void addField(int id, FieldBinding binding) {
+  void addField(int id, FieldViewBinding binding) {
     getOrCreateViewBindings(id).addFieldBinding(binding);
   }
 
-  void addFieldCollection(int[] ids, FieldCollectionBinding binding) {
+  void addFieldCollection(int[] ids, FieldCollectionViewBinding binding) {
     collectionBindings.put(binding, ids);
   }
 
-  boolean addMethod(int id, ListenerClass listener, ListenerMethod method, MethodBinding binding) {
+  boolean addMethod(int id, ListenerClass listener, ListenerMethod method,
+      MethodViewBinding binding) {
     ViewBindings viewBindings = getOrCreateViewBindings(id);
     if (viewBindings.hasMethodBinding(listener, method)
         && !"void".equals(method.returnType())) {
@@ -45,6 +47,10 @@ final class BindingClass {
     }
     viewBindings.addMethodBinding(listener, method, binding);
     return true;
+  }
+
+  void addResource(FieldResourceBinding binding) {
+    resourceBindings.add(binding);
   }
 
   void setParentViewBinder(String parentViewBinder) {
@@ -73,7 +79,12 @@ final class BindingClass {
     builder.append("// Generated code from Butter Knife. Do not modify!\n");
     builder.append("package ").append(classPackage).append(";\n\n");
 
-    builder.append("import android.view.View;\n");
+    if (!resourceBindings.isEmpty()) {
+      builder.append("import android.content.res.Resources;\n");
+    }
+    if (!viewIdMap.isEmpty() || !collectionBindings.isEmpty()) {
+      builder.append("import android.view.View;\n");
+    }
     builder.append("import butterknife.ButterKnife.Finder;\n");
     if (parentViewBinder == null) {
       builder.append("import butterknife.ButterKnife.ViewBinder;\n");
@@ -107,23 +118,39 @@ final class BindingClass {
       builder.append("    super.bind(finder, target, source);\n\n");
     }
 
-    // Local variable in which all views will be temporarily stored.
-    builder.append("    View view;\n");
+    if (!viewIdMap.isEmpty() || !collectionBindings.isEmpty()) {
+      // Local variable in which all views will be temporarily stored.
+      builder.append("    View view;\n");
 
-    // Loop over each view bindings and emit it.
-    for (ViewBindings bindings : viewIdMap.values()) {
-      emitViewBindings(builder, bindings);
+      // Loop over each view bindings and emit it.
+      for (ViewBindings bindings : viewIdMap.values()) {
+        emitViewBindings(builder, bindings);
+      }
+
+      // Loop over each collection binding and emit it.
+      for (Map.Entry<FieldCollectionViewBinding, int[]> entry : collectionBindings.entrySet()) {
+        emitCollectionBinding(builder, entry.getKey(), entry.getValue());
+      }
     }
 
-    // Loop over each collection binding and emit it.
-    for (Map.Entry<FieldCollectionBinding, int[]> entry : collectionBindings.entrySet()) {
-      emitCollectionBinding(builder, entry.getKey(), entry.getValue());
+    if (!resourceBindings.isEmpty()) {
+      builder.append("    Resources res = finder.getContext(source).getResources();\n");
+
+      for (FieldResourceBinding binding : resourceBindings) {
+        builder.append("    target.")
+            .append(binding.getName())
+            .append(" = res.")
+            .append(binding.getMethod())
+            .append('(')
+            .append(binding.getId())
+            .append(");\n");
+      }
     }
 
     builder.append("  }\n");
   }
 
-  private void emitCollectionBinding(StringBuilder builder, FieldCollectionBinding binding,
+  private void emitCollectionBinding(StringBuilder builder, FieldCollectionViewBinding binding,
       int[] ids) {
     builder.append("    target.").append(binding.getName()).append(" = ");
 
@@ -159,8 +186,8 @@ final class BindingClass {
   private void emitViewBindings(StringBuilder builder, ViewBindings bindings) {
     builder.append("    view = ");
 
-    List<Binding> requiredBindings = bindings.getRequiredBindings();
-    if (requiredBindings.isEmpty()) {
+    List<ViewBinding> requiredViewBindings = bindings.getRequiredBindings();
+    if (requiredViewBindings.isEmpty()) {
       builder.append("finder.findOptionalView(source, ")
           .append(bindings.getId())
           .append(", null);\n");
@@ -171,7 +198,7 @@ final class BindingClass {
         builder.append("finder.findRequiredView(source, ")
             .append(bindings.getId())
             .append(", \"");
-        emitHumanDescription(builder, requiredBindings);
+        emitHumanDescription(builder, requiredViewBindings);
         builder.append("\");\n");
       }
     }
@@ -181,12 +208,12 @@ final class BindingClass {
   }
 
   private void emitFieldBindings(StringBuilder builder, ViewBindings bindings) {
-    Collection<FieldBinding> fieldBindings = bindings.getFieldBindings();
+    Collection<FieldViewBinding> fieldBindings = bindings.getFieldBindings();
     if (fieldBindings.isEmpty()) {
       return;
     }
 
-    for (FieldBinding fieldBinding : fieldBindings) {
+    for (FieldViewBinding fieldBinding : fieldBindings) {
       builder.append("    target.")
           .append(fieldBinding.getName())
           .append(" = ");
@@ -204,7 +231,7 @@ final class BindingClass {
   }
 
   private void emitMethodBindings(StringBuilder builder, ViewBindings bindings) {
-    Map<ListenerClass, Map<ListenerMethod, Set<MethodBinding>>> classMethodBindings =
+    Map<ListenerClass, Map<ListenerMethod, Set<MethodViewBinding>>> classMethodBindings =
         bindings.getMethodBindings();
     if (classMethodBindings.isEmpty()) {
       return;
@@ -219,10 +246,10 @@ final class BindingClass {
       extraIndent = "  ";
     }
 
-    for (Map.Entry<ListenerClass, Map<ListenerMethod, Set<MethodBinding>>> e
+    for (Map.Entry<ListenerClass, Map<ListenerMethod, Set<MethodViewBinding>>> e
         : classMethodBindings.entrySet()) {
       ListenerClass listener = e.getKey();
-      Map<ListenerMethod, Set<MethodBinding>> methodBindings = e.getValue();
+      Map<ListenerMethod, Set<MethodViewBinding>> methodBindings = e.getValue();
 
       // Emit: ((OWNER_TYPE) view).SETTER_NAME(
       boolean needsCast = !VIEW_TYPE.equals(listener.targetType());
@@ -290,11 +317,11 @@ final class BindingClass {
         }
 
         if (methodBindings.containsKey(method)) {
-          Set<MethodBinding> set = methodBindings.get(method);
-          Iterator<MethodBinding> iterator = set.iterator();
+          Set<MethodViewBinding> set = methodBindings.get(method);
+          Iterator<MethodViewBinding> iterator = set.iterator();
 
           while (iterator.hasNext()) {
-            MethodBinding binding = iterator.next();
+            MethodViewBinding binding = iterator.next();
             builder.append("target.").append(binding.getName()).append('(');
             List<Parameter> parameters = binding.getParameters();
             String[] listenerParameters = method.parameters();
@@ -377,18 +404,19 @@ final class BindingClass {
       builder.append("    super.unbind(target);\n\n");
     }
     for (ViewBindings bindings : viewIdMap.values()) {
-      for (FieldBinding fieldBinding : bindings.getFieldBindings()) {
+      for (FieldViewBinding fieldBinding : bindings.getFieldBindings()) {
         builder.append("    target.").append(fieldBinding.getName()).append(" = null;\n");
       }
     }
-    for (FieldCollectionBinding fieldCollectionBinding : collectionBindings.keySet()) {
+    for (FieldCollectionViewBinding fieldCollectionBinding : collectionBindings.keySet()) {
       builder.append("    target.").append(fieldCollectionBinding.getName()).append(" = null;\n");
     }
     builder.append("  }\n");
   }
 
-  static void emitHumanDescription(StringBuilder builder, Collection<? extends Binding> bindings) {
-    Iterator<? extends Binding> iterator = bindings.iterator();
+  static void emitHumanDescription(StringBuilder builder,
+      Collection<? extends ViewBinding> bindings) {
+    Iterator<? extends ViewBinding> iterator = bindings.iterator();
     switch (bindings.size()) {
       case 1:
         builder.append(iterator.next().getDescription());

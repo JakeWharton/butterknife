@@ -70,6 +70,12 @@ import static butterknife.internal.ButterKnifeProcessor.JAVA_PREFIX;
  * <pre><code>
  * {@literal @}Nullable @FindView(R.id.title) TextView subtitleView;
  * </code></pre>
+ * Resources can also be bound to fields to simplify programmatically working with views:
+ * <pre><code>
+ * {@literal @}ResourceBool(R.bool.is_tablet) boolean isTablet;
+ * {@literal @}ResourceInt(R.int.columns) int columns;
+ * {@literal @}ResourceColor(R.color.error_red) int errorRed;
+ * </code></pre>
  *
  * @see FindView
  * @see FindViews
@@ -98,7 +104,7 @@ public final class ButterKnife {
         return ((View) source).findViewById(id);
       }
 
-      @Override protected Context getContext(Object source) {
+      @Override public Context getContext(Object source) {
         return ((View) source).getContext();
       }
     },
@@ -107,7 +113,7 @@ public final class ButterKnife {
         return ((Activity) source).findViewById(id);
       }
 
-      @Override protected Context getContext(Object source) {
+      @Override public Context getContext(Object source) {
         return (Activity) source;
       }
     },
@@ -116,7 +122,7 @@ public final class ButterKnife {
         return ((Dialog) source).findViewById(id);
       }
 
-      @Override protected Context getContext(Object source) {
+      @Override public Context getContext(Object source) {
         return ((Dialog) source).getContext();
       }
     };
@@ -208,7 +214,7 @@ public final class ButterKnife {
 
     protected abstract View findView(Object source, int id);
 
-    protected abstract Context getContext(Object source);
+    public abstract Context getContext(Object source);
   }
 
   /** DO NOT USE: Exposed for generated code. */
