@@ -10,10 +10,10 @@ import java.util.Set;
 
 final class ViewBindings {
   private final int id;
-  private final Set<FieldBinding> fieldBindings = new LinkedHashSet<FieldBinding>();
-  private final LinkedHashMap<ListenerClass, Map<ListenerMethod, Set<MethodBinding>>>
+  private final Set<FieldViewBinding> fieldBindings = new LinkedHashSet<FieldViewBinding>();
+  private final LinkedHashMap<ListenerClass, Map<ListenerMethod, Set<MethodViewBinding>>>
       methodBindings = new LinkedHashMap<ListenerClass,
-      Map<ListenerMethod, Set<MethodBinding>>>();
+      Map<ListenerMethod, Set<MethodViewBinding>>>();
 
   ViewBindings(int id) {
     this.id = id;
@@ -23,56 +23,56 @@ final class ViewBindings {
     return id;
   }
 
-  public Collection<FieldBinding> getFieldBindings() {
+  public Collection<FieldViewBinding> getFieldBindings() {
     return fieldBindings;
   }
 
-  public Map<ListenerClass, Map<ListenerMethod, Set<MethodBinding>>> getMethodBindings() {
+  public Map<ListenerClass, Map<ListenerMethod, Set<MethodViewBinding>>> getMethodBindings() {
     return methodBindings;
   }
 
   public boolean hasMethodBinding(ListenerClass listener, ListenerMethod method) {
-    Map<ListenerMethod, Set<MethodBinding>> methods = methodBindings.get(listener);
+    Map<ListenerMethod, Set<MethodViewBinding>> methods = methodBindings.get(listener);
     return methods != null && methods.containsKey(method);
   }
 
   public void addMethodBinding(ListenerClass listener, ListenerMethod method,
-      MethodBinding binding) {
-    Map<ListenerMethod, Set<MethodBinding>> methods = methodBindings.get(listener);
-    Set<MethodBinding> set = null;
+      MethodViewBinding binding) {
+    Map<ListenerMethod, Set<MethodViewBinding>> methods = methodBindings.get(listener);
+    Set<MethodViewBinding> set = null;
     if (methods == null) {
-      methods = new LinkedHashMap<ListenerMethod, Set<MethodBinding>>();
+      methods = new LinkedHashMap<ListenerMethod, Set<MethodViewBinding>>();
       methodBindings.put(listener, methods);
     } else {
       set = methods.get(method);
     }
     if (set == null) {
-      set = new LinkedHashSet<MethodBinding>();
+      set = new LinkedHashSet<MethodViewBinding>();
       methods.put(method, set);
     }
     set.add(binding);
   }
 
-  public void addFieldBinding(FieldBinding fieldBinding) {
+  public void addFieldBinding(FieldViewBinding fieldBinding) {
     fieldBindings.add(fieldBinding);
   }
 
-  public List<Binding> getRequiredBindings() {
-    List<Binding> requiredBindings = new ArrayList<Binding>();
-    for (FieldBinding fieldBinding : fieldBindings) {
+  public List<ViewBinding> getRequiredBindings() {
+    List<ViewBinding> requiredViewBindings = new ArrayList<ViewBinding>();
+    for (FieldViewBinding fieldBinding : fieldBindings) {
       if (fieldBinding.isRequired()) {
-        requiredBindings.add(fieldBinding);
+        requiredViewBindings.add(fieldBinding);
       }
     }
-    for (Map<ListenerMethod, Set<MethodBinding>> methodBinding : methodBindings.values()) {
-      for (Set<MethodBinding> set : methodBinding.values()) {
-        for (MethodBinding binding : set) {
+    for (Map<ListenerMethod, Set<MethodViewBinding>> methodBinding : methodBindings.values()) {
+      for (Set<MethodViewBinding> set : methodBinding.values()) {
+        for (MethodViewBinding binding : set) {
           if (binding.isRequired()) {
-            requiredBindings.add(binding);
+            requiredViewBindings.add(binding);
           }
         }
       }
     }
-    return requiredBindings;
+    return requiredViewBindings;
   }
 }
