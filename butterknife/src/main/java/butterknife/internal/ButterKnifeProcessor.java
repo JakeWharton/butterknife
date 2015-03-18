@@ -12,6 +12,7 @@ import butterknife.OnItemLongClick;
 import butterknife.OnItemSelected;
 import butterknife.OnLongClick;
 import butterknife.OnPageChange;
+import butterknife.OnRadioGroupCheckedChanged;
 import butterknife.OnTextChanged;
 import butterknife.OnTouch;
 import butterknife.ResourceBool;
@@ -81,6 +82,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
       OnItemSelected.class, //
       OnLongClick.class, //
       OnPageChange.class, //
+      OnRadioGroupCheckedChanged.class, //
       OnTextChanged.class, //
       OnTouch.class //
   );
