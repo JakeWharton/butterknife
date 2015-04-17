@@ -20,7 +20,7 @@ import static butterknife.internal.ButterKnifeProcessor.JAVA_PREFIX;
  * Field and method binding for Android views. Use this class to simplify finding views and
  * attaching listeners by binding them with annotations.
  * <p>
- * Injecting views from your activity is as easy as:
+ * Finding views from your activity is as easy as:
  * <pre><code>
  * public class ExampleActivity extends Activity {
  *   {@literal @}FindView(R.id.title) EditText titleView;
@@ -33,7 +33,7 @@ import static butterknife.internal.ButterKnifeProcessor.JAVA_PREFIX;
  *   }
  * }
  * </code></pre>
- * Injection can be performed directly on an {@linkplain #bind(Activity) activity}, a
+ * Binding can be performed directly on an {@linkplain #bind(Activity) activity}, a
  * {@linkplain #bind(View) view}, or a {@linkplain #bind(Dialog) dialog}. Alternate objects to
  * bind can be specified along with an {@linkplain #bind(Object, Activity) activity},
  * {@linkplain #bind(Object, View) view}, or
@@ -76,20 +76,6 @@ import static butterknife.internal.ButterKnifeProcessor.JAVA_PREFIX;
  * {@literal @}ResourceInt(R.int.columns) int columns;
  * {@literal @}ResourceColor(R.color.error_red) int errorRed;
  * </code></pre>
- *
- * @see FindView
- * @see FindViews
- * @see OnCheckedChanged
- * @see OnClick
- * @see OnEditorAction
- * @see OnFocusChange
- * @see OnItemClick
- * @see OnItemLongClick
- * @see OnItemSelected
- * @see OnLongClick
- * @see OnPageChange
- * @see OnTextChanged
- * @see OnTouch
  */
 public final class ButterKnife {
   private ButterKnife() {
@@ -251,7 +237,7 @@ public final class ButterKnife {
   }
 
   /**
-   * Inject annotated fields and methods in the specified {@link Activity}. The current content
+   * Bind annotated fields and methods in the specified {@link Activity}. The current content
    * view is used as the view root.
    *
    * @param target Target activity for view binding.
@@ -261,7 +247,7 @@ public final class ButterKnife {
   }
 
   /**
-   * Inject annotated fields and methods in the specified {@link View}. The view and its children
+   * Bind annotated fields and methods in the specified {@link View}. The view and its children
    * are used as the view root.
    *
    * @param target Target view for view binding.
@@ -271,7 +257,7 @@ public final class ButterKnife {
   }
 
   /**
-   * Inject annotated fields and methods in the specified {@link Dialog}. The current content
+   * Bind annotated fields and methods in the specified {@link Dialog}. The current content
    * view is used as the view root.
    *
    * @param target Target dialog for view binding.
@@ -281,7 +267,7 @@ public final class ButterKnife {
   }
 
   /**
-   * Inject annotated fields and methods in the specified {@code target} using the {@code source}
+   * Bind annotated fields and methods in the specified {@code target} using the {@code source}
    * {@link Activity} as the view root.
    *
    * @param target Target class for view binding.
@@ -292,7 +278,7 @@ public final class ButterKnife {
   }
 
   /**
-   * Inject annotated fields and methods in the specified {@code target} using the {@code source}
+   * Bind annotated fields and methods in the specified {@code target} using the {@code source}
    * {@link View} as the view root.
    *
    * @param target Target class for view binding.
@@ -303,7 +289,7 @@ public final class ButterKnife {
   }
 
   /**
-   * Inject annotated fields and methods in the specified {@code target} using the {@code source}
+   * Bind annotated fields and methods in the specified {@code target} using the {@code source}
    * {@link Dialog} as the view root.
    *
    * @param target Target class for view binding.
