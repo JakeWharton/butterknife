@@ -1,12 +1,10 @@
 package butterknife;
 
 import android.view.View;
-
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
-
 import butterknife.internal.ListenerClass;
 import butterknife.internal.ListenerMethod;
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
 
 import static android.widget.CompoundButton.OnCheckedChangeListener;
 import static java.lang.annotation.ElementType.METHOD;
