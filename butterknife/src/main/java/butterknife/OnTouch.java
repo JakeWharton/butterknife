@@ -1,10 +1,12 @@
 package butterknife;
 
 import android.view.View;
-import butterknife.internal.ListenerClass;
-import butterknife.internal.ListenerMethod;
+
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
+
+import butterknife.internal.ListenerClass;
+import butterknife.internal.ListenerMethod;
 
 import static android.view.View.OnTouchListener;
 import static java.lang.annotation.ElementType.METHOD;
@@ -14,7 +16,7 @@ import static java.lang.annotation.RetentionPolicy.CLASS;
  * Bind a method to an {@link OnTouchListener OnTouchListener} on the view for each ID specified.
  * <pre><code>
  * {@literal @}OnTouch(R.id.example) boolean onTouch() {
- *   Toast.makeText(this, "Touched!", LENGTH_SHORT).show();
+ *   Toast.makeText(this, "Touched!", Toast.LENGTH_SHORT).show();
  *   return false;
  * }
  * </code></pre>

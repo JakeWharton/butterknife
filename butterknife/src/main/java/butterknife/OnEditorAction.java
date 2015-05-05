@@ -15,7 +15,7 @@ import static java.lang.annotation.RetentionPolicy.CLASS;
  * ID specified.
  * <pre><code>
  * {@literal @}OnEditorAction(R.id.example) boolean onEditorAction(KeyEvent key) {
- *   Toast.makeText(this, "Pressed: " + key, LENGTH_SHORT).show();
+ *   Toast.makeText(this, "Pressed: " + key, Toast.LENGTH_SHORT).show();
  *   return true;
  * }
  * </code></pre>

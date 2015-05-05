@@ -15,7 +15,7 @@ import static java.lang.annotation.RetentionPolicy.CLASS;
  * specified.
  * <pre><code>
  * {@literal @}OnFocusChange(R.id.example) void onFocusChanged(boolean focused) {
- *   Toast.makeText(this, focused ? "Gained focus" : "Lost focus", LENGTH_SHORT).show();
+ *   Toast.makeText(this, focused ? "Gained focus" : "Lost focus", Toast.LENGTH_SHORT).show();
  * }
  * </code></pre>
  * Any number of parameters from {@link OnFocusChangeListener#onFocusChange(android.view.View,
