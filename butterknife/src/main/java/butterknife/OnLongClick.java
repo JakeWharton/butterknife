@@ -15,7 +15,7 @@ import static java.lang.annotation.RetentionPolicy.CLASS;
  * specified.
  * <pre><code>
  * {@literal @}OnLongClick(R.id.example) boolean onLongClick() {
- *   Toast.makeText(this, "Long clicked!", LENGTH_SHORT).show();
+ *   Toast.makeText(this, "Long clicked!", Toast.LENGTH_SHORT).show();
  *   return true;
  * }
  * </code></pre>

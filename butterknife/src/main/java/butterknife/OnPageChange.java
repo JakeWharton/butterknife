@@ -13,7 +13,7 @@ import static java.lang.annotation.RetentionPolicy.CLASS;
  * Bind a method to an {@code OnPageChangeListener} on the view for each ID specified.
  * <pre><code>
  * {@literal @}OnPageChange(R.id.example_pager) void onPageSelected(int position) {
- *   Toast.makeText(this, "Selected " + position + "!", LENGTH_SHORT).show();
+ *   Toast.makeText(this, "Selected " + position + "!", Toast.LENGTH_SHORT).show();
  * }
  * </code></pre>
  * Any number of parameters from {@code onPageSelected} may be used on the method.
@@ -22,7 +22,7 @@ import static java.lang.annotation.RetentionPolicy.CLASS;
  * <pre><code>
  * {@literal @}OnPageChange(value = R.id.example_pager, callback = PAGE_SCROLL_STATE_CHANGED)
  * void onPageStateChanged(int state) {
- *   Toast.makeText(this, "State changed: " + state + "!", LENGTH_SHORT).show();
+ *   Toast.makeText(this, "State changed: " + state + "!", Toast.LENGTH_SHORT).show();
  * }
  * </code></pre>
  */

@@ -14,7 +14,7 @@ import static java.lang.annotation.RetentionPolicy.CLASS;
  * Bind a method to an {@link OnTouchListener OnTouchListener} on the view for each ID specified.
  * <pre><code>
  * {@literal @}OnTouch(R.id.example) boolean onTouch() {
- *   Toast.makeText(this, "Touched!", LENGTH_SHORT).show();
+ *   Toast.makeText(this, "Touched!", Toast.LENGTH_SHORT).show();
  *   return false;
  * }
  * </code></pre>
