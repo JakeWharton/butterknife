@@ -7,6 +7,7 @@ import butterknife.OnCheckedChanged;
 import butterknife.OnClick;
 import butterknife.OnEditorAction;
 import butterknife.OnFocusChange;
+import butterknife.OnGroupClick;
 import butterknife.OnItemClick;
 import butterknife.OnItemLongClick;
 import butterknife.OnItemSelected;
@@ -76,6 +77,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
       OnClick.class, //
       OnEditorAction.class, //
       OnFocusChange.class, //
+      OnGroupClick.class, //
       OnItemClick.class, //
       OnItemLongClick.class, //
       OnItemSelected.class, //

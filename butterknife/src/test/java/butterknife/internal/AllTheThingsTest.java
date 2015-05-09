@@ -5,6 +5,7 @@ import android.view.KeyEvent;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.CompoundButton;
+import android.widget.ExpandableListView;
 import android.widget.TextView;
 import butterknife.FindView;
 import butterknife.FindViews;
@@ -12,6 +13,7 @@ import butterknife.OnCheckedChanged;
 import butterknife.OnClick;
 import butterknife.OnEditorAction;
 import butterknife.OnFocusChange;
+import butterknife.OnGroupClick;
 import butterknife.OnItemClick;
 import butterknife.OnItemLongClick;
 import butterknife.OnItemSelected;
@@ -397,4 +399,38 @@ public class AllTheThingsTest {
   void afterTextChangedAllMethods() {}
 
   /////////////////////////////////////////////////////////////////////////////////////////////////
+
+  @OnGroupClick(1620)
+  boolean groupClick() {return false;}
+  @OnGroupClick(1630)
+  boolean groupClick(ExpandableListView one) {return false;}
+  @OnGroupClick(1640)
+  boolean groupClick(View one) {return false;}
+  @OnGroupClick(1650)
+  boolean groupClick(int one) {return false;}
+  @OnGroupClick(1660)
+  boolean groupClick(long one) {return false;}
+  @OnGroupClick(1670)
+  boolean groupClick(ExpandableListView one, View two) {return false;}
+  @OnGroupClick(1680)
+  boolean groupClick(ExpandableListView one, int two) {return false;}
+  @OnGroupClick(1690)
+  boolean groupClick(ExpandableListView one, long two) {return false;}
+  @OnGroupClick(1700)
+  boolean groupClick(View one, long two) {return false;}
+  @OnGroupClick(1710)
+  boolean groupClick(int one, long two) {return false;}
+  @OnGroupClick(1720)
+  boolean groupClick(ExpandableListView one, View two, int three) {return false;}
+  @OnGroupClick(1730)
+  boolean groupClick(ExpandableListView one, View two, long three) {return false;}
+  @OnGroupClick(1740)
+  boolean groupClick(ExpandableListView one, int two, long three) {return false;}
+  @OnGroupClick(1750)
+  boolean groupClick(View one, int two, long three) {return false;}
+  @OnGroupClick(1760)
+  boolean groupClick(ExpandableListView one, View two, int three, long four) {return false;}
+
+  @OnGroupClick({ 1770, 1780 })
+  boolean groupClickMultiple() {return false;}
 }
