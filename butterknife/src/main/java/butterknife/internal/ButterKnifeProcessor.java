@@ -4,6 +4,7 @@ import android.view.View;
 import butterknife.FindView;
 import butterknife.FindViews;
 import butterknife.OnCheckedChanged;
+import butterknife.OnChildClick;
 import butterknife.OnClick;
 import butterknife.OnEditorAction;
 import butterknife.OnFocusChange;
@@ -74,6 +75,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
   private static final String LIST_TYPE = List.class.getCanonicalName();
   private static final List<Class<? extends Annotation>> LISTENERS = Arrays.asList(//
       OnCheckedChanged.class, //
+      OnChildClick.class, //
       OnClick.class, //
       OnEditorAction.class, //
       OnFocusChange.class, //

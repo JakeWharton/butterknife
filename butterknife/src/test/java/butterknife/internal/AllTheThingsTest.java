@@ -10,6 +10,7 @@ import android.widget.TextView;
 import butterknife.FindView;
 import butterknife.FindViews;
 import butterknife.OnCheckedChanged;
+import butterknife.OnChildClick;
 import butterknife.OnClick;
 import butterknife.OnEditorAction;
 import butterknife.OnFocusChange;
@@ -433,4 +434,40 @@ public class AllTheThingsTest {
 
   @OnGroupClick({ 1770, 1780 })
   boolean groupClickMultiple() {return false;}
+
+  /////////////////////////////////////////////////////////////////////////////////////////////////
+
+  @OnChildClick(1790)
+  boolean childClick() {return false;}
+  @OnChildClick(1800)
+  boolean childClick(ExpandableListView one) {return false;}
+  @OnChildClick(1810)
+  boolean childClick(View one) {return false;}
+  @OnChildClick(1820)
+  boolean childClick(int one) {return false;}
+  @OnChildClick(1830)
+  boolean childClick(long one) {return false;}
+  @OnChildClick(1840)
+  boolean childClick(ExpandableListView one, View two) {return false;}
+  @OnChildClick(1850)
+  boolean childClick(ExpandableListView one, int two) {return false;}
+  @OnChildClick(1860)
+  boolean childClick(ExpandableListView one, long two) {return false;}
+  @OnChildClick(1870)
+  boolean childClick(View one, long two) {return false;}
+  @OnChildClick(1880)
+  boolean childClick(int one, long two) {return false;}
+  @OnChildClick(1890)
+  boolean childClick(ExpandableListView one, View two, int three) {return false;}
+  @OnChildClick(1900)
+  boolean childClick(ExpandableListView one, View two, long three) {return false;}
+  @OnChildClick(1910)
+  boolean childClick(ExpandableListView one, int two, long three) {return false;}
+  @OnChildClick(1920)
+  boolean childClick(View one, int two, long three) {return false;}
+  @OnChildClick(1930)
+  boolean childClick(ExpandableListView one, View two, int three, long four) {return false;}
+
+  @OnChildClick({ 1940, 1950 })
+  boolean childClickMultiple() {return false;}
 }
