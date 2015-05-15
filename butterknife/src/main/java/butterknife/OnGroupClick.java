@@ -18,8 +18,9 @@ import static java.lang.annotation.RetentionPolicy.CLASS;
  *   Toast.makeText(this, "Clicked group position " + position + "!", Toast.LENGTH_SHORT).show();
  * }
  * </code></pre>
- * Any number of parameters from {@link OnGroupClickListener#onGroupClick(android.widget.ExpandableListView,
- * android.view.View, int, long) onGroupClick} may be used on the method.
+ * Any number of parameters from {@link OnGroupClickListener#onGroupClick(
+ * android.widget.ExpandableListView, android.view.View, int, long) onGroupClick} may be used on
+ * the method.
  */
 @Target(METHOD)
 @Retention(CLASS)

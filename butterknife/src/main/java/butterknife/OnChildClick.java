@@ -14,12 +14,15 @@ import static java.lang.annotation.RetentionPolicy.CLASS;
  * Bind a method to an {@link OnChildClickListener OnChildClickListener} on the view for each ID
  * specified.
  * <pre><code>
- * {@literal @}OnChildClick(R.id.example_list) void onChildClick(int groupPosition, int childPosition ) {
- *   Toast.makeText(this, "Clicked child position " + childPosition + "!", Toast.LENGTH_SHORT).show();
+ * {@literal @}OnChildClick(R.id.example_list) void onChildClick(int groupPosition,
+ *         int childPosition ) {
+ *   Toast.makeText(this, "Clicked child position " + childPosition + "!",
+ *           Toast.LENGTH_SHORT).show();
  * }
  * </code></pre>
- * Any number of parameters from {@link OnChildClickListener#onChildClick(android.widget.ExpandableListView,
- * android.view.View, int, int, long) onChildClick} may be used on the method.
+ * Any number of parameters from {@link OnChildClickListener#onChildClick(
+ * android.widget.ExpandableListView, android.view.View, int, int, long) onChildClick} may be used
+ * on the method.
  */
 @Target(METHOD)
 @Retention(CLASS)
