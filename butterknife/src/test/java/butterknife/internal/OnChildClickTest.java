@@ -10,7 +10,6 @@ import static butterknife.internal.ProcessorTestUtilities.butterknifeProcessors;
 import static com.google.common.truth.Truth.ASSERT;
 import static com.google.testing.compile.JavaSourceSubjectFactory.javaSource;
 
-/** This augments {@link OnClickTest} with tests that exercise callbacks with parameters. */
 public class OnChildClickTest {
   @Test public void onClickInjection() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
