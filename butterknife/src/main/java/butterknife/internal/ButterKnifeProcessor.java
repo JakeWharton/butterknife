@@ -9,6 +9,8 @@ import butterknife.OnClick;
 import butterknife.OnEditorAction;
 import butterknife.OnFocusChange;
 import butterknife.OnGroupClick;
+import butterknife.OnGroupCollapse;
+import butterknife.OnGroupExpand;
 import butterknife.OnItemClick;
 import butterknife.OnItemLongClick;
 import butterknife.OnItemSelected;
@@ -80,6 +82,8 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
       OnEditorAction.class, //
       OnFocusChange.class, //
       OnGroupClick.class, //
+      OnGroupCollapse.class, //
+      OnGroupExpand.class, //
       OnItemClick.class, //
       OnItemLongClick.class, //
       OnItemSelected.class, //

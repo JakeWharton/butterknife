@@ -15,6 +15,8 @@ import butterknife.OnClick;
 import butterknife.OnEditorAction;
 import butterknife.OnFocusChange;
 import butterknife.OnGroupClick;
+import butterknife.OnGroupCollapse;
+import butterknife.OnGroupExpand;
 import butterknife.OnItemClick;
 import butterknife.OnItemLongClick;
 import butterknife.OnItemSelected;
@@ -470,4 +472,24 @@ public class AllTheThingsTest {
 
   @OnChildClick({ 1940, 1950 })
   boolean childClickMultiple() {return false;}
+
+  /////////////////////////////////////////////////////////////////////////////////////////////////
+
+  @OnGroupCollapse(1960)
+  void groupCollapse() {}
+  @OnGroupCollapse(1970)
+  void groupCollapse(int one) {}
+
+  @OnGroupCollapse({ 1980, 1990 })
+  void groupCollapseMultiple() {}
+
+  /////////////////////////////////////////////////////////////////////////////////////////////////
+
+  @OnGroupExpand(2000)
+  void groupExpand() {}
+  @OnGroupExpand(2010)
+  void groupExpand(int one) {}
+
+  @OnGroupExpand({ 2020, 2030 })
+  void groupExpandMultiple() {}
 }
