@@ -3,6 +3,7 @@ package butterknife;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
+import static java.lang.annotation.ElementType.METHOD;
 import static java.lang.annotation.ElementType.FIELD;
 import static java.lang.annotation.RetentionPolicy.CLASS;
 
@@ -13,7 +14,7 @@ import static java.lang.annotation.RetentionPolicy.CLASS;
  * {@literal @}FindView(R.id.title) TextView title;
  * </code></pre>
  */
-@Retention(CLASS) @Target(FIELD)
+@Retention(CLASS) @Target({FIELD, METHOD })
 public @interface FindView {
   /** View ID to which the field will be bound. */
   int value();

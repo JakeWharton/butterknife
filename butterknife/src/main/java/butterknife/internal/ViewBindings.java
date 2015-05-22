@@ -11,6 +11,7 @@ import java.util.Set;
 final class ViewBindings {
   private final int id;
   private final Set<FieldViewBinding> fieldBindings = new LinkedHashSet<FieldViewBinding>();
+  private final Set<SetterViewBinding> setterBindings = new LinkedHashSet<SetterViewBinding>();
   private final LinkedHashMap<ListenerClass, Map<ListenerMethod, Set<MethodViewBinding>>>
       methodBindings = new LinkedHashMap<ListenerClass,
       Map<ListenerMethod, Set<MethodViewBinding>>>();
@@ -25,6 +26,10 @@ final class ViewBindings {
 
   public Collection<FieldViewBinding> getFieldBindings() {
     return fieldBindings;
+  }
+
+  public Collection<SetterViewBinding> getSetterBindings() {
+    return setterBindings;
   }
 
   public Map<ListenerClass, Map<ListenerMethod, Set<MethodViewBinding>>> getMethodBindings() {
@@ -57,11 +62,20 @@ final class ViewBindings {
     fieldBindings.add(fieldBinding);
   }
 
+  public void addSetterBinding(SetterViewBinding methodBinding) {
+    setterBindings.add(methodBinding);
+  }
+
   public List<ViewBinding> getRequiredBindings() {
     List<ViewBinding> requiredViewBindings = new ArrayList<ViewBinding>();
     for (FieldViewBinding fieldBinding : fieldBindings) {
       if (fieldBinding.isRequired()) {
         requiredViewBindings.add(fieldBinding);
+      }
+    }
+    for (SetterViewBinding methodViewBinding : setterBindings) {
+      if (methodViewBinding.isRequired()) {
+        requiredViewBindings.add(methodViewBinding);
       }
     }
     for (Map<ListenerMethod, Set<MethodViewBinding>> methodBinding : methodBindings.values()) {
