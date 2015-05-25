@@ -29,11 +29,17 @@ public class SimpleActivity extends Activity {
     }
   };
 
-  @FindView(R.id.title) TextView title;
   @FindView(R.id.subtitle) TextView subtitle;
   @FindView(R.id.hello) Button hello;
   @FindView(R.id.list_of_things) ListView listOfThings;
   @FindView(R.id.footer) TextView footer;
+
+  TextView title;
+
+  @FindView(R.id.title)
+  void setTitle(TextView title) {
+    this.title = title;
+  }
 
   @FindViews({ R.id.title, R.id.subtitle, R.id.hello })
   List<View> headerViews;

@@ -48,6 +48,7 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.ArrayType;
 import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.ExecutableType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.type.TypeVariable;
@@ -301,14 +302,18 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
       TypeVariable typeVariable = (TypeVariable) elementType;
       elementType = typeVariable.getUpperBound();
     }
-    if (!isSubtypeOfType(elementType, VIEW_TYPE) && !isInterface(elementType)) {
-      error(element, "@FindView fields must extend from View or be an interface. (%s.%s)",
+    if (!isSubtypeOfType(elementType, VIEW_TYPE)
+            && !isInterface(elementType)
+            && !isSetter(elementType, VIEW_TYPE)) {
+      error(element, "@FindView fields must extend from View,"
+              + " take a single View argument, or be an interface. (%s.%s)",
           enclosingElement.getQualifiedName(), element.getSimpleName());
       hasError = true;
     }
 
     // Verify common generated code restrictions.
     hasError |= isInaccessibleViaGeneratedCode(FindView.class, "fields", element);
+    hasError |= isInaccessibleViaGeneratedCode(FindView.class, "methods", element);
     hasError |= isBindingInWrongPackage(FindView.class, element);
 
     // Check for the other field annotation.
@@ -338,6 +343,15 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
               element.getSimpleName());
           return;
         }
+        Iterator<SetterViewBinding> setterIterator = viewBindings.getSetterBindings().iterator();
+        if (setterIterator.hasNext()) {
+          SetterViewBinding existingBinding = setterIterator.next();
+          error(element,
+              "Attempt to use @FindView for an already bound ID %d on '%s'. (%s.%s)", id,
+              existingBinding.getName(), enclosingElement.getQualifiedName(),
+              element.getSimpleName());
+          return;
+        }
       }
     } else {
       bindingClass = getOrCreateTargetClass(targetClassMap, enclosingElement);
@@ -347,8 +361,16 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     String type = elementType.toString();
     boolean required = isRequiredInjection(element);
 
-    FieldViewBinding binding = new FieldViewBinding(name, type, required);
-    bindingClass.addField(id, binding);
+    if (isSubtypeOfType(elementType, VIEW_TYPE) || isInterface(elementType)) {
+      FieldViewBinding binding = new FieldViewBinding(name, type, required);
+      bindingClass.addField(id, binding);
+    } else {
+      // At this point, we've already checked these conditions.
+      List<? extends TypeMirror> paramTypes = ((ExecutableType) elementType).getParameterTypes();
+      SetterViewBinding binding = new SetterViewBinding(name,
+              paramTypes.get(0).toString(), required);
+      bindingClass.addSetter(id, binding);
+    }
 
     // Add the type-erased version to the valid binding targets set.
     erasedTargetNames.add(enclosingElement.toString());
@@ -867,6 +889,16 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
     // Add the type-erased version to the valid binding targets set.
     erasedTargetNames.add(enclosingElement.toString());
+  }
+
+  // Check if a given type is a function that takes a single parameter of type
+  private boolean isSetter(TypeMirror typeMirror, String type) {
+    if (typeMirror.getKind() != TypeKind.EXECUTABLE) {
+      return false;
+    }
+
+    List<? extends TypeMirror> paramTypes = ((ExecutableType) typeMirror).getParameterTypes();
+    return paramTypes.size() == 1 && isSubtypeOfType(paramTypes.get(0), type);
   }
 
   private boolean isInterface(TypeMirror typeMirror) {

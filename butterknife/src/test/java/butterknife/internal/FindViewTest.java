@@ -412,7 +412,8 @@ public class FindViewTest {
     ASSERT.about(javaSource()).that(source)
         .processedWith(butterknifeProcessors())
         .failsToCompile()
-        .withErrorContaining("@FindView fields must extend from View or be an interface. (test.Test.thing)")
+        .withErrorContaining("@FindView fields must extend from View,"
+                + " take a single View argument, or be an interface. (test.Test.thing)")
         .in(source).onLine(5);
   }
 

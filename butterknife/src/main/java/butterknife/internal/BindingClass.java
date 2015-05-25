@@ -34,6 +34,10 @@ final class BindingClass {
     getOrCreateViewBindings(id).addFieldBinding(binding);
   }
 
+  void addSetter(int id, SetterViewBinding binding) {
+    getOrCreateViewBindings(id).addSetterBinding(binding);
+  }
+
   void addFieldCollection(int[] ids, FieldCollectionViewBinding binding) {
     collectionBindings.put(binding, ids);
   }
@@ -204,6 +208,7 @@ final class BindingClass {
     }
 
     emitFieldBindings(builder, bindings);
+    emitSetterBindings(builder, bindings);
     emitMethodBindings(builder, bindings);
   }
 
@@ -228,6 +233,18 @@ final class BindingClass {
         builder.append("view;\n");
       }
     }
+  }
+
+  private void emitSetterBindings(StringBuilder builder, ViewBindings bindings) {
+    Collection<SetterViewBinding> setterBindings = bindings.getSetterBindings();
+    if (setterBindings.isEmpty()) {
+      return;
+    }
+
+    for (SetterViewBinding setterBinding : setterBindings) {
+      emitSetterCall(builder, setterBinding, "view");
+    }
+
   }
 
   private void emitMethodBindings(StringBuilder builder, ViewBindings bindings) {
@@ -407,11 +424,33 @@ final class BindingClass {
       for (FieldViewBinding fieldBinding : bindings.getFieldBindings()) {
         builder.append("    target.").append(fieldBinding.getName()).append(" = null;\n");
       }
+      emitUnbindSetters(builder, bindings.getSetterBindings());
     }
     for (FieldCollectionViewBinding fieldCollectionBinding : collectionBindings.keySet()) {
       builder.append("    target.").append(fieldCollectionBinding.getName()).append(" = null;\n");
     }
     builder.append("  }\n");
+  }
+
+  private void emitUnbindSetters(StringBuilder builder,
+      Collection<SetterViewBinding> setterViewBindings) {
+    for (SetterViewBinding setterBinding : setterViewBindings) {
+      emitSetterCall(builder, setterBinding, "null");
+    }
+  }
+
+  private void emitSetterCall(StringBuilder builder,
+      SetterViewBinding setterBinding, String value) {
+    builder.append("    target.")
+            .append(setterBinding.getName())
+            .append('(');
+    if (setterBinding.requiresCast()) {
+      builder.append("(")
+              .append(setterBinding.getParameterType())
+              .append(") ");
+    }
+    builder.append(value)
+      .append(");\n");
   }
 
   static void emitHumanDescription(StringBuilder builder,
