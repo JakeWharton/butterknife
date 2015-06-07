@@ -931,7 +931,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
   }
 
   private static String getClassName(TypeElement type, String packageName) {
-    int packageLen = packageName.length() + 1;
+    int packageLen = packageName.length() + (BindingClass.isDefaultPackage(packageName) ? 0 : 1);
     return type.getQualifiedName().toString().substring(packageLen).replace('.', '$');
   }
 

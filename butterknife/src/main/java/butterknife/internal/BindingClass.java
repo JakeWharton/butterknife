@@ -70,14 +70,27 @@ final class BindingClass {
     return viewId;
   }
 
+  /**
+   * check default package
+   * */
+  static boolean isDefaultPackage(String classPackage) {
+      return classPackage == null || classPackage.length() == 0;
+  }
+
   String getFqcn() {
+    if (isDefaultPackage(classPackage)) {
+      return className;
+    }
     return classPackage + "." + className;
   }
 
   String brewJava() {
     StringBuilder builder = new StringBuilder();
     builder.append("// Generated code from Butter Knife. Do not modify!\n");
-    builder.append("package ").append(classPackage).append(";\n\n");
+    
+    if (!isDefaultPackage(classPackage)) {
+      builder.append("package ").append(classPackage).append(";\n\n");
+    }
 
     if (!resourceBindings.isEmpty()) {
       builder.append("import android.content.res.Resources;\n");
