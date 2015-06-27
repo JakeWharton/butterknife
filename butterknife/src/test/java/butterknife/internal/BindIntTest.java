@@ -5,19 +5,17 @@ import com.google.testing.compile.JavaFileObjects;
 import javax.tools.JavaFileObject;
 import org.junit.Test;
 
-import static butterknife.internal.ProcessorTestUtilities.butterknifeProcessors;
 import static com.google.common.truth.Truth.ASSERT;
 import static com.google.testing.compile.JavaSourceSubjectFactory.javaSource;
 
-public class ResourceDrawableTest {
+public class BindIntTest {
   @Test public void simple() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
         "package test;",
         "import android.app.Activity;",
-        "import android.graphics.drawable.Drawable;",
-        "import butterknife.ResourceDrawable;",
+        "import butterknife.BindInt;",
         "public class Test extends Activity {",
-        "  @ResourceDrawable(1) Drawable one;",
+        "  @BindInt(1) int one;",
         "}"
     ));
 
@@ -30,7 +28,7 @@ public class ResourceDrawableTest {
             "public class Test$$ViewBinder<T extends test.Test> implements ViewBinder<T> {",
             "  @Override public void bind(final Finder finder, final T target, Object source) {",
             "    Resources res = finder.getContext(source).getResources();",
-            "    target.one = res.getDrawable(1);",
+            "    target.one = res.getInteger(1);",
             "  }",
             "  @Override public void unbind(T target) {",
             "  }",
@@ -38,26 +36,26 @@ public class ResourceDrawableTest {
         ));
 
     ASSERT.about(javaSource()).that(source)
-        .processedWith(butterknifeProcessors())
+        .processedWith(new ButterKnifeProcessor())
         .compilesWithoutError()
         .and()
         .generatesSources(expectedSource);
   }
 
-  @Test public void typeMustBeDrawable() {
+  @Test public void typeMustBeInt() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
         "package test;",
         "import android.app.Activity;",
-        "import butterknife.ResourceDrawable;",
+        "import butterknife.BindInt;",
         "public class Test extends Activity {",
-        "  @ResourceDrawable(1) String one;",
+        "  @BindInt(1) String one;",
         "}"
     ));
 
     ASSERT.about(javaSource()).that(source)
-        .processedWith(butterknifeProcessors())
+        .processedWith(new ButterKnifeProcessor())
         .failsToCompile()
-        .withErrorContaining("@ResourceDrawable field type must be 'Drawable'. (test.Test.one)")
+        .withErrorContaining("@BindInt field type must be 'int'. (test.Test.one)")
         .in(source).onLine(5);
   }
 }

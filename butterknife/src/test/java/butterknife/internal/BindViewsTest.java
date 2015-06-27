@@ -6,19 +6,18 @@ import org.junit.Test;
 
 import javax.tools.JavaFileObject;
 
-import static butterknife.internal.ProcessorTestUtilities.butterknifeProcessors;
 import static com.google.common.truth.Truth.ASSERT;
 import static com.google.testing.compile.JavaSourceSubjectFactory.javaSource;
 
-public class FindViewsTest {
-  @Test public void injectingArray() {
+public class BindViewsTest {
+  @Test public void bindingArray() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
         "package test;",
         "import android.app.Activity;",
         "import android.view.View;",
-        "import butterknife.FindViews;",
+        "import butterknife.BindViews;",
         "public class Test extends Activity {",
-        "    @FindViews({1, 2, 3}) View[] thing;",
+        "    @BindViews({1, 2, 3}) View[] thing;",
         "}"
     ));
 
@@ -44,20 +43,20 @@ public class FindViewsTest {
         ));
 
     ASSERT.about(javaSource()).that(source)
-        .processedWith(butterknifeProcessors())
+        .processedWith(new ButterKnifeProcessor())
         .compilesWithoutError()
         .and()
         .generatesSources(expectedSource);
   }
 
-  @Test public void injectingArrayWithGenerics() {
+  @Test public void bindingArrayWithGenerics() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
         "package test;",
         "import android.app.Activity;",
         "import android.view.View;",
-        "import butterknife.FindViews;",
+        "import butterknife.BindViews;",
         "public class Test<T extends View> extends Activity {",
-        "    @FindViews({1, 2, 3}) T[] thing;",
+        "    @BindViews({1, 2, 3}) T[] thing;",
         "}"
     ));
 
@@ -83,20 +82,20 @@ public class FindViewsTest {
         ));
 
     ASSERT.about(javaSource()).that(source)
-        .processedWith(butterknifeProcessors())
+        .processedWith(new ButterKnifeProcessor())
         .compilesWithoutError()
         .and()
         .generatesSources(expectedSource);
   }
 
-  @Test public void injectingArrayWithCast() {
+  @Test public void bindingArrayWithCast() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
         "package test;",
         "import android.app.Activity;",
         "import android.widget.TextView;",
-        "import butterknife.FindViews;",
+        "import butterknife.BindViews;",
         "public class Test extends Activity {",
-        "    @FindViews({1, 2, 3}) TextView[] thing;",
+        "    @BindViews({1, 2, 3}) TextView[] thing;",
         "}"
     ));
 
@@ -122,21 +121,21 @@ public class FindViewsTest {
         ));
 
     ASSERT.about(javaSource()).that(source)
-        .processedWith(butterknifeProcessors())
+        .processedWith(new ButterKnifeProcessor())
         .compilesWithoutError()
         .and()
         .generatesSources(expectedSource);
   }
 
-  @Test public void injectingList() {
+  @Test public void bindingList() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
         "package test;",
         "import android.app.Activity;",
         "import android.view.View;",
-        "import butterknife.FindViews;",
+        "import butterknife.BindViews;",
         "import java.util.List;",
         "public class Test extends Activity {",
-        "    @FindViews({1, 2, 3}) List<View> thing;",
+        "    @BindViews({1, 2, 3}) List<View> thing;",
         "}"
     ));
 
@@ -162,21 +161,21 @@ public class FindViewsTest {
         ));
 
     ASSERT.about(javaSource()).that(source)
-        .processedWith(butterknifeProcessors())
+        .processedWith(new ButterKnifeProcessor())
         .compilesWithoutError()
         .and()
         .generatesSources(expectedSource);
   }
 
-  @Test public void injectingListOfInterface() {
+  @Test public void bindingListOfInterface() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
         "package test;",
         "import android.app.Activity;",
-        "import butterknife.FindViews;",
+        "import butterknife.BindViews;",
         "import java.util.List;",
         "public class Test {",
         "    interface TestInterface {}",
-        "    @FindViews({1, 2, 3}) List<TestInterface> thing;",
+        "    @BindViews({1, 2, 3}) List<TestInterface> thing;",
         "}"
     ));
 
@@ -202,21 +201,21 @@ public class FindViewsTest {
         ));
 
     ASSERT.about(javaSource()).that(source)
-        .processedWith(butterknifeProcessors())
+        .processedWith(new ButterKnifeProcessor())
         .compilesWithoutError()
         .and()
         .generatesSources(expectedSource);
   }
 
-  @Test public void injectingListWithGenerics() {
+  @Test public void bindingListWithGenerics() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
         "package test;",
         "import android.app.Activity;",
         "import android.view.View;",
-        "import butterknife.FindViews;",
+        "import butterknife.BindViews;",
         "import java.util.List;",
         "public class Test<T extends View> extends Activity {",
-        "    @FindViews({1, 2, 3}) List<T> thing;",
+        "    @BindViews({1, 2, 3}) List<T> thing;",
         "}"
     ));
 
@@ -242,7 +241,7 @@ public class FindViewsTest {
         ));
 
     ASSERT.about(javaSource()).that(source)
-        .processedWith(butterknifeProcessors())
+        .processedWith(new ButterKnifeProcessor())
         .compilesWithoutError()
         .and()
         .generatesSources(expectedSource);
@@ -253,11 +252,11 @@ public class FindViewsTest {
         "package test;",
         "import android.app.Activity;",
         "import android.view.View;",
-        "import butterknife.FindViews;",
+        "import butterknife.BindViews;",
         "import java.util.List;",
         "public class Test extends Activity {",
         "    @interface Nullable {}",
-        "    @Nullable @FindViews({1, 2, 3}) List<View> thing;",
+        "    @Nullable @BindViews({1, 2, 3}) List<View> thing;",
         "}"
     ));
 
@@ -283,7 +282,7 @@ public class FindViewsTest {
         ));
 
     ASSERT.about(javaSource()).that(source)
-        .processedWith(butterknifeProcessors())
+        .processedWith(new ButterKnifeProcessor())
         .compilesWithoutError()
         .and()
         .generatesSources(expectedSource);
@@ -293,35 +292,35 @@ public class FindViewsTest {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
         "package test;",
         "import android.view.View;",
-        "import butterknife.FindViews;",
+        "import butterknife.BindViews;",
         "import java.util.List;",
         "public class Test {",
-        "  @FindViews({}) List<View> thing;",
+        "  @BindViews({}) List<View> thing;",
         "}"
     ));
 
     ASSERT.about(javaSource()).that(source)
-        .processedWith(butterknifeProcessors())
+        .processedWith(new ButterKnifeProcessor())
         .failsToCompile()
-        .withErrorContaining("@FindViews must specify at least one ID. (test.Test.thing)")
+        .withErrorContaining("@BindViews must specify at least one ID. (test.Test.thing)")
         .in(source).onLine(6);
   }
 
   @Test public void failsIfNoGenericType() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
         "package test;",
-        "import butterknife.FindViews;",
+        "import butterknife.BindViews;",
         "import java.util.List;",
         "public class Test {",
-        "  @FindViews(1) List thing;",
+        "  @BindViews(1) List thing;",
         "}"
     ));
 
     ASSERT.about(javaSource()).that(source)
-        .processedWith(butterknifeProcessors())
+        .processedWith(new ButterKnifeProcessor())
         .failsToCompile()
         .withErrorContaining(
-            "@FindViews List must have a generic component. (test.Test.thing)")
+            "@BindViews List must have a generic component. (test.Test.thing)")
         .in(source).onLine(5);
   }
 
@@ -329,18 +328,18 @@ public class FindViewsTest {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
         "package test;",
         "import android.view.View;",
-        "import butterknife.FindViews;",
+        "import butterknife.BindViews;",
         "import java.util.Deque;",
         "public class Test {",
-        "  @FindViews(1) Deque<View> thing;",
+        "  @BindViews(1) Deque<View> thing;",
         "}"
     ));
 
     ASSERT.about(javaSource()).that(source)
-        .processedWith(butterknifeProcessors())
+        .processedWith(new ButterKnifeProcessor())
         .failsToCompile()
         .withErrorContaining(
-            "@FindViews must be a List or array. (test.Test.thing)")
+            "@BindViews must be a List or array. (test.Test.thing)")
         .in(source).onLine(6);
   }
 
@@ -348,29 +347,29 @@ public class FindViewsTest {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
         "package test;",
         "import android.app.Activity;",
-        "import butterknife.FindViews;",
+        "import butterknife.BindViews;",
         "import java.util.List;",
         "public class Test extends Activity {",
-        "  @FindViews(1) List<String> thing;",
+        "  @BindViews(1) List<String> thing;",
         "}"
     ));
 
     ASSERT.about(javaSource()).that(source)
-        .processedWith(butterknifeProcessors())
+        .processedWith(new ButterKnifeProcessor())
         .failsToCompile()
-        .withErrorContaining("@FindViews type must extend from View or be an interface. (test.Test.thing)")
+        .withErrorContaining("@BindViews type must extend from View or be an interface. (test.Test.thing)")
         .in(source).onLine(6);
   }
 
   @Test public void failsIfArrayNotView() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
-        "package test;", "import android.app.Activity;", "import butterknife.FindViews;",
-        "public class Test extends Activity {", "  @FindViews(1) String[] thing;", "}"));
+        "package test;", "import android.app.Activity;", "import butterknife.BindViews;",
+        "public class Test extends Activity {", "  @BindViews(1) String[] thing;", "}"));
 
     ASSERT.about(javaSource()).that(source)
-        .processedWith(butterknifeProcessors())
+        .processedWith(new ButterKnifeProcessor())
         .failsToCompile()
-        .withErrorContaining("@FindViews type must extend from View or be an interface. (test.Test.thing)")
+        .withErrorContaining("@BindViews type must extend from View or be an interface. (test.Test.thing)")
         .in(source).onLine(5);
   }
 
@@ -378,17 +377,17 @@ public class FindViewsTest {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
         "package java.test;",
         "import android.view.View;",
-        "import butterknife.FindViews;",
+        "import butterknife.BindViews;",
         "public class Test {",
-        "  @FindViews(1) View[] thing;",
+        "  @BindViews(1) View[] thing;",
         "}"
     ));
 
     ASSERT.about(javaSource()).that(source)
-        .processedWith(butterknifeProcessors())
+        .processedWith(new ButterKnifeProcessor())
         .failsToCompile()
         .withErrorContaining(
-            "@FindViews-annotated class incorrectly in Java framework package. (java.test.Test)")
+            "@BindViews-annotated class incorrectly in Java framework package. (java.test.Test)")
         .in(source).onLine(5);
   }
 
@@ -396,17 +395,17 @@ public class FindViewsTest {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
         "package android.test;",
         "import android.view.View;",
-        "import butterknife.FindViews;",
+        "import butterknife.BindViews;",
         "public class Test {",
-        "  @FindViews(1) View[] thing;",
+        "  @BindViews(1) View[] thing;",
         "}"
     ));
 
     ASSERT.about(javaSource()).that(source)
-        .processedWith(butterknifeProcessors())
+        .processedWith(new ButterKnifeProcessor())
         .failsToCompile()
         .withErrorContaining(
-            "@FindViews-annotated class incorrectly in Android framework package. (android.test.Test)")
+            "@BindViews-annotated class incorrectly in Android framework package. (android.test.Test)")
         .in(source).onLine(5);
   }
 
@@ -414,20 +413,20 @@ public class FindViewsTest {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
         "package test;",
         "import android.view.View;",
-        "import butterknife.FindViews;",
+        "import butterknife.BindViews;",
         "import java.util.List;",
         "public class Test {",
         "  private static class Inner {",
-        "    @FindViews(1) List<View> thing;",
+        "    @BindViews(1) List<View> thing;",
         "  }",
         "}"
     ));
 
     ASSERT.about(javaSource()).that(source)
-        .processedWith(butterknifeProcessors())
+        .processedWith(new ButterKnifeProcessor())
         .failsToCompile()
         .withErrorContaining(
-            "@FindViews fields may not be contained in private classes. (test.Test.Inner.thing)")
+            "@BindViews fields may not be contained in private classes. (test.Test.Inner.thing)")
         .in(source).onLine(6);
   }
 
@@ -435,18 +434,18 @@ public class FindViewsTest {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
         "package test;",
         "import android.view.View;",
-        "import butterknife.FindViews;",
+        "import butterknife.BindViews;",
         "import java.util.List;",
         "public interface Test {",
-        "    @FindViews(1) List<View> thing = null;",
+        "    @BindViews(1) List<View> thing = null;",
         "}"
     ));
 
     ASSERT.about(javaSource()).that(source)
-        .processedWith(butterknifeProcessors())
+        .processedWith(new ButterKnifeProcessor())
         .failsToCompile()
         .withErrorContaining(
-            "@FindViews fields may only be contained in classes. (test.Test.thing)")
+            "@BindViews fields may only be contained in classes. (test.Test.thing)")
         .in(source).onLine(5);
   }
 
@@ -455,17 +454,17 @@ public class FindViewsTest {
         "package test;",
         "import android.app.Activity;",
         "import android.view.View;",
-        "import butterknife.FindViews;",
+        "import butterknife.BindViews;",
         "import java.util.List;",
         "public class Test extends Activity {",
-        "    @FindViews(1) private List<View> thing;",
+        "    @BindViews(1) private List<View> thing;",
         "}"
     ));
 
     ASSERT.about(javaSource()).that(source)
-        .processedWith(butterknifeProcessors())
+        .processedWith(new ButterKnifeProcessor())
         .failsToCompile()
-        .withErrorContaining("@FindViews fields must not be private or static. (test.Test.thing)")
+        .withErrorContaining("@BindViews fields must not be private or static. (test.Test.thing)")
         .in(source).onLine(7);
   }
 
@@ -474,17 +473,17 @@ public class FindViewsTest {
         "package test;",
         "import android.app.Activity;",
         "import android.view.View;",
-        "import butterknife.FindViews;",
+        "import butterknife.BindViews;",
         "import java.util.List;",
         "public class Test extends Activity {",
-        "    @FindViews(1) static List<View> thing;",
+        "    @BindViews(1) static List<View> thing;",
         "}"
     ));
 
     ASSERT.about(javaSource()).that(source)
-        .processedWith(butterknifeProcessors())
+        .processedWith(new ButterKnifeProcessor())
         .failsToCompile()
-        .withErrorContaining("@FindViews fields must not be private or static. (test.Test.thing)")
+        .withErrorContaining("@BindViews fields must not be private or static. (test.Test.thing)")
         .in(source).onLine(7);
   }
 
@@ -493,18 +492,18 @@ public class FindViewsTest {
         "package test;",
         "import android.app.Activity;",
         "import android.view.View;",
-        "import butterknife.FindViews;",
+        "import butterknife.BindViews;",
         "import java.util.List;",
         "public class Test extends Activity {",
-        "    @FindViews({1, 1}) List<View> thing;",
+        "    @BindViews({1, 1}) List<View> thing;",
         "}"
     ));
 
     ASSERT.about(javaSource()).that(source)
-        .processedWith(butterknifeProcessors())
+        .processedWith(new ButterKnifeProcessor())
         .failsToCompile()
         .withErrorContaining(
-            "@FindViews annotation contains duplicate ID 1. (test.Test.thing)")
+            "@BindViews annotation contains duplicate ID 1. (test.Test.thing)")
         .in(source).onLine(7);
   }
 }

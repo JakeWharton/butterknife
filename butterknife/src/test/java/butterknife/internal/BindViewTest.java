@@ -5,19 +5,18 @@ import com.google.testing.compile.JavaFileObjects;
 import javax.tools.JavaFileObject;
 import org.junit.Test;
 
-import static butterknife.internal.ProcessorTestUtilities.butterknifeProcessors;
 import static com.google.common.truth.Truth.ASSERT;
 import static com.google.testing.compile.JavaSourceSubjectFactory.javaSource;
 
-public class FindViewTest {
-  @Test public void injectingView() {
+public class BindViewTest {
+  @Test public void bindingView() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
         "package test;",
         "import android.app.Activity;",
         "import android.view.View;",
-        "import butterknife.FindView;",
+        "import butterknife.BindView;",
         "public class Test extends Activity {",
-        "    @FindView(1) View thing;",
+        "    @BindView(1) View thing;",
         "}"
     ));
 
@@ -40,21 +39,21 @@ public class FindViewTest {
         ));
 
     ASSERT.about(javaSource()).that(source)
-        .processedWith(butterknifeProcessors())
+        .processedWith(new ButterKnifeProcessor())
         .compilesWithoutError()
         .and()
         .generatesSources(expectedSource);
   }
 
-  @Test public void injectingInterface() throws Exception {
+  @Test public void bindingInterface() throws Exception {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
         "package test;",
         "import android.app.Activity;",
         "import android.view.View;",
-        "import butterknife.FindView;",
+        "import butterknife.BindView;",
         "public class Test extends Activity {",
         "    interface TestInterface {}",
-        "    @FindView(1) TestInterface thing;",
+        "    @BindView(1) TestInterface thing;",
         "}"
     ));
 
@@ -77,7 +76,7 @@ public class FindViewTest {
         ));
 
     ASSERT.about(javaSource()).that(source)
-        .processedWith(butterknifeProcessors())
+        .processedWith(new ButterKnifeProcessor())
         .compilesWithoutError()
         .and()
         .generatesSources(expectedSource);
@@ -89,9 +88,9 @@ public class FindViewTest {
         "import android.app.Activity;",
         "import android.widget.EditText;",
         "import android.widget.TextView;",
-        "import butterknife.FindView;",
+        "import butterknife.BindView;",
         "class Test<T extends TextView> extends Activity {",
-        "    @FindView(1) T thing;",
+        "    @BindView(1) T thing;",
         "}"
     ));
 
@@ -114,7 +113,7 @@ public class FindViewTest {
         ));
 
     ASSERT.about(javaSource()).that(source)
-        .processedWith(butterknifeProcessors())
+        .processedWith(new ButterKnifeProcessor())
         .compilesWithoutError()
         .and()
         .generatesSources(expectedSource);
@@ -125,10 +124,10 @@ public class FindViewTest {
         "package test;",
         "import android.app.Activity;",
         "import android.view.View;",
-        "import butterknife.FindView;",
+        "import butterknife.BindView;",
         "import butterknife.OnClick;",
         "public class Test extends Activity {",
-        "  @FindView(1) View thing1;",
+        "  @BindView(1) View thing1;",
         "  @OnClick(1) void doStuff() {}",
         "}"
     ));
@@ -160,7 +159,7 @@ public class FindViewTest {
         ));
 
     ASSERT.about(javaSource()).that(source)
-        .processedWith(butterknifeProcessors())
+        .processedWith(new ButterKnifeProcessor())
         .compilesWithoutError()
         .and()
         .generatesSources(expectedSource);
@@ -171,16 +170,16 @@ public class FindViewTest {
         "package test;",
         "import android.app.Activity;",
         "import android.view.View;",
-        "import butterknife.FindView;",
+        "import butterknife.BindView;",
         "public class Test extends Activity {",
-        "  @FindView(1) public View thing1;",
-        "  @FindView(2) View thing2;",
-        "  @FindView(3) protected View thing3;",
+        "  @BindView(1) public View thing1;",
+        "  @BindView(2) View thing2;",
+        "  @BindView(3) protected View thing3;",
         "}"
     ));
 
     ASSERT.about(javaSource()).that(source)
-        .processedWith(butterknifeProcessors())
+        .processedWith(new ButterKnifeProcessor())
         .compilesWithoutError();
   }
 
@@ -189,10 +188,10 @@ public class FindViewTest {
         "package test;",
         "import android.app.Activity;",
         "import android.view.View;",
-        "import butterknife.FindView;",
+        "import butterknife.BindView;",
         "public class Test extends Activity {",
         "  @interface Nullable {}",
-        "  @Nullable @FindView(1) View view;",
+        "  @Nullable @BindView(1) View view;",
         "}"
     ));
 
@@ -215,7 +214,7 @@ public class FindViewTest {
         ));
 
     ASSERT.about(javaSource()).that(source)
-        .processedWith(butterknifeProcessors())
+        .processedWith(new ButterKnifeProcessor())
         .compilesWithoutError()
         .and()
         .generatesSources(expectedSource);
@@ -226,12 +225,12 @@ public class FindViewTest {
         "package test;",
         "import android.app.Activity;",
         "import android.view.View;",
-        "import butterknife.FindView;",
+        "import butterknife.BindView;",
         "public class Test extends Activity {",
-        "  @FindView(1) View view;",
+        "  @BindView(1) View view;",
         "}",
         "class TestOne extends Test {",
-        "  @FindView(1) View thing;",
+        "  @BindView(1) View thing;",
         "}",
         "class TestTwo extends Test {",
         "}"
@@ -276,7 +275,7 @@ public class FindViewTest {
         ));
 
     ASSERT.about(javaSource()).that(source)
-        .processedWith(butterknifeProcessors())
+        .processedWith(new ButterKnifeProcessor())
         .compilesWithoutError()
         .and()
         .generatesSources(expectedSource1, expectedSource2);
@@ -287,12 +286,12 @@ public class FindViewTest {
         "package test;",
         "import android.app.Activity;",
         "import android.view.View;",
-        "import butterknife.FindView;",
+        "import butterknife.BindView;",
         "public class Test<T> extends Activity {",
-        "  @FindView(1) View view;",
+        "  @BindView(1) View view;",
         "}",
         "class TestOne extends Test<String> {",
-        "  @FindView(1) View thing;",
+        "  @BindView(1) View thing;",
         "}",
         "class TestTwo extends Test<Object> {",
         "}"
@@ -337,7 +336,7 @@ public class FindViewTest {
         ));
 
     ASSERT.about(javaSource()).that(source)
-        .processedWith(butterknifeProcessors())
+        .processedWith(new ButterKnifeProcessor())
         .compilesWithoutError()
         .and()
         .generatesSources(expectedSource1, expectedSource2);
@@ -347,17 +346,17 @@ public class FindViewTest {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
         "package java.test;",
         "import android.view.View;",
-        "import butterknife.FindView;",
+        "import butterknife.BindView;",
         "public class Test {",
-        "  @FindView(1) View thing;",
+        "  @BindView(1) View thing;",
         "}"
     ));
 
     ASSERT.about(javaSource()).that(source)
-        .processedWith(butterknifeProcessors())
+        .processedWith(new ButterKnifeProcessor())
         .failsToCompile()
         .withErrorContaining(
-            "@FindView-annotated class incorrectly in Java framework package. (java.test.Test)")
+            "@BindView-annotated class incorrectly in Java framework package. (java.test.Test)")
         .in(source).onLine(5);
   }
 
@@ -365,17 +364,17 @@ public class FindViewTest {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
         "package android.test;",
         "import android.view.View;",
-        "import butterknife.FindView;",
+        "import butterknife.BindView;",
         "public class Test {",
-        "  @FindView(1) View thing;",
+        "  @BindView(1) View thing;",
         "}"
     ));
 
     ASSERT.about(javaSource()).that(source)
-        .processedWith(butterknifeProcessors())
+        .processedWith(new ButterKnifeProcessor())
         .failsToCompile()
         .withErrorContaining(
-            "@FindView-annotated class incorrectly in Android framework package. (android.test.Test)")
+            "@BindView-annotated class incorrectly in Android framework package. (android.test.Test)")
         .in(source).onLine(5);
   }
 
@@ -383,19 +382,19 @@ public class FindViewTest {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
         "package test;",
         "import android.view.View;",
-        "import butterknife.FindView;",
+        "import butterknife.BindView;",
         "public class Test {",
         "  private static class Inner {",
-        "    @FindView(1) View thing;",
+        "    @BindView(1) View thing;",
         "  }",
         "}"
     ));
 
     ASSERT.about(javaSource()).that(source)
-        .processedWith(butterknifeProcessors())
+        .processedWith(new ButterKnifeProcessor())
         .failsToCompile()
         .withErrorContaining(
-            "@FindView fields may not be contained in private classes. (test.Test.Inner.thing)")
+            "@BindView fields may not be contained in private classes. (test.Test.Inner.thing)")
         .in(source).onLine(5);
   }
 
@@ -403,16 +402,16 @@ public class FindViewTest {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
         "package test;",
         "import android.app.Activity;",
-        "import butterknife.FindView;",
+        "import butterknife.BindView;",
         "public class Test extends Activity {",
-        "  @FindView(1) String thing;",
+        "  @BindView(1) String thing;",
         "}"
     ));
 
     ASSERT.about(javaSource()).that(source)
-        .processedWith(butterknifeProcessors())
+        .processedWith(new ButterKnifeProcessor())
         .failsToCompile()
-        .withErrorContaining("@FindView fields must extend from View or be an interface. (test.Test.thing)")
+        .withErrorContaining("@BindView fields must extend from View or be an interface. (test.Test.thing)")
         .in(source).onLine(5);
   }
 
@@ -420,17 +419,17 @@ public class FindViewTest {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
         "package test;",
         "import android.view.View;",
-        "import butterknife.FindView;",
+        "import butterknife.BindView;",
         "public interface Test {",
-        "    @FindView(1) View thing = null;",
+        "    @BindView(1) View thing = null;",
         "}"
     ));
 
     ASSERT.about(javaSource()).that(source)
-        .processedWith(butterknifeProcessors())
+        .processedWith(new ButterKnifeProcessor())
         .failsToCompile()
         .withErrorContaining(
-            "@FindView fields may only be contained in classes. (test.Test.thing)")
+            "@BindView fields may only be contained in classes. (test.Test.thing)")
         .in(source).onLine(4);
   }
 
@@ -439,16 +438,16 @@ public class FindViewTest {
         "package test;",
         "import android.app.Activity;",
         "import android.view.View;",
-        "import butterknife.FindView;",
+        "import butterknife.BindView;",
         "public class Test extends Activity {",
-        "    @FindView(1) private View thing;",
+        "    @BindView(1) private View thing;",
         "}"
     ));
 
     ASSERT.about(javaSource()).that(source)
-        .processedWith(butterknifeProcessors())
+        .processedWith(new ButterKnifeProcessor())
         .failsToCompile()
-        .withErrorContaining("@FindView fields must not be private or static. (test.Test.thing)")
+        .withErrorContaining("@BindView fields must not be private or static. (test.Test.thing)")
         .in(source).onLine(6);
   }
 
@@ -457,16 +456,16 @@ public class FindViewTest {
         "package test;",
         "import android.app.Activity;",
         "import android.view.View;",
-        "import butterknife.FindView;",
+        "import butterknife.BindView;",
         "public class Test extends Activity {",
-        "    @FindView(1) static View thing;",
+        "    @BindView(1) static View thing;",
         "}"
     ));
 
     ASSERT.about(javaSource()).that(source)
-        .processedWith(butterknifeProcessors())
+        .processedWith(new ButterKnifeProcessor())
         .failsToCompile()
-        .withErrorContaining("@FindView fields must not be private or static. (test.Test.thing)")
+        .withErrorContaining("@BindView fields must not be private or static. (test.Test.thing)")
         .in(source).onLine(6);
   }
 
@@ -475,42 +474,42 @@ public class FindViewTest {
         "package test;",
         "import android.app.Activity;",
         "import android.view.View;",
-        "import butterknife.FindView;",
-        "import butterknife.FindViews;",
+        "import butterknife.BindView;",
+        "import butterknife.BindViews;",
         "public class Test extends Activity {",
-        "    @FindView(1) @FindViews(1) View thing;",
+        "    @BindView(1) @BindViews(1) View thing;",
         "}"
     ));
 
     ASSERT.about(javaSource()).that(source)
-        .processedWith(butterknifeProcessors())
+        .processedWith(new ButterKnifeProcessor())
         .failsToCompile()
         .withErrorContaining(
-            "Only one of @FindView and @FindViews is allowed. (test.Test.thing)")
+            "Only one of @BindView and @BindViews is allowed. (test.Test.thing)")
         .in(source).onLine(7);
   }
 
-  @Test public void failsIfAlreadyInjected() throws Exception {
+  @Test public void duplicateBindingFails() throws Exception {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
         "package test;",
         "import android.app.Activity;",
         "import android.view.View;",
-        "import butterknife.FindView;",
+        "import butterknife.BindView;",
         "public class Test extends Activity {",
-        "    @FindView(1) View thing1;",
-        "    @FindView(1) View thing2;",
+        "    @BindView(1) View thing1;",
+        "    @BindView(1) View thing2;",
         "}"
     ));
 
     ASSERT.about(javaSource()).that(source)
-        .processedWith(butterknifeProcessors())
+        .processedWith(new ButterKnifeProcessor())
         .failsToCompile()
         .withErrorContaining(
-            "Attempt to use @FindView for an already bound ID 1 on 'thing1'. (test.Test.thing2)")
+            "Attempt to use @BindView for an already bound ID 1 on 'thing1'. (test.Test.thing2)")
         .in(source).onLine(7);
   }
 
-  @Test public void failsRootViewInjectionWithBadTarget() throws Exception {
+  @Test public void failsRootViewBindingWithBadTarget() throws Exception {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test",
         Joiner.on('\n').join(
             "package test;",
@@ -526,7 +525,7 @@ public class FindViewTest {
 
     ASSERT.about(javaSource())
         .that(source)
-        .processedWith(butterknifeProcessors())
+        .processedWith(new ButterKnifeProcessor())
         .failsToCompile()
         .withErrorContaining((
             "@OnItemClick annotation without an ID may only be used with an object of type "
@@ -535,7 +534,7 @@ public class FindViewTest {
         .onLine(6);
   }
 
-  @Test public void failsOptionalRootViewInjection() throws Exception {
+  @Test public void failsOptionalRootViewBinding() throws Exception {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test",
         Joiner.on('\n').join(
             "package test;",
@@ -552,10 +551,10 @@ public class FindViewTest {
 
     ASSERT.about(javaSource())
         .that(source)
-        .processedWith(butterknifeProcessors())
+        .processedWith(new ButterKnifeProcessor())
         .failsToCompile()
         .withErrorContaining(
-            ("ID free binding must not be annotated with @Nullable. (test.Test.doStuff)"))
+            ("ID-free binding must not be annotated with @Nullable. (test.Test.doStuff)"))
         .in(source)
         .onLine(7);
   }

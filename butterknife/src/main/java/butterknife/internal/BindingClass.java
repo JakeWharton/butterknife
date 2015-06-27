@@ -57,7 +57,7 @@ final class BindingClass {
     this.parentViewBinder = parentViewBinder;
   }
 
-  ViewBindings getViewInjection(int id) {
+  ViewBindings getViewBinding(int id) {
     return viewIdMap.get(id);
   }
 

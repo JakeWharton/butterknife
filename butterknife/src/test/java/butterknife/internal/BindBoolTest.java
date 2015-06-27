@@ -5,18 +5,17 @@ import com.google.testing.compile.JavaFileObjects;
 import javax.tools.JavaFileObject;
 import org.junit.Test;
 
-import static butterknife.internal.ProcessorTestUtilities.butterknifeProcessors;
 import static com.google.common.truth.Truth.ASSERT;
 import static com.google.testing.compile.JavaSourceSubjectFactory.javaSource;
 
-public class ResourceIntTest {
+public class BindBoolTest {
   @Test public void simple() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
         "package test;",
         "import android.app.Activity;",
-        "import butterknife.ResourceInt;",
+        "import butterknife.BindBool;",
         "public class Test extends Activity {",
-        "  @ResourceInt(1) int one;",
+        "  @BindBool(1) boolean one;",
         "}"
     ));
 
@@ -29,7 +28,7 @@ public class ResourceIntTest {
             "public class Test$$ViewBinder<T extends test.Test> implements ViewBinder<T> {",
             "  @Override public void bind(final Finder finder, final T target, Object source) {",
             "    Resources res = finder.getContext(source).getResources();",
-            "    target.one = res.getInteger(1);",
+            "    target.one = res.getBoolean(1);",
             "  }",
             "  @Override public void unbind(T target) {",
             "  }",
@@ -37,26 +36,26 @@ public class ResourceIntTest {
         ));
 
     ASSERT.about(javaSource()).that(source)
-        .processedWith(butterknifeProcessors())
+        .processedWith(new ButterKnifeProcessor())
         .compilesWithoutError()
         .and()
         .generatesSources(expectedSource);
   }
 
-  @Test public void typeMustBeInt() {
+  @Test public void typeMustBeBoolean() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
         "package test;",
         "import android.app.Activity;",
-        "import butterknife.ResourceInt;",
+        "import butterknife.BindBool;",
         "public class Test extends Activity {",
-        "  @ResourceInt(1) String one;",
+        "  @BindBool(1) String one;",
         "}"
     ));
 
     ASSERT.about(javaSource()).that(source)
-        .processedWith(butterknifeProcessors())
+        .processedWith(new ButterKnifeProcessor())
         .failsToCompile()
-        .withErrorContaining("@ResourceInt field type must be 'int'. (test.Test.one)")
+        .withErrorContaining("@BindBool field type must be 'boolean'. (test.Test.one)")
         .in(source).onLine(5);
   }
 }

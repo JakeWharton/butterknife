@@ -5,18 +5,50 @@ import com.google.testing.compile.JavaFileObjects;
 import javax.tools.JavaFileObject;
 import org.junit.Test;
 
-import static butterknife.internal.ProcessorTestUtilities.butterknifeProcessors;
 import static com.google.common.truth.Truth.ASSERT;
 import static com.google.testing.compile.JavaSourceSubjectFactory.javaSource;
 
-public class ResourceColorTest {
+public class BindDimenTest {
+  @Test public void simpleFloat() {
+    JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
+        "package test;",
+        "import android.app.Activity;",
+        "import butterknife.BindDimen;",
+        "public class Test extends Activity {",
+        "  @BindDimen(1) float one;",
+        "}"
+    ));
+
+    JavaFileObject expectedSource = JavaFileObjects.forSourceString("test/Test$$ViewBinder",
+        Joiner.on('\n').join(
+            "package test;",
+            "import android.content.res.Resources;",
+            "import butterknife.ButterKnife.Finder;",
+            "import butterknife.ButterKnife.ViewBinder;",
+            "public class Test$$ViewBinder<T extends test.Test> implements ViewBinder<T> {",
+            "  @Override public void bind(final Finder finder, final T target, Object source) {",
+            "    Resources res = finder.getContext(source).getResources();",
+            "    target.one = res.getDimension(1);",
+            "  }",
+            "  @Override public void unbind(T target) {",
+            "  }",
+            "}"
+        ));
+
+    ASSERT.about(javaSource()).that(source)
+        .processedWith(new ButterKnifeProcessor())
+        .compilesWithoutError()
+        .and()
+        .generatesSources(expectedSource);
+  }
+
   @Test public void simpleInt() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
         "package test;",
         "import android.app.Activity;",
-        "import butterknife.ResourceColor;",
+        "import butterknife.BindDimen;",
         "public class Test extends Activity {",
-        "  @ResourceColor(1) int one;",
+        "  @BindDimen(1) int one;",
         "}"
     ));
 
@@ -29,7 +61,7 @@ public class ResourceColorTest {
             "public class Test$$ViewBinder<T extends test.Test> implements ViewBinder<T> {",
             "  @Override public void bind(final Finder finder, final T target, Object source) {",
             "    Resources res = finder.getContext(source).getResources();",
-            "    target.one = res.getColor(1);",
+            "    target.one = res.getDimensionPixelSize(1);",
             "  }",
             "  @Override public void unbind(T target) {",
             "  }",
@@ -37,60 +69,26 @@ public class ResourceColorTest {
         ));
 
     ASSERT.about(javaSource()).that(source)
-        .processedWith(butterknifeProcessors())
+        .processedWith(new ButterKnifeProcessor())
         .compilesWithoutError()
         .and()
         .generatesSources(expectedSource);
   }
 
-  @Test public void simpleColorStateList() {
+  @Test public void typeMustBeIntOrFloat() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
         "package test;",
         "import android.app.Activity;",
-        "import android.content.res.ColorStateList;",
-        "import butterknife.ResourceColor;",
+        "import butterknife.BindDimen;",
         "public class Test extends Activity {",
-        "  @ResourceColor(1) ColorStateList one;",
-        "}"
-    ));
-
-    JavaFileObject expectedSource = JavaFileObjects.forSourceString("test/Test$$ViewBinder",
-        Joiner.on('\n').join(
-            "package test;",
-            "import android.content.res.Resources;",
-            "import butterknife.ButterKnife.Finder;",
-            "import butterknife.ButterKnife.ViewBinder;",
-            "public class Test$$ViewBinder<T extends test.Test> implements ViewBinder<T> {",
-            "  @Override public void bind(final Finder finder, final T target, Object source) {",
-            "    Resources res = finder.getContext(source).getResources();",
-            "    target.one = res.getColorStateList(1);",
-            "  }",
-            "  @Override public void unbind(T target) {",
-            "  }",
-            "}"
-        ));
-
-    ASSERT.about(javaSource()).that(source)
-        .processedWith(butterknifeProcessors())
-        .compilesWithoutError()
-        .and()
-        .generatesSources(expectedSource);
-  }
-
-  @Test public void typeMustBeIntOrColorStateList() {
-    JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
-        "package test;",
-        "import android.app.Activity;",
-        "import butterknife.ResourceColor;",
-        "public class Test extends Activity {",
-        "  @ResourceColor(1) String one;",
+        "  @BindDimen(1) String one;",
         "}"
     ));
 
     ASSERT.about(javaSource()).that(source)
-        .processedWith(butterknifeProcessors())
+        .processedWith(new ButterKnifeProcessor())
         .failsToCompile()
-        .withErrorContaining("@ResourceColor field type must be 'int' or 'ColorStateList'. (test.Test.one)")
+        .withErrorContaining("@BindDimen field type must be 'int' or 'float'. (test.Test.one)")
         .in(source).onLine(5);
   }
 }

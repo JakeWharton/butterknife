@@ -5,18 +5,18 @@ import com.google.testing.compile.JavaFileObjects;
 import javax.tools.JavaFileObject;
 import org.junit.Test;
 
-import static butterknife.internal.ProcessorTestUtilities.butterknifeProcessors;
 import static com.google.common.truth.Truth.ASSERT;
 import static com.google.testing.compile.JavaSourceSubjectFactory.javaSource;
 
-public class ResourceBoolTest {
+public class BindDrawableTest {
   @Test public void simple() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
         "package test;",
         "import android.app.Activity;",
-        "import butterknife.ResourceBool;",
+        "import android.graphics.drawable.Drawable;",
+        "import butterknife.BindDrawable;",
         "public class Test extends Activity {",
-        "  @ResourceBool(1) boolean one;",
+        "  @BindDrawable(1) Drawable one;",
         "}"
     ));
 
@@ -29,7 +29,7 @@ public class ResourceBoolTest {
             "public class Test$$ViewBinder<T extends test.Test> implements ViewBinder<T> {",
             "  @Override public void bind(final Finder finder, final T target, Object source) {",
             "    Resources res = finder.getContext(source).getResources();",
-            "    target.one = res.getBoolean(1);",
+            "    target.one = res.getDrawable(1);",
             "  }",
             "  @Override public void unbind(T target) {",
             "  }",
@@ -37,26 +37,26 @@ public class ResourceBoolTest {
         ));
 
     ASSERT.about(javaSource()).that(source)
-        .processedWith(butterknifeProcessors())
+        .processedWith(new ButterKnifeProcessor())
         .compilesWithoutError()
         .and()
         .generatesSources(expectedSource);
   }
 
-  @Test public void typeMustBeBoolean() {
+  @Test public void typeMustBeDrawable() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
         "package test;",
         "import android.app.Activity;",
-        "import butterknife.ResourceBool;",
+        "import butterknife.BindDrawable;",
         "public class Test extends Activity {",
-        "  @ResourceBool(1) String one;",
+        "  @BindDrawable(1) String one;",
         "}"
     ));
 
     ASSERT.about(javaSource()).that(source)
-        .processedWith(butterknifeProcessors())
+        .processedWith(new ButterKnifeProcessor())
         .failsToCompile()
-        .withErrorContaining("@ResourceBool field type must be 'boolean'. (test.Test.one)")
+        .withErrorContaining("@BindDrawable field type must be 'Drawable'. (test.Test.one)")
         .in(source).onLine(5);
   }
 }

@@ -9,8 +9,8 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 import butterknife.ButterKnife;
-import butterknife.FindView;
-import butterknife.FindViews;
+import butterknife.BindView;
+import butterknife.BindViews;
 import butterknife.OnClick;
 import butterknife.OnItemClick;
 import butterknife.OnLongClick;
@@ -29,13 +29,13 @@ public class SimpleActivity extends Activity {
     }
   };
 
-  @FindView(R.id.title) TextView title;
-  @FindView(R.id.subtitle) TextView subtitle;
-  @FindView(R.id.hello) Button hello;
-  @FindView(R.id.list_of_things) ListView listOfThings;
-  @FindView(R.id.footer) TextView footer;
+  @BindView(R.id.title) TextView title;
+  @BindView(R.id.subtitle) TextView subtitle;
+  @BindView(R.id.hello) Button hello;
+  @BindView(R.id.list_of_things) ListView listOfThings;
+  @BindView(R.id.footer) TextView footer;
 
-  @FindViews({ R.id.title, R.id.subtitle, R.id.hello })
+  @BindViews({ R.id.title, R.id.subtitle, R.id.hello })
   List<View> headerViews;
 
   private SimpleAdapter adapter;

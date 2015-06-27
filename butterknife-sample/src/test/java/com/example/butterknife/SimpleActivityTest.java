@@ -12,7 +12,7 @@ import static org.fest.assertions.api.ANDROID.assertThat;
 @RunWith(RobolectricTestRunner.class) //
 @Config(manifest = "src/main/AndroidManifest.xml")
 public class SimpleActivityTest {
-  @Test public void verifyContentViewInjection() {
+  @Test public void verifyContentViewBinding() {
     SimpleActivity activity = Robolectric.buildActivity(SimpleActivity.class) //
         .create() //
         .get();

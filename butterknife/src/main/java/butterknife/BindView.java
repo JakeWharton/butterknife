@@ -7,13 +7,14 @@ import static java.lang.annotation.ElementType.FIELD;
 import static java.lang.annotation.RetentionPolicy.CLASS;
 
 /**
- * Bind a field to the specified drawable resource ID.
+ * Bind a field to the view for the specified ID. The view will automatically be cast to the field
+ * type.
  * <pre><code>
- * {@literal @}ResourceDrawable(R.drawable.placeholder) Drawable placeholder;
+ * {@literal @}BindView(R.id.title) TextView title;
  * </code></pre>
  */
 @Retention(CLASS) @Target(FIELD)
-public @interface ResourceDrawable {
-  /** Drawable resource ID to which the field will be bound. */
+public @interface BindView {
+  /** View ID to which the field will be bound. */
   int value();
 }

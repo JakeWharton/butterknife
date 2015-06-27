@@ -44,9 +44,9 @@ public class ButterKnifeTest {
     }
   };
 
-  @Before @After // Clear out cache of injectors and resetters before and after each test.
+  @Before @After // Clear out cache of binders before and after each test.
   public void resetViewsCache() {
-    ButterKnife.INJECTORS.clear();
+    ButterKnife.BINDERS.clear();
   }
 
   @Test public void listOfFiltersNull() {
@@ -117,29 +117,29 @@ public class ButterKnifeTest {
     assertThat(view3).isDisabled();
   }
 
-  @Test public void zeroInjectionsInjectDoesNotThrowException() {
+  @Test public void zeroBindingsBindDoesNotThrowException() {
     class Example {
     }
 
     Example example = new Example();
     ButterKnife.bind(example, null, null);
-    assertThat(ButterKnife.INJECTORS).contains(entry(Example.class, ButterKnife.NOP_VIEW_BINDER));
+    assertThat(ButterKnife.BINDERS).contains(entry(Example.class, ButterKnife.NOP_VIEW_BINDER));
   }
 
-  @Test public void zeroInjectionsResetDoesNotThrowException() {
+  @Test public void zeroBindingsUnbindDoesNotThrowException() {
     class Example {
     }
 
     Example example = new Example();
     ButterKnife.unbind(example);
-    assertThat(ButterKnife.INJECTORS).contains(entry(Example.class, ButterKnife.NOP_VIEW_BINDER));
+    assertThat(ButterKnife.BINDERS).contains(entry(Example.class, ButterKnife.NOP_VIEW_BINDER));
   }
 
-  @Test public void injectingKnownPackagesIsNoOp() {
+  @Test public void bindingKnownPackagesIsNoOp() {
     ButterKnife.bind(new Activity());
-    assertThat(ButterKnife.INJECTORS).isEmpty();
+    assertThat(ButterKnife.BINDERS).isEmpty();
     ButterKnife.bind(new Object(), new Activity());
-    assertThat(ButterKnife.INJECTORS).isEmpty();
+    assertThat(ButterKnife.BINDERS).isEmpty();
   }
 
   @Test public void finderThrowsNiceError() {

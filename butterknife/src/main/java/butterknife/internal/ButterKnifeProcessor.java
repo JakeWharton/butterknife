@@ -1,8 +1,8 @@
 package butterknife.internal;
 
 import android.view.View;
-import butterknife.FindView;
-import butterknife.FindViews;
+import butterknife.BindView;
+import butterknife.BindViews;
 import butterknife.OnCheckedChanged;
 import butterknife.OnClick;
 import butterknife.OnEditorAction;
@@ -14,12 +14,12 @@ import butterknife.OnLongClick;
 import butterknife.OnPageChange;
 import butterknife.OnTextChanged;
 import butterknife.OnTouch;
-import butterknife.ResourceBool;
-import butterknife.ResourceColor;
-import butterknife.ResourceDimen;
-import butterknife.ResourceDrawable;
-import butterknife.ResourceInt;
-import butterknife.ResourceString;
+import butterknife.BindBool;
+import butterknife.BindColor;
+import butterknife.BindDimen;
+import butterknife.BindDrawable;
+import butterknife.BindInt;
+import butterknife.BindString;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -100,19 +100,19 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
   @Override public Set<String> getSupportedAnnotationTypes() {
     Set<String> types = new LinkedHashSet<String>();
 
-    types.add(FindView.class.getCanonicalName());
-    types.add(FindViews.class.getCanonicalName());
+    types.add(BindView.class.getCanonicalName());
+    types.add(BindViews.class.getCanonicalName());
 
     for (Class<? extends Annotation> listener : LISTENERS) {
       types.add(listener.getCanonicalName());
     }
 
-    types.add(ResourceBool.class.getCanonicalName());
-    types.add(ResourceColor.class.getCanonicalName());
-    types.add(ResourceDimen.class.getCanonicalName());
-    types.add(ResourceDrawable.class.getCanonicalName());
-    types.add(ResourceInt.class.getCanonicalName());
-    types.add(ResourceString.class.getCanonicalName());
+    types.add(BindBool.class.getCanonicalName());
+    types.add(BindColor.class.getCanonicalName());
+    types.add(BindDimen.class.getCanonicalName());
+    types.add(BindDrawable.class.getCanonicalName());
+    types.add(BindInt.class.getCanonicalName());
+    types.add(BindString.class.getCanonicalName());
 
     return types;
   }
@@ -143,21 +143,21 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     Map<TypeElement, BindingClass> targetClassMap = new LinkedHashMap<TypeElement, BindingClass>();
     Set<String> erasedTargetNames = new LinkedHashSet<String>();
 
-    // Process each @FindView element.
-    for (Element element : env.getElementsAnnotatedWith(FindView.class)) {
+    // Process each @BindView element.
+    for (Element element : env.getElementsAnnotatedWith(BindView.class)) {
       try {
-        parseFindView(element, targetClassMap, erasedTargetNames);
+        parseBindView(element, targetClassMap, erasedTargetNames);
       } catch (Exception e) {
-        logParsingError(element, FindView.class, e);
+        logParsingError(element, BindView.class, e);
       }
     }
 
-    // Process each @FindViews element.
-    for (Element element : env.getElementsAnnotatedWith(FindViews.class)) {
+    // Process each @BindViews element.
+    for (Element element : env.getElementsAnnotatedWith(BindViews.class)) {
       try {
-        parseFindViews(element, targetClassMap, erasedTargetNames);
+        parseBindViews(element, targetClassMap, erasedTargetNames);
       } catch (Exception e) {
-        logParsingError(element, FindViews.class, e);
+        logParsingError(element, BindViews.class, e);
       }
     }
 
@@ -166,57 +166,57 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
       findAndParseListener(env, listener, targetClassMap, erasedTargetNames);
     }
 
-    // Process each @ResourceBool element.
-    for (Element element : env.getElementsAnnotatedWith(ResourceBool.class)) {
+    // Process each @BindBool element.
+    for (Element element : env.getElementsAnnotatedWith(BindBool.class)) {
       try {
         parseResourceBool(element, targetClassMap, erasedTargetNames);
       } catch (Exception e) {
-        logParsingError(element, ResourceBool.class, e);
+        logParsingError(element, BindBool.class, e);
       }
     }
 
-    // Process each @ResourceColor element.
-    for (Element element : env.getElementsAnnotatedWith(ResourceColor.class)) {
+    // Process each @BindColor element.
+    for (Element element : env.getElementsAnnotatedWith(BindColor.class)) {
       try {
         parseResourceColor(element, targetClassMap, erasedTargetNames);
       } catch (Exception e) {
-        logParsingError(element, ResourceColor.class, e);
+        logParsingError(element, BindColor.class, e);
       }
     }
 
-    // Process each @ResourceDimen element.
-    for (Element element : env.getElementsAnnotatedWith(ResourceDimen.class)) {
+    // Process each @BindDimen element.
+    for (Element element : env.getElementsAnnotatedWith(BindDimen.class)) {
       try {
         parseResourceDimen(element, targetClassMap, erasedTargetNames);
       } catch (Exception e) {
-        logParsingError(element, ResourceDimen.class, e);
+        logParsingError(element, BindDimen.class, e);
       }
     }
 
-    // Process each @ResourceDrawable element.
-    for (Element element : env.getElementsAnnotatedWith(ResourceDrawable.class)) {
+    // Process each @BindDrawable element.
+    for (Element element : env.getElementsAnnotatedWith(BindDrawable.class)) {
       try {
         parseResourceDrawable(element, targetClassMap, erasedTargetNames);
       } catch (Exception e) {
-        logParsingError(element, ResourceDrawable.class, e);
+        logParsingError(element, BindDrawable.class, e);
       }
     }
 
-    // Process each @ResourceInt element.
-    for (Element element : env.getElementsAnnotatedWith(ResourceInt.class)) {
+    // Process each @BindInt element.
+    for (Element element : env.getElementsAnnotatedWith(BindInt.class)) {
       try {
         parseResourceInt(element, targetClassMap, erasedTargetNames);
       } catch (Exception e) {
-        logParsingError(element, ResourceInt.class, e);
+        logParsingError(element, BindInt.class, e);
       }
     }
 
-    // Process each @ResourceString element.
-    for (Element element : env.getElementsAnnotatedWith(ResourceString.class)) {
+    // Process each @BindString element.
+    for (Element element : env.getElementsAnnotatedWith(BindString.class)) {
       try {
         parseResourceString(element, targetClassMap, erasedTargetNames);
       } catch (Exception e) {
-        logParsingError(element, ResourceString.class, e);
+        logParsingError(element, BindString.class, e);
       }
     }
 
@@ -290,7 +290,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     return false;
   }
 
-  private void parseFindView(Element element, Map<TypeElement, BindingClass> targetClassMap,
+  private void parseBindView(Element element, Map<TypeElement, BindingClass> targetClassMap,
       Set<String> erasedTargetNames) {
     boolean hasError = false;
     TypeElement enclosingElement = (TypeElement) element.getEnclosingElement();
@@ -302,18 +302,18 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
       elementType = typeVariable.getUpperBound();
     }
     if (!isSubtypeOfType(elementType, VIEW_TYPE) && !isInterface(elementType)) {
-      error(element, "@FindView fields must extend from View or be an interface. (%s.%s)",
+      error(element, "@BindView fields must extend from View or be an interface. (%s.%s)",
           enclosingElement.getQualifiedName(), element.getSimpleName());
       hasError = true;
     }
 
     // Verify common generated code restrictions.
-    hasError |= isInaccessibleViaGeneratedCode(FindView.class, "fields", element);
-    hasError |= isBindingInWrongPackage(FindView.class, element);
+    hasError |= isInaccessibleViaGeneratedCode(BindView.class, "fields", element);
+    hasError |= isBindingInWrongPackage(BindView.class, element);
 
     // Check for the other field annotation.
-    if (element.getAnnotation(FindViews.class) != null) {
-      error(element, "Only one of @FindView and @FindViews is allowed. (%s.%s)",
+    if (element.getAnnotation(BindViews.class) != null) {
+      error(element, "Only one of @BindView and @BindViews is allowed. (%s.%s)",
           enclosingElement.getQualifiedName(), element.getSimpleName());
       hasError = true;
     }
@@ -323,17 +323,17 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     }
 
     // Assemble information on the field.
-    int id = element.getAnnotation(FindView.class).value();
+    int id = element.getAnnotation(BindView.class).value();
 
     BindingClass bindingClass = targetClassMap.get(enclosingElement);
     if (bindingClass != null) {
-      ViewBindings viewBindings = bindingClass.getViewInjection(id);
+      ViewBindings viewBindings = bindingClass.getViewBinding(id);
       if (viewBindings != null) {
         Iterator<FieldViewBinding> iterator = viewBindings.getFieldBindings().iterator();
         if (iterator.hasNext()) {
           FieldViewBinding existingBinding = iterator.next();
           error(element,
-              "Attempt to use @FindView for an already bound ID %d on '%s'. (%s.%s)", id,
+              "Attempt to use @BindView for an already bound ID %d on '%s'. (%s.%s)", id,
               existingBinding.getName(), enclosingElement.getQualifiedName(),
               element.getSimpleName());
           return;
@@ -345,7 +345,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
     String name = element.getSimpleName().toString();
     String type = elementType.toString();
-    boolean required = isRequiredInjection(element);
+    boolean required = isRequiredBinding(element);
 
     FieldViewBinding binding = new FieldViewBinding(name, type, required);
     bindingClass.addField(id, binding);
@@ -354,7 +354,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     erasedTargetNames.add(enclosingElement.toString());
   }
 
-  private void parseFindViews(Element element, Map<TypeElement, BindingClass> targetClassMap,
+  private void parseBindViews(Element element, Map<TypeElement, BindingClass> targetClassMap,
       Set<String> erasedTargetNames) {
     boolean hasError = false;
     TypeElement enclosingElement = (TypeElement) element.getEnclosingElement();
@@ -372,7 +372,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
       DeclaredType declaredType = (DeclaredType) elementType;
       List<? extends TypeMirror> typeArguments = declaredType.getTypeArguments();
       if (typeArguments.size() != 1) {
-        error(element, "@FindViews List must have a generic component. (%s.%s)",
+        error(element, "@BindViews List must have a generic component. (%s.%s)",
             enclosingElement.getQualifiedName(), element.getSimpleName());
         hasError = true;
       } else {
@@ -380,7 +380,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
       }
       kind = FieldCollectionViewBinding.Kind.LIST;
     } else {
-      error(element, "@FindViews must be a List or array. (%s.%s)",
+      error(element, "@BindViews must be a List or array. (%s.%s)",
           enclosingElement.getQualifiedName(), element.getSimpleName());
       hasError = true;
     }
@@ -391,14 +391,14 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
     // Verify that the target type extends from View.
     if (viewType != null && !isSubtypeOfType(viewType, VIEW_TYPE) && !isInterface(viewType)) {
-      error(element, "@FindViews type must extend from View or be an interface. (%s.%s)",
+      error(element, "@BindViews type must extend from View or be an interface. (%s.%s)",
           enclosingElement.getQualifiedName(), element.getSimpleName());
       hasError = true;
     }
 
     // Verify common generated code restrictions.
-    hasError |= isInaccessibleViaGeneratedCode(FindViews.class, "fields", element);
-    hasError |= isBindingInWrongPackage(FindViews.class, element);
+    hasError |= isInaccessibleViaGeneratedCode(BindViews.class, "fields", element);
+    hasError |= isBindingInWrongPackage(BindViews.class, element);
 
     if (hasError) {
       return;
@@ -406,22 +406,22 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
     // Assemble information on the field.
     String name = element.getSimpleName().toString();
-    int[] ids = element.getAnnotation(FindViews.class).value();
+    int[] ids = element.getAnnotation(BindViews.class).value();
     if (ids.length == 0) {
-      error(element, "@FindViews must specify at least one ID. (%s.%s)",
+      error(element, "@BindViews must specify at least one ID. (%s.%s)",
           enclosingElement.getQualifiedName(), element.getSimpleName());
       return;
     }
 
     Integer duplicateId = findDuplicate(ids);
     if (duplicateId != null) {
-      error(element, "@FindViews annotation contains duplicate ID %d. (%s.%s)", duplicateId,
+      error(element, "@BindViews annotation contains duplicate ID %d. (%s.%s)", duplicateId,
           enclosingElement.getQualifiedName(), element.getSimpleName());
     }
 
     assert viewType != null; // Always false as hasError would have been true.
     String type = viewType.toString();
-    boolean required = isRequiredInjection(element);
+    boolean required = isRequiredBinding(element);
 
     BindingClass bindingClass = getOrCreateTargetClass(targetClassMap, enclosingElement);
     FieldCollectionViewBinding binding = new FieldCollectionViewBinding(name, type, kind, required);
@@ -438,14 +438,14 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     // Verify that the target type is bool.
     if (element.asType().getKind() != TypeKind.BOOLEAN) {
       error(element, "@%s field type must be 'boolean'. (%s.%s)",
-          ResourceBool.class.getSimpleName(), enclosingElement.getQualifiedName(),
+          BindBool.class.getSimpleName(), enclosingElement.getQualifiedName(),
           element.getSimpleName());
       hasError = true;
     }
 
     // Verify common generated code restrictions.
-    hasError |= isInaccessibleViaGeneratedCode(ResourceBool.class, "fields", element);
-    hasError |= isBindingInWrongPackage(ResourceBool.class, element);
+    hasError |= isInaccessibleViaGeneratedCode(BindBool.class, "fields", element);
+    hasError |= isBindingInWrongPackage(BindBool.class, element);
 
     if (hasError) {
       return;
@@ -453,7 +453,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
     // Assemble information on the field.
     String name = element.getSimpleName().toString();
-    int id = element.getAnnotation(ResourceBool.class).value();
+    int id = element.getAnnotation(BindBool.class).value();
 
     BindingClass bindingClass = getOrCreateTargetClass(targetClassMap, enclosingElement);
     FieldResourceBinding binding = new FieldResourceBinding(id, name, "getBoolean");
@@ -474,14 +474,14 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
       isColorStateList = true;
     } else if (elementType.getKind() != TypeKind.INT) {
       error(element, "@%s field type must be 'int' or 'ColorStateList'. (%s.%s)",
-          ResourceColor.class.getSimpleName(), enclosingElement.getQualifiedName(),
+          BindColor.class.getSimpleName(), enclosingElement.getQualifiedName(),
           element.getSimpleName());
       hasError = true;
     }
 
     // Verify common generated code restrictions.
-    hasError |= isInaccessibleViaGeneratedCode(ResourceColor.class, "fields", element);
-    hasError |= isBindingInWrongPackage(ResourceColor.class, element);
+    hasError |= isInaccessibleViaGeneratedCode(BindColor.class, "fields", element);
+    hasError |= isBindingInWrongPackage(BindColor.class, element);
 
     if (hasError) {
       return;
@@ -489,7 +489,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
     // Assemble information on the field.
     String name = element.getSimpleName().toString();
-    int id = element.getAnnotation(ResourceColor.class).value();
+    int id = element.getAnnotation(BindColor.class).value();
 
     BindingClass bindingClass = getOrCreateTargetClass(targetClassMap, enclosingElement);
     FieldResourceBinding binding = new FieldResourceBinding(id, name,
@@ -511,14 +511,14 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
       isInt = true;
     } else if (elementType.getKind() != TypeKind.FLOAT) {
       error(element, "@%s field type must be 'int' or 'float'. (%s.%s)",
-          ResourceDimen.class.getSimpleName(), enclosingElement.getQualifiedName(),
+          BindDimen.class.getSimpleName(), enclosingElement.getQualifiedName(),
           element.getSimpleName());
       hasError = true;
     }
 
     // Verify common generated code restrictions.
-    hasError |= isInaccessibleViaGeneratedCode(ResourceDimen.class, "fields", element);
-    hasError |= isBindingInWrongPackage(ResourceDimen.class, element);
+    hasError |= isInaccessibleViaGeneratedCode(BindDimen.class, "fields", element);
+    hasError |= isBindingInWrongPackage(BindDimen.class, element);
 
     if (hasError) {
       return;
@@ -526,7 +526,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
     // Assemble information on the field.
     String name = element.getSimpleName().toString();
-    int id = element.getAnnotation(ResourceDimen.class).value();
+    int id = element.getAnnotation(BindDimen.class).value();
 
     BindingClass bindingClass = getOrCreateTargetClass(targetClassMap, enclosingElement);
     FieldResourceBinding binding = new FieldResourceBinding(id, name,
@@ -544,14 +544,14 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     // Verify that the target type is Drawable.
     if (!DRAWABLE_TYPE.equals(element.asType().toString())) {
       error(element, "@%s field type must be 'Drawable'. (%s.%s)",
-          ResourceDrawable.class.getSimpleName(), enclosingElement.getQualifiedName(),
+          BindDrawable.class.getSimpleName(), enclosingElement.getQualifiedName(),
           element.getSimpleName());
       hasError = true;
     }
 
     // Verify common generated code restrictions.
-    hasError |= isInaccessibleViaGeneratedCode(ResourceDrawable.class, "fields", element);
-    hasError |= isBindingInWrongPackage(ResourceDrawable.class, element);
+    hasError |= isInaccessibleViaGeneratedCode(BindDrawable.class, "fields", element);
+    hasError |= isBindingInWrongPackage(BindDrawable.class, element);
 
     if (hasError) {
       return;
@@ -559,7 +559,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
     // Assemble information on the field.
     String name = element.getSimpleName().toString();
-    int id = element.getAnnotation(ResourceDrawable.class).value();
+    int id = element.getAnnotation(BindDrawable.class).value();
 
     BindingClass bindingClass = getOrCreateTargetClass(targetClassMap, enclosingElement);
     FieldResourceBinding binding = new FieldResourceBinding(id, name, "getDrawable");
@@ -575,14 +575,14 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
     // Verify that the target type is int.
     if (element.asType().getKind() != TypeKind.INT) {
-      error(element, "@%s field type must be 'int'. (%s.%s)", ResourceInt.class.getSimpleName(),
+      error(element, "@%s field type must be 'int'. (%s.%s)", BindInt.class.getSimpleName(),
           enclosingElement.getQualifiedName(), element.getSimpleName());
       hasError = true;
     }
 
     // Verify common generated code restrictions.
-    hasError |= isInaccessibleViaGeneratedCode(ResourceInt.class, "fields", element);
-    hasError |= isBindingInWrongPackage(ResourceInt.class, element);
+    hasError |= isInaccessibleViaGeneratedCode(BindInt.class, "fields", element);
+    hasError |= isBindingInWrongPackage(BindInt.class, element);
 
     if (hasError) {
       return;
@@ -590,7 +590,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
     // Assemble information on the field.
     String name = element.getSimpleName().toString();
-    int id = element.getAnnotation(ResourceInt.class).value();
+    int id = element.getAnnotation(BindInt.class).value();
 
     BindingClass bindingClass = getOrCreateTargetClass(targetClassMap, enclosingElement);
     FieldResourceBinding binding = new FieldResourceBinding(id, name, "getInteger");
@@ -607,14 +607,14 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     // Verify that the target type is String.
     if (!"java.lang.String".equals(element.asType().toString())) {
       error(element, "@%s field type must be 'String'. (%s.%s)",
-          ResourceString.class.getSimpleName(), enclosingElement.getQualifiedName(),
+          BindString.class.getSimpleName(), enclosingElement.getQualifiedName(),
           element.getSimpleName());
       hasError = true;
     }
 
     // Verify common generated code restrictions.
-    hasError |= isInaccessibleViaGeneratedCode(ResourceString.class, "fields", element);
-    hasError |= isBindingInWrongPackage(ResourceString.class, element);
+    hasError |= isInaccessibleViaGeneratedCode(BindString.class, "fields", element);
+    hasError |= isBindingInWrongPackage(BindString.class, element);
 
     if (hasError) {
       return;
@@ -622,7 +622,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
     // Assemble information on the field.
     String name = element.getSimpleName().toString();
-    int id = element.getAnnotation(ResourceString.class).value();
+    int id = element.getAnnotation(BindString.class).value();
 
     BindingClass bindingClass = getOrCreateTargetClass(targetClassMap, enclosingElement);
     FieldResourceBinding binding = new FieldResourceBinding(id, name, "getString");
@@ -692,7 +692,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
     int[] ids = (int[]) annotationValue.invoke(annotation);
     String name = executableElement.getSimpleName().toString();
-    boolean required = isRequiredInjection(element);
+    boolean required = isRequiredBinding(element);
 
     // Verify that the method and its containing class are accessible via generated code.
     boolean hasError = isInaccessibleViaGeneratedCode(annotationClass, "methods", element);
@@ -717,7 +717,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
       if (id == View.NO_ID) {
         if (ids.length == 1) {
           if (!required) {
-            error(element, "ID free binding must not be annotated with @Nullable. (%s.%s)",
+            error(element, "ID-free binding must not be annotated with @Nullable. (%s.%s)",
                 enclosingElement.getQualifiedName(), element.getSimpleName());
             hasError = true;
           }
@@ -976,7 +976,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     return false;
   }
 
-  private static boolean isRequiredInjection(Element element) {
+  private static boolean isRequiredBinding(Element element) {
     return !hasAnnotationWithName(element, NULLABLE_ANNOTATION_NAME);
   }
 }

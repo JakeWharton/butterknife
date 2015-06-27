@@ -7,13 +7,13 @@ import static java.lang.annotation.ElementType.FIELD;
 import static java.lang.annotation.RetentionPolicy.CLASS;
 
 /**
- * Bind a field to the specified string resource ID.
+ * Bind a field to the specified integer resource ID.
  * <pre><code>
- * {@literal @}ResourceString(R.string.username_error) String usernameErrorText;
+ * {@literal @}ResourceInt(R.int.columns) int columns;
  * </code></pre>
  */
 @Retention(CLASS) @Target(FIELD)
-public @interface ResourceString {
-  /** String resource ID to which the field will be bound. */
+public @interface BindInt {
+  /** Integer resource ID to which the field will be bound. */
   int value();
 }

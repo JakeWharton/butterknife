@@ -5,18 +5,17 @@ import com.google.testing.compile.JavaFileObjects;
 import javax.tools.JavaFileObject;
 import org.junit.Test;
 
-import static butterknife.internal.ProcessorTestUtilities.butterknifeProcessors;
 import static com.google.common.truth.Truth.ASSERT;
 import static com.google.testing.compile.JavaSourceSubjectFactory.javaSource;
 
-public class ResourceStringTest {
+public class BindStringTest {
   @Test public void simple() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
         "package test;",
         "import android.app.Activity;",
-        "import butterknife.ResourceString;",
+        "import butterknife.BindString;",
         "public class Test extends Activity {",
-        "  @ResourceString(1) String one;",
+        "  @BindString(1) String one;",
         "}"
     ));
 
@@ -37,7 +36,7 @@ public class ResourceStringTest {
         ));
 
     ASSERT.about(javaSource()).that(source)
-        .processedWith(butterknifeProcessors())
+        .processedWith(new ButterKnifeProcessor())
         .compilesWithoutError()
         .and()
         .generatesSources(expectedSource);
@@ -47,16 +46,16 @@ public class ResourceStringTest {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
         "package test;",
         "import android.app.Activity;",
-        "import butterknife.ResourceString;",
+        "import butterknife.BindString;",
         "public class Test extends Activity {",
-        "  @ResourceString(1) boolean one;",
+        "  @BindString(1) boolean one;",
         "}"
     ));
 
     ASSERT.about(javaSource()).that(source)
-        .processedWith(butterknifeProcessors())
+        .processedWith(new ButterKnifeProcessor())
         .failsToCompile()
-        .withErrorContaining("@ResourceString field type must be 'String'. (test.Test.one)")
+        .withErrorContaining("@BindString field type must be 'String'. (test.Test.one)")
         .in(source).onLine(5);
   }
 }

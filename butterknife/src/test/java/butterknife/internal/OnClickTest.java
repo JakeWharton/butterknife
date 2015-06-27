@@ -6,12 +6,11 @@ import org.junit.Test;
 
 import javax.tools.JavaFileObject;
 
-import static butterknife.internal.ProcessorTestUtilities.butterknifeProcessors;
 import static com.google.common.truth.Truth.ASSERT;
 import static com.google.testing.compile.JavaSourceSubjectFactory.javaSource;
 
 public class OnClickTest {
-  @Test public void onClickInjection() {
+  @Test public void onClickBinding() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
         "package test;",
         "import android.app.Activity;",
@@ -42,13 +41,13 @@ public class OnClickTest {
         ));
 
     ASSERT.about(javaSource()).that(source)
-        .processedWith(butterknifeProcessors())
+        .processedWith(new ButterKnifeProcessor())
         .compilesWithoutError()
         .and()
         .generatesSources(expectedSource);
   }
 
-  @Test public void onClickMultipleInjections() {
+  @Test public void onClickMultipleBindings() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
         "package test;",
         "import android.view.View;",
@@ -94,7 +93,7 @@ public class OnClickTest {
             "}"));
 
     ASSERT.about(javaSource()).that(source)
-        .processedWith(butterknifeProcessors())
+        .processedWith(new ButterKnifeProcessor())
         .compilesWithoutError()
         .and()
         .generatesSources(expectedSource);
@@ -105,10 +104,10 @@ public class OnClickTest {
         "package test;",
         "import android.app.Activity;",
         "import android.view.View;",
-        "import butterknife.FindView;",
+        "import butterknife.BindView;",
         "import butterknife.OnClick;",
         "public class Test extends Activity {",
-        "  @FindView(1) View view;",
+        "  @BindView(1) View view;",
         "  @OnClick(1) void doStuff() {}",
         "}"));
 
@@ -136,7 +135,7 @@ public class OnClickTest {
         ));
 
     ASSERT.about(javaSource()).that(source)
-        .processedWith(butterknifeProcessors())
+        .processedWith(new ButterKnifeProcessor())
         .compilesWithoutError()
         .and()
         .generatesSources(expectedSource);
@@ -156,7 +155,7 @@ public class OnClickTest {
     ));
 
     ASSERT.about(javaSource()).that(source)
-        .processedWith(butterknifeProcessors())
+        .processedWith(new ButterKnifeProcessor())
         .compilesWithoutError();
   }
 
@@ -224,7 +223,7 @@ public class OnClickTest {
         ));
 
     ASSERT.about(javaSource()).that(source)
-        .processedWith(butterknifeProcessors())
+        .processedWith(new ButterKnifeProcessor())
         .compilesWithoutError()
         .and()
         .generatesSources(expectedSource);
@@ -275,7 +274,7 @@ public class OnClickTest {
         ));
 
     ASSERT.about(javaSource()).that(source)
-        .processedWith(butterknifeProcessors())
+        .processedWith(new ButterKnifeProcessor())
         .compilesWithoutError()
         .and()
         .generatesSources(expectedSource);
@@ -315,7 +314,7 @@ public class OnClickTest {
         ));
 
     ASSERT.about(javaSource()).that(source)
-        .processedWith(butterknifeProcessors())
+        .processedWith(new ButterKnifeProcessor())
         .compilesWithoutError()
         .and()
         .generatesSources(expectedSource);
@@ -326,11 +325,11 @@ public class OnClickTest {
         "package test;",
         "import android.app.Activity;",
         "import android.view.View;",
-        "import butterknife.FindView;",
+        "import butterknife.BindView;",
         "import butterknife.OnClick;",
         "public class Test extends Activity {",
         "  @interface Nullable {}",
-        "  @FindView(1) View view;",
+        "  @BindView(1) View view;",
         "  @Nullable @OnClick(1) void doStuff() {}",
         "}"));
 
@@ -358,7 +357,7 @@ public class OnClickTest {
         ));
 
     ASSERT.about(javaSource()).that(source)
-        .processedWith(butterknifeProcessors())
+        .processedWith(new ButterKnifeProcessor())
         .compilesWithoutError()
         .and()
         .generatesSources(expectedSource);
@@ -374,7 +373,7 @@ public class OnClickTest {
     ));
 
     ASSERT.about(javaSource()).that(source)
-        .processedWith(butterknifeProcessors())
+        .processedWith(new ButterKnifeProcessor())
         .failsToCompile()
         .withErrorContaining(
             "@OnClick-annotated class incorrectly in Java framework package. (java.test.Test)")
@@ -391,7 +390,7 @@ public class OnClickTest {
     ));
 
     ASSERT.about(javaSource()).that(source)
-        .processedWith(butterknifeProcessors())
+        .processedWith(new ButterKnifeProcessor())
         .failsToCompile()
         .withErrorContaining(
             "@OnClick-annotated class incorrectly in Android framework package. (android.test.Test)")
@@ -410,7 +409,7 @@ public class OnClickTest {
         "}"));
 
     ASSERT.about(javaSource()).that(source)
-        .processedWith(butterknifeProcessors())
+        .processedWith(new ButterKnifeProcessor())
         .failsToCompile()
         .withErrorContaining("@OnClick methods must have a 'void' return type. (test.Test.doStuff)")
         .in(source).onLine(6);
@@ -428,7 +427,7 @@ public class OnClickTest {
         "}"));
 
     ASSERT.about(javaSource()).that(source)
-        .processedWith(butterknifeProcessors())
+        .processedWith(new ButterKnifeProcessor())
         .failsToCompile()
         .withErrorContaining("@OnClick methods must not be private or static. (test.Test.doStuff)")
         .in(source).onLine(6);
@@ -446,7 +445,7 @@ public class OnClickTest {
         "}"));
 
     ASSERT.about(javaSource()).that(source)
-        .processedWith(butterknifeProcessors())
+        .processedWith(new ButterKnifeProcessor())
         .failsToCompile()
         .withErrorContaining("@OnClick methods must not be private or static. (test.Test.doStuff)")
         .in(source).onLine(6);
@@ -464,7 +463,7 @@ public class OnClickTest {
         "}"));
 
     ASSERT.about(javaSource()).that(source)
-        .processedWith(butterknifeProcessors())
+        .processedWith(new ButterKnifeProcessor())
         .failsToCompile()
         .withErrorContaining(Joiner.on('\n').join(
             "Unable to match @OnClick method arguments. (test.Test.doStuff)",
@@ -493,7 +492,7 @@ public class OnClickTest {
         "}"));
 
     ASSERT.about(javaSource()).that(source)
-        .processedWith(butterknifeProcessors())
+        .processedWith(new ButterKnifeProcessor())
         .failsToCompile()
         .withErrorContaining(
             "@OnClick methods can have at most 1 parameter(s). (test.Test.doStuff)")
@@ -510,7 +509,7 @@ public class OnClickTest {
         "}"));
 
     ASSERT.about(javaSource()).that(source)
-        .processedWith(butterknifeProcessors())
+        .processedWith(new ButterKnifeProcessor())
         .failsToCompile()
         .withErrorContaining(
             "@OnClick methods may only be contained in classes. (test.Test.doStuff)")
@@ -529,7 +528,7 @@ public class OnClickTest {
         "}"));
 
     ASSERT.about(javaSource()).that(source)
-        .processedWith(butterknifeProcessors())
+        .processedWith(new ButterKnifeProcessor())
         .failsToCompile()
         .withErrorContaining(
             "@OnClick annotation for method contains duplicate ID 1. (test.Test.doStuff)")

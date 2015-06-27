@@ -15,7 +15,7 @@ import static java.lang.annotation.RetentionPolicy.CLASS;
  * </code></pre>
  */
 @Retention(CLASS) @Target(FIELD)
-public @interface ResourceDimen {
+public @interface BindDimen {
   /** Dimension resource ID to which the field will be bound. */
   int value();
 }

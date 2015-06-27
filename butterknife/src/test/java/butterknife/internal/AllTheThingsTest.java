@@ -6,8 +6,8 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.CompoundButton;
 import android.widget.TextView;
-import butterknife.FindView;
-import butterknife.FindViews;
+import butterknife.BindView;
+import butterknife.BindViews;
 import butterknife.OnCheckedChanged;
 import butterknife.OnClick;
 import butterknife.OnEditorAction;
@@ -26,7 +26,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import org.junit.Test;
 
-import static butterknife.internal.ProcessorTestUtilities.butterknifeProcessors;
 import static com.google.common.truth.Truth.ASSERT;
 import static com.google.testing.compile.JavaSourceSubjectFactory.javaSource;
 
@@ -38,7 +37,7 @@ public class AllTheThingsTest {
 
     ASSERT.about(javaSource())
         .that(JavaFileObjects.forSourceString("butterknife.internal.AllTheThingsTest", content))
-        .processedWith(butterknifeProcessors())
+        .processedWith(new ButterKnifeProcessor())
         .compilesWithoutError();
   }
 
@@ -46,25 +45,25 @@ public class AllTheThingsTest {
 
   /////////////////////////////////////////////////////////////////////////////////////////////////
 
-  @FindView(10) View findView;
-  @Nullable @FindView(20) View optinalFindView;
+  @BindView(10) View findView;
+  @Nullable @BindView(20) View optinalBindView;
 
-  @FindView(30) TextView findTextView;
-  @Nullable @FindView(40) TextView optinalFIndTextView;
+  @BindView(30) TextView findTextView;
+  @Nullable @BindView(40) TextView optinalFIndTextView;
 
   /////////////////////////////////////////////////////////////////////////////////////////////////
 
-  @FindViews(50) List<View> findViewsListOne;
-  @FindViews({ 60, 70 }) List<View> findViewsListMultiple;
+  @BindViews(50) List<View> findViewsListOne;
+  @BindViews({ 60, 70 }) List<View> findViewsListMultiple;
 
-  @FindViews(80) List<TextView> findTextViewsListOne;
-  @FindViews({ 90, 100 }) List<TextView> findTextViewsListMultiple;
+  @BindViews(80) List<TextView> findTextViewsListOne;
+  @BindViews({ 90, 100 }) List<TextView> findTextViewsListMultiple;
 
-  @FindViews(110) View[] findViewsArrayOne;
-  @FindViews({ 120, 130 }) View[] findViewsArrayMultiple;
+  @BindViews(110) View[] findViewsArrayOne;
+  @BindViews({ 120, 130 }) View[] findViewsArrayMultiple;
 
-  @FindViews(140) TextView[] findTextViewsArrayOne;
-  @FindViews({ 150, 160 }) TextView[] findTextViewsArrayMultiple;
+  @BindViews(140) TextView[] findTextViewsArrayOne;
+  @BindViews({ 150, 160 }) TextView[] findTextViewsArrayMultiple;
 
   /////////////////////////////////////////////////////////////////////////////////////////////////
 

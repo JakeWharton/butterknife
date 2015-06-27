@@ -6,13 +6,12 @@ import org.junit.Test;
 
 import javax.tools.JavaFileObject;
 
-import static butterknife.internal.ProcessorTestUtilities.butterknifeProcessors;
 import static com.google.common.truth.Truth.ASSERT;
 import static com.google.testing.compile.JavaSourceSubjectFactory.javaSource;
 
 /** This augments {@link OnClickTest} with tests that exercise callbacks with parameters. */
 public class OnItemClickTest {
-  @Test public void onClickInjection() {
+  @Test public void onItemClickBinding() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
         "package test;",
         "import android.app.Activity;",
@@ -45,13 +44,13 @@ public class OnItemClickTest {
         ));
 
     ASSERT.about(javaSource()).that(source)
-        .processedWith(butterknifeProcessors())
+        .processedWith(new ButterKnifeProcessor())
         .compilesWithoutError()
         .and()
         .generatesSources(expectedSource);
   }
 
-  @Test public void onClickInjectionWithParameters() {
+  @Test public void onItemClickBindingWithParameters() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
         "package test;",
         "import android.app.Activity;",
@@ -91,13 +90,13 @@ public class OnItemClickTest {
         ));
 
     ASSERT.about(javaSource()).that(source)
-        .processedWith(butterknifeProcessors())
+        .processedWith(new ButterKnifeProcessor())
         .compilesWithoutError()
         .and()
         .generatesSources(expectedSource);
   }
 
-  @Test public void onClickInjectionWithParameterSubset() {
+  @Test public void onItemClickBindingWithParameterSubset() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
         "package test;",
         "import android.app.Activity;",
@@ -135,13 +134,13 @@ public class OnItemClickTest {
         ));
 
     ASSERT.about(javaSource()).that(source)
-        .processedWith(butterknifeProcessors())
+        .processedWith(new ButterKnifeProcessor())
         .compilesWithoutError()
         .and()
         .generatesSources(expectedSource);
   }
 
-  @Test public void onClickInjectionWithParameterSubsetAndGenerics() {
+  @Test public void onItemClickBindingWithParameterSubsetAndGenerics() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
         "package test;",
         "import android.app.Activity;",
@@ -179,13 +178,13 @@ public class OnItemClickTest {
         ));
 
     ASSERT.about(javaSource()).that(source)
-        .processedWith(butterknifeProcessors())
+        .processedWith(new ButterKnifeProcessor())
         .compilesWithoutError()
         .and()
         .generatesSources(expectedSource);
   }
 
-  @Test public void onClickRootViewInjection() {
+  @Test public void onClickRootViewBinding() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
         "package test;",
         "import android.content.Context;",
@@ -226,7 +225,7 @@ public class OnItemClickTest {
         ));
 
     ASSERT.about(javaSource()).that(source)
-        .processedWith(butterknifeProcessors())
+        .processedWith(new ButterKnifeProcessor())
         .compilesWithoutError()
         .and()
         .generatesSources(expectedSource);
@@ -243,7 +242,7 @@ public class OnItemClickTest {
         "}"));
 
     ASSERT.about(javaSource()).that(source)
-        .processedWith(butterknifeProcessors())
+        .processedWith(new ButterKnifeProcessor())
         .failsToCompile()
         .withErrorContaining("@OnItemClick annotation contains invalid ID -1. (test.Test.doStuff)")
         .in(source).onLine(6);
@@ -265,7 +264,7 @@ public class OnItemClickTest {
         "}"));
 
     ASSERT.about(javaSource()).that(source)
-        .processedWith(butterknifeProcessors())
+        .processedWith(new ButterKnifeProcessor())
         .failsToCompile()
         .withErrorContaining(Joiner.on('\n').join(
             "Unable to match @OnItemClick method arguments. (test.Test.doStuff)",
