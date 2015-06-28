@@ -16,6 +16,8 @@ Version 7.0.0 *(2015-06-27)*
    * `@BindInt` binds an `R.int` ID to an `int` field.
    * `@BindString` binds an `R.string` ID to a `String` field.
  * Fix: Missing views will be filtered out from list and array bindings.
+ * Note: If you are using Proguard, the generated class name has changed from being suffixed with `$$ViewInjector`
+   to `$$ViewBinder`.
 
 
 Version 6.1.0 *(2015-01-29)*
