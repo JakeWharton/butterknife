@@ -6,16 +6,16 @@ Butter Knife
 Field and method binding for Android views which uses annotation processing to generate boilerplate
 code for you.
 
- * Eliminate `findViewById` calls by using `@BindView` on fields.
- * Group multiple views in a list using `@BindViews`. Operate on all of them at once with actions,
+ * Eliminate `findViewById` calls by using `@Bind` on fields.
+ * Group multiple views in a list or array. Operate on all of them at once with actions,
    setters, or properties.
  * Eliminate anonymous inner-classes for listeners by annotating methods with `@OnClick` and others.
  * Eliminate resource lookups by using resource annotations on fields.
 
 ```java
 class ExampleActivity extends Activity {
-  @BindView(R.id.user) EditText username;
-  @BindView(R.id.pass) EditText password;
+  @Bind(R.id.user) EditText username;
+  @Bind(R.id.pass) EditText password;
 
   @BindString(R.string.login_error)
   String loginErrorMessage;

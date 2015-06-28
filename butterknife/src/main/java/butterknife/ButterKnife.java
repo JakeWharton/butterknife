@@ -23,8 +23,8 @@ import static butterknife.internal.ButterKnifeProcessor.JAVA_PREFIX;
  * Finding views from your activity is as easy as:
  * <pre><code>
  * public class ExampleActivity extends Activity {
- *   {@literal @}BindView(R.id.title) EditText titleView;
- *   {@literal @}BindView(R.id.subtitle) EditText subtitleView;
+ *   {@literal @}Bind(R.id.title) EditText titleView;
+ *   {@literal @}Bind(R.id.subtitle) EditText subtitleView;
  *
  *   {@literal @}Override protected void onCreate(Bundle savedInstanceState) {
  *     super.onCreate(savedInstanceState);
@@ -41,7 +41,7 @@ import static butterknife.internal.ButterKnifeProcessor.JAVA_PREFIX;
  * <p>
  * Group multiple views together into a {@link List} or array.
  * <pre><code>
- * {@literal @}BindViews({R.id.first_name, R.id.middle_name, R.id.last_name})
+ * {@literal @}Bind({R.id.first_name, R.id.middle_name, R.id.last_name})
  * List<EditText> nameViews;
  * </code></pre>
  * There are three convenience methods for working with view collections:
@@ -68,7 +68,7 @@ import static butterknife.internal.ButterKnifeProcessor.JAVA_PREFIX;
  * If a view is optional add a {@code @Nullable} annotation such as the one in the
  * <a href="http://tools.android.com/tech-docs/support-annotations">support-annotations</a> library.
  * <pre><code>
- * {@literal @}Nullable @BindView(R.id.title) TextView subtitleView;
+ * {@literal @}Nullable @Bind(R.id.title) TextView subtitleView;
  * </code></pre>
  * Resources can also be bound to fields to simplify programmatically working with views:
  * <pre><code>
@@ -300,8 +300,7 @@ public final class ButterKnife {
   }
 
   /**
-   * Reset fields annotated with {@link BindView @BindView} and {@link BindViews @BindViews}
-   * to {@code null}.
+   * Reset fields annotated with {@link Bind @Bind} to {@code null}.
    * <p>
    * This should only be used in the {@code onDestroyView} method of a fragment.
    *

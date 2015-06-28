@@ -6,8 +6,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.CompoundButton;
 import android.widget.TextView;
-import butterknife.BindView;
-import butterknife.BindViews;
+import butterknife.Bind;
 import butterknife.OnCheckedChanged;
 import butterknife.OnClick;
 import butterknife.OnEditorAction;
@@ -45,25 +44,25 @@ public class AllTheThingsTest {
 
   /////////////////////////////////////////////////////////////////////////////////////////////////
 
-  @BindView(10) View findView;
-  @Nullable @BindView(20) View optinalBindView;
+  @Bind(10) View findView;
+  @Nullable @Bind(20) View optinalBind;
 
-  @BindView(30) TextView findTextView;
-  @Nullable @BindView(40) TextView optinalFIndTextView;
+  @Bind(30) TextView findTextView;
+  @Nullable @Bind(40) TextView optinalFIndTextView;
 
   /////////////////////////////////////////////////////////////////////////////////////////////////
 
-  @BindViews(50) List<View> findViewsListOne;
-  @BindViews({ 60, 70 }) List<View> findViewsListMultiple;
+  @Bind(50) List<View> findViewsListOne;
+  @Bind({ 60, 70 }) List<View> findViewsListMultiple;
 
-  @BindViews(80) List<TextView> findTextViewsListOne;
-  @BindViews({ 90, 100 }) List<TextView> findTextViewsListMultiple;
+  @Bind(80) List<TextView> findTextViewsListOne;
+  @Bind({ 90, 100 }) List<TextView> findTextViewsListMultiple;
 
-  @BindViews(110) View[] findViewsArrayOne;
-  @BindViews({ 120, 130 }) View[] findViewsArrayMultiple;
+  @Bind(110) View[] findViewsArrayOne;
+  @Bind({ 120, 130 }) View[] findViewsArrayMultiple;
 
-  @BindViews(140) TextView[] findTextViewsArrayOne;
-  @BindViews({ 150, 160 }) TextView[] findTextViewsArrayMultiple;
+  @Bind(140) TextView[] findTextViewsArrayOne;
+  @Bind({ 150, 160 }) TextView[] findTextViewsArrayMultiple;
 
   /////////////////////////////////////////////////////////////////////////////////////////////////
 

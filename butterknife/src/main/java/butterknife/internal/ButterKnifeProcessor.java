@@ -1,8 +1,13 @@
 package butterknife.internal;
 
 import android.view.View;
-import butterknife.BindView;
-import butterknife.BindViews;
+import butterknife.Bind;
+import butterknife.BindBool;
+import butterknife.BindColor;
+import butterknife.BindDimen;
+import butterknife.BindDrawable;
+import butterknife.BindInt;
+import butterknife.BindString;
 import butterknife.OnCheckedChanged;
 import butterknife.OnClick;
 import butterknife.OnEditorAction;
@@ -14,12 +19,6 @@ import butterknife.OnLongClick;
 import butterknife.OnPageChange;
 import butterknife.OnTextChanged;
 import butterknife.OnTouch;
-import butterknife.BindBool;
-import butterknife.BindColor;
-import butterknife.BindDimen;
-import butterknife.BindDrawable;
-import butterknife.BindInt;
-import butterknife.BindString;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -70,6 +69,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
   private static final String COLOR_STATE_LIST_TYPE = "android.content.res.ColorStateList";
   private static final String DRAWABLE_TYPE = "android.graphics.drawable.Drawable";
   private static final String NULLABLE_ANNOTATION_NAME = "Nullable";
+  private static final String ITERABLE_TYPE = "java.lang.Iterable<?>";
   private static final String LIST_TYPE = List.class.getCanonicalName();
   private static final List<Class<? extends Annotation>> LISTENERS = Arrays.asList(//
       OnCheckedChanged.class, //
@@ -100,8 +100,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
   @Override public Set<String> getSupportedAnnotationTypes() {
     Set<String> types = new LinkedHashSet<String>();
 
-    types.add(BindView.class.getCanonicalName());
-    types.add(BindViews.class.getCanonicalName());
+    types.add(Bind.class.getCanonicalName());
 
     for (Class<? extends Annotation> listener : LISTENERS) {
       types.add(listener.getCanonicalName());
@@ -143,21 +142,12 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     Map<TypeElement, BindingClass> targetClassMap = new LinkedHashMap<TypeElement, BindingClass>();
     Set<String> erasedTargetNames = new LinkedHashSet<String>();
 
-    // Process each @BindView element.
-    for (Element element : env.getElementsAnnotatedWith(BindView.class)) {
+    // Process each @Bind element.
+    for (Element element : env.getElementsAnnotatedWith(Bind.class)) {
       try {
-        parseBindView(element, targetClassMap, erasedTargetNames);
+        parseBind(element, targetClassMap, erasedTargetNames);
       } catch (Exception e) {
-        logParsingError(element, BindView.class, e);
-      }
-    }
-
-    // Process each @BindViews element.
-    for (Element element : env.getElementsAnnotatedWith(BindViews.class)) {
-      try {
-        parseBindViews(element, targetClassMap, erasedTargetNames);
-      } catch (Exception e) {
-        logParsingError(element, BindViews.class, e);
+        logParsingError(element, Bind.class, e);
       }
     }
 
@@ -290,7 +280,29 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     return false;
   }
 
-  private void parseBindView(Element element, Map<TypeElement, BindingClass> targetClassMap,
+  private void parseBind(Element element, Map<TypeElement, BindingClass> targetClassMap,
+      Set<String> erasedTargetNames) {
+    // Verify common generated code restrictions.
+    if (isInaccessibleViaGeneratedCode(Bind.class, "fields", element)
+        || isBindingInWrongPackage(Bind.class, element)) {
+      return;
+    }
+
+    TypeMirror elementType = element.asType();
+    if (elementType.getKind() == TypeKind.ARRAY) {
+      parseBindMany(element, targetClassMap, erasedTargetNames);
+    } else if (LIST_TYPE.equals(doubleErasure(elementType))) {
+      parseBindMany(element, targetClassMap, erasedTargetNames);
+    } else if (isSubtypeOfType(elementType, ITERABLE_TYPE)) {
+      error(element, "@%s must be a List or array. (%s.%s)", Bind.class.getSimpleName(),
+          ((TypeElement) element.getEnclosingElement()).getQualifiedName(),
+          element.getSimpleName());
+    } else {
+      parseBindOne(element, targetClassMap, erasedTargetNames);
+    }
+  }
+
+  private void parseBindOne(Element element, Map<TypeElement, BindingClass> targetClassMap,
       Set<String> erasedTargetNames) {
     boolean hasError = false;
     TypeElement enclosingElement = (TypeElement) element.getEnclosingElement();
@@ -302,19 +314,17 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
       elementType = typeVariable.getUpperBound();
     }
     if (!isSubtypeOfType(elementType, VIEW_TYPE) && !isInterface(elementType)) {
-      error(element, "@BindView fields must extend from View or be an interface. (%s.%s)",
-          enclosingElement.getQualifiedName(), element.getSimpleName());
+      error(element, "@%s fields must extend from View or be an interface. (%s.%s)",
+          Bind.class.getSimpleName(), enclosingElement.getQualifiedName(), element.getSimpleName());
       hasError = true;
     }
 
-    // Verify common generated code restrictions.
-    hasError |= isInaccessibleViaGeneratedCode(BindView.class, "fields", element);
-    hasError |= isBindingInWrongPackage(BindView.class, element);
-
-    // Check for the other field annotation.
-    if (element.getAnnotation(BindViews.class) != null) {
-      error(element, "Only one of @BindView and @BindViews is allowed. (%s.%s)",
-          enclosingElement.getQualifiedName(), element.getSimpleName());
+    // Assemble information on the field.
+    int[] ids = element.getAnnotation(Bind.class).value();
+    if (ids.length != 1) {
+      error(element, "@%s for a view must only specify one ID. Found: %s. (%s.%s)",
+          Bind.class.getSimpleName(), Arrays.toString(ids), enclosingElement.getQualifiedName(),
+          element.getSimpleName());
       hasError = true;
     }
 
@@ -322,9 +332,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
       return;
     }
 
-    // Assemble information on the field.
-    int id = element.getAnnotation(BindView.class).value();
-
+    int id = ids[0];
     BindingClass bindingClass = targetClassMap.get(enclosingElement);
     if (bindingClass != null) {
       ViewBindings viewBindings = bindingClass.getViewBinding(id);
@@ -332,10 +340,9 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
         Iterator<FieldViewBinding> iterator = viewBindings.getFieldBindings().iterator();
         if (iterator.hasNext()) {
           FieldViewBinding existingBinding = iterator.next();
-          error(element,
-              "Attempt to use @BindView for an already bound ID %d on '%s'. (%s.%s)", id,
-              existingBinding.getName(), enclosingElement.getQualifiedName(),
-              element.getSimpleName());
+          error(element, "Attempt to use @%s for an already bound ID %d on '%s'. (%s.%s)",
+              Bind.class.getSimpleName(), id, existingBinding.getName(),
+              enclosingElement.getQualifiedName(), element.getSimpleName());
           return;
         }
       }
@@ -354,7 +361,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     erasedTargetNames.add(enclosingElement.toString());
   }
 
-  private void parseBindViews(Element element, Map<TypeElement, BindingClass> targetClassMap,
+  private void parseBindMany(Element element, Map<TypeElement, BindingClass> targetClassMap,
       Set<String> erasedTargetNames) {
     boolean hasError = false;
     TypeElement enclosingElement = (TypeElement) element.getEnclosingElement();
@@ -372,17 +379,16 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
       DeclaredType declaredType = (DeclaredType) elementType;
       List<? extends TypeMirror> typeArguments = declaredType.getTypeArguments();
       if (typeArguments.size() != 1) {
-        error(element, "@BindViews List must have a generic component. (%s.%s)",
-            enclosingElement.getQualifiedName(), element.getSimpleName());
+        error(element, "@%s List must have a generic component. (%s.%s)",
+            Bind.class.getSimpleName(), enclosingElement.getQualifiedName(),
+            element.getSimpleName());
         hasError = true;
       } else {
         viewType = typeArguments.get(0);
       }
       kind = FieldCollectionViewBinding.Kind.LIST;
     } else {
-      error(element, "@BindViews must be a List or array. (%s.%s)",
-          enclosingElement.getQualifiedName(), element.getSimpleName());
-      hasError = true;
+      throw new AssertionError();
     }
     if (viewType != null && viewType.getKind() == TypeKind.TYPEVAR) {
       TypeVariable typeVariable = (TypeVariable) viewType;
@@ -391,14 +397,10 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
     // Verify that the target type extends from View.
     if (viewType != null && !isSubtypeOfType(viewType, VIEW_TYPE) && !isInterface(viewType)) {
-      error(element, "@BindViews type must extend from View or be an interface. (%s.%s)",
-          enclosingElement.getQualifiedName(), element.getSimpleName());
+      error(element, "@%s List or array type must extend from View or be an interface. (%s.%s)",
+          Bind.class.getSimpleName(), enclosingElement.getQualifiedName(), element.getSimpleName());
       hasError = true;
     }
-
-    // Verify common generated code restrictions.
-    hasError |= isInaccessibleViaGeneratedCode(BindViews.class, "fields", element);
-    hasError |= isBindingInWrongPackage(BindViews.class, element);
 
     if (hasError) {
       return;
@@ -406,17 +408,17 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
     // Assemble information on the field.
     String name = element.getSimpleName().toString();
-    int[] ids = element.getAnnotation(BindViews.class).value();
+    int[] ids = element.getAnnotation(Bind.class).value();
     if (ids.length == 0) {
-      error(element, "@BindViews must specify at least one ID. (%s.%s)",
+      error(element, "@%s must specify at least one ID. (%s.%s)", Bind.class.getSimpleName(),
           enclosingElement.getQualifiedName(), element.getSimpleName());
       return;
     }
 
     Integer duplicateId = findDuplicate(ids);
     if (duplicateId != null) {
-      error(element, "@BindViews annotation contains duplicate ID %d. (%s.%s)", duplicateId,
-          enclosingElement.getQualifiedName(), element.getSimpleName());
+      error(element, "@%s annotation contains duplicate ID %d. (%s.%s)", Bind.class.getSimpleName(),
+          duplicateId, enclosingElement.getQualifiedName(), element.getSimpleName());
     }
 
     assert viewType != null; // Always false as hasError would have been true.
@@ -880,7 +882,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     if (otherType.equals(typeMirror.toString())) {
       return true;
     }
-    if (!(typeMirror instanceof DeclaredType)) {
+    if (typeMirror.getKind() != TypeKind.DECLARED) {
       return false;
     }
     DeclaredType declaredType = (DeclaredType) typeMirror;
