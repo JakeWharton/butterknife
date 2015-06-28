@@ -103,18 +103,18 @@ List&lt;EditText> nameViews;</pre>
             <pre class="prettyprint">ButterKnife.apply(nameViews, DISABLE);
 ButterKnife.apply(nameViews, ENABLED, false);</pre>
             <p><code>Action</code> and <code>Setter</code> interfaces allow specifying simple behavior.</p>
-            <pre class="prettyprint">static final Action&lt;View> DISABLE = new Action&lt;>() {
+            <pre class="prettyprint">static final Action&lt;View> DISABLE = new Action&lt;View>() {
   @Override public void apply(View view, int index) {
     view.setEnabled(false);
   }
-}
-static final Setter&lt;View, Boolean> ENABLED = new Setter&lt;>() {
+};
+static final Setter&lt;View, Boolean> ENABLED = new Setter&lt;View, Boolean>() {
   @Override public void set(View view, Boolean value, int index) {
     view.setEnabled(value);
   }
-}</pre>
+};</pre>
             <p>An Android <a href="https://developer.android.com/reference/android/util/Property.html"><code>Property</code></a> can also be used with the <code>apply</code> method.</p>
-            <pre class="prettyprint">ButterKnife.apply(nameViews, View.ALPHA, 0);</pre>
+            <pre class="prettyprint">ButterKnife.apply(nameViews, View.ALPHA, 0.0f);</pre>
 
             <h4 id="listener-binding">Listener Binding</h4>
             <p>Listeners can also automatically be configured onto methods.</p>
