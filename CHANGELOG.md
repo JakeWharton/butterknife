@@ -1,6 +1,12 @@
 Change Log
 ==========
 
+Version 7.0.1 *(2015-06-30)*
+----------------------------
+
+ * Fix: Correct `ClassCastException` which occurred when `@Nullable` array bindings had missing views.
+
+
 Version 7.0.0 *(2015-06-27)*
 ----------------------------
 
