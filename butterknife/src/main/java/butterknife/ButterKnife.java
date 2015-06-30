@@ -9,6 +9,7 @@ import android.util.Log;
 import android.util.Property;
 import android.view.View;
 import butterknife.internal.ButterKnifeProcessor;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -114,24 +115,14 @@ public final class ButterKnife {
     };
 
     private static <T> T[] filterNull(T[] views) {
-      int newSize = views.length;
-      for (T view : views) {
-        if (view == null) {
-          newSize -= 1;
-        }
-      }
-      if (newSize == views.length) {
-        return views;
-      }
-      //noinspection unchecked
-      T[] newViews = (T[]) new Object[newSize];
-      int nextIndex = 0;
-      for (T view : views) {
+      int end = 0;
+      for (int i = 0; i < views.length; i++) {
+        T view = views[i];
         if (view != null) {
-          newViews[nextIndex++] = view;
+          views[end++] = view;
         }
       }
-      return newViews;
+      return Arrays.copyOfRange(views, 0, end);
     }
 
     public static <T> T[] arrayOf(T... views) {
