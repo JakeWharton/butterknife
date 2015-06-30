@@ -103,12 +103,12 @@ List&lt;EditText> nameViews;</pre>
             <pre class="prettyprint">ButterKnife.apply(nameViews, DISABLE);
 ButterKnife.apply(nameViews, ENABLED, false);</pre>
             <p><code>Action</code> and <code>Setter</code> interfaces allow specifying simple behavior.</p>
-            <pre class="prettyprint">static final Action&lt;View> DISABLE = new Action&lt;View>() {
+            <pre class="prettyprint">static final ButterKnife.Action&lt;View> DISABLE = new ButterKnife.Action&lt;View>() {
   @Override public void apply(View view, int index) {
     view.setEnabled(false);
   }
 };
-static final Setter&lt;View, Boolean> ENABLED = new Setter&lt;View, Boolean>() {
+static final ButterKnife.Setter&lt;View, Boolean> ENABLED = new ButterKnife.Setter&lt;View, Boolean>() {
   @Override public void set(View view, Boolean value, int index) {
     view.setEnabled(value);
   }
@@ -215,7 +215,7 @@ ImageView photo = ButterKnife.findById(view, R.id.photo);</pre>
 
             <h4>Gradle</h4>
             <pre class="prettyprint">compile 'com.jakewharton:butterknife:<span class="version"><em>(insert latest version)</em></span>'</pre>
-            <p>Be sure to supress this lint warning in your <code>build.gradle</code>.</p>
+            <p>Be sure to suppress this lint warning in your <code>build.gradle</code>.</p>
             <pre class="prettyprint">lintOptions {
   disable 'InvalidPackage'
 }</pre>
