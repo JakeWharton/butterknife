@@ -73,9 +73,9 @@ import static butterknife.internal.ButterKnifeProcessor.JAVA_PREFIX;
  * </code></pre>
  * Resources can also be bound to fields to simplify programmatically working with views:
  * <pre><code>
- * {@literal @}ResourceBool(R.bool.is_tablet) boolean isTablet;
- * {@literal @}ResourceInt(R.int.columns) int columns;
- * {@literal @}ResourceColor(R.color.error_red) int errorRed;
+ * {@literal @}BindBool(R.bool.is_tablet) boolean isTablet;
+ * {@literal @}BindInt(R.integer.columns) int columns;
+ * {@literal @}BindColor(R.color.error_red) int errorRed;
  * </code></pre>
  */
 public final class ButterKnife {
