@@ -9,7 +9,7 @@ import static java.lang.annotation.RetentionPolicy.CLASS;
 /**
  * Bind a field to the specified drawable resource ID.
  * <pre><code>
- * {@literal @}ResourceDrawable(R.drawable.placeholder) Drawable placeholder;
+ * {@literal @}BindDrawable(R.drawable.placeholder) Drawable placeholder;
  * </code></pre>
  */
 @Retention(CLASS) @Target(FIELD)

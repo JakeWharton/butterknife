@@ -9,7 +9,7 @@ import static java.lang.annotation.RetentionPolicy.CLASS;
 /**
  * Bind a field to the specified string resource ID.
  * <pre><code>
- * {@literal @}ResourceString(R.string.username_error) String usernameErrorText;
+ * {@literal @}BindString(R.string.username_error) String usernameErrorText;
  * </code></pre>
  */
 @Retention(CLASS) @Target(FIELD)

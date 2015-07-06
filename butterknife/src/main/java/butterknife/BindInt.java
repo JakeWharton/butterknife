@@ -9,7 +9,7 @@ import static java.lang.annotation.RetentionPolicy.CLASS;
 /**
  * Bind a field to the specified integer resource ID.
  * <pre><code>
- * {@literal @}ResourceInt(R.int.columns) int columns;
+ * {@literal @}BindInt(R.int.columns) int columns;
  * </code></pre>
  */
 @Retention(CLASS) @Target(FIELD)

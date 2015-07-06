@@ -9,7 +9,7 @@ import static java.lang.annotation.RetentionPolicy.CLASS;
 /**
  * Bind a field to the specified boolean resource ID.
  * <pre><code>
- * {@literal @}ResourceBool(R.bool.is_tablet) boolean isTablet;
+ * {@literal @}BindBool(R.bool.is_tablet) boolean isTablet;
  * </code></pre>
  */
 @Retention(CLASS) @Target(FIELD)
