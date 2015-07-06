@@ -8,6 +8,7 @@ import butterknife.BindDimen;
 import butterknife.BindDrawable;
 import butterknife.BindInt;
 import butterknife.BindString;
+import butterknife.BindStringArray;
 import butterknife.OnCheckedChanged;
 import butterknife.OnClick;
 import butterknife.OnEditorAction;
@@ -112,6 +113,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     types.add(BindDrawable.class.getCanonicalName());
     types.add(BindInt.class.getCanonicalName());
     types.add(BindString.class.getCanonicalName());
+    types.add(BindStringArray.class.getCanonicalName());
 
     return types;
   }
@@ -207,6 +209,15 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
         parseResourceString(element, targetClassMap, erasedTargetNames);
       } catch (Exception e) {
         logParsingError(element, BindString.class, e);
+      }
+    }
+
+    // Process each @BindStringArray element.
+    for (Element element : env.getElementsAnnotatedWith(BindStringArray.class)) {
+      try {
+        parseResourceStringArray(element, targetClassMap, erasedTargetNames);
+      } catch (Exception e) {
+        logParsingError(element, BindStringArray.class, e);
       }
     }
 
@@ -628,6 +639,38 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
     BindingClass bindingClass = getOrCreateTargetClass(targetClassMap, enclosingElement);
     FieldResourceBinding binding = new FieldResourceBinding(id, name, "getString");
+    bindingClass.addResource(binding);
+
+    erasedTargetNames.add(enclosingElement.toString());
+  }
+
+  private void parseResourceStringArray(Element element,
+      Map<TypeElement, BindingClass> targetClassMap, Set<String> erasedTargetNames) {
+    boolean hasError = false;
+    TypeElement enclosingElement = (TypeElement) element.getEnclosingElement();
+
+    // Verify that the target type is String[].
+    if (!"java.lang.String[]".equals(element.asType().toString())) {
+      error(element, "@%s field type must be 'String[]'. (%s.%s)",
+          BindStringArray.class.getSimpleName(), enclosingElement.getQualifiedName(),
+          element.getSimpleName());
+      hasError = true;
+    }
+
+    // Verify common generated code restrictions.
+    hasError |= isInaccessibleViaGeneratedCode(BindStringArray.class, "fields", element);
+    hasError |= isBindingInWrongPackage(BindStringArray.class, element);
+
+    if (hasError) {
+      return;
+    }
+
+    // Assemble information on the field.
+    String name = element.getSimpleName().toString();
+    int id = element.getAnnotation(BindStringArray.class).value();
+
+    BindingClass bindingClass = getOrCreateTargetClass(targetClassMap, enclosingElement);
+    FieldResourceBinding binding = new FieldResourceBinding(id, name, "getStringArray");
     bindingClass.addResource(binding);
 
     erasedTargetNames.add(enclosingElement.toString());
