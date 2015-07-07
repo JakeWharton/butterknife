@@ -2,13 +2,13 @@ package butterknife.internal;
 
 import android.view.View;
 import butterknife.Bind;
+import butterknife.BindArray;
 import butterknife.BindBool;
 import butterknife.BindColor;
 import butterknife.BindDimen;
 import butterknife.BindDrawable;
 import butterknife.BindInt;
 import butterknife.BindString;
-import butterknife.BindStringArray;
 import butterknife.OnCheckedChanged;
 import butterknife.OnClick;
 import butterknife.OnEditorAction;
@@ -69,6 +69,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
   static final String VIEW_TYPE = "android.view.View";
   private static final String COLOR_STATE_LIST_TYPE = "android.content.res.ColorStateList";
   private static final String DRAWABLE_TYPE = "android.graphics.drawable.Drawable";
+  private static final String TYPED_ARRAY_TYPE = "android.content.res.TypedArray";
   private static final String NULLABLE_ANNOTATION_NAME = "Nullable";
   private static final String ITERABLE_TYPE = "java.lang.Iterable<?>";
   private static final String LIST_TYPE = List.class.getCanonicalName();
@@ -107,13 +108,13 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
       types.add(listener.getCanonicalName());
     }
 
+    types.add(BindArray.class.getCanonicalName());
     types.add(BindBool.class.getCanonicalName());
     types.add(BindColor.class.getCanonicalName());
     types.add(BindDimen.class.getCanonicalName());
     types.add(BindDrawable.class.getCanonicalName());
     types.add(BindInt.class.getCanonicalName());
     types.add(BindString.class.getCanonicalName());
-    types.add(BindStringArray.class.getCanonicalName());
 
     return types;
   }
@@ -156,6 +157,15 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     // Process each annotation that corresponds to a listener.
     for (Class<? extends Annotation> listener : LISTENERS) {
       findAndParseListener(env, listener, targetClassMap, erasedTargetNames);
+    }
+
+    // Process each @BindArray element.
+    for (Element element : env.getElementsAnnotatedWith(BindArray.class)) {
+      try {
+        parseResourceArray(element, targetClassMap, erasedTargetNames);
+      } catch (Exception e) {
+        logParsingError(element, BindArray.class, e);
+      }
     }
 
     // Process each @BindBool element.
@@ -209,15 +219,6 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
         parseResourceString(element, targetClassMap, erasedTargetNames);
       } catch (Exception e) {
         logParsingError(element, BindString.class, e);
-      }
-    }
-
-    // Process each @BindStringArray element.
-    for (Element element : env.getElementsAnnotatedWith(BindStringArray.class)) {
-      try {
-        parseResourceStringArray(element, targetClassMap, erasedTargetNames);
-      } catch (Exception e) {
-        logParsingError(element, BindStringArray.class, e);
       }
     }
 
@@ -644,22 +645,24 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     erasedTargetNames.add(enclosingElement.toString());
   }
 
-  private void parseResourceStringArray(Element element,
-      Map<TypeElement, BindingClass> targetClassMap, Set<String> erasedTargetNames) {
+  private void parseResourceArray(Element element, Map<TypeElement, BindingClass> targetClassMap,
+      Set<String> erasedTargetNames) {
     boolean hasError = false;
     TypeElement enclosingElement = (TypeElement) element.getEnclosingElement();
 
-    // Verify that the target type is String[].
-    if (!"java.lang.String[]".equals(element.asType().toString())) {
-      error(element, "@%s field type must be 'String[]'. (%s.%s)",
-          BindStringArray.class.getSimpleName(), enclosingElement.getQualifiedName(),
+    // Verify that the target type is supported.
+    String methodName = getArrayResourceMethodName(element);
+    if (methodName == null) {
+      error(element,
+          "@%s field type must be one of: String[], int[], CharSequence[], %s. (%s.%s)",
+          BindArray.class.getSimpleName(), TYPED_ARRAY_TYPE, enclosingElement.getQualifiedName(),
           element.getSimpleName());
       hasError = true;
     }
 
     // Verify common generated code restrictions.
-    hasError |= isInaccessibleViaGeneratedCode(BindStringArray.class, "fields", element);
-    hasError |= isBindingInWrongPackage(BindStringArray.class, element);
+    hasError |= isInaccessibleViaGeneratedCode(BindArray.class, "fields", element);
+    hasError |= isBindingInWrongPackage(BindArray.class, element);
 
     if (hasError) {
       return;
@@ -667,13 +670,36 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
     // Assemble information on the field.
     String name = element.getSimpleName().toString();
-    int id = element.getAnnotation(BindStringArray.class).value();
+    int id = element.getAnnotation(BindArray.class).value();
 
     BindingClass bindingClass = getOrCreateTargetClass(targetClassMap, enclosingElement);
-    FieldResourceBinding binding = new FieldResourceBinding(id, name, "getStringArray");
+    FieldResourceBinding binding = new FieldResourceBinding(id, name, methodName);
     bindingClass.addResource(binding);
 
     erasedTargetNames.add(enclosingElement.toString());
+  }
+
+  /**
+   * Returns a method name from the {@link android.content.res.Resources} class for array resource
+   * binding, null if the element type is not supported.
+   */
+  private static String getArrayResourceMethodName(Element element) {
+    TypeMirror typeMirror = element.asType();
+    if (TYPED_ARRAY_TYPE.equals(typeMirror.toString())) {
+      return "obtainTypedArray";
+    }
+    if (TypeKind.ARRAY.equals(typeMirror.getKind())) {
+      ArrayType arrayType = (ArrayType) typeMirror;
+      String componentType = arrayType.getComponentType().toString();
+      if ("java.lang.String".equals(componentType)) {
+        return "getStringArray";
+      } else if ("int".equals(componentType)) {
+        return "getIntArray";
+      } else if ("java.lang.CharSequence".equals(componentType)) {
+        return "getTextArray";
+      }
+    }
+    return null;
   }
 
   /** Returns the first duplicate element inside an array, null if there are no duplicates. */
