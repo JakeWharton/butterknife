@@ -14,7 +14,6 @@ public class BindArrayTest {
         "package test;",
         "import android.app.Activity;",
         "import butterknife.BindArray;",
-        "import android.content.res.TypedArray;",
         "public class Test extends Activity {",
         "  @BindArray(1) String[] one;",
         "}"
@@ -48,7 +47,6 @@ public class BindArrayTest {
         "package test;",
         "import android.app.Activity;",
         "import butterknife.BindArray;",
-        "import android.content.res.TypedArray;",
         "public class Test extends Activity {",
         "  @BindArray(1) int[] one;",
         "}"
@@ -82,7 +80,6 @@ public class BindArrayTest {
         "package test;",
         "import android.app.Activity;",
         "import butterknife.BindArray;",
-        "import android.content.res.TypedArray;",
         "public class Test extends Activity {",
         "  @BindArray(1) CharSequence[] one;",
         "}"
