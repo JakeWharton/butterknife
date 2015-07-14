@@ -431,6 +431,9 @@ final class BindingClass {
     for (FieldCollectionViewBinding fieldCollectionBinding : collectionBindings.keySet()) {
       builder.append("    target.").append(fieldCollectionBinding.getName()).append(" = null;\n");
     }
+    for (FieldBitmapBinding fieldBitmapBinding : bitmapBindings) {
+      builder.append("    target.").append(fieldBitmapBinding.getName()).append(" = null;\n");
+    }
     builder.append("  }\n");
   }
 
