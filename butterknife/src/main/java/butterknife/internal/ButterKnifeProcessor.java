@@ -3,6 +3,7 @@ package butterknife.internal;
 import android.view.View;
 import butterknife.Bind;
 import butterknife.BindArray;
+import butterknife.BindBitmap;
 import butterknife.BindBool;
 import butterknife.BindColor;
 import butterknife.BindDimen;
@@ -68,6 +69,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
   public static final String JAVA_PREFIX = "java.";
   static final String VIEW_TYPE = "android.view.View";
   private static final String COLOR_STATE_LIST_TYPE = "android.content.res.ColorStateList";
+  private static final String BITMAP_TYPE = "android.graphics.Bitmap";
   private static final String DRAWABLE_TYPE = "android.graphics.drawable.Drawable";
   private static final String TYPED_ARRAY_TYPE = "android.content.res.TypedArray";
   private static final String NULLABLE_ANNOTATION_NAME = "Nullable";
@@ -109,6 +111,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     }
 
     types.add(BindArray.class.getCanonicalName());
+    types.add(BindBitmap.class.getCanonicalName());
     types.add(BindBool.class.getCanonicalName());
     types.add(BindColor.class.getCanonicalName());
     types.add(BindDimen.class.getCanonicalName());
@@ -165,6 +168,15 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
         parseResourceArray(element, targetClassMap, erasedTargetNames);
       } catch (Exception e) {
         logParsingError(element, BindArray.class, e);
+      }
+    }
+
+    // Process each @BindBitmap element.
+    for (Element element : env.getElementsAnnotatedWith(BindBitmap.class)) {
+      try {
+        parseResourceBitmap(element, targetClassMap, erasedTargetNames);
+      } catch (Exception e) {
+        logParsingError(element, BindBitmap.class, e);
       }
     }
 
@@ -546,6 +558,38 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     FieldResourceBinding binding = new FieldResourceBinding(id, name,
         isInt ? "getDimensionPixelSize" : "getDimension");
     bindingClass.addResource(binding);
+
+    erasedTargetNames.add(enclosingElement.toString());
+  }
+
+  private void parseResourceBitmap(Element element, Map<TypeElement, BindingClass> targetClassMap,
+      Set<String> erasedTargetNames) {
+    boolean hasError = false;
+    TypeElement enclosingElement = (TypeElement) element.getEnclosingElement();
+
+    // Verify that the target type is Bitmap.
+    if (!BITMAP_TYPE.equals(element.asType().toString())) {
+      error(element, "@%s field type must be 'Bitmap'. (%s.%s)",
+          BindBitmap.class.getSimpleName(), enclosingElement.getQualifiedName(),
+          element.getSimpleName());
+      hasError = true;
+    }
+
+    // Verify common generated code restrictions.
+    hasError |= isInaccessibleViaGeneratedCode(BindBitmap.class, "fields", element);
+    hasError |= isBindingInWrongPackage(BindBitmap.class, element);
+
+    if (hasError) {
+      return;
+    }
+
+    // Assemble information on the field.
+    String name = element.getSimpleName().toString();
+    int id = element.getAnnotation(BindBitmap.class).value();
+
+    BindingClass bindingClass = getOrCreateTargetClass(targetClassMap, enclosingElement);
+    FieldBitmapBinding binding = new FieldBitmapBinding(id, name);
+    bindingClass.addBitmap(binding);
 
     erasedTargetNames.add(enclosingElement.toString());
   }
