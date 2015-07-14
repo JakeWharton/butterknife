@@ -33,6 +33,7 @@ public class BindBitmapTest {
             "    target.one = BitmapFactory.decodeResource(res, 1);",
             "  }",
             "  @Override public void unbind(T target) {",
+            "    target.one = null;",
             "  }",
             "}"
         ));
