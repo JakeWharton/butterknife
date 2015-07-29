@@ -45,10 +45,10 @@ public class AllTheThingsTest {
   /////////////////////////////////////////////////////////////////////////////////////////////////
 
   @Bind(10) View findView;
-  @Nullable @Bind(20) View optinalBind;
+  @Nullable @Bind(20) View optionalBind;
 
   @Bind(30) TextView findTextView;
-  @Nullable @Bind(40) TextView optinalFIndTextView;
+  @Nullable @Bind(40) TextView optionalFIndTextView;
 
   /////////////////////////////////////////////////////////////////////////////////////////////////
 

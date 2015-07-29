@@ -130,7 +130,7 @@ public final class ButterKnife {
     }
 
     public static <T> List<T> listOf(T... views) {
-      return new ImmutableList<T>(filterNull(views));
+      return new ImmutableList<>(filterNull(views));
     }
 
     public <T> T findRequiredView(Object source, int id, String who) {
@@ -215,8 +215,7 @@ public final class ButterKnife {
   private static final String TAG = "ButterKnife";
   private static boolean debug = false;
 
-  static final Map<Class<?>, ViewBinder<Object>> BINDERS =
-      new LinkedHashMap<Class<?>, ViewBinder<Object>>();
+  static final Map<Class<?>, ViewBinder<Object>> BINDERS = new LinkedHashMap<>();
   static final ViewBinder<Object> NOP_VIEW_BINDER = new ViewBinder<Object>() {
     @Override public void bind(Finder finder, Object target, Object source) { }
     @Override public void unbind(Object target) { }
