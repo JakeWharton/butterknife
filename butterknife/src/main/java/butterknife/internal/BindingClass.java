@@ -15,11 +15,10 @@ import java.util.Set;
 import static butterknife.internal.ButterKnifeProcessor.VIEW_TYPE;
 
 final class BindingClass {
-  private final Map<Integer, ViewBindings> viewIdMap = new LinkedHashMap<Integer, ViewBindings>();
-  private final Map<FieldCollectionViewBinding, int[]> collectionBindings =
-      new LinkedHashMap<FieldCollectionViewBinding, int[]>();
-  private final List<FieldBitmapBinding> bitmapBindings = new ArrayList<FieldBitmapBinding>();
-  private final List<FieldResourceBinding> resourceBindings = new ArrayList<FieldResourceBinding>();
+  private final Map<Integer, ViewBindings> viewIdMap = new LinkedHashMap<>();
+  private final Map<FieldCollectionViewBinding, int[]> collectionBindings = new LinkedHashMap<>();
+  private final List<FieldBitmapBinding> bitmapBindings = new ArrayList<>();
+  private final List<FieldResourceBinding> resourceBindings = new ArrayList<>();
   private final String classPackage;
   private final String className;
   private final String targetClass;
@@ -400,7 +399,7 @@ final class BindingClass {
     }
 
     try {
-      List<ListenerMethod> methods = new ArrayList<ListenerMethod>();
+      List<ListenerMethod> methods = new ArrayList<>();
       Class<? extends Enum<?>> callbacks = listener.callbacks();
       for (Enum<?> callbackMethod : callbacks.getEnumConstants()) {
         Field callbackField = callbacks.getField(callbackMethod.name());

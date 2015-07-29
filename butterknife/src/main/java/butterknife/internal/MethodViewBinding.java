@@ -11,7 +11,7 @@ final class MethodViewBinding implements ViewBinding {
 
   MethodViewBinding(String name, List<Parameter> parameters, boolean required) {
     this.name = name;
-    this.parameters = Collections.unmodifiableList(new ArrayList<Parameter>(parameters));
+    this.parameters = Collections.unmodifiableList(new ArrayList<>(parameters));
     this.required = required;
   }
 

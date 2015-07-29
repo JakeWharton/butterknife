@@ -10,10 +10,9 @@ import java.util.Set;
 
 final class ViewBindings {
   private final int id;
-  private final Set<FieldViewBinding> fieldBindings = new LinkedHashSet<FieldViewBinding>();
+  private final Set<FieldViewBinding> fieldBindings = new LinkedHashSet<>();
   private final LinkedHashMap<ListenerClass, Map<ListenerMethod, Set<MethodViewBinding>>>
-      methodBindings = new LinkedHashMap<ListenerClass,
-      Map<ListenerMethod, Set<MethodViewBinding>>>();
+      methodBindings = new LinkedHashMap<>();
 
   ViewBindings(int id) {
     this.id = id;
@@ -41,13 +40,13 @@ final class ViewBindings {
     Map<ListenerMethod, Set<MethodViewBinding>> methods = methodBindings.get(listener);
     Set<MethodViewBinding> set = null;
     if (methods == null) {
-      methods = new LinkedHashMap<ListenerMethod, Set<MethodViewBinding>>();
+      methods = new LinkedHashMap<>();
       methodBindings.put(listener, methods);
     } else {
       set = methods.get(method);
     }
     if (set == null) {
-      set = new LinkedHashSet<MethodViewBinding>();
+      set = new LinkedHashSet<>();
       methods.put(method, set);
     }
     set.add(binding);
@@ -58,7 +57,7 @@ final class ViewBindings {
   }
 
   public List<ViewBinding> getRequiredBindings() {
-    List<ViewBinding> requiredViewBindings = new ArrayList<ViewBinding>();
+    List<ViewBinding> requiredViewBindings = new ArrayList<>();
     for (FieldViewBinding fieldBinding : fieldBindings) {
       if (fieldBinding.isRequired()) {
         requiredViewBindings.add(fieldBinding);

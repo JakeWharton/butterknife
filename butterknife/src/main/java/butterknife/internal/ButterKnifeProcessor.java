@@ -102,7 +102,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
   }
 
   @Override public Set<String> getSupportedAnnotationTypes() {
-    Set<String> types = new LinkedHashSet<String>();
+    Set<String> types = new LinkedHashSet<>();
 
     types.add(Bind.class.getCanonicalName());
 
@@ -145,8 +145,8 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
   }
 
   private Map<TypeElement, BindingClass> findAndParseTargets(RoundEnvironment env) {
-    Map<TypeElement, BindingClass> targetClassMap = new LinkedHashMap<TypeElement, BindingClass>();
-    Set<String> erasedTargetNames = new LinkedHashSet<String>();
+    Map<TypeElement, BindingClass> targetClassMap = new LinkedHashMap<>();
+    Set<String> erasedTargetNames = new LinkedHashSet<>();
 
     // Process each @Bind element.
     for (Element element : env.getElementsAnnotatedWith(Bind.class)) {
@@ -394,7 +394,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     TypeMirror elementType = element.asType();
     String erasedType = doubleErasure(elementType);
     TypeMirror viewType = null;
-    FieldCollectionViewBinding.Kind kind = null;
+    FieldCollectionViewBinding.Kind kind;
     if (elementType.getKind() == TypeKind.ARRAY) {
       ArrayType arrayType = (ArrayType) elementType;
       viewType = arrayType.getComponentType();
@@ -748,7 +748,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
   /** Returns the first duplicate element inside an array, null if there are no duplicates. */
   private static Integer findDuplicate(int[] array) {
-    Set<Integer> seenElements = new LinkedHashSet<Integer>();
+    Set<Integer> seenElements = new LinkedHashSet<>();
 
     for (int element : array) {
       if (!seenElements.add(element)) {
