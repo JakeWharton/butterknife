@@ -21,21 +21,7 @@ import butterknife.OnLongClick;
 import butterknife.OnPageChange;
 import butterknife.OnTextChanged;
 import butterknife.OnTouch;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.io.Writer;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.BitSet;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.Filer;
 import javax.annotation.processing.ProcessingEnvironment;
@@ -55,7 +41,25 @@ import javax.lang.model.type.TypeVariable;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 import javax.tools.JavaFileObject;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.io.Writer;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.BitSet;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
+import static butterknife.internal.InternalKeys.ANDROID_PREFIX;
+import static butterknife.internal.InternalKeys.BINDING_CLASS_SUFFIX;
+import static butterknife.internal.InternalKeys.JAVA_PREFIX;
 import static javax.lang.model.element.ElementKind.CLASS;
 import static javax.lang.model.element.ElementKind.INTERFACE;
 import static javax.lang.model.element.ElementKind.METHOD;
@@ -64,9 +68,6 @@ import static javax.lang.model.element.Modifier.STATIC;
 import static javax.tools.Diagnostic.Kind.ERROR;
 
 public final class ButterKnifeProcessor extends AbstractProcessor {
-  public static final String SUFFIX = "$$ViewBinder";
-  public static final String ANDROID_PREFIX = "android.";
-  public static final String JAVA_PREFIX = "java.";
   static final String VIEW_TYPE = "android.view.View";
   private static final String COLOR_STATE_LIST_TYPE = "android.content.res.ColorStateList";
   private static final String BITMAP_TYPE = "android.graphics.Bitmap";
@@ -238,7 +239,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     for (Map.Entry<TypeElement, BindingClass> entry : targetClassMap.entrySet()) {
       String parentClassFqcn = findParentFqcn(entry.getKey(), erasedTargetNames);
       if (parentClassFqcn != null) {
-        entry.getValue().setParentViewBinder(parentClassFqcn + SUFFIX);
+        entry.getValue().setParentViewBinder(parentClassFqcn + BINDING_CLASS_SUFFIX);
       }
     }
 
@@ -843,7 +844,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
               && !isInterface(enclosingElement.asType())) {
             error(element, "@%s annotation without an ID may only be used with an object of type "
                     + "\"%s\" or an interface. (%s.%s)",
-                    annotationClass.getSimpleName(), targetType,
+                annotationClass.getSimpleName(), targetType,
                 enclosingElement.getQualifiedName(), element.getSimpleName());
             hasError = true;
           }
@@ -985,10 +986,8 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
   }
 
   private boolean isInterface(TypeMirror typeMirror) {
-    if (!(typeMirror instanceof DeclaredType)) {
-      return false;
-    }
-    return ((DeclaredType) typeMirror).asElement().getKind() == INTERFACE;
+    return typeMirror instanceof DeclaredType
+        && ((DeclaredType) typeMirror).asElement().getKind() == INTERFACE;
   }
 
   private boolean isSubtypeOfType(TypeMirror typeMirror, String otherType) {
@@ -1037,7 +1036,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     if (bindingClass == null) {
       String targetType = enclosingElement.getQualifiedName().toString();
       String classPackage = getPackageName(enclosingElement);
-      String className = getClassName(enclosingElement, classPackage) + SUFFIX;
+      String className = getClassName(enclosingElement, classPackage) + BINDING_CLASS_SUFFIX;
 
       bindingClass = new BindingClass(classPackage, className, targetType);
       targetClassMap.put(enclosingElement, bindingClass);

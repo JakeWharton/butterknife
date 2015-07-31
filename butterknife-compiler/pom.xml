@@ -9,10 +9,16 @@
     <version>7.0.2-SNAPSHOT</version>
   </parent>
 
-  <artifactId>butterknife</artifactId>
-  <name>Butter Knife</name>
+  <artifactId>butterknife-compiler</artifactId>
+  <name>Butter Knife Compiler</name>
 
   <dependencies>
+    <dependency>
+      <groupId>com.jakewharton</groupId>
+      <artifactId>butterknife</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
@@ -33,6 +39,11 @@
       <artifactId>robolectric</artifactId>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>com.google.testing.compile</groupId>
+      <artifactId>compile-testing</artifactId>
+      <scope>test</scope>
+    </dependency>
 
     <dependency>
       <groupId>com.google.android</groupId>
@@ -45,9 +56,9 @@
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-javadoc-plugin</artifactId>
+        <artifactId>maven-compiler-plugin</artifactId>
         <configuration>
-          <excludePackageNames>butterknife.internal:butterknife.internal.*</excludePackageNames>
+          <compilerArgument>-proc:none</compilerArgument>
         </configuration>
       </plugin>
     </plugins>

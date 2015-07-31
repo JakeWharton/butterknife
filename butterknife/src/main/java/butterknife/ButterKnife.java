@@ -8,14 +8,15 @@ import android.os.Build;
 import android.util.Log;
 import android.util.Property;
 import android.view.View;
-import butterknife.internal.ButterKnifeProcessor;
+
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import static butterknife.internal.ButterKnifeProcessor.ANDROID_PREFIX;
-import static butterknife.internal.ButterKnifeProcessor.JAVA_PREFIX;
+import static butterknife.internal.InternalKeys.ANDROID_PREFIX;
+import static butterknife.internal.InternalKeys.BINDING_CLASS_SUFFIX;
+import static butterknife.internal.InternalKeys.JAVA_PREFIX;
 
 /**
  * Field and method binding for Android views. Use this class to simplify finding views and
@@ -335,7 +336,7 @@ public final class ButterKnife {
       return NOP_VIEW_BINDER;
     }
     try {
-      Class<?> viewBindingClass = Class.forName(clsName + ButterKnifeProcessor.SUFFIX);
+      Class<?> viewBindingClass = Class.forName(clsName + BINDING_CLASS_SUFFIX);
       //noinspection unchecked
       viewBinder = (ViewBinder<Object>) viewBindingClass.newInstance();
       if (debug) Log.d(TAG, "HIT: Loaded view binder class.");

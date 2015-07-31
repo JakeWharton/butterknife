@@ -1,6 +1,7 @@
 package butterknife.internal;
 
 import android.view.View;
+
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
