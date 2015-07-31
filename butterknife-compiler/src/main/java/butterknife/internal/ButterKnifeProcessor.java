@@ -1,15 +1,43 @@
 package butterknife.internal;
 
 import android.view.View;
-import butterknife.*;
+import butterknife.Bind;
+import butterknife.BindArray;
+import butterknife.BindBitmap;
+import butterknife.BindBool;
+import butterknife.BindColor;
+import butterknife.BindDimen;
+import butterknife.BindDrawable;
+import butterknife.BindInt;
+import butterknife.BindString;
+import butterknife.OnCheckedChanged;
+import butterknife.OnClick;
+import butterknife.OnEditorAction;
+import butterknife.OnFocusChange;
+import butterknife.OnItemClick;
+import butterknife.OnItemLongClick;
+import butterknife.OnItemSelected;
+import butterknife.OnLongClick;
+import butterknife.OnPageChange;
+import butterknife.OnTextChanged;
+import butterknife.OnTouch;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.Filer;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.SourceVersion;
-import javax.lang.model.element.*;
-import javax.lang.model.type.*;
+import javax.lang.model.element.AnnotationMirror;
+import javax.lang.model.element.Element;
+import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.Modifier;
+import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.VariableElement;
+import javax.lang.model.type.ArrayType;
+import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.TypeKind;
+import javax.lang.model.type.TypeMirror;
+import javax.lang.model.type.TypeVariable;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 import javax.tools.JavaFileObject;
@@ -20,10 +48,21 @@ import java.io.Writer;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.Arrays;
+import java.util.BitSet;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-import static butterknife.internal.InternalKeys.*;
-import static javax.lang.model.element.ElementKind.*;
+import static butterknife.internal.InternalKeys.ANDROID_PREFIX;
+import static butterknife.internal.InternalKeys.BINDING_CLASS_SUFFIX;
+import static butterknife.internal.InternalKeys.JAVA_PREFIX;
+import static javax.lang.model.element.ElementKind.CLASS;
+import static javax.lang.model.element.ElementKind.INTERFACE;
+import static javax.lang.model.element.ElementKind.METHOD;
 import static javax.lang.model.element.Modifier.PRIVATE;
 import static javax.lang.model.element.Modifier.STATIC;
 import static javax.tools.Diagnostic.Kind.ERROR;
@@ -805,7 +844,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
               && !isInterface(enclosingElement.asType())) {
             error(element, "@%s annotation without an ID may only be used with an object of type "
                     + "\"%s\" or an interface. (%s.%s)",
-                    annotationClass.getSimpleName(), targetType,
+                annotationClass.getSimpleName(), targetType,
                 enclosingElement.getQualifiedName(), element.getSimpleName());
             hasError = true;
           }
@@ -947,10 +986,8 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
   }
 
   private boolean isInterface(TypeMirror typeMirror) {
-    if (!(typeMirror instanceof DeclaredType)) {
-      return false;
-    }
-    return ((DeclaredType) typeMirror).asElement().getKind() == INTERFACE;
+    return typeMirror instanceof DeclaredType
+        && ((DeclaredType) typeMirror).asElement().getKind() == INTERFACE;
   }
 
   private boolean isSubtypeOfType(TypeMirror typeMirror, String otherType) {
