@@ -8,25 +8,24 @@ import android.os.Build;
 import android.util.Log;
 import android.util.Property;
 import android.view.View;
-import butterknife.internal.ButterKnifeProcessor;
+
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import static butterknife.internal.ButterKnifeProcessor.ANDROID_PREFIX;
-import static butterknife.internal.ButterKnifeProcessor.JAVA_PREFIX;
+import static butterknife.internal.InternalKeys.*;
 
 /**
  * Field and method binding for Android views. Use this class to simplify finding views and
  * attaching listeners by binding them with annotations.
- * <p>
+ * <p/>
  * Finding views from your activity is as easy as:
  * <pre><code>
  * public class ExampleActivity extends Activity {
  *   {@literal @}Bind(R.id.title) EditText titleView;
  *   {@literal @}Bind(R.id.subtitle) EditText subtitleView;
- *
+ * <p/>
  *   {@literal @}Override protected void onCreate(Bundle savedInstanceState) {
  *     super.onCreate(savedInstanceState);
  *     setContentView(R.layout.example_activity);
@@ -39,7 +38,7 @@ import static butterknife.internal.ButterKnifeProcessor.JAVA_PREFIX;
  * bind can be specified along with an {@linkplain #bind(Object, Activity) activity},
  * {@linkplain #bind(Object, View) view}, or
  * {@linkplain #bind(Object, android.app.Dialog) dialog}.
- * <p>
+ * <p/>
  * Group multiple views together into a {@link List} or array.
  * <pre><code>
  * {@literal @}Bind({R.id.first_name, R.id.middle_name, R.id.last_name})
@@ -51,7 +50,7 @@ import static butterknife.internal.ButterKnifeProcessor.JAVA_PREFIX;
  * <li>{@link #apply(List, Setter, Object)} &ndash; Applies a setter value to each view.</li>
  * <li>{@link #apply(List, Property, Object)} &ndash; Applies a property value to each view.</li>
  * </ul>
- * <p>
+ * <p/>
  * To bind listeners to your views you can annotate your methods:
  * <pre><code>
  * {@literal @}OnClick(R.id.submit) void onSubmit() {
@@ -64,7 +63,7 @@ import static butterknife.internal.ButterKnifeProcessor.JAVA_PREFIX;
  *   // React to tweet click.
  * }
  * </code></pre>
- * <p>
+ * <p/>
  * Be default, views are required to be present in the layout for both field and method bindings.
  * If a view is optional add a {@code @Nullable} annotation such as the one in the
  * <a href="http://tools.android.com/tech-docs/support-annotations">support-annotations</a> library.
@@ -291,7 +290,7 @@ public final class ButterKnife {
 
   /**
    * Reset fields annotated with {@link Bind @Bind} to {@code null}.
-   * <p>
+   * <p/>
    * This should only be used in the {@code onDestroyView} method of a fragment.
    *
    * @param target Target class for field unbind.
@@ -335,7 +334,7 @@ public final class ButterKnife {
       return NOP_VIEW_BINDER;
     }
     try {
-      Class<?> viewBindingClass = Class.forName(clsName + ButterKnifeProcessor.SUFFIX);
+      Class<?> viewBindingClass = Class.forName(clsName + BINDING_CLASS_SUFFIX);
       //noinspection unchecked
       viewBinder = (ViewBinder<Object>) viewBindingClass.newInstance();
       if (debug) Log.d(TAG, "HIT: Loaded view binder class.");
@@ -374,19 +373,19 @@ public final class ButterKnife {
   }
 
   /** Simpler version of {@link View#findViewById(int)} which infers the target type. */
-  @SuppressWarnings({ "unchecked", "UnusedDeclaration" }) // Checked by runtime cast. Public API.
+  @SuppressWarnings({"unchecked", "UnusedDeclaration"}) // Checked by runtime cast. Public API.
   public static <T extends View> T findById(View view, int id) {
     return (T) view.findViewById(id);
   }
 
   /** Simpler version of {@link Activity#findViewById(int)} which infers the target type. */
-  @SuppressWarnings({ "unchecked", "UnusedDeclaration" }) // Checked by runtime cast. Public API.
+  @SuppressWarnings({"unchecked", "UnusedDeclaration"}) // Checked by runtime cast. Public API.
   public static <T extends View> T findById(Activity activity, int id) {
     return (T) activity.findViewById(id);
   }
 
   /** Simpler version of {@link Dialog#findViewById(int)} which infers the target type. */
-  @SuppressWarnings({ "unchecked", "UnusedDeclaration" }) // Checked by runtime cast. Public API.
+  @SuppressWarnings({"unchecked", "UnusedDeclaration"}) // Checked by runtime cast. Public API.
   public static <T extends View> T findById(Dialog dialog, int id) {
     return (T) dialog.findViewById(id);
   }
