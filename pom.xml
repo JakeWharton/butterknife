@@ -21,6 +21,7 @@
 
   <modules>
     <module>butterknife</module>
+    <module>butterknife-compiler</module>
     <module>butterknife-sample</module>
   </modules>
 
