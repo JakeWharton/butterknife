@@ -371,7 +371,7 @@ public final class ButterKnife {
    */
   @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
   public static <T extends View, V> void apply(List<T> list, Property<? super T, V> setter,
-                                               V value) {
+      V value) {
     //noinspection ForLoopReplaceableByForEach
     for (int i = 0, count = list.size(); i < count; i++) {
       setter.set(list.get(i), value);
@@ -379,19 +379,19 @@ public final class ButterKnife {
   }
 
   /** Simpler version of {@link View#findViewById(int)} which infers the target type. */
-  @SuppressWarnings({"unchecked", "UnusedDeclaration" }) // Checked by runtime cast. Public API.
+  @SuppressWarnings({ "unchecked", "UnusedDeclaration" }) // Checked by runtime cast. Public API.
   public static <T extends View> T findById(View view, int id) {
     return (T) view.findViewById(id);
   }
 
   /** Simpler version of {@link Activity#findViewById(int)} which infers the target type. */
-  @SuppressWarnings({"unchecked", "UnusedDeclaration" }) // Checked by runtime cast. Public API.
+  @SuppressWarnings({ "unchecked", "UnusedDeclaration" }) // Checked by runtime cast. Public API.
   public static <T extends View> T findById(Activity activity, int id) {
     return (T) activity.findViewById(id);
   }
 
   /** Simpler version of {@link Dialog#findViewById(int)} which infers the target type. */
-  @SuppressWarnings({"unchecked", "UnusedDeclaration" }) // Checked by runtime cast. Public API.
+  @SuppressWarnings({ "unchecked", "UnusedDeclaration" }) // Checked by runtime cast. Public API.
   public static <T extends View> T findById(Dialog dialog, int id) {
     return (T) dialog.findViewById(id);
   }
