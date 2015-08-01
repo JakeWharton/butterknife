@@ -21,13 +21,12 @@ import static butterknife.internal.InternalKeys.JAVA_PREFIX;
 /**
  * Field and method binding for Android views. Use this class to simplify finding views and
  * attaching listeners by binding them with annotations.
- * <p/>
+ * <p>
  * Finding views from your activity is as easy as:
  * <pre><code>
  * public class ExampleActivity extends Activity {
  *   {@literal @}Bind(R.id.title) EditText titleView;
  *   {@literal @}Bind(R.id.subtitle) EditText subtitleView;
- * <p/>
  *   {@literal @}Override protected void onCreate(Bundle savedInstanceState) {
  *     super.onCreate(savedInstanceState);
  *     setContentView(R.layout.example_activity);
@@ -40,7 +39,7 @@ import static butterknife.internal.InternalKeys.JAVA_PREFIX;
  * bind can be specified along with an {@linkplain #bind(Object, Activity) activity},
  * {@linkplain #bind(Object, View) view}, or
  * {@linkplain #bind(Object, android.app.Dialog) dialog}.
- * <p/>
+ * <p>
  * Group multiple views together into a {@link List} or array.
  * <pre><code>
  * {@literal @}Bind({R.id.first_name, R.id.middle_name, R.id.last_name})
@@ -52,7 +51,7 @@ import static butterknife.internal.InternalKeys.JAVA_PREFIX;
  * <li>{@link #apply(List, Setter, Object)} &ndash; Applies a setter value to each view.</li>
  * <li>{@link #apply(List, Property, Object)} &ndash; Applies a property value to each view.</li>
  * </ul>
- * <p/>
+ * <p>
  * To bind listeners to your views you can annotate your methods:
  * <pre><code>
  * {@literal @}OnClick(R.id.submit) void onSubmit() {
@@ -65,7 +64,7 @@ import static butterknife.internal.InternalKeys.JAVA_PREFIX;
  *   // React to tweet click.
  * }
  * </code></pre>
- * <p/>
+ * <p>
  * Be default, views are required to be present in the layout for both field and method bindings.
  * If a view is optional add a {@code @Nullable} annotation such as the one in the
  * <a href="http://tools.android.com/tech-docs/support-annotations">support-annotations</a> library.
@@ -198,7 +197,6 @@ public final class ButterKnife {
   /** DO NOT USE: Exposed for generated code. */
   public interface ViewBinder<T> {
     void bind(Finder finder, T target, Object source);
-
     void unbind(T target);
   }
 
@@ -219,11 +217,8 @@ public final class ButterKnife {
 
   static final Map<Class<?>, ViewBinder<Object>> BINDERS = new LinkedHashMap<>();
   static final ViewBinder<Object> NOP_VIEW_BINDER = new ViewBinder<Object>() {
-    @Override public void bind(Finder finder, Object target, Object source) {
-    }
-
-    @Override public void unbind(Object target) {
-    }
+    @Override public void bind(Finder finder, Object target, Object source) { }
+    @Override public void unbind(Object target) { }
   };
 
   /** Control whether debug logging is enabled. */
@@ -296,7 +291,7 @@ public final class ButterKnife {
 
   /**
    * Reset fields annotated with {@link Bind @Bind} to {@code null}.
-   * <p/>
+   * <p>
    * This should only be used in the {@code onDestroyView} method of a fragment.
    *
    * @param target Target class for field unbind.
