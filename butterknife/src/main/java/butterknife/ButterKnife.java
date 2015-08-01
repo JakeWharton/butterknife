@@ -27,6 +27,7 @@ import static butterknife.internal.InternalKeys.JAVA_PREFIX;
  * public class ExampleActivity extends Activity {
  *   {@literal @}Bind(R.id.title) EditText titleView;
  *   {@literal @}Bind(R.id.subtitle) EditText subtitleView;
+ *
  *   {@literal @}Override protected void onCreate(Bundle savedInstanceState) {
  *     super.onCreate(savedInstanceState);
  *     setContentView(R.layout.example_activity);
