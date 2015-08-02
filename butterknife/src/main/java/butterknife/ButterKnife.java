@@ -95,6 +95,15 @@ public final class ButterKnife {
       @Override public Context getContext(Object source) {
         return ((View) source).getContext();
       }
+
+      @Override protected String getResourceEntryName(Object source, int id) {
+        final View view = (View) source;
+        // In edit mode, getResourceEntryName() is unsupported due to use of BridgeResources
+        if (view.isInEditMode()) {
+          return "<unavailable while editing>";
+        }
+        return super.getResourceEntryName(source, id);
+      }
     },
     ACTIVITY {
       @Override protected View findView(Object source, int id) {
@@ -137,7 +146,7 @@ public final class ButterKnife {
     public <T> T findRequiredView(Object source, int id, String who) {
       T view = findOptionalView(source, id, who);
       if (view == null) {
-        String name = getContext(source).getResources().getResourceEntryName(id);
+        String name = getResourceEntryName(source, id);
         throw new IllegalStateException("Required view '"
             + name
             + "' with ID "
@@ -162,7 +171,7 @@ public final class ButterKnife {
         if (who == null) {
           throw new AssertionError();
         }
-        String name = view.getResources().getResourceEntryName(id);
+        String name = getResourceEntryName(view, id);
         throw new IllegalStateException("View '"
             + name
             + "' with ID "
@@ -188,6 +197,10 @@ public final class ButterKnife {
             + to
             + "'. See cause for more info.", e);
       }
+    }
+
+    protected String getResourceEntryName(Object source, int id) {
+      return getContext(source).getResources().getResourceEntryName(id);
     }
 
     protected abstract View findView(Object source, int id);
