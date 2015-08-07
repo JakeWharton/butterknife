@@ -1,0 +1,60 @@
+subprojects { project ->
+
+  repositories {
+    mavenCentral()
+  }
+
+  apply plugin: 'checkstyle'
+
+  task checkstyle(type: Checkstyle) {
+    configFile rootProject.file('checkstyle.xml')
+    source 'src/main/java'
+    ignoreFailures false
+    showViolations true
+    include '**/*.java'
+
+    classpath = files()
+  }
+
+  afterEvaluate {
+    if (project.tasks.findByName('check')) {
+      check.dependsOn('checkstyle')
+    }
+  }
+
+  buildscript {
+    repositories {
+      mavenCentral()
+    }
+    dependencies {
+      classpath 'com.android.tools.build:gradle:1.3.1'
+      classpath 'com.neenbedankt.gradle.plugins:android-apt:1.8'
+    }
+  }
+}
+
+ext {
+  minSdkVersion = 15
+  targetSdkVersion = 23
+  compileSdkVersion = 23
+  buildToolsVersion = '23.0.1'
+  sourceCompatibilityVersion = JavaVersion.VERSION_1_7
+  targetCompatibilityVersion = JavaVersion.VERSION_1_7
+}
+
+ext.deps = [
+    // Android
+    android: 'com.google.android:android:4.1.1.4',
+    
+    // Square
+    javapoet: 'com.squareup:javapoet:1.2.0',
+
+    // Test dependencies
+    junit: 'junit:junit:4.11',
+    festassert: 'org.easytesting:fest-assert-core:2.0M10',
+    festandroid: 'com.squareup:fest-android:1.0.7',
+    mockitocore: 'org.mockito:mockito-core:1.9.5',
+    robolectric: 'org.robolectric:robolectric:2.2',
+    compiletesting: 'com.google.testing.compile:compile-testing:0.6',
+    autoservice: 'com.google.auto.service:auto-service:1.0-rc2'
+]

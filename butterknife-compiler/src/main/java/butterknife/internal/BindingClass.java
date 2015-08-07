@@ -2,7 +2,6 @@ package butterknife.internal;
 
 import android.content.res.Resources;
 import android.graphics.BitmapFactory;
-import android.view.View;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.JavaFile;
@@ -31,6 +30,8 @@ final class BindingClass {
   private static final ClassName FINDER = ClassName.get("butterknife", "ButterKnife", "Finder");
   private static final ClassName VIEW_BINDER =
       ClassName.get("butterknife", "ButterKnife", "ViewBinder");
+  private static final ClassName VIEW = ClassName.get("android.view", "View");
+  private static final int NO_ID = -1;
 
   private final Map<Integer, ViewBindings> viewIdMap = new LinkedHashMap<>();
   private final Map<FieldCollectionViewBinding, int[]> collectionBindings = new LinkedHashMap<>();
@@ -126,7 +127,7 @@ final class BindingClass {
 
     if (!viewIdMap.isEmpty() || !collectionBindings.isEmpty()) {
       // Local variable in which all views will be temporarily stored.
-      result.addStatement("$T view", View.class);
+      result.addStatement("$T view", VIEW);
 
       // Loop over each view bindings and emit it.
       for (ViewBindings bindings : viewIdMap.values()) {
@@ -193,7 +194,7 @@ final class BindingClass {
     if (requiredViewBindings.isEmpty()) {
       result.addStatement("view = finder.findOptionalView(source, $L, null)", bindings.getId());
     } else {
-      if (bindings.getId() == View.NO_ID) {
+      if (bindings.getId() == NO_ID) {
         result.addStatement("view = target", bindings.getId());
       } else {
         result.addStatement("view = finder.findRequiredView(source, $L, $S)", bindings.getId(),

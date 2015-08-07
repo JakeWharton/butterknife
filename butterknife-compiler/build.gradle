@@ -1,0 +1,24 @@
+apply plugin: 'java'
+apply plugin: 'checkstyle'
+
+dependencies {
+  compile project(':butterknife-annotations')
+  compile deps.autoservice
+  compile deps.javapoet
+
+  testCompile deps.festandroid
+  testCompile deps.festassert
+  testCompile deps.junit
+  testCompile deps.robolectric
+  testCompile deps.compiletesting
+  testCompile files(org.gradle.internal.jvm.Jvm.current().getToolsJar())
+}
+
+checkstyle {
+  configFile rootProject.file('checkstyle.xml')
+  showViolations true
+  //Remove this when tests are less verbose, i.e. using JavaPoet
+  sourceSets = [sourceSets.main]
+}
+
+apply from: rootProject.file('gradle/gradle-mvn-push.gradle')

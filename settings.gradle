@@ -1,0 +1,6 @@
+include ':butterknife'
+include ':butterknife-annotations'
+include ':butterknife-compiler'
+include ':butterknife-sample'
+
+rootProject.name = 'butterknife-parent'
