@@ -2,7 +2,7 @@ package butterknife.internal;
 
 import org.junit.Test;
 
-import static butterknife.internal.BindingClass.emitHumanDescription;
+import static butterknife.internal.BindingClass.asHumanDescription;
 import static java.util.Arrays.asList;
 import static org.fest.assertions.api.Assertions.assertThat;
 
@@ -12,17 +12,14 @@ public class ViewBindingClassTest {
     ViewBinding two = new TestViewBinding("two");
     ViewBinding three = new TestViewBinding("three");
 
-    StringBuilder builder1 = new StringBuilder();
-    emitHumanDescription(builder1, asList(one));
-    assertThat(builder1.toString()).isEqualTo("one");
+    String result1 = asHumanDescription(asList(one));
+    assertThat(result1).isEqualTo("one");
 
-    StringBuilder builder2 = new StringBuilder();
-    emitHumanDescription(builder2, asList(one, two));
-    assertThat(builder2.toString()).isEqualTo("one and two");
+    String result2 = asHumanDescription(asList(one, two));
+    assertThat(result2).isEqualTo("one and two");
 
-    StringBuilder builder3 = new StringBuilder();
-    emitHumanDescription(builder3, asList(one, two, three));
-    assertThat(builder3.toString()).isEqualTo("one, two, and three");
+    String result3 = asHumanDescription(asList(one, two, three));
+    assertThat(result3).isEqualTo("one, two, and three");
   }
 
   private static class TestViewBinding implements ViewBinding {

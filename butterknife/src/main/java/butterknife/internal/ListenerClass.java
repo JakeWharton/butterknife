@@ -16,9 +16,6 @@ public @interface ListenerClass {
   /** Fully-qualified class name of the listener type. */
   String type();
 
-  /** The number of generic arguments for the type. This used used for casting the view. */
-  int genericArguments() default 0;
-
   /** Enum which declares the listener callback methods. Mutually exclusive to {@link #method()}. */
   Class<? extends Enum<?>> callbacks() default NONE.class;
 

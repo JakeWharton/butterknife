@@ -1,7 +1,18 @@
 package butterknife.internal;
 
+import android.content.res.Resources;
+import android.graphics.BitmapFactory;
 import android.view.View;
-
+import butterknife.ButterKnife;
+import com.squareup.javapoet.ClassName;
+import com.squareup.javapoet.CodeBlock;
+import com.squareup.javapoet.JavaFile;
+import com.squareup.javapoet.MethodSpec;
+import com.squareup.javapoet.ParameterizedTypeName;
+import com.squareup.javapoet.TypeName;
+import com.squareup.javapoet.TypeSpec;
+import com.squareup.javapoet.TypeVariableName;
+import com.squareup.javapoet.WildcardTypeName;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -14,6 +25,8 @@ import java.util.Map;
 import java.util.Set;
 
 import static butterknife.internal.ButterKnifeProcessor.VIEW_TYPE;
+import static javax.lang.model.element.Modifier.FINAL;
+import static javax.lang.model.element.Modifier.PUBLIC;
 
 final class BindingClass {
   private final Map<Integer, ViewBindings> viewIdMap = new LinkedHashMap<>();
@@ -79,191 +92,145 @@ final class BindingClass {
     return classPackage + "." + className;
   }
 
-  String brewJava() {
-    StringBuilder builder = new StringBuilder();
-    builder.append("// Generated code from Butter Knife. Do not modify!\n");
-    builder.append("package ").append(classPackage).append(";\n\n");
-
-    if (requiresResources()) {
-      builder.append("import android.content.res.Resources;\n");
-      if (!bitmapBindings.isEmpty()) {
-        builder.append("import android.graphics.BitmapFactory;\n");
-      }
-    }
-    if (!viewIdMap.isEmpty() || !collectionBindings.isEmpty()) {
-      builder.append("import android.view.View;\n");
-    }
-    builder.append("import butterknife.ButterKnife.Finder;\n");
-    if (parentViewBinder == null) {
-      builder.append("import butterknife.ButterKnife.ViewBinder;\n");
-    }
-    builder.append('\n');
-
-    builder.append("public class ").append(className);
-    builder.append("<T extends ").append(targetClass).append(">");
+  JavaFile brewJava() {
+    TypeSpec.Builder result = TypeSpec.classBuilder(className)
+        .addModifiers(PUBLIC)
+        .addTypeVariable(TypeVariableName.get("T", ClassName.bestGuess(targetClass)));
 
     if (parentViewBinder != null) {
-      builder.append(" extends ").append(parentViewBinder).append("<T>");
+      result.superclass(ParameterizedTypeName.get(ClassName.bestGuess(parentViewBinder),
+          TypeVariableName.get("T")));
     } else {
-      builder.append(" implements ViewBinder<T>");
+      result.addSuperinterface(
+          ParameterizedTypeName.get(ClassName.get(ButterKnife.ViewBinder.class),
+              TypeVariableName.get("T")));
     }
-    builder.append(" {\n");
 
-    emitBindMethod(builder);
-    builder.append('\n');
-    emitUnbindMethod(builder);
+    result.addMethod(createBindMethod());
+    result.addMethod(createUnbindMethod());
 
-    builder.append("}\n");
-    return builder.toString();
+    return JavaFile.builder(classPackage, result.build())
+        .addFileComment("Generated code from Butter Knife. Do not modify!")
+        .build();
   }
 
-  private void emitBindMethod(StringBuilder builder) {
-    builder.append("  @Override ")
-        .append("public void bind(final Finder finder, final T target, Object source) {\n");
+  private MethodSpec createBindMethod() {
+    MethodSpec.Builder result = MethodSpec.methodBuilder("bind")
+        .addAnnotation(Override.class)
+        .addModifiers(PUBLIC)
+        .addParameter(ButterKnife.Finder.class, "finder", FINAL)
+        .addParameter(TypeVariableName.get("T"), "target", FINAL)
+        .addParameter(Object.class, "source");
 
     // Emit a call to the superclass binder, if any.
     if (parentViewBinder != null) {
-      builder.append("    super.bind(finder, target, source);\n\n");
+      result.addStatement("super.bind(finder, target, source)");
     }
 
     if (!viewIdMap.isEmpty() || !collectionBindings.isEmpty()) {
       // Local variable in which all views will be temporarily stored.
-      builder.append("    View view;\n");
+      result.addStatement("$T view", View.class);
 
       // Loop over each view bindings and emit it.
       for (ViewBindings bindings : viewIdMap.values()) {
-        emitViewBindings(builder, bindings);
+        addViewBindings(result, bindings);
       }
 
       // Loop over each collection binding and emit it.
       for (Map.Entry<FieldCollectionViewBinding, int[]> entry : collectionBindings.entrySet()) {
-        emitCollectionBinding(builder, entry.getKey(), entry.getValue());
+        emitCollectionBinding(result, entry.getKey(), entry.getValue());
       }
     }
 
     if (requiresResources()) {
-      builder.append("    Resources res = finder.getContext(source).getResources();\n");
+      result.addStatement("$T res = finder.getContext(source).getResources()", Resources.class);
 
       if (!bitmapBindings.isEmpty()) {
         for (FieldBitmapBinding binding : bitmapBindings) {
-          builder.append("    target.")
-              .append(binding.getName())
-              .append(" = BitmapFactory.decodeResource(res, ")
-              .append(binding.getId())
-              .append(");\n");
+          result.addStatement("target.$L = $T.decodeResource(res, $L)", binding.getName(),
+              BitmapFactory.class, binding.getId());
         }
       }
 
       if (!resourceBindings.isEmpty()) {
         for (FieldResourceBinding binding : resourceBindings) {
-          builder.append("    target.")
-              .append(binding.getName())
-              .append(" = res.")
-              .append(binding.getMethod())
-              .append('(')
-              .append(binding.getId())
-              .append(");\n");
+          result.addStatement("target.$L = res.$L($L)", binding.getName(), binding.getMethod(),
+              binding.getId());
         }
       }
     }
 
-    builder.append("  }\n");
+    return result.build();
   }
 
-  private void emitCollectionBinding(StringBuilder builder, FieldCollectionViewBinding binding,
+  private void emitCollectionBinding(MethodSpec.Builder result, FieldCollectionViewBinding binding,
       int[] ids) {
-    builder.append("    target.").append(binding.getName()).append(" = ");
-
+    String ofName;
     switch (binding.getKind()) {
       case ARRAY:
-        builder.append("Finder.arrayOf(");
+        ofName = "arrayOf";
         break;
       case LIST:
-        builder.append("Finder.listOf(");
+        ofName = "listOf";
         break;
       default:
         throw new IllegalStateException("Unknown kind: " + binding.getKind());
     }
 
+    CodeBlock.Builder builder = CodeBlock.builder();
     for (int i = 0; i < ids.length; i++) {
       if (i > 0) {
-        builder.append(',');
+        builder.add(", ");
       }
-      builder.append("\n        finder.<")
-          .append(binding.getType())
-          .append(">")
-          .append(binding.isRequired() ? "findRequiredView" : "findOptionalView")
-          .append("(source, ")
-          .append(ids[i])
-          .append(", \"");
-      emitHumanDescription(builder, Collections.singleton(binding));
-      builder.append("\")");
+      String findMethod = binding.isRequired() ? "findRequiredView" : "findOptionalView";
+      builder.add("\nfinder.<$T>$L(source, $L, $S)", ClassName.bestGuess(binding.getType()),
+          findMethod, ids[i], asHumanDescription(Collections.singleton(binding)));
     }
 
-    builder.append("\n    );\n");
+    result.addStatement("target.$L = $T.$L($L)", binding.getName(), ButterKnife.Finder.class,
+        ofName, builder.build());
   }
 
-  private void emitViewBindings(StringBuilder builder, ViewBindings bindings) {
-    builder.append("    view = ");
-
+  private void addViewBindings(MethodSpec.Builder result, ViewBindings bindings) {
     List<ViewBinding> requiredViewBindings = bindings.getRequiredBindings();
     if (requiredViewBindings.isEmpty()) {
-      builder.append("finder.findOptionalView(source, ")
-          .append(bindings.getId())
-          .append(", null);\n");
+      result.addStatement("view = finder.findOptionalView(source, $L, null)", bindings.getId());
     } else {
       if (bindings.getId() == View.NO_ID) {
-        builder.append("target;\n");
+        result.addStatement("view = target", bindings.getId());
       } else {
-        builder.append("finder.findRequiredView(source, ")
-            .append(bindings.getId())
-            .append(", \"");
-        emitHumanDescription(builder, requiredViewBindings);
-        builder.append("\");\n");
+        result.addStatement("view = finder.findRequiredView(source, $L, $S)", bindings.getId(),
+            asHumanDescription(requiredViewBindings));
       }
     }
 
-    emitFieldBindings(builder, bindings);
-    emitMethodBindings(builder, bindings);
+    addFieldBindings(result, bindings);
+    addMethodBindings(result, bindings);
   }
 
-  private void emitFieldBindings(StringBuilder builder, ViewBindings bindings) {
+  private void addFieldBindings(MethodSpec.Builder result, ViewBindings bindings) {
     Collection<FieldViewBinding> fieldBindings = bindings.getFieldBindings();
-    if (fieldBindings.isEmpty()) {
-      return;
-    }
-
     for (FieldViewBinding fieldBinding : fieldBindings) {
-      builder.append("    target.")
-          .append(fieldBinding.getName())
-          .append(" = ");
       if (fieldBinding.requiresCast()) {
-        builder.append("finder.castView(view")
-            .append(", ")
-            .append(bindings.getId())
-            .append(", \"");
-        emitHumanDescription(builder, fieldBindings);
-        builder.append("\");\n");
+        result.addStatement("target.$L = finder.castView(view, $L, $S)", fieldBinding.getName(),
+            bindings.getId(), asHumanDescription(fieldBindings));
       } else {
-        builder.append("view;\n");
+        result.addStatement("target.$L = view", fieldBinding.getName());
       }
     }
   }
 
-  private void emitMethodBindings(StringBuilder builder, ViewBindings bindings) {
+  private void addMethodBindings(MethodSpec.Builder result, ViewBindings bindings) {
     Map<ListenerClass, Map<ListenerMethod, Set<MethodViewBinding>>> classMethodBindings =
         bindings.getMethodBindings();
     if (classMethodBindings.isEmpty()) {
       return;
     }
 
-    String extraIndent = "";
-
     // We only need to emit the null check if there are zero required bindings.
     boolean needsNullChecked = bindings.getRequiredBindings().isEmpty();
     if (needsNullChecked) {
-      builder.append("    if (view != null) {\n");
-      extraIndent = "  ";
+      result.beginControlFlow("if (view != null)");
     }
 
     for (Map.Entry<ListenerClass, Map<ListenerMethod, Set<MethodViewBinding>>> e
@@ -271,126 +238,65 @@ final class BindingClass {
       ListenerClass listener = e.getKey();
       Map<ListenerMethod, Set<MethodViewBinding>> methodBindings = e.getValue();
 
-      // Emit: ((OWNER_TYPE) view).SETTER_NAME(
-      boolean needsCast = !VIEW_TYPE.equals(listener.targetType());
-      builder.append(extraIndent)
-          .append("    ");
-      if (needsCast) {
-        builder.append("((").append(listener.targetType());
-        if (listener.genericArguments() > 0) {
-          builder.append('<');
-          for (int i = 0; i < listener.genericArguments(); i++) {
-            if (i > 0) {
-              builder.append(", ");
-            }
-            builder.append('?');
-          }
-          builder.append('>');
-        }
-        builder.append(") ");
-      }
-      builder.append("view");
-      if (needsCast) {
-        builder.append(')');
-      }
-      builder.append('.')
-          .append(listener.setter())
-          .append("(\n");
-
-      // Emit: new TYPE() {
-      builder.append(extraIndent)
-          .append("      new ")
-          .append(listener.type())
-          .append("() {\n");
+      TypeSpec.Builder callback = TypeSpec.anonymousClassBuilder("")
+          .superclass(ClassName.bestGuess(listener.type()));
 
       for (ListenerMethod method : getListenerMethods(listener)) {
-        // Emit: @Override public RETURN_TYPE METHOD_NAME(
-        builder.append(extraIndent)
-            .append("        @Override public ")
-            .append(method.returnType())
-            .append(' ')
-            .append(method.name())
-            .append("(\n");
-
-        // Emit listener method arguments, each on their own line.
+        MethodSpec.Builder callbackMethod = MethodSpec.methodBuilder(method.name())
+            .addAnnotation(Override.class)
+            .addModifiers(PUBLIC)
+            .returns(bestGuess(method.returnType()));
         String[] parameterTypes = method.parameters();
         for (int i = 0, count = parameterTypes.length; i < count; i++) {
-          builder.append(extraIndent)
-              .append("          ")
-              .append(parameterTypes[i])
-              .append(" p")
-              .append(i);
-          if (i < count - 1) {
-            builder.append(',');
-          }
-          builder.append('\n');
+          callbackMethod.addParameter(bestGuess(parameterTypes[i]), "p" + i);
         }
 
-        // Emit end of parameters, start of body.
-        builder.append(extraIndent).append("        ) {\n");
-
-        // Set up the return statement, if needed.
-        builder.append(extraIndent).append("          ");
         boolean hasReturnType = !"void".equals(method.returnType());
+        CodeBlock.Builder builder = CodeBlock.builder();
         if (hasReturnType) {
-          builder.append("return ");
+          builder.add("return ");
         }
 
         if (methodBindings.containsKey(method)) {
-          Set<MethodViewBinding> set = methodBindings.get(method);
-          Iterator<MethodViewBinding> iterator = set.iterator();
-
-          while (iterator.hasNext()) {
-            MethodViewBinding binding = iterator.next();
-            builder.append("target.").append(binding.getName()).append('(');
+          for (MethodViewBinding binding : methodBindings.get(method)) {
+            builder.add("target.$L(", binding.getName());
             List<Parameter> parameters = binding.getParameters();
             String[] listenerParameters = method.parameters();
             for (int i = 0, count = parameters.size(); i < count; i++) {
+              if (i > 0) {
+                builder.add(", ");
+              }
+
               Parameter parameter = parameters.get(i);
               int listenerPosition = parameter.getListenerPosition();
 
               if (parameter.requiresCast(listenerParameters[listenerPosition])) {
-                builder.append("finder.<")
-                    .append(parameter.getType())
-                    .append(">castParam(p")
-                    .append(listenerPosition)
-                    .append(", \"")
-                    .append(method.name())
-                    .append("\", ")
-                    .append(listenerPosition)
-                    .append(", \"")
-                    .append(binding.getName())
-                    .append("\", ")
-                    .append(i)
-                    .append(")");
+                builder.add("finder.<$T>castParam(p$L, $S, $L, $S, $L)\n",
+                    bestGuess(parameter.getType()), listenerPosition, method.name(),
+                    listenerPosition, binding.getName(), i);
               } else {
-                builder.append('p').append(listenerPosition);
-              }
-
-              if (i < count - 1) {
-                builder.append(", ");
+                builder.add("p$L", listenerPosition);
               }
             }
-            builder.append(");");
-            if (iterator.hasNext()) {
-              builder.append("\n").append("          ");
-            }
+            builder.add(");\n");
           }
         } else if (hasReturnType) {
-          builder.append(method.defaultReturn()).append(';');
+          builder.add("$L;\n", method.defaultReturn());
         }
-        builder.append('\n');
-
-        // Emit end of listener method.
-        builder.append(extraIndent).append("        }\n");
+        callbackMethod.addCode(builder.build());
+        callback.addMethod(callbackMethod.build());
       }
 
-      // Emit end of listener class body and close the setter method call.
-      builder.append(extraIndent).append("      });\n");
+      if (!VIEW_TYPE.equals(listener.targetType())) {
+        result.addStatement("(($T) view).$L($L)", bestGuess(listener.targetType()),
+            listener.setter(), callback.build());
+      } else {
+        result.addStatement("view.$L($L)", listener.setter(), callback.build());
+      }
     }
 
     if (needsNullChecked) {
-      builder.append("    }\n");
+      result.endControlFlow();
     }
   }
 
@@ -418,35 +324,36 @@ final class BindingClass {
     }
   }
 
-  private void emitUnbindMethod(StringBuilder builder) {
-    builder.append("  @Override public void unbind(T target) {\n");
+  private MethodSpec createUnbindMethod() {
+    MethodSpec.Builder result = MethodSpec.methodBuilder("unbind")
+        .addAnnotation(Override.class)
+        .addModifiers(PUBLIC)
+        .addParameter(TypeVariableName.get("T"), "target");
+
     if (parentViewBinder != null) {
-      builder.append("    super.unbind(target);\n\n");
+      result.addStatement("super.unbind(target)");
     }
     for (ViewBindings bindings : viewIdMap.values()) {
       for (FieldViewBinding fieldBinding : bindings.getFieldBindings()) {
-        builder.append("    target.").append(fieldBinding.getName()).append(" = null;\n");
+        result.addStatement("target.$L = null", fieldBinding.getName());
       }
     }
     for (FieldCollectionViewBinding fieldCollectionBinding : collectionBindings.keySet()) {
-      builder.append("    target.").append(fieldCollectionBinding.getName()).append(" = null;\n");
+      result.addStatement("target.$L = null", fieldCollectionBinding.getName());
     }
-    builder.append("  }\n");
+
+    return result.build();
   }
 
-  static void emitHumanDescription(StringBuilder builder,
-      Collection<? extends ViewBinding> bindings) {
+  static String asHumanDescription(Collection<? extends ViewBinding> bindings) {
     Iterator<? extends ViewBinding> iterator = bindings.iterator();
     switch (bindings.size()) {
       case 1:
-        builder.append(iterator.next().getDescription());
-        break;
+        return iterator.next().getDescription();
       case 2:
-        builder.append(iterator.next().getDescription())
-            .append(" and ")
-            .append(iterator.next().getDescription());
-        break;
+        return iterator.next().getDescription() + " and " + iterator.next().getDescription();
       default:
+        StringBuilder builder = new StringBuilder();
         for (int i = 0, count = bindings.size(); i < count; i++) {
           if (i != 0) {
             builder.append(", ");
@@ -456,7 +363,34 @@ final class BindingClass {
           }
           builder.append(iterator.next().getDescription());
         }
-        break;
+        return builder.toString();
+    }
+  }
+
+  static TypeName bestGuess(String type) {
+    switch (type) {
+      case "void": return TypeName.VOID;
+      case "boolean": return TypeName.BOOLEAN;
+      case "byte": return TypeName.BYTE;
+      case "char": return TypeName.CHAR;
+      case "double": return TypeName.DOUBLE;
+      case "float": return TypeName.FLOAT;
+      case "int": return TypeName.INT;
+      case "long": return TypeName.LONG;
+      case "short": return TypeName.SHORT;
+      default:
+        int left = type.indexOf('<');
+        if (left != -1) {
+          ClassName typeClassName = ClassName.bestGuess(type.substring(0, left));
+          List<TypeName> typeArguments = new ArrayList<>();
+          do {
+            typeArguments.add(WildcardTypeName.subtypeOf(Object.class));
+            left = type.indexOf('<', left + 1);
+          } while (left != -1);
+          return ParameterizedTypeName.get(typeClassName,
+              typeArguments.toArray(new TypeName[typeArguments.size()]));
+        }
+        return ClassName.bestGuess(type);
     }
   }
 
