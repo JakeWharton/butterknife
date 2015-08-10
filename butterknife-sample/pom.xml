@@ -6,7 +6,7 @@
   <parent>
     <groupId>com.jakewharton</groupId>
     <artifactId>butterknife-parent</artifactId>
-    <version>7.0.0-SNAPSHOT</version>
+    <version>7.0.2-SNAPSHOT</version>
   </parent>
 
   <artifactId>butterknife-sample</artifactId>
@@ -18,6 +18,12 @@
       <groupId>com.jakewharton</groupId>
       <artifactId>butterknife</artifactId>
       <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.jakewharton</groupId>
+      <artifactId>butterknife-compiler</artifactId>
+      <version>${project.version}</version>
+      <optional>true</optional>
     </dependency>
 
     <dependency>

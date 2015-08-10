@@ -11,7 +11,7 @@
 
   <groupId>com.jakewharton</groupId>
   <artifactId>butterknife-parent</artifactId>
-  <version>7.0.0-SNAPSHOT</version>
+  <version>7.0.2-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>Butter Knife (Parent)</name>
@@ -21,13 +21,14 @@
 
   <modules>
     <module>butterknife</module>
+    <module>butterknife-compiler</module>
     <module>butterknife-sample</module>
   </modules>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-    <java.version>1.6</java.version>
+    <java.version>1.7</java.version>
     <fest.version>2.0M10</fest.version>
     <android.version>4.1.1.4</android.version>
     <android.platform>16</android.platform>
@@ -35,6 +36,7 @@
     <robolectric.version>2.2</robolectric.version>
     <fest.android.version>1.0.7</fest.android.version>
     <compile-test.version>0.6</compile-test.version>
+    <javapoet.version>1.2.0</javapoet.version>
   </properties>
 
   <scm>
@@ -62,6 +64,11 @@
         <groupId>com.google.android</groupId>
         <artifactId>android</artifactId>
         <version>${android.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.squareup</groupId>
+        <artifactId>javapoet</artifactId>
+        <version>${javapoet.version}</version>
       </dependency>
       <dependency>
         <groupId>junit</groupId>

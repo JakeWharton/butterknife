@@ -1,6 +1,31 @@
 Change Log
 ==========
 
+Version 7.0.1 *(2015-06-30)*
+----------------------------
+
+ * Fix: Correct `ClassCastException` which occurred when `@Nullable` array bindings had missing views.
+
+
+Version 7.0.0 *(2015-06-27)*
+----------------------------
+
+ * `@Bind` replaces `@InjectView` and `@InjectViews`.
+ * `ButterKnife.bind` and `ButterKnife.unbind` replaces `ButterKnife.inject` and `ButterKnife.reset`, respectively.
+ * `@Optional` has been removed. Use `@Nullable` from the 'support-annotations' library, or any other annotation
+   named "Nullable".
+ * New: Resource binding annotations!
+   * `@BindBool` binds an `R.bool` ID to a `boolean` field.
+   * `@BindColor` binds an `R.color` ID to an `int` or `ColorStateList` field.
+   * `@BindDimen` binds an `R.dimen` ID to an `int` (for pixel size) or `float` (for exact value) field.
+   * `@BindDrawable` binds an `R.drawable` ID to a `Drawable` field.
+   * `@BindInt` binds an `R.int` ID to an `int` field.
+   * `@BindString` binds an `R.string` ID to a `String` field.
+ * Fix: Missing views will be filtered out from list and array bindings.
+ * Note: If you are using Proguard, the generated class name has changed from being suffixed with `$$ViewInjector`
+   to `$$ViewBinder`.
+
+
 Version 6.1.0 *(2015-01-29)*
 ----------------------------
 

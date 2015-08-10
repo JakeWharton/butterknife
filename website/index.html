@@ -24,11 +24,11 @@
         <div class="offset4 span8 main">
           <div class="main-inner">
             <h3 id="introduction">Introduction</h3>
-            <p>Annotate fields with <code>@FindView</code> and a view ID for Butter Knife to find and automatically cast the corresponding view in your layout.</p>
+            <p>Annotate fields with <code>@Bind</code> and a view ID for Butter Knife to find and automatically cast the corresponding view in your layout.</p>
             <pre class="prettyprint">class ExampleActivity extends Activity {
-  @FindView(R.id.title) TextView title;
-  @FindView(R.id.subtitle) TextView subtitle;
-  @FindView(R.id.footer) TextView footer;
+  @Bind(R.id.title) TextView title;
+  @Bind(R.id.subtitle) TextView subtitle;
+  @Bind(R.id.footer) TextView footer;
 
   @Override public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
@@ -48,8 +48,8 @@
             <h4 id="non-activity">Non-Activity Binding</h4>
             <p>You can also perform binding on arbitrary objects by supplying your own view root.</p>
             <pre class="prettyprint">public class FancyFragment extends Fragment {
-  @FindView(R.id.button1) Button button1;
-  @FindView(R.id.button2) Button button2;
+  @Bind(R.id.button1) Button button1;
+  @Bind(R.id.button2) Button button2;
 
   @Override public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
     View view = inflater.inflate(R.layout.fancy_fragment, container, false);
@@ -77,8 +77,8 @@
   }
 
   static class ViewHolder {
-    @FindView(R.id.title) TextView name;
-    @FindView(R.id.job_title) TextView jobTitle;
+    @Bind(R.id.title) TextView name;
+    @Bind(R.id.job_title) TextView jobTitle;
 
     public ViewHolder(View view) {
       ButterKnife.bind(this, view);
@@ -97,24 +97,24 @@
 
             <h4 id="view-lists">View Lists</h4>
             <p>You can group multiple views into a <code>List</code> or array.</p>
-            <pre class="prettyprint">@FindViews({ R.id.first_name, R.id.middle_name, R.id.last_name })
+            <pre class="prettyprint">@Bind({ R.id.first_name, R.id.middle_name, R.id.last_name })
 List&lt;EditText> nameViews;</pre>
             <p>The <code>apply</code> method allows you to act on all the views in a list at once.</p>
             <pre class="prettyprint">ButterKnife.apply(nameViews, DISABLE);
 ButterKnife.apply(nameViews, ENABLED, false);</pre>
             <p><code>Action</code> and <code>Setter</code> interfaces allow specifying simple behavior.</p>
-            <pre class="prettyprint">static final Action&lt;View> DISABLE = new Action&lt;>() {
+            <pre class="prettyprint">static final ButterKnife.Action&lt;View> DISABLE = new ButterKnife.Action&lt;View>() {
   @Override public void apply(View view, int index) {
     view.setEnabled(false);
   }
-}
-static final Setter&lt;View, Boolean> ENABLED = new Setter&lt;>() {
+};
+static final ButterKnife.Setter&lt;View, Boolean> ENABLED = new ButterKnife.Setter&lt;View, Boolean>() {
   @Override public void set(View view, Boolean value, int index) {
     view.setEnabled(value);
   }
-}</pre>
+};</pre>
             <p>An Android <a href="https://developer.android.com/reference/android/util/Property.html"><code>Property</code></a> can also be used with the <code>apply</code> method.</p>
-            <pre class="prettyprint">ButterKnife.apply(nameViews, View.ALPHA, 0);</pre>
+            <pre class="prettyprint">ButterKnife.apply(nameViews, View.ALPHA, 0.0f);</pre>
 
             <h4 id="listener-binding">Listener Binding</h4>
             <p>Listeners can also automatically be configured onto methods.</p>
@@ -153,8 +153,8 @@ public void pickDoor(DoorView door) {
             <h4 id="reset">Binding Reset</h4>
             <p>Fragments have a different view lifecycle than activities. When binding a fragment in <code>onCreateView</code>, set the views to <code>null</code> in <code>onDestroyView</code>. Butter Knife has an <code>unbind</code> method to do this automatically.</p>
             <pre class="prettyprint">public class FancyFragment extends Fragment {
-  @FindView(R.id.button1) Button button1;
-  @FindView(R.id.button2) Button button2;
+  @Bind(R.id.button1) Button button1;
+  @Bind(R.id.button2) Button button2;
 
   @Override public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
     View view = inflater.inflate(R.layout.fancy_fragment, container, false);
@@ -170,10 +170,10 @@ public void pickDoor(DoorView door) {
 }</pre>
 
             <h4 id="optional">Optional Bindings</h4>
-            <p>By default, both <code>@FindView</code> and listener bindings are required. An exception will be thrown if the target view cannot be found.</p>
+            <p>By default, both <code>@Bind</code> and listener bindings are required. An exception will be thrown if the target view cannot be found.</p>
             <p>To suppress this behavior and create an optional binding, add a <code>@Nullable</code> annotation to the field or method.</p>
             <p>Note: Any annotation named <code>@Nullable</code> can be used for this purpose. It is encouraged to use the <code>@Nullable</code> annotation from Android's "support-annotations" library, see <a href="http://tools.android.com/tech-docs/support-annotations">Android Tools Project</a>.</p>
-            <pre class="prettyprint">@Nullable @FindView(R.id.might_not_be_there) TextView mightNotBeThere;
+            <pre class="prettyprint">@Nullable @Bind(R.id.might_not_be_there) TextView mightNotBeThere;
 
 @Nullable @OnClick(R.id.maybe_missing) void onMaybeMissingClicked() {
   // TODO ...
@@ -215,7 +215,7 @@ ImageView photo = ButterKnife.findById(view, R.id.photo);</pre>
 
             <h4>Gradle</h4>
             <pre class="prettyprint">compile 'com.jakewharton:butterknife:<span class="version"><em>(insert latest version)</em></span>'</pre>
-            <p>Be sure to supress this lint warning in your <code>build.gradle</code>.</p>
+            <p>Be sure to suppress this lint warning in your <code>build.gradle</code>.</p>
             <pre class="prettyprint">lintOptions {
   disable 'InvalidPackage'
 }</pre>
@@ -233,7 +233,7 @@ ImageView photo = ButterKnife.findById(view, R.id.photo);</pre>
 
             <h4 id="proguard">ProGuard</h4>
             <p>Butter Knife generates and uses classes dynamically which means that static analysis tools like ProGuard may think they are unused. In order to prevent them from being removed, explicitly mark them to be kept.
-                To prevent ProGuard renaming classes that use @FindView on a member field the <code>keepclasseswithmembernames</code> option is used.</p>
+                To prevent ProGuard renaming classes that use @Bind on a member field the <code>keepclasseswithmembernames</code> option is used.</p>
             <pre>-keep class butterknife.** { *; }
 -dontwarn butterknife.internal.**
 -keep class **$$ViewBinder { *; }

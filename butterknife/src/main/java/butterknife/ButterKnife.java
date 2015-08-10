@@ -8,13 +8,15 @@ import android.os.Build;
 import android.util.Log;
 import android.util.Property;
 import android.view.View;
-import butterknife.internal.ButterKnifeProcessor;
+
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import static butterknife.internal.ButterKnifeProcessor.ANDROID_PREFIX;
-import static butterknife.internal.ButterKnifeProcessor.JAVA_PREFIX;
+import static butterknife.internal.InternalKeys.ANDROID_PREFIX;
+import static butterknife.internal.InternalKeys.BINDING_CLASS_SUFFIX;
+import static butterknife.internal.InternalKeys.JAVA_PREFIX;
 
 /**
  * Field and method binding for Android views. Use this class to simplify finding views and
@@ -23,8 +25,8 @@ import static butterknife.internal.ButterKnifeProcessor.JAVA_PREFIX;
  * Finding views from your activity is as easy as:
  * <pre><code>
  * public class ExampleActivity extends Activity {
- *   {@literal @}FindView(R.id.title) EditText titleView;
- *   {@literal @}FindView(R.id.subtitle) EditText subtitleView;
+ *   {@literal @}Bind(R.id.title) EditText titleView;
+ *   {@literal @}Bind(R.id.subtitle) EditText subtitleView;
  *
  *   {@literal @}Override protected void onCreate(Bundle savedInstanceState) {
  *     super.onCreate(savedInstanceState);
@@ -41,7 +43,7 @@ import static butterknife.internal.ButterKnifeProcessor.JAVA_PREFIX;
  * <p>
  * Group multiple views together into a {@link List} or array.
  * <pre><code>
- * {@literal @}FindViews({R.id.first_name, R.id.middle_name, R.id.last_name})
+ * {@literal @}Bind({R.id.first_name, R.id.middle_name, R.id.last_name})
  * List<EditText> nameViews;
  * </code></pre>
  * There are three convenience methods for working with view collections:
@@ -68,13 +70,13 @@ import static butterknife.internal.ButterKnifeProcessor.JAVA_PREFIX;
  * If a view is optional add a {@code @Nullable} annotation such as the one in the
  * <a href="http://tools.android.com/tech-docs/support-annotations">support-annotations</a> library.
  * <pre><code>
- * {@literal @}Nullable @FindView(R.id.title) TextView subtitleView;
+ * {@literal @}Nullable @Bind(R.id.title) TextView subtitleView;
  * </code></pre>
  * Resources can also be bound to fields to simplify programmatically working with views:
  * <pre><code>
- * {@literal @}ResourceBool(R.bool.is_tablet) boolean isTablet;
- * {@literal @}ResourceInt(R.int.columns) int columns;
- * {@literal @}ResourceColor(R.color.error_red) int errorRed;
+ * {@literal @}BindBool(R.bool.is_tablet) boolean isTablet;
+ * {@literal @}BindInt(R.integer.columns) int columns;
+ * {@literal @}BindColor(R.color.error_red) int errorRed;
  * </code></pre>
  */
 public final class ButterKnife {
@@ -92,6 +94,15 @@ public final class ButterKnife {
 
       @Override public Context getContext(Object source) {
         return ((View) source).getContext();
+      }
+
+      @Override protected String getResourceEntryName(Object source, int id) {
+        final View view = (View) source;
+        // In edit mode, getResourceEntryName() is unsupported due to use of BridgeResources
+        if (view.isInEditMode()) {
+          return "<unavailable while editing>";
+        }
+        return super.getResourceEntryName(source, id);
       }
     },
     ACTIVITY {
@@ -114,24 +125,14 @@ public final class ButterKnife {
     };
 
     private static <T> T[] filterNull(T[] views) {
-      int newSize = views.length;
-      for (T view : views) {
-        if (view == null) {
-          newSize -= 1;
-        }
-      }
-      if (newSize == views.length) {
-        return views;
-      }
-      //noinspection unchecked
-      T[] newViews = (T[]) new Object[newSize];
-      int nextIndex = 0;
-      for (T view : views) {
+      int end = 0;
+      for (int i = 0; i < views.length; i++) {
+        T view = views[i];
         if (view != null) {
-          newViews[nextIndex++] = view;
+          views[end++] = view;
         }
       }
-      return newViews;
+      return Arrays.copyOfRange(views, 0, end);
     }
 
     public static <T> T[] arrayOf(T... views) {
@@ -139,13 +140,13 @@ public final class ButterKnife {
     }
 
     public static <T> List<T> listOf(T... views) {
-      return new ImmutableList<T>(filterNull(views));
+      return new ImmutableList<>(filterNull(views));
     }
 
     public <T> T findRequiredView(Object source, int id, String who) {
       T view = findOptionalView(source, id, who);
       if (view == null) {
-        String name = getContext(source).getResources().getResourceEntryName(id);
+        String name = getResourceEntryName(source, id);
         throw new IllegalStateException("Required view '"
             + name
             + "' with ID "
@@ -170,7 +171,7 @@ public final class ButterKnife {
         if (who == null) {
           throw new AssertionError();
         }
-        String name = view.getResources().getResourceEntryName(id);
+        String name = getResourceEntryName(view, id);
         throw new IllegalStateException("View '"
             + name
             + "' with ID "
@@ -196,6 +197,10 @@ public final class ButterKnife {
             + to
             + "'. See cause for more info.", e);
       }
+    }
+
+    protected String getResourceEntryName(Object source, int id) {
+      return getContext(source).getResources().getResourceEntryName(id);
     }
 
     protected abstract View findView(Object source, int id);
@@ -224,8 +229,7 @@ public final class ButterKnife {
   private static final String TAG = "ButterKnife";
   private static boolean debug = false;
 
-  static final Map<Class<?>, ViewBinder<Object>> INJECTORS =
-      new LinkedHashMap<Class<?>, ViewBinder<Object>>();
+  static final Map<Class<?>, ViewBinder<Object>> BINDERS = new LinkedHashMap<>();
   static final ViewBinder<Object> NOP_VIEW_BINDER = new ViewBinder<Object>() {
     @Override public void bind(Finder finder, Object target, Object source) { }
     @Override public void unbind(Object target) { }
@@ -300,8 +304,7 @@ public final class ButterKnife {
   }
 
   /**
-   * Reset fields annotated with {@link FindView @FindView} and {@link FindViews @FindViews}
-   * to {@code null}.
+   * Reset fields annotated with {@link Bind @Bind} to {@code null}.
    * <p>
    * This should only be used in the {@code onDestroyView} method of a fragment.
    *
@@ -335,7 +338,7 @@ public final class ButterKnife {
 
   private static ViewBinder<Object> findViewBinderForClass(Class<?> cls)
       throws IllegalAccessException, InstantiationException {
-    ViewBinder<Object> viewBinder = INJECTORS.get(cls);
+    ViewBinder<Object> viewBinder = BINDERS.get(cls);
     if (viewBinder != null) {
       if (debug) Log.d(TAG, "HIT: Cached in view binder map.");
       return viewBinder;
@@ -346,7 +349,7 @@ public final class ButterKnife {
       return NOP_VIEW_BINDER;
     }
     try {
-      Class<?> viewBindingClass = Class.forName(clsName + ButterKnifeProcessor.SUFFIX);
+      Class<?> viewBindingClass = Class.forName(clsName + BINDING_CLASS_SUFFIX);
       //noinspection unchecked
       viewBinder = (ViewBinder<Object>) viewBindingClass.newInstance();
       if (debug) Log.d(TAG, "HIT: Loaded view binder class.");
@@ -354,7 +357,7 @@ public final class ButterKnife {
       if (debug) Log.d(TAG, "Not found. Trying superclass " + cls.getSuperclass().getName());
       viewBinder = findViewBinderForClass(cls.getSuperclass());
     }
-    INJECTORS.put(cls, viewBinder);
+    BINDERS.put(cls, viewBinder);
     return viewBinder;
   }
 
