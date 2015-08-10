@@ -21,7 +21,20 @@ import butterknife.OnLongClick;
 import butterknife.OnPageChange;
 import butterknife.OnTextChanged;
 import butterknife.OnTouch;
-
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.BitSet;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.Filer;
 import javax.annotation.processing.ProcessingEnvironment;
@@ -40,22 +53,6 @@ import javax.lang.model.type.TypeMirror;
 import javax.lang.model.type.TypeVariable;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
-import javax.tools.JavaFileObject;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.io.Writer;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.BitSet;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import static butterknife.internal.InternalKeys.ANDROID_PREFIX;
 import static butterknife.internal.InternalKeys.BINDING_CLASS_SUFFIX;
@@ -131,11 +128,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
       BindingClass bindingClass = entry.getValue();
 
       try {
-        JavaFileObject jfo = filer.createSourceFile(bindingClass.getFqcn(), typeElement);
-        Writer writer = jfo.openWriter();
-        writer.write(bindingClass.brewJava());
-        writer.flush();
-        writer.close();
+        bindingClass.brewJava().writeTo(filer);
       } catch (IOException e) {
         error(typeElement, "Unable to write view binder for type %s: %s", typeElement,
             e.getMessage());

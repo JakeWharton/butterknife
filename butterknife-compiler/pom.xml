@@ -18,6 +18,10 @@
       <artifactId>butterknife</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <dependency>
+      <groupId>com.squareup</groupId>
+      <artifactId>javapoet</artifactId>
+    </dependency>
 
     <dependency>
       <groupId>junit</groupId>

@@ -36,6 +36,7 @@
     <robolectric.version>2.2</robolectric.version>
     <fest.android.version>1.0.7</fest.android.version>
     <compile-test.version>0.6</compile-test.version>
+    <javapoet.version>1.2.0</javapoet.version>
   </properties>
 
   <scm>
@@ -63,6 +64,11 @@
         <groupId>com.google.android</groupId>
         <artifactId>android</artifactId>
         <version>${android.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.squareup</groupId>
+        <artifactId>javapoet</artifactId>
+        <version>${javapoet.version}</version>
       </dependency>
       <dependency>
         <groupId>junit</groupId>
