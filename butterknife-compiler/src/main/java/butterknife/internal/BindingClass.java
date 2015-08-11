@@ -3,7 +3,6 @@ package butterknife.internal;
 import android.content.res.Resources;
 import android.graphics.BitmapFactory;
 import android.view.View;
-import butterknife.ButterKnife;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.JavaFile;
@@ -17,7 +16,6 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -25,10 +23,15 @@ import java.util.Map;
 import java.util.Set;
 
 import static butterknife.internal.ButterKnifeProcessor.VIEW_TYPE;
+import static java.util.Collections.singletonList;
 import static javax.lang.model.element.Modifier.FINAL;
 import static javax.lang.model.element.Modifier.PUBLIC;
 
 final class BindingClass {
+  private static final ClassName FINDER = ClassName.get("butterknife", "ButterKnife", "Finder");
+  private static final ClassName VIEW_BINDER =
+      ClassName.get("butterknife", "ButterKnife", "ViewBinder");
+
   private final Map<Integer, ViewBindings> viewIdMap = new LinkedHashMap<>();
   private final Map<FieldCollectionViewBinding, int[]> collectionBindings = new LinkedHashMap<>();
   private final List<FieldBitmapBinding> bitmapBindings = new ArrayList<>();
@@ -88,10 +91,6 @@ final class BindingClass {
     return viewId;
   }
 
-  String getFqcn() {
-    return classPackage + "." + className;
-  }
-
   JavaFile brewJava() {
     TypeSpec.Builder result = TypeSpec.classBuilder(className)
         .addModifiers(PUBLIC)
@@ -101,9 +100,7 @@ final class BindingClass {
       result.superclass(ParameterizedTypeName.get(ClassName.bestGuess(parentViewBinder),
           TypeVariableName.get("T")));
     } else {
-      result.addSuperinterface(
-          ParameterizedTypeName.get(ClassName.get(ButterKnife.ViewBinder.class),
-              TypeVariableName.get("T")));
+      result.addSuperinterface(ParameterizedTypeName.get(VIEW_BINDER, TypeVariableName.get("T")));
     }
 
     result.addMethod(createBindMethod());
@@ -118,7 +115,7 @@ final class BindingClass {
     MethodSpec.Builder result = MethodSpec.methodBuilder("bind")
         .addAnnotation(Override.class)
         .addModifiers(PUBLIC)
-        .addParameter(ButterKnife.Finder.class, "finder", FINAL)
+        .addParameter(FINDER, "finder", FINAL)
         .addParameter(TypeVariableName.get("T"), "target", FINAL)
         .addParameter(Object.class, "source");
 
@@ -183,12 +180,12 @@ final class BindingClass {
         builder.add(", ");
       }
       String findMethod = binding.isRequired() ? "findRequiredView" : "findOptionalView";
-      builder.add("\nfinder.<$T>$L(source, $L, $S)", ClassName.bestGuess(binding.getType()),
-          findMethod, ids[i], asHumanDescription(Collections.singleton(binding)));
+      builder.add("\nfinder.<$T>$L(source, $L, $S)", binding.getType(), findMethod, ids[i],
+          asHumanDescription(singletonList(binding)));
     }
 
-    result.addStatement("target.$L = $T.$L($L)", binding.getName(), ButterKnife.Finder.class,
-        ofName, builder.build());
+    result.addStatement("target.$L = $T.$L($L)", binding.getName(), FINDER, ofName,
+        builder.build());
   }
 
   private void addViewBindings(MethodSpec.Builder result, ViewBindings bindings) {
@@ -271,9 +268,8 @@ final class BindingClass {
               int listenerPosition = parameter.getListenerPosition();
 
               if (parameter.requiresCast(listenerParameters[listenerPosition])) {
-                builder.add("finder.<$T>castParam(p$L, $S, $L, $S, $L)\n",
-                    bestGuess(parameter.getType()), listenerPosition, method.name(),
-                    listenerPosition, binding.getName(), i);
+                builder.add("finder.<$T>castParam(p$L, $S, $L, $S, $L)\n", parameter.getType(),
+                    listenerPosition, method.name(), listenerPosition, binding.getName(), i);
               } else {
                 builder.add("p$L", listenerPosition);
               }

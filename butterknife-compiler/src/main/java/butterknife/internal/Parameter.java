@@ -1,13 +1,15 @@
 package butterknife.internal;
 
+import com.squareup.javapoet.TypeName;
+
 /** Represents a parameter type and its position in the listener method. */
 final class Parameter {
   static final Parameter[] NONE = new Parameter[0];
 
   private final int listenerPosition;
-  private final String type;
+  private final TypeName type;
 
-  Parameter(int listenerPosition, String type) {
+  Parameter(int listenerPosition, TypeName type) {
     this.listenerPosition = listenerPosition;
     this.type = type;
   }
@@ -16,11 +18,11 @@ final class Parameter {
     return listenerPosition;
   }
 
-  String getType() {
+  TypeName getType() {
     return type;
   }
 
   public boolean requiresCast(String toType) {
-    return !type.equals(toType);
+    return !type.toString().equals(toType);
   }
 }

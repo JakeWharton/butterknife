@@ -1,13 +1,15 @@
 package butterknife.internal;
 
+import com.squareup.javapoet.TypeName;
+
 import static butterknife.internal.ButterKnifeProcessor.VIEW_TYPE;
 
 final class FieldViewBinding implements ViewBinding {
   private final String name;
-  private final String type;
+  private final TypeName type;
   private final boolean required;
 
-  FieldViewBinding(String name, String type, boolean required) {
+  FieldViewBinding(String name, TypeName type, boolean required) {
     this.name = name;
     this.type = type;
     this.required = required;
@@ -17,7 +19,7 @@ final class FieldViewBinding implements ViewBinding {
     return name;
   }
 
-  public String getType() {
+  public TypeName getType() {
     return type;
   }
 
@@ -30,6 +32,6 @@ final class FieldViewBinding implements ViewBinding {
   }
 
   public boolean requiresCast() {
-    return !VIEW_TYPE.equals(type);
+    return !VIEW_TYPE.equals(type.toString());
   }
 }
