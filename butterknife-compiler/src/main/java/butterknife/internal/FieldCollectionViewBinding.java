@@ -1,5 +1,7 @@
 package butterknife.internal;
 
+import com.squareup.javapoet.TypeName;
+
 final class FieldCollectionViewBinding implements ViewBinding {
   enum Kind {
     ARRAY,
@@ -7,11 +9,11 @@ final class FieldCollectionViewBinding implements ViewBinding {
   }
 
   private final String name;
-  private final String type;
+  private final TypeName type;
   private final Kind kind;
   private final boolean required;
 
-  FieldCollectionViewBinding(String name, String type, Kind kind, boolean required) {
+  FieldCollectionViewBinding(String name, TypeName type, Kind kind, boolean required) {
     this.name = name;
     this.type = type;
     this.kind = kind;
@@ -22,7 +24,7 @@ final class FieldCollectionViewBinding implements ViewBinding {
     return name;
   }
 
-  public String getType() {
+  public TypeName getType() {
     return type;
   }
 

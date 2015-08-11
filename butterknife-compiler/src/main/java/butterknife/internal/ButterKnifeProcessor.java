@@ -21,6 +21,7 @@ import butterknife.OnLongClick;
 import butterknife.OnPageChange;
 import butterknife.OnTextChanged;
 import butterknife.OnTouch;
+import com.squareup.javapoet.TypeName;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -54,9 +55,6 @@ import javax.lang.model.type.TypeVariable;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 
-import static butterknife.internal.InternalKeys.ANDROID_PREFIX;
-import static butterknife.internal.InternalKeys.BINDING_CLASS_SUFFIX;
-import static butterknife.internal.InternalKeys.JAVA_PREFIX;
 import static javax.lang.model.element.ElementKind.CLASS;
 import static javax.lang.model.element.ElementKind.INTERFACE;
 import static javax.lang.model.element.ElementKind.METHOD;
@@ -66,6 +64,7 @@ import static javax.tools.Diagnostic.Kind.ERROR;
 
 public final class ButterKnifeProcessor extends AbstractProcessor {
   static final String VIEW_TYPE = "android.view.View";
+  private static final String BINDING_CLASS_SUFFIX = "$$ViewBinder";
   private static final String COLOR_STATE_LIST_TYPE = "android.content.res.ColorStateList";
   private static final String BITMAP_TYPE = "android.graphics.Bitmap";
   private static final String DRAWABLE_TYPE = "android.graphics.drawable.Drawable";
@@ -284,12 +283,12 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     TypeElement enclosingElement = (TypeElement) element.getEnclosingElement();
     String qualifiedName = enclosingElement.getQualifiedName().toString();
 
-    if (qualifiedName.startsWith(ANDROID_PREFIX)) {
+    if (qualifiedName.startsWith("android.")) {
       error(element, "@%s-annotated class incorrectly in Android framework package. (%s)",
           annotationClass.getSimpleName(), qualifiedName);
       return true;
     }
-    if (qualifiedName.startsWith(JAVA_PREFIX)) {
+    if (qualifiedName.startsWith("java.")) {
       error(element, "@%s-annotated class incorrectly in Java framework package. (%s)",
           annotationClass.getSimpleName(), qualifiedName);
       return true;
@@ -369,7 +368,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     }
 
     String name = element.getSimpleName().toString();
-    String type = elementType.toString();
+    TypeName type = TypeName.get(elementType);
     boolean required = isRequiredBinding(element);
 
     FieldViewBinding binding = new FieldViewBinding(name, type, required);
@@ -440,7 +439,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     }
 
     assert viewType != null; // Always false as hasError would have been true.
-    String type = viewType.toString();
+    TypeName type = TypeName.get(viewType);
     boolean required = isRequiredBinding(element);
 
     BindingClass bindingClass = getOrCreateTargetClass(targetClassMap, enclosingElement);
@@ -920,7 +919,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
           }
           if (isSubtypeOfType(methodParameterType, parameterTypes[j])
               || isInterface(methodParameterType)) {
-            parameters[i] = new Parameter(j, methodParameterType.toString());
+            parameters[i] = new Parameter(j, TypeName.get(methodParameterType));
             methodParameterUsed.set(j);
             break;
           }
