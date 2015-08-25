@@ -45,6 +45,16 @@
   activity.title = (android.widget.TextView) activity.findViewById(2130968577);
 }</pre>
 
+            <h4 id="resource">Resource Binding</h4>
+            <p>Bind a pre-defined resources with <code>@BindBool</code>, <code>@BindColor</code>, <code>@BindDimen</code>, <code>@BindDrawable</code>, <code>@BindInt</code>, <code>@BindString</code>, which binds an <code>R.bool</code> ID (or your specified type) to its corresponding field.</p>
+            <pre class="prettyprint">class ExampleActivity extends Activity {
+  @BindString(R.string.title) String title;
+  @BindDrawable(R.drawable.graphic) Drawable graphic;
+  @BindColor(R.color.red) int red; // int or ColorStateList field
+  @BindDimen(R.dimen.spacer) Float spacer; // int (for pixel size) or float (for exact value) field
+  // ...
+}</pre>
+
             <h4 id="non-activity">Non-Activity Binding</h4>
             <p>You can also perform binding on arbitrary objects by supplying your own view root.</p>
             <pre class="prettyprint">public class FancyFragment extends Fragment {
