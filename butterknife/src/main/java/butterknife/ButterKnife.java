@@ -10,7 +10,7 @@ import android.util.Property;
 import android.view.View;
 
 import java.util.Arrays;
-import java.util.LinkedHashMap;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -225,7 +225,7 @@ public final class ButterKnife {
   private static final String TAG = "ButterKnife";
   private static boolean debug = false;
 
-  static final Map<Class<?>, ViewBinder<Object>> BINDERS = new LinkedHashMap<>();
+  static final Map<Class<?>, ViewBinder<Object>> BINDERS = new HashMap<>();
   static final ViewBinder<Object> NOP_VIEW_BINDER = new ViewBinder<Object>() {
     @Override public void bind(Finder finder, Object target, Object source) { }
     @Override public void unbind(Object target) { }
