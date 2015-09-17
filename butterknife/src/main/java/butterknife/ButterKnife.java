@@ -344,16 +344,17 @@ public final class ButterKnife {
     String clsName = cls.getName();
     if (clsName.startsWith("android.") || clsName.startsWith("java.")) {
       if (debug) Log.d(TAG, "MISS: Reached framework class. Abandoning search.");
-      return NOP_VIEW_BINDER;
-    }
-    try {
-      Class<?> viewBindingClass = Class.forName(clsName + "$$ViewBinder");
-      //noinspection unchecked
-      viewBinder = (ViewBinder<Object>) viewBindingClass.newInstance();
-      if (debug) Log.d(TAG, "HIT: Loaded view binder class.");
-    } catch (ClassNotFoundException e) {
-      if (debug) Log.d(TAG, "Not found. Trying superclass " + cls.getSuperclass().getName());
-      viewBinder = findViewBinderForClass(cls.getSuperclass());
+      viewBinder = NOP_VIEW_BINDER;
+    } else {
+      try {
+        Class<?> viewBindingClass = Class.forName(clsName + "$$ViewBinder");
+        //noinspection unchecked
+        viewBinder = (ViewBinder<Object>) viewBindingClass.newInstance();
+        if (debug) Log.d(TAG, "HIT: Loaded view binder class.");
+      } catch (ClassNotFoundException e) {
+        if (debug) Log.d(TAG, "Not found. Trying superclass " + cls.getSuperclass().getName());
+        viewBinder = findViewBinderForClass(cls.getSuperclass());
+      }
     }
     BINDERS.put(cls, viewBinder);
     return viewBinder;

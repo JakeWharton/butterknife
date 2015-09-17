@@ -138,11 +138,11 @@ public class ButterKnifeTest {
     assertThat(ButterKnife.BINDERS).contains(entry(Example.class, ButterKnife.NOP_VIEW_BINDER));
   }
 
-  @Test public void bindingKnownPackagesIsNoOp() {
+  @Test public void bindingKnownPackagesCaches() {
     ButterKnife.bind(new Activity());
-    assertThat(ButterKnife.BINDERS).isEmpty();
+    assertThat(ButterKnife.BINDERS).hasSize(1);
     ButterKnife.bind(new Object(), new Activity());
-    assertThat(ButterKnife.BINDERS).isEmpty();
+    assertThat(ButterKnife.BINDERS).hasSize(2);
   }
 
   @Test public void finderThrowsNiceError() {
