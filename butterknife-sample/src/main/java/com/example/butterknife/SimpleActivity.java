@@ -8,14 +8,12 @@ import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import java.util.List;
-
-import butterknife.Bind;
 import butterknife.ButterKnife;
+import butterknife.Bind;
 import butterknife.OnClick;
 import butterknife.OnItemClick;
 import butterknife.OnLongClick;
+import java.util.List;
 
 import static android.widget.Toast.LENGTH_SHORT;
 
@@ -40,7 +38,6 @@ public class SimpleActivity extends Activity {
   List<View> headerViews;
 
   private SimpleAdapter adapter;
-
 
   @OnClick(R.id.hello) void sayHello() {
     Toast.makeText(this, "Hello, views!", LENGTH_SHORT).show();
