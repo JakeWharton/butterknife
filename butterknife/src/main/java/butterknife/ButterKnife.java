@@ -131,10 +131,12 @@ public final class ButterKnife {
       return Arrays.copyOfRange(views, 0, end);
     }
 
+    @SafeVarargs
     public static <T> T[] arrayOf(T... views) {
       return filterNull(views);
     }
 
+    @SafeVarargs
     public static <T> List<T> listOf(T... views) {
       return new ImmutableList<>(filterNull(views));
     }
