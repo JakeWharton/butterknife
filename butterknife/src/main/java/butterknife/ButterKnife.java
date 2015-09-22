@@ -9,6 +9,7 @@ import android.util.Log;
 import android.util.Property;
 import android.view.View;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -366,11 +367,26 @@ public final class ButterKnife {
     }
   }
 
+  /** Apply the specified {@code action} to the view. */
+  public static <T extends View> void apply(T item, Action<? super T> action) {
+    List<T> list = new ArrayList<>();
+    list.add(item);
+    apply(list, action);
+
+  }
+
   /** Set the {@code value} using the specified {@code setter} across the {@code list} of views. */
   public static <T extends View, V> void apply(List<T> list, Setter<? super T, V> setter, V value) {
     for (int i = 0, count = list.size(); i < count; i++) {
       setter.set(list.get(i), value, i);
     }
+  }
+
+  /** Set the {@code value} using the specified {@code setter} to the view. */
+  public static <T extends View, V> void apply(T item, Setter<? super T, V> setter, V value) {
+    List<T> list = new ArrayList<>();
+    list.add(item);
+    apply(list, setter, value);
   }
 
   /**
@@ -383,6 +399,16 @@ public final class ButterKnife {
     for (int i = 0, count = list.size(); i < count; i++) {
       setter.set(list.get(i), value);
     }
+  }
+
+  /**
+   * Apply the specified {@code value} across the {@code list} to the view using the {@code property}.
+   */
+  @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
+  public static <T extends View, V> void apply(T item, Property<? super T, V> setter, V value) {
+    List<T> list = new ArrayList<>();
+    list.add(item);
+    apply(list, setter, value);
   }
 
   /** Simpler version of {@link View#findViewById(int)} which infers the target type. */

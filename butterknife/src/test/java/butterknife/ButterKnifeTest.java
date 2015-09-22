@@ -72,6 +72,14 @@ public class ButterKnifeTest {
     assertThat(arrayOf(null, "One", "Two")).containsExactly("One", "Two");
   }
 
+  @Test public void propertyAppliedToView() {
+    View view = new View(Robolectric.application);
+    assertThat(view).isEnabled();
+    ButterKnife.apply(view, PROPERTY_ENABLED, false);
+
+    assertThat(view).isDisabled();
+  }
+
   @Test public void propertyAppliedToEveryView() {
     View view1 = new View(Robolectric.application);
     View view2 = new View(Robolectric.application);
@@ -88,6 +96,15 @@ public class ButterKnifeTest {
     assertThat(view3).isDisabled();
   }
 
+  @Test public void actionAppliedToView() {
+    View view = new View(Robolectric.application);
+    assertThat(view).isEnabled();
+
+    ButterKnife.apply(view, ACTION_DISABLE);
+
+    assertThat(view).isDisabled();
+  }
+
   @Test public void actionAppliedToEveryView() {
     View view1 = new View(Robolectric.application);
     View view2 = new View(Robolectric.application);
@@ -102,6 +119,15 @@ public class ButterKnifeTest {
     assertThat(view1).isDisabled();
     assertThat(view2).isDisabled();
     assertThat(view3).isDisabled();
+  }
+
+  @Test public void setterAppliedToView() {
+    View view = new View(Robolectric.application);
+    assertThat(view).isEnabled();
+
+    ButterKnife.apply(view, SETTER_ENABLED, false);
+
+    assertThat(view).isDisabled();
   }
 
   @Test public void setterAppliedToEveryView() {
