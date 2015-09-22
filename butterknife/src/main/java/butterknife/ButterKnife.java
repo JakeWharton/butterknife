@@ -370,7 +370,6 @@ public final class ButterKnife {
   /** Apply the specified {@code action} to the view. */
   public static <T extends View> void apply(T item, Action<? super T> action) {
     apply(Arrays.asList(item), action);
-
   }
 
   /** Set the {@code value} using the specified {@code setter} across the {@code list} of views. */
