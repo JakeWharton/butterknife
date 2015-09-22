@@ -9,7 +9,6 @@ import android.util.Log;
 import android.util.Property;
 import android.view.View;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -397,7 +396,8 @@ public final class ButterKnife {
   }
 
   /**
-   * Apply the specified {@code value} across the {@code list} to the view using the {@code property}.
+   * Apply the specified {@code value} across the {@code list} to the view using the
+   * {@code property}.
    */
   @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
   public static <T extends View, V> void apply(T view, Property<? super T, V> setter, V value) {
