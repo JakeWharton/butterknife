@@ -369,9 +369,7 @@ public final class ButterKnife {
 
   /** Apply the specified {@code action} to the view. */
   public static <T extends View> void apply(T item, Action<? super T> action) {
-    List<T> list = new ArrayList<>();
-    list.add(item);
-    apply(list, action);
+    apply(Arrays.asList(item), action);
 
   }
 
@@ -384,9 +382,7 @@ public final class ButterKnife {
 
   /** Set the {@code value} using the specified {@code setter} to the view. */
   public static <T extends View, V> void apply(T item, Setter<? super T, V> setter, V value) {
-    List<T> list = new ArrayList<>();
-    list.add(item);
-    apply(list, setter, value);
+    apply(Arrays.asList(item), setter, value);
   }
 
   /**
@@ -406,9 +402,7 @@ public final class ButterKnife {
    */
   @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
   public static <T extends View, V> void apply(T item, Property<? super T, V> setter, V value) {
-    List<T> list = new ArrayList<>();
-    list.add(item);
-    apply(list, setter, value);
+    apply(Arrays.asList(item), setter, value);
   }
 
   /** Simpler version of {@link View#findViewById(int)} which infers the target type. */
