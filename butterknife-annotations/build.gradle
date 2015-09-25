@@ -1,0 +1,19 @@
+apply plugin: 'java'
+apply plugin: 'checkstyle'
+
+targetCompatibility = JavaVersion.VERSION_1_7
+sourceCompatibility = JavaVersion.VERSION_1_7
+
+checkstyle {
+  configFile rootProject.file('checkstyle.xml')
+  showViolations true
+}
+
+configurations {
+  provided
+  compile.extendsFrom provided
+}
+
+dependencies {
+  provided deps.android
+}
