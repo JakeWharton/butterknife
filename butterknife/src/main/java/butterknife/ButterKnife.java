@@ -254,8 +254,9 @@ public final class ButterKnife {
    *
    * @param target Target view for view binding.
    */
-  public static void bind(View target) {
+  public static View bind(View target) {
     bind(target, target, Finder.VIEW);
+    return target;
   }
 
   /**
@@ -286,8 +287,9 @@ public final class ButterKnife {
    * @param target Target class for view binding.
    * @param source View root on which IDs will be looked up.
    */
-  public static void bind(Object target, View source) {
+  public static View bind(Object target, View source) {
     bind(target, source, Finder.VIEW);
+    return source;
   }
 
   /**
