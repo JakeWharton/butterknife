@@ -7,6 +7,12 @@ android {
   defaultConfig {
     minSdkVersion rootProject.ext.minSdkVersion
   }
+
+  buildTypes {
+    release {
+      consumerProguardFiles 'proguard-rules.txt'
+    }
+  }
 }
 
 dependencies {
