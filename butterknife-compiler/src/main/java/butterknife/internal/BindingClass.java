@@ -31,11 +31,14 @@ final class BindingClass {
   private static final ClassName VIEW_BINDER =
       ClassName.get("butterknife", "ButterKnife", "ViewBinder");
   private static final ClassName VIEW = ClassName.get("android.view", "View");
+  private static final ClassName BUTTERKNIFE_TOOLS =
+      ClassName.get("butterknife.internal", "ButterKnifeTools");
   private static final int NO_ID = -1;
 
   private final Map<Integer, ViewBindings> viewIdMap = new LinkedHashMap<>();
   private final Map<FieldCollectionViewBinding, int[]> collectionBindings = new LinkedHashMap<>();
   private final List<FieldBitmapBinding> bitmapBindings = new ArrayList<>();
+  private final List<FieldDrawableWithTintBinding> drawableWithTintBindings = new ArrayList<>();
   private final List<FieldResourceBinding> resourceBindings = new ArrayList<>();
   private final String classPackage;
   private final String className;
@@ -50,6 +53,10 @@ final class BindingClass {
 
   void addBitmap(FieldBitmapBinding binding) {
     bitmapBindings.add(binding);
+  }
+
+  void addDrawableWithTint(FieldDrawableWithTintBinding binding) {
+    drawableWithTintBindings.add(binding);
   }
 
   void addField(int id, FieldViewBinding binding) {
@@ -147,6 +154,16 @@ final class BindingClass {
         for (FieldBitmapBinding binding : bitmapBindings) {
           result.addStatement("target.$L = $T.decodeResource(res, $L)", binding.getName(),
               BitmapFactory.class, binding.getId());
+        }
+      }
+
+      if (!drawableWithTintBindings.isEmpty()) {
+        result.addStatement("$T theme = finder.getContext(source).getTheme()",
+            Resources.Theme.class);
+
+        for (FieldDrawableWithTintBinding binding : drawableWithTintBindings) {
+          result.addStatement("target.$L = $T.setDrawableTint(res, theme, $L, $L)",
+              binding.getName(), BUTTERKNIFE_TOOLS, binding.getId(), binding.getTintAttributeId());
         }
       }
 
@@ -392,6 +409,7 @@ final class BindingClass {
   }
 
   private boolean requiresResources() {
-    return !bitmapBindings.isEmpty() || !resourceBindings.isEmpty();
+    return !(bitmapBindings.isEmpty() && drawableWithTintBindings.isEmpty()
+        && resourceBindings.isEmpty());
   }
 }

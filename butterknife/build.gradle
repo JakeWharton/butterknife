@@ -6,6 +6,7 @@ android {
 
   defaultConfig {
     minSdkVersion rootProject.ext.minSdkVersion
+    targetSdkVersion rootProject.ext.targetSdkVersion
   }
 
   buildTypes {
@@ -17,6 +18,7 @@ android {
 
 dependencies {
   compile project(':butterknife-annotations')
+  provided deps.supportv4
 
   testCompile deps.festandroid
   testCompile deps.festassert

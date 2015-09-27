@@ -16,4 +16,10 @@ import static java.lang.annotation.RetentionPolicy.CLASS;
 public @interface BindDrawable {
   /** Drawable resource ID to which the field will be bound. */
   int value();
+
+  /** Color attribute resource ID that is used to tint the drawable. */
+  int tint() default NONE;
+
+  /** Default value for {@link #tint()}. */
+  int NONE = -1;
 }

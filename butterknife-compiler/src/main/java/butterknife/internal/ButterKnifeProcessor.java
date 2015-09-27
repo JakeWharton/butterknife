@@ -615,10 +615,17 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     // Assemble information on the field.
     String name = element.getSimpleName().toString();
     int id = element.getAnnotation(BindDrawable.class).value();
+    int tint = element.getAnnotation(BindDrawable.class).tint();
 
     BindingClass bindingClass = getOrCreateTargetClass(targetClassMap, enclosingElement);
-    FieldResourceBinding binding = new FieldResourceBinding(id, name, "getDrawable");
-    bindingClass.addResource(binding);
+    if (tint != BindDrawable.NONE) {
+      FieldDrawableWithTintBinding binding = new FieldDrawableWithTintBinding(id, name, tint);
+      bindingClass.addDrawableWithTint(binding);
+    }
+    else {
+      FieldResourceBinding binding = new FieldResourceBinding(id, name, "getDrawable");
+      bindingClass.addResource(binding);
+    }
 
     erasedTargetNames.add(enclosingElement.toString());
   }

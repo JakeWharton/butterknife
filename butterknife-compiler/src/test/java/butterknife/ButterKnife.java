@@ -5,8 +5,8 @@ import android.view.View;
 import java.util.List;
 
 /**
- * DO NOT MODIFY! This is a Stub class for ButterKnife.java found in the butterknife module, in
- * order to work around the fact that java projects can't depend on android libraries.
+ * This is a stub class for ButterKnife.java found in the butterknife module, in order to work
+ * around the fact that Java projects can't depend on Android libraries.
  */
 public final class ButterKnife {
 
