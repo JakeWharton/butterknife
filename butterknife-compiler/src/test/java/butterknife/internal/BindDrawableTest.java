@@ -67,7 +67,7 @@ public class BindDrawableTest {
             "  @Override public void bind(final ButterKnife.Finder finder, final T target, Object source) {",
             "    Resources res = finder.getContext(source).getResources();",
             "    Resources.Theme theme = finder.getContext(source).getTheme();",
-            "    target.one = ButterKnifeTools.setDrawableTint(res, theme, 1, 2);",
+            "    target.one = ButterKnifeTools.getDrawable(res, 1, 2, theme);",
             "",
             "  }",
             "  @Override public void unbind(T target) {",

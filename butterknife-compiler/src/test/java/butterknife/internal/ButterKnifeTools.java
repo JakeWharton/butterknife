@@ -12,8 +12,8 @@ public final class ButterKnifeTools {
     throw new AssertionError("No instances.");
   }
 
-  public static Drawable setDrawableTint(Resources res, Resources.Theme theme, int drawableId,
-      int attributeId) {
+  public static Drawable getDrawable(Resources res, int drawableId, int attributeId,
+      Resources.Theme theme) {
     throw new RuntimeException("Stub!");
   }
 }

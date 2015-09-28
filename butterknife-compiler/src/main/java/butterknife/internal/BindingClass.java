@@ -162,7 +162,7 @@ final class BindingClass {
             Resources.Theme.class);
 
         for (FieldDrawableWithTintBinding binding : drawableWithTintBindings) {
-          result.addStatement("target.$L = $T.setDrawableTint(res, theme, $L, $L)",
+          result.addStatement("target.$L = $T.getDrawable(res, $L, $L, theme)",
               binding.getName(), BUTTERKNIFE_TOOLS, binding.getId(), binding.getTintAttributeId());
         }
       }

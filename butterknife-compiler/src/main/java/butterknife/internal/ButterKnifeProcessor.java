@@ -618,7 +618,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     int tint = element.getAnnotation(BindDrawable.class).tint();
 
     BindingClass bindingClass = getOrCreateTargetClass(targetClassMap, enclosingElement);
-    if (tint != BindDrawable.NONE) {
+    if (tint != 0) {
       FieldDrawableWithTintBinding binding = new FieldDrawableWithTintBinding(id, name, tint);
       bindingClass.addDrawableWithTint(binding);
     }

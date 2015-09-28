@@ -10,10 +10,12 @@ public final class ButterKnifeTools {
     throw new AssertionError("No instances.");
   }
 
-  public static Drawable setDrawableTint(Resources res, Resources.Theme theme, int drawableId,
-      int attributeId) {
-    if (SupportV4Utils.HAS_SUPPORT_V4_LIBRARY) {
-      return SupportV4Utils.setDrawableTint(res, theme, drawableId, attributeId);
+  public static Drawable getDrawable(Resources res, int drawableId, int attributeId,
+      Resources.Theme theme) {
+    if (attributeId == 0) {
+      return CompatUtils.getDrawable(res, drawableId, theme);
+    } else if (SupportV4Utils.HAS_SUPPORT_V4_LIBRARY) {
+      return SupportV4Utils.getTintedDrawable(res, drawableId, attributeId, theme);
     } else {
       throw new RuntimeException("Android v4 Support Library is required for @BindDrawable with " +
           "tint.");
