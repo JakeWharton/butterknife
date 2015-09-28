@@ -17,8 +17,8 @@ public final class ButterKnifeTools {
     } else if (SupportV4Utils.HAS_SUPPORT_V4_LIBRARY) {
       return SupportV4Utils.getTintedDrawable(res, drawableId, tintAttributeId, theme);
     } else {
-      throw new RuntimeException("Android v4 Support Library is required for @BindDrawable with " +
-          "tint.");
+      throw new RuntimeException("Android v4 Support Library is required for @BindDrawable with "
+          + "tint.");
     }
   }
 }
