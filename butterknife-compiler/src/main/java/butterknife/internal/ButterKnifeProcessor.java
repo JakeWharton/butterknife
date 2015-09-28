@@ -11,9 +11,13 @@ import butterknife.BindDrawable;
 import butterknife.BindInt;
 import butterknife.BindString;
 import butterknife.OnCheckedChanged;
+import butterknife.OnChildClick;
 import butterknife.OnClick;
 import butterknife.OnEditorAction;
 import butterknife.OnFocusChange;
+import butterknife.OnGroupClick;
+import butterknife.OnGroupCollapse;
+import butterknife.OnGroupExpand;
 import butterknife.OnItemClick;
 import butterknife.OnItemLongClick;
 import butterknife.OnItemSelected;
@@ -78,9 +82,13 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
   private static final String LIST_TYPE = List.class.getCanonicalName();
   private static final List<Class<? extends Annotation>> LISTENERS = Arrays.asList(//
       OnCheckedChanged.class, //
+      OnChildClick.class, //
       OnClick.class, //
       OnEditorAction.class, //
       OnFocusChange.class, //
+      OnGroupClick.class, //
+      OnGroupCollapse.class, //
+      OnGroupExpand.class, //
       OnItemClick.class, //
       OnItemLongClick.class, //
       OnItemSelected.class, //
