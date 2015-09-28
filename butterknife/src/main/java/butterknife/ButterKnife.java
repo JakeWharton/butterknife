@@ -361,10 +361,28 @@ public final class ButterKnife {
     return viewBinder;
   }
 
+  /** Apply the specified {@code actions} across the {@code list} of views. */
+  @SafeVarargs
+  public static <T extends View> void apply(List<T> list, Action<? super T>... actions) {
+    for (int i = 0, count = list.size(); i < count; i++) {
+      for (Action<? super T> action : actions) {
+        action.apply(list.get(i), i);
+      }
+    }
+  }
+
   /** Apply the specified {@code action} across the {@code list} of views. */
   public static <T extends View> void apply(List<T> list, Action<? super T> action) {
     for (int i = 0, count = list.size(); i < count; i++) {
       action.apply(list.get(i), i);
+    }
+  }
+
+  /** Apply {@code actions} to {@code view}. */
+  @SafeVarargs
+  public static <T extends View> void apply(T view, Action<? super T>... actions) {
+    for (Action<? super T> action : actions) {
+      action.apply(view, 0);
     }
   }
 
