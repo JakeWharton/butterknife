@@ -1,11 +1,11 @@
 package butterknife.internal;
 
-final class FieldDrawableWithTintBinding {
+final class FieldDrawableBinding {
   private final int id;
   private final String name;
   private final int tintAttributeId;
 
-  FieldDrawableWithTintBinding(int id, String name, int tintAttributeId) {
+  FieldDrawableBinding(int id, String name, int tintAttributeId) {
     this.id = id;
     this.name = name;
     this.tintAttributeId = tintAttributeId;

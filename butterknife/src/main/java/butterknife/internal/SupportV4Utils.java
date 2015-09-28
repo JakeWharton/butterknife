@@ -16,14 +16,14 @@ final class SupportV4Utils {
     throw new AssertionError("No instances.");
   }
 
-  static Drawable getTintedDrawable(Resources res, int drawableId, int attributeId,
+  static Drawable getTintedDrawable(Resources res, int drawableId, int tintAttributeId,
       Resources.Theme theme) {
-    boolean attributeFound = theme.resolveAttribute(attributeId, outValue, true);
+    boolean attributeFound = theme.resolveAttribute(tintAttributeId, outValue, true);
     if (!attributeFound) {
       throw new Resources.NotFoundException("Required tint color attribute with name "
-          + res.getResourceEntryName(attributeId)
+          + res.getResourceEntryName(tintAttributeId)
           + " and attribute ID "
-          + attributeId
+          + tintAttributeId
           + " was not found.");
     }
 

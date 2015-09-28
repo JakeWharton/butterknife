@@ -38,7 +38,7 @@ final class BindingClass {
   private final Map<Integer, ViewBindings> viewIdMap = new LinkedHashMap<>();
   private final Map<FieldCollectionViewBinding, int[]> collectionBindings = new LinkedHashMap<>();
   private final List<FieldBitmapBinding> bitmapBindings = new ArrayList<>();
-  private final List<FieldDrawableWithTintBinding> drawableWithTintBindings = new ArrayList<>();
+  private final List<FieldDrawableBinding> drawableBindings = new ArrayList<>();
   private final List<FieldResourceBinding> resourceBindings = new ArrayList<>();
   private final String classPackage;
   private final String className;
@@ -55,8 +55,8 @@ final class BindingClass {
     bitmapBindings.add(binding);
   }
 
-  void addDrawableWithTint(FieldDrawableWithTintBinding binding) {
-    drawableWithTintBindings.add(binding);
+  void addDrawable(FieldDrawableBinding binding) {
+    drawableBindings.add(binding);
   }
 
   void addField(int id, FieldViewBinding binding) {
@@ -157,11 +157,11 @@ final class BindingClass {
         }
       }
 
-      if (!drawableWithTintBindings.isEmpty()) {
+      if (!drawableBindings.isEmpty()) {
         result.addStatement("$T theme = finder.getContext(source).getTheme()",
             Resources.Theme.class);
 
-        for (FieldDrawableWithTintBinding binding : drawableWithTintBindings) {
+        for (FieldDrawableBinding binding : drawableBindings) {
           result.addStatement("target.$L = $T.getDrawable(res, $L, $L, theme)",
               binding.getName(), BUTTERKNIFE_TOOLS, binding.getId(), binding.getTintAttributeId());
         }
@@ -409,7 +409,6 @@ final class BindingClass {
   }
 
   private boolean requiresResources() {
-    return !(bitmapBindings.isEmpty() && drawableWithTintBindings.isEmpty()
-        && resourceBindings.isEmpty());
+    return !(bitmapBindings.isEmpty() && drawableBindings.isEmpty() && resourceBindings.isEmpty());
   }
 }
