@@ -3,10 +3,7 @@ package butterknife;
 import android.app.Activity;
 import android.util.Property;
 import android.view.View;
-import java.util.Arrays;
-import java.util.List;
 
-import butterknife.shadow.EditModeShadowView;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -14,6 +11,11 @@ import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
+
+import java.util.Arrays;
+import java.util.List;
+
+import butterknife.shadow.EditModeShadowView;
 
 import static butterknife.ButterKnife.Finder.arrayOf;
 import static butterknife.ButterKnife.Finder.listOf;
@@ -44,6 +46,11 @@ public class ButterKnifeTest {
   private static final ButterKnife.Action<View> ACTION_DISABLE = new ButterKnife.Action<View>() {
     @Override public void apply(View view, int index) {
       view.setEnabled(false);
+    }
+  };
+  private static final ButterKnife.Action<View> ACTION_ZERO_ALPHA = new ButterKnife.Action<View>() {
+    @Override public void apply(View view, int index) {
+      view.setAlpha(0f);
     }
   };
 
@@ -105,6 +112,17 @@ public class ButterKnifeTest {
     assertThat(view).isDisabled();
   }
 
+  @Test public void actionsAppliedToView() {
+    View view = new View(Robolectric.application);
+    assertThat(view).isEnabled();
+    assertThat(view).hasAlpha(1f);
+
+    ButterKnife.apply(view, ACTION_DISABLE, ACTION_ZERO_ALPHA);
+
+    assertThat(view).isDisabled();
+    assertThat(view).hasAlpha(0f);
+  }
+
   @Test public void actionAppliedToEveryView() {
     View view1 = new View(Robolectric.application);
     View view2 = new View(Robolectric.application);
@@ -119,6 +137,28 @@ public class ButterKnifeTest {
     assertThat(view1).isDisabled();
     assertThat(view2).isDisabled();
     assertThat(view3).isDisabled();
+  }
+
+  @Test public void actionsAppliedToEveryView() {
+    View view1 = new View(Robolectric.application);
+    View view2 = new View(Robolectric.application);
+    View view3 = new View(Robolectric.application);
+    assertThat(view1).isEnabled();
+    assertThat(view2).isEnabled();
+    assertThat(view3).isEnabled();
+    assertThat(view1).hasAlpha(1f);
+    assertThat(view2).hasAlpha(1f);
+    assertThat(view3).hasAlpha(1f);
+
+    List<View> views = Arrays.asList(view1, view2, view3);
+    ButterKnife.apply(views, ACTION_DISABLE, ACTION_ZERO_ALPHA);
+
+    assertThat(view1).isDisabled();
+    assertThat(view2).isDisabled();
+    assertThat(view3).isDisabled();
+    assertThat(view1).hasAlpha(0f);
+    assertThat(view2).hasAlpha(0f);
+    assertThat(view3).hasAlpha(0f);
   }
 
   @Test public void setterAppliedToView() {
