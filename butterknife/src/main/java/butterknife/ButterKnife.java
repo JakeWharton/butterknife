@@ -9,10 +9,11 @@ import android.util.Log;
 import android.util.Property;
 import android.view.View;
 
-import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+
+import butterknife.internal.ArraysCompat;
 
 /**
  * Field and method binding for Android views. Use this class to simplify finding views and
@@ -128,7 +129,7 @@ public final class ButterKnife {
           views[end++] = view;
         }
       }
-      return Arrays.copyOfRange(views, 0, end);
+      return ArraysCompat.copyOfRange(views, 0, end);
     }
 
     @SafeVarargs
