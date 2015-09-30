@@ -481,7 +481,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     int id = element.getAnnotation(BindBool.class).value();
 
     BindingClass bindingClass = getOrCreateTargetClass(targetClassMap, enclosingElement);
-    FieldResourceBinding binding = new FieldResourceBinding(id, name, "getBoolean");
+    FieldResourceBinding binding = new FieldResourceBinding(id, name, "getBoolean", false);
     bindingClass.addResource(binding);
 
     erasedTargetNames.add(enclosingElement.toString());
@@ -518,7 +518,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
     BindingClass bindingClass = getOrCreateTargetClass(targetClassMap, enclosingElement);
     FieldResourceBinding binding = new FieldResourceBinding(id, name,
-        isColorStateList ? "getColorStateList" : "getColor");
+        isColorStateList ? "getColorStateList" : "getColor", true);
     bindingClass.addResource(binding);
 
     erasedTargetNames.add(enclosingElement.toString());
@@ -555,7 +555,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
     BindingClass bindingClass = getOrCreateTargetClass(targetClassMap, enclosingElement);
     FieldResourceBinding binding = new FieldResourceBinding(id, name,
-        isInt ? "getDimensionPixelSize" : "getDimension");
+        isInt ? "getDimensionPixelSize" : "getDimension", false);
     bindingClass.addResource(binding);
 
     erasedTargetNames.add(enclosingElement.toString());
@@ -651,7 +651,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     int id = element.getAnnotation(BindInt.class).value();
 
     BindingClass bindingClass = getOrCreateTargetClass(targetClassMap, enclosingElement);
-    FieldResourceBinding binding = new FieldResourceBinding(id, name, "getInteger");
+    FieldResourceBinding binding = new FieldResourceBinding(id, name, "getInteger", false);
     bindingClass.addResource(binding);
 
     erasedTargetNames.add(enclosingElement.toString());
@@ -683,7 +683,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     int id = element.getAnnotation(BindString.class).value();
 
     BindingClass bindingClass = getOrCreateTargetClass(targetClassMap, enclosingElement);
-    FieldResourceBinding binding = new FieldResourceBinding(id, name, "getString");
+    FieldResourceBinding binding = new FieldResourceBinding(id, name, "getString", false);
     bindingClass.addResource(binding);
 
     erasedTargetNames.add(enclosingElement.toString());
@@ -717,7 +717,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     int id = element.getAnnotation(BindArray.class).value();
 
     BindingClass bindingClass = getOrCreateTargetClass(targetClassMap, enclosingElement);
-    FieldResourceBinding binding = new FieldResourceBinding(id, name, methodName);
+    FieldResourceBinding binding = new FieldResourceBinding(id, name, methodName, false);
     bindingClass.addResource(binding);
 
     erasedTargetNames.add(enclosingElement.toString());
