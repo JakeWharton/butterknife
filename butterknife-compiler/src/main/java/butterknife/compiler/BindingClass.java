@@ -1,5 +1,6 @@
 package butterknife.compiler;
 
+import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.BitmapFactory;
 import butterknife.internal.ListenerClass;
@@ -33,8 +34,6 @@ final class BindingClass {
   private static final ClassName VIEW_BINDER = ClassName.get("butterknife.internal", "ViewBinder");
   private static final ClassName UTILS = ClassName.get("butterknife.internal", "Utils");
   private static final ClassName VIEW = ClassName.get("android.view", "View");
-  private static final ClassName BUTTERKNIFE_TOOLS =
-      ClassName.get("butterknife.internal", "ButterKnifeTools");
   private static final int NO_ID = -1;
 
   private final Map<Integer, ViewBindings> viewIdMap = new LinkedHashMap<>();
@@ -150,27 +149,36 @@ final class BindingClass {
     }
 
     if (requiresResources()) {
-      result.addStatement("$T res = finder.getContext(source).getResources()", Resources.class);
+      if (requiresTheme()) {
+        result.addStatement("$T context = finder.getContext(source)", Context.class);
+        result.addStatement("$T res = context.getResources()", Resources.class);
+        result.addStatement("$T theme = context.getTheme()", Resources.Theme.class);
+      } else {
+        result.addStatement("$T res = finder.getContext(source).getResources()", Resources.class);
+      }
 
-      if (!bitmapBindings.isEmpty()) {
-        for (FieldBitmapBinding binding : bitmapBindings) {
-          result.addStatement("target.$L = $T.decodeResource(res, $L)", binding.getName(),
-              BitmapFactory.class, binding.getId());
+      for (FieldBitmapBinding binding : bitmapBindings) {
+        result.addStatement("target.$L = $T.decodeResource(res, $L)", binding.getName(),
+            BitmapFactory.class, binding.getId());
+      }
+
+      for (FieldDrawableBinding binding : drawableBindings) {
+        int tintAttributeId = binding.getTintAttributeId();
+        if (tintAttributeId != 0) {
+          result.addStatement("target.$L = $T.getTintedDrawable(res, theme, $L, $L)",
+              binding.getName(), UTILS, binding.getId(), tintAttributeId);
+        } else {
+          result.addStatement("target.$L = $T.getDrawable(res, theme, $L)", binding.getName(),
+              UTILS, binding.getId());
         }
       }
 
-      if (!drawableBindings.isEmpty()) {
-        result.addStatement("$T theme = finder.getContext(source).getTheme()",
-            Resources.Theme.class);
-
-        for (FieldDrawableBinding binding : drawableBindings) {
-          result.addStatement("target.$L = $T.getDrawable(res, $L, $L, theme)",
-              binding.getName(), BUTTERKNIFE_TOOLS, binding.getId(), binding.getTintAttributeId());
-        }
-      }
-
-      if (!resourceBindings.isEmpty()) {
-        for (FieldResourceBinding binding : resourceBindings) {
+      for (FieldResourceBinding binding : resourceBindings) {
+        // TODO being themeable is poor correlation to the need to use Utils.
+        if (binding.isThemeable()) {
+          result.addStatement("target.$L = $T.$L(res, theme, $L)", binding.getName(),
+              UTILS, binding.getMethod(), binding.getId());
+        } else {
           result.addStatement("target.$L = res.$L($L)", binding.getName(), binding.getMethod(),
               binding.getId());
         }
@@ -411,5 +419,17 @@ final class BindingClass {
 
   private boolean requiresResources() {
     return !(bitmapBindings.isEmpty() && drawableBindings.isEmpty() && resourceBindings.isEmpty());
+  }
+
+  private boolean requiresTheme() {
+    if (!drawableBindings.isEmpty()) {
+      return true;
+    }
+    for (FieldResourceBinding resourceBinding : resourceBindings) {
+      if (resourceBinding.isThemeable()) {
+        return true;
+      }
+    }
+    return false;
   }
 }
