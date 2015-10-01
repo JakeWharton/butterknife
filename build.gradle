@@ -55,5 +55,6 @@ ext.deps = [
     truth: 'com.google.truth:truth:0.27',
     robolectric: 'org.robolectric:robolectric:2.2',
     compiletesting: 'com.google.testing.compile:compile-testing:0.7',
-    autoservice: 'com.google.auto.service:auto-service:1.0-rc2'
+    autoservice: 'com.google.auto.service:auto-service:1.0-rc2',
+    autocommon: 'com.google.auto:auto-common:0.4'
 ]
