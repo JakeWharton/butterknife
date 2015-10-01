@@ -13,9 +13,7 @@ import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
-import static org.fest.assertions.api.ANDROID.assertThat;
-import static org.fest.assertions.api.Assertions.assertThat;
-import static org.fest.assertions.api.Assertions.entry;
+import static com.google.common.truth.Truth.assertThat;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(manifest = Config.NONE)
@@ -54,109 +52,108 @@ public class ButterKnifeTest {
 
   @Test public void propertyAppliedToView() {
     View view = new View(Robolectric.application);
-    assertThat(view).isEnabled();
-    ButterKnife.apply(view, PROPERTY_ENABLED, false);
+    assertThat(view.isEnabled()).isTrue();
 
-    assertThat(view).isDisabled();
+    ButterKnife.apply(view, PROPERTY_ENABLED, false);
+    assertThat(view.isEnabled()).isFalse();
   }
 
   @Test public void propertyAppliedToEveryView() {
     View view1 = new View(Robolectric.application);
     View view2 = new View(Robolectric.application);
     View view3 = new View(Robolectric.application);
-    assertThat(view1).isEnabled();
-    assertThat(view2).isEnabled();
-    assertThat(view3).isEnabled();
+    assertThat(view1.isEnabled()).isTrue();
+    assertThat(view2.isEnabled()).isTrue();
+    assertThat(view3.isEnabled()).isTrue();
 
     List<View> views = Arrays.asList(view1, view2, view3);
     ButterKnife.apply(views, PROPERTY_ENABLED, false);
 
-    assertThat(view1).isDisabled();
-    assertThat(view2).isDisabled();
-    assertThat(view3).isDisabled();
+    assertThat(view1.isEnabled()).isFalse();
+    assertThat(view2.isEnabled()).isFalse();
+    assertThat(view3.isEnabled()).isFalse();
   }
 
   @Test public void actionAppliedToView() {
     View view = new View(Robolectric.application);
-    assertThat(view).isEnabled();
+    assertThat(view.isEnabled()).isTrue();
 
     ButterKnife.apply(view, ACTION_DISABLE);
 
-    assertThat(view).isDisabled();
+    assertThat(view.isEnabled()).isFalse();
   }
 
   @Test public void actionsAppliedToView() {
     View view = new View(Robolectric.application);
-    assertThat(view).isEnabled();
-    assertThat(view).hasAlpha(1f);
+    assertThat(view.isEnabled()).isTrue();
+    assertThat(view.getAlpha()).isEqualTo(1f);
 
     ButterKnife.apply(view, ACTION_DISABLE, ACTION_ZERO_ALPHA);
-
-    assertThat(view).isDisabled();
-    assertThat(view).hasAlpha(0f);
+    assertThat(view.isEnabled()).isFalse();
+    assertThat(view.getAlpha()).isEqualTo(0f);
   }
 
   @Test public void actionAppliedToEveryView() {
     View view1 = new View(Robolectric.application);
     View view2 = new View(Robolectric.application);
     View view3 = new View(Robolectric.application);
-    assertThat(view1).isEnabled();
-    assertThat(view2).isEnabled();
-    assertThat(view3).isEnabled();
+    assertThat(view1.isEnabled()).isTrue();
+    assertThat(view2.isEnabled()).isTrue();
+    assertThat(view3.isEnabled()).isTrue();
 
     List<View> views = Arrays.asList(view1, view2, view3);
     ButterKnife.apply(views, ACTION_DISABLE);
 
-    assertThat(view1).isDisabled();
-    assertThat(view2).isDisabled();
-    assertThat(view3).isDisabled();
+    assertThat(view1.isEnabled()).isFalse();
+    assertThat(view2.isEnabled()).isFalse();
+    assertThat(view3.isEnabled()).isFalse();
   }
 
   @Test public void actionsAppliedToEveryView() {
     View view1 = new View(Robolectric.application);
     View view2 = new View(Robolectric.application);
     View view3 = new View(Robolectric.application);
-    assertThat(view1).isEnabled();
-    assertThat(view2).isEnabled();
-    assertThat(view3).isEnabled();
-    assertThat(view1).hasAlpha(1f);
-    assertThat(view2).hasAlpha(1f);
-    assertThat(view3).hasAlpha(1f);
+    assertThat(view1.isEnabled()).isTrue();
+    assertThat(view2.isEnabled()).isTrue();
+    assertThat(view3.isEnabled()).isTrue();
+    assertThat(view1.getAlpha()).isEqualTo(1f);
+    assertThat(view2.getAlpha()).isEqualTo(1f);
+    assertThat(view3.getAlpha()).isEqualTo(1f);
 
     List<View> views = Arrays.asList(view1, view2, view3);
     ButterKnife.apply(views, ACTION_DISABLE, ACTION_ZERO_ALPHA);
 
-    assertThat(view1).isDisabled();
-    assertThat(view2).isDisabled();
-    assertThat(view3).isDisabled();
-    assertThat(view1).hasAlpha(0f);
-    assertThat(view2).hasAlpha(0f);
-    assertThat(view3).hasAlpha(0f);
+    assertThat(view1.isEnabled()).isFalse();
+    assertThat(view2.isEnabled()).isFalse();
+    assertThat(view3.isEnabled()).isFalse();
+    assertThat(view1.getAlpha()).isEqualTo(0f);
+    assertThat(view2.getAlpha()).isEqualTo(0f);
+    assertThat(view3.getAlpha()).isEqualTo(0f);
   }
 
   @Test public void setterAppliedToView() {
     View view = new View(Robolectric.application);
-    assertThat(view).isEnabled();
+    assertThat(view.isEnabled()).isTrue();
 
     ButterKnife.apply(view, SETTER_ENABLED, false);
 
-    assertThat(view).isDisabled();
+    assertThat(view.isEnabled()).isFalse();
   }
 
   @Test public void setterAppliedToEveryView() {
     View view1 = new View(Robolectric.application);
     View view2 = new View(Robolectric.application);
     View view3 = new View(Robolectric.application);
-    assertThat(view1).isEnabled();
-    assertThat(view2).isEnabled();
-    assertThat(view3).isEnabled();
+    assertThat(view1.isEnabled()).isTrue();
+    assertThat(view2.isEnabled()).isTrue();
+    assertThat(view3.isEnabled()).isTrue();
 
     List<View> views = Arrays.asList(view1, view2, view3);
     ButterKnife.apply(views, SETTER_ENABLED, false);
 
-    assertThat(view1).isDisabled();
-    assertThat(view2).isDisabled();
-    assertThat(view3).isDisabled();
+    assertThat(view1.isEnabled()).isFalse();
+    assertThat(view2.isEnabled()).isFalse();
+    assertThat(view3.isEnabled()).isFalse();
   }
 
   @Test public void bindingViewReturnsView() {
@@ -175,7 +172,7 @@ public class ButterKnifeTest {
 
     Example example = new Example();
     ButterKnife.bind(example, null, null);
-    assertThat(ButterKnife.BINDERS).contains(entry(Example.class, ButterKnife.NOP_VIEW_BINDER));
+    assertThat(ButterKnife.BINDERS).containsEntry(Example.class, ButterKnife.NOP_VIEW_BINDER);
   }
 
   @Test public void zeroBindingsUnbindDoesNotThrowException() {
@@ -184,7 +181,7 @@ public class ButterKnifeTest {
 
     Example example = new Example();
     ButterKnife.unbind(example);
-    assertThat(ButterKnife.BINDERS).contains(entry(Example.class, ButterKnife.NOP_VIEW_BINDER));
+    assertThat(ButterKnife.BINDERS).containsEntry(Example.class, ButterKnife.NOP_VIEW_BINDER);
   }
 
   @Test public void bindingKnownPackagesIsNoOp() {

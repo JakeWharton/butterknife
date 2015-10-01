@@ -8,8 +8,8 @@ import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
-import static org.fest.assertions.api.Assertions.assertThat;
-import static org.fest.assertions.api.Assertions.fail;
+import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.fail;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(manifest = Config.NONE)
@@ -18,7 +18,7 @@ public final class FinderTest {
     View view = new View(Robolectric.application);
     try {
       Finder.VIEW.findRequiredView(view, android.R.id.button1, "yo mama");
-      fail("View 'button1' with ID " + android.R.id.button1 + " should not have been found.");
+      fail();
     } catch (IllegalStateException e) {
       assertThat(e).hasMessage("Required view 'button1' with ID "
           + android.R.id.button1
@@ -31,7 +31,7 @@ public final class FinderTest {
     View view = new View(Robolectric.application);
     try {
       Finder.VIEW.findRequiredView(view, android.R.id.button1, "yo mama");
-      fail("View 'button1' with ID " + android.R.id.button1 + " should not have been found.");
+      fail();
     } catch (IllegalStateException e) {
       assertThat(e).hasMessage("Required view '<unavailable while editing>' "
           + "with ID " + android.R.id.button1

@@ -3,8 +3,9 @@ package butterknife.compiler;
 import org.junit.Test;
 
 import static butterknife.compiler.BindingClass.asHumanDescription;
+import static com.google.common.truth.Truth.assertThat;
 import static java.util.Arrays.asList;
-import static org.fest.assertions.api.Assertions.assertThat;
+import static java.util.Collections.singletonList;
 
 public class ViewBindingClassTest {
   @Test public void humanDescriptionJoinWorks() {
@@ -12,7 +13,7 @@ public class ViewBindingClassTest {
     ViewBinding two = new TestViewBinding("two");
     ViewBinding three = new TestViewBinding("three");
 
-    String result1 = asHumanDescription(asList(one));
+    String result1 = asHumanDescription(singletonList(one));
     assertThat(result1).isEqualTo("one");
 
     String result2 = asHumanDescription(asList(one, two));
