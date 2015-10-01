@@ -22,6 +22,7 @@ import butterknife.OnTextChanged;
 import butterknife.OnTouch;
 import butterknife.internal.ListenerClass;
 import butterknife.internal.ListenerMethod;
+import com.google.auto.common.SuperficialValidation;
 import com.squareup.javapoet.TypeName;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -149,6 +150,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
     // Process each @Bind element.
     for (Element element : env.getElementsAnnotatedWith(Bind.class)) {
+      if (!SuperficialValidation.validateElement(element)) continue;
       try {
         parseBind(element, targetClassMap, erasedTargetNames);
       } catch (Exception e) {
@@ -163,6 +165,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
     // Process each @BindArray element.
     for (Element element : env.getElementsAnnotatedWith(BindArray.class)) {
+      if (!SuperficialValidation.validateElement(element)) continue;
       try {
         parseResourceArray(element, targetClassMap, erasedTargetNames);
       } catch (Exception e) {
@@ -172,6 +175,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
     // Process each @BindBitmap element.
     for (Element element : env.getElementsAnnotatedWith(BindBitmap.class)) {
+      if (!SuperficialValidation.validateElement(element)) continue;
       try {
         parseResourceBitmap(element, targetClassMap, erasedTargetNames);
       } catch (Exception e) {
@@ -181,6 +185,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
     // Process each @BindBool element.
     for (Element element : env.getElementsAnnotatedWith(BindBool.class)) {
+      if (!SuperficialValidation.validateElement(element)) continue;
       try {
         parseResourceBool(element, targetClassMap, erasedTargetNames);
       } catch (Exception e) {
@@ -190,6 +195,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
     // Process each @BindColor element.
     for (Element element : env.getElementsAnnotatedWith(BindColor.class)) {
+      if (!SuperficialValidation.validateElement(element)) continue;
       try {
         parseResourceColor(element, targetClassMap, erasedTargetNames);
       } catch (Exception e) {
@@ -199,6 +205,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
     // Process each @BindDimen element.
     for (Element element : env.getElementsAnnotatedWith(BindDimen.class)) {
+      if (!SuperficialValidation.validateElement(element)) continue;
       try {
         parseResourceDimen(element, targetClassMap, erasedTargetNames);
       } catch (Exception e) {
@@ -208,6 +215,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
     // Process each @BindDrawable element.
     for (Element element : env.getElementsAnnotatedWith(BindDrawable.class)) {
+      if (!SuperficialValidation.validateElement(element)) continue;
       try {
         parseResourceDrawable(element, targetClassMap, erasedTargetNames);
       } catch (Exception e) {
@@ -217,6 +225,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
     // Process each @BindInt element.
     for (Element element : env.getElementsAnnotatedWith(BindInt.class)) {
+      if (!SuperficialValidation.validateElement(element)) continue;
       try {
         parseResourceInt(element, targetClassMap, erasedTargetNames);
       } catch (Exception e) {
@@ -226,6 +235,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
     // Process each @BindString element.
     for (Element element : env.getElementsAnnotatedWith(BindString.class)) {
+      if (!SuperficialValidation.validateElement(element)) continue;
       try {
         parseResourceString(element, targetClassMap, erasedTargetNames);
       } catch (Exception e) {
@@ -773,6 +783,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
       Class<? extends Annotation> annotationClass, Map<TypeElement, BindingClass> targetClassMap,
       Set<String> erasedTargetNames) {
     for (Element element : env.getElementsAnnotatedWith(annotationClass)) {
+      if (!SuperficialValidation.validateElement(element)) continue;
       try {
         parseListenerAnnotation(annotationClass, element, targetClassMap, erasedTargetNames);
       } catch (Exception e) {

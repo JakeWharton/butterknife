@@ -4,6 +4,7 @@ apply plugin: 'checkstyle'
 dependencies {
   compile project(':butterknife-annotations')
   compile deps.autoservice
+  compile deps.autocommon
   compile deps.javapoet
 
   testCompile deps.junit
