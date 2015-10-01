@@ -51,7 +51,7 @@ ext.deps = [
     javapoet: 'com.squareup:javapoet:1.2.0',
 
     // Test dependencies
-    junit: 'junit:junit:4.11',
+    junit: 'junit:junit:4.12',
     festassert: 'org.easytesting:fest-assert-core:2.0M10',
     festandroid: 'com.squareup:fest-android:1.0.7',
     mockitocore: 'org.mockito:mockito-core:1.9.5',
