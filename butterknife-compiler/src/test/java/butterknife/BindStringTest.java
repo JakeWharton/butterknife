@@ -6,7 +6,7 @@ import com.google.testing.compile.JavaFileObjects;
 import javax.tools.JavaFileObject;
 import org.junit.Test;
 
-import static com.google.common.truth.Truth.ASSERT;
+import static com.google.common.truth.Truth.assertAbout;
 import static com.google.testing.compile.JavaSourceSubjectFactory.javaSource;
 
 public class BindStringTest {
@@ -38,7 +38,7 @@ public class BindStringTest {
             "}"
         ));
 
-    ASSERT.about(javaSource()).that(source)
+    assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
         .compilesWithoutError()
         .and()
@@ -55,7 +55,7 @@ public class BindStringTest {
         "}"
     ));
 
-    ASSERT.about(javaSource()).that(source)
+    assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
         .failsToCompile()
         .withErrorContaining("@BindString field type must be 'String'. (test.Test.one)")

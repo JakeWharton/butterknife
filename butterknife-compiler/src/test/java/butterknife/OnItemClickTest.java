@@ -6,7 +6,7 @@ import com.google.testing.compile.JavaFileObjects;
 import javax.tools.JavaFileObject;
 import org.junit.Test;
 
-import static com.google.common.truth.Truth.ASSERT;
+import static com.google.common.truth.Truth.assertAbout;
 import static com.google.testing.compile.JavaSourceSubjectFactory.javaSource;
 
 /** This augments {@link OnClickTest} with tests that exercise callbacks with parameters. */
@@ -44,7 +44,7 @@ public class OnItemClickTest {
             "}"
         ));
 
-    ASSERT.about(javaSource()).that(source)
+    assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
         .compilesWithoutError()
         .and()
@@ -91,7 +91,7 @@ public class OnItemClickTest {
             "}"
         ));
 
-    ASSERT.about(javaSource()).that(source)
+    assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
         .compilesWithoutError()
         .and()
@@ -137,7 +137,7 @@ public class OnItemClickTest {
             "}"
         ));
 
-    ASSERT.about(javaSource()).that(source)
+    assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
         .compilesWithoutError()
         .and()
@@ -183,7 +183,7 @@ public class OnItemClickTest {
             "}"
         ));
 
-    ASSERT.about(javaSource()).that(source)
+    assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
         .compilesWithoutError()
         .and()
@@ -227,7 +227,7 @@ public class OnItemClickTest {
             "}"
         ));
 
-    ASSERT.about(javaSource()).that(source)
+    assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
         .compilesWithoutError()
         .and()
@@ -244,7 +244,7 @@ public class OnItemClickTest {
         "  @OnItemClick({1, -1}) void doStuff() {}",
         "}"));
 
-    ASSERT.about(javaSource()).that(source)
+    assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
         .failsToCompile()
         .withErrorContaining("@OnItemClick annotation contains invalid ID -1. (test.Test.doStuff)")
@@ -266,7 +266,7 @@ public class OnItemClickTest {
         "  ) {}",
         "}"));
 
-    ASSERT.about(javaSource()).that(source)
+    assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
         .failsToCompile()
         .withErrorContaining(Joiner.on('\n').join(

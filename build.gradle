@@ -52,8 +52,7 @@ ext.deps = [
 
     // Test dependencies
     junit: 'junit:junit:4.12',
-    festassert: 'org.easytesting:fest-assert-core:2.0M10',
-    festandroid: 'com.squareup:fest-android:1.0.7',
+    truth: 'com.google.truth:truth:0.27',
     mockitocore: 'org.mockito:mockito-core:1.9.5',
     robolectric: 'org.robolectric:robolectric:2.2',
     compiletesting: 'com.google.testing.compile:compile-testing:0.7',

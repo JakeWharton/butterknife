@@ -3,11 +3,10 @@ package butterknife;
 import butterknife.compiler.ButterKnifeProcessor;
 import com.google.common.base.Joiner;
 import com.google.testing.compile.JavaFileObjects;
+import javax.tools.JavaFileObject;
 import org.junit.Test;
 
-import javax.tools.JavaFileObject;
-
-import static com.google.common.truth.Truth.ASSERT;
+import static com.google.common.truth.Truth.assertAbout;
 import static com.google.testing.compile.JavaSourceSubjectFactory.javaSource;
 
 public class OnTextChangedTest {
@@ -52,7 +51,7 @@ public class OnTextChangedTest {
             "}"
         ));
 
-    ASSERT.about(javaSource()).that(source)
+    assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
         .compilesWithoutError()
         .and()

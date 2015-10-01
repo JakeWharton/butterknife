@@ -29,8 +29,7 @@ dependencies {
   compile project(':butterknife')
   apt project(':butterknife-compiler')
 
-  testCompile deps.festandroid
-  testCompile deps.festassert
   testCompile deps.junit
+  testCompile deps.truth
   testCompile deps.robolectric
 }

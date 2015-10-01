@@ -6,7 +6,7 @@ import com.google.testing.compile.JavaFileObjects;
 import javax.tools.JavaFileObject;
 import org.junit.Test;
 
-import static com.google.common.truth.Truth.ASSERT;
+import static com.google.common.truth.Truth.assertAbout;
 import static com.google.testing.compile.JavaSourceSubjectFactory.javaSource;
 
 public class BindTest {
@@ -41,7 +41,7 @@ public class BindTest {
             "}"
         ));
 
-    ASSERT.about(javaSource()).that(source)
+    assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
         .compilesWithoutError()
         .and()
@@ -58,7 +58,7 @@ public class BindTest {
         "}"
     ));
 
-    ASSERT.about(javaSource()).that(source)
+    assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
         .failsToCompile()
         .withErrorContaining("@Bind for a view must only specify one ID. Found: [1, 2]. (test.Test.thing)")
@@ -97,7 +97,7 @@ public class BindTest {
             "}"
         ));
 
-    ASSERT.about(javaSource()).that(source)
+    assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
         .compilesWithoutError()
         .and()
@@ -136,7 +136,7 @@ public class BindTest {
             "}"
         ));
 
-    ASSERT.about(javaSource()).that(source)
+    assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
         .compilesWithoutError()
         .and()
@@ -182,7 +182,7 @@ public class BindTest {
             "}"
         ));
 
-    ASSERT.about(javaSource()).that(source)
+    assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
         .compilesWithoutError()
         .and()
@@ -202,7 +202,7 @@ public class BindTest {
         "}"
     ));
 
-    ASSERT.about(javaSource()).that(source)
+    assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
         .compilesWithoutError();
   }
@@ -239,7 +239,7 @@ public class BindTest {
             "}"
         ));
 
-    ASSERT.about(javaSource()).that(source)
+    assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
         .compilesWithoutError()
         .and()
@@ -304,7 +304,7 @@ public class BindTest {
             "}"
         ));
 
-    ASSERT.about(javaSource()).that(source)
+    assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
         .compilesWithoutError()
         .and()
@@ -369,7 +369,7 @@ public class BindTest {
             "}"
         ));
 
-    ASSERT.about(javaSource()).that(source)
+    assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
         .compilesWithoutError()
         .and()
@@ -386,7 +386,7 @@ public class BindTest {
         "}"
     ));
 
-    ASSERT.about(javaSource()).that(source)
+    assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
         .failsToCompile()
         .withErrorContaining(
@@ -404,7 +404,7 @@ public class BindTest {
         "}"
     ));
 
-    ASSERT.about(javaSource()).that(source)
+    assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
         .failsToCompile()
         .withErrorContaining(
@@ -424,7 +424,7 @@ public class BindTest {
         "}"
     ));
 
-    ASSERT.about(javaSource()).that(source)
+    assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
         .failsToCompile()
         .withErrorContaining(
@@ -442,7 +442,7 @@ public class BindTest {
         "}"
     ));
 
-    ASSERT.about(javaSource()).that(source)
+    assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
         .failsToCompile()
         .withErrorContaining("@Bind fields must extend from View or be an interface. (test.Test.thing)")
@@ -459,7 +459,7 @@ public class BindTest {
         "}"
     ));
 
-    ASSERT.about(javaSource()).that(source)
+    assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
         .failsToCompile()
         .withErrorContaining(
@@ -478,7 +478,7 @@ public class BindTest {
         "}"
     ));
 
-    ASSERT.about(javaSource()).that(source)
+    assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
         .failsToCompile()
         .withErrorContaining("@Bind fields must not be private or static. (test.Test.thing)")
@@ -496,7 +496,7 @@ public class BindTest {
         "}"
     ));
 
-    ASSERT.about(javaSource()).that(source)
+    assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
         .failsToCompile()
         .withErrorContaining("@Bind fields must not be private or static. (test.Test.thing)")
@@ -515,7 +515,7 @@ public class BindTest {
         "}"
     ));
 
-    ASSERT.about(javaSource()).that(source)
+    assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
         .failsToCompile()
         .withErrorContaining(
@@ -537,7 +537,7 @@ public class BindTest {
             "  }",
             "}"));
 
-    ASSERT.about(javaSource())
+    assertAbout(javaSource())
         .that(source)
         .processedWith(new ButterKnifeProcessor())
         .failsToCompile()
@@ -563,7 +563,7 @@ public class BindTest {
             "  }",
             "}"));
 
-    ASSERT.about(javaSource())
+    assertAbout(javaSource())
         .that(source)
         .processedWith(new ButterKnifeProcessor())
         .failsToCompile()
@@ -608,7 +608,7 @@ public class BindTest {
             "}"
         ));
 
-    ASSERT.about(javaSource()).that(source)
+    assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
         .compilesWithoutError()
         .and()
@@ -650,7 +650,7 @@ public class BindTest {
             "}"
         ));
 
-    ASSERT.about(javaSource()).that(source)
+    assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
         .compilesWithoutError()
         .and()
@@ -693,7 +693,7 @@ public class BindTest {
             "}"
         ));
 
-    ASSERT.about(javaSource()).that(source)
+    assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
         .compilesWithoutError()
         .and()
@@ -736,7 +736,7 @@ public class BindTest {
             "}"
         ));
 
-    ASSERT.about(javaSource()).that(source)
+    assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
         .compilesWithoutError()
         .and()
@@ -779,7 +779,7 @@ public class BindTest {
             "}"
         ));
 
-    ASSERT.about(javaSource()).that(source)
+    assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
         .compilesWithoutError()
         .and()
@@ -822,7 +822,7 @@ public class BindTest {
             "}"
         ));
 
-    ASSERT.about(javaSource()).that(source)
+    assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
         .compilesWithoutError()
         .and()
@@ -866,7 +866,7 @@ public class BindTest {
             "}"
         ));
 
-    ASSERT.about(javaSource()).that(source)
+    assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
         .compilesWithoutError()
         .and()
@@ -884,7 +884,7 @@ public class BindTest {
         "}"
     ));
 
-    ASSERT.about(javaSource()).that(source)
+    assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
         .failsToCompile()
         .withErrorContaining("@Bind must specify at least one ID. (test.Test.thing)")
@@ -901,7 +901,7 @@ public class BindTest {
         "}"
     ));
 
-    ASSERT.about(javaSource()).that(source)
+    assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
         .failsToCompile()
         .withErrorContaining("@Bind List must have a generic component. (test.Test.thing)")
@@ -919,7 +919,7 @@ public class BindTest {
         "}"
     ));
 
-    ASSERT.about(javaSource()).that(source)
+    assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
         .failsToCompile()
         .withErrorContaining("@Bind must be a List or array. (test.Test.thing)")
@@ -937,7 +937,7 @@ public class BindTest {
         "}"
     ));
 
-    ASSERT.about(javaSource()).that(source)
+    assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
         .failsToCompile()
         .withErrorContaining("@Bind List or array type must extend from View or be an interface. (test.Test.thing)")
@@ -953,7 +953,7 @@ public class BindTest {
         "  @Bind(1) String[] thing;",
         "}"));
 
-    ASSERT.about(javaSource()).that(source)
+    assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
         .failsToCompile()
         .withErrorContaining("@Bind List or array type must extend from View or be an interface. (test.Test.thing)")
@@ -972,7 +972,7 @@ public class BindTest {
         "}"
     ));
 
-    ASSERT.about(javaSource()).that(source)
+    assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
         .failsToCompile()
         .withErrorContaining("@Bind annotation contains duplicate ID 1. (test.Test.thing)")

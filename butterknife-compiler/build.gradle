@@ -6,9 +6,8 @@ dependencies {
   compile deps.autoservice
   compile deps.javapoet
 
-  testCompile deps.festandroid
-  testCompile deps.festassert
   testCompile deps.junit
+  testCompile deps.truth
   testCompile deps.robolectric
   testCompile deps.compiletesting
   testCompile files(org.gradle.internal.jvm.Jvm.current().getToolsJar())
