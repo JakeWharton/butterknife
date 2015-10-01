@@ -56,6 +56,6 @@ ext.deps = [
     festandroid: 'com.squareup:fest-android:1.0.7',
     mockitocore: 'org.mockito:mockito-core:1.9.5',
     robolectric: 'org.robolectric:robolectric:2.2',
-    compiletesting: 'com.google.testing.compile:compile-testing:0.6',
+    compiletesting: 'com.google.testing.compile:compile-testing:0.7',
     autoservice: 'com.google.auto.service:auto-service:1.0-rc2'
 ]
