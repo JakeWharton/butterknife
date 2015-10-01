@@ -1,6 +1,5 @@
 package butterknife.compiler;
 
-import android.view.View;
 import butterknife.Bind;
 import butterknife.BindArray;
 import butterknife.BindBitmap;
@@ -69,6 +68,7 @@ import static javax.tools.Diagnostic.Kind.ERROR;
 
 @AutoService(Processor.class)
 public final class ButterKnifeProcessor extends AbstractProcessor {
+  static final int NO_ID = -1;
   static final String VIEW_TYPE = "android.view.View";
   private static final String BINDING_CLASS_SUFFIX = "$$ViewBinder";
   private static final String COLOR_STATE_LIST_TYPE = "android.content.res.ColorStateList";
@@ -829,7 +829,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     }
 
     for (int id : ids) {
-      if (id == View.NO_ID) {
+      if (id == NO_ID) {
         if (ids.length == 1) {
           if (!required) {
             error(element, "ID-free binding must not be annotated with @Nullable. (%s.%s)",

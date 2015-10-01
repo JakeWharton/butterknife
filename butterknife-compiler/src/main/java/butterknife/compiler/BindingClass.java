@@ -1,8 +1,5 @@
 package butterknife.compiler;
 
-import android.content.Context;
-import android.content.res.Resources;
-import android.graphics.BitmapFactory;
 import butterknife.internal.ListenerClass;
 import butterknife.internal.ListenerMethod;
 import com.squareup.javapoet.ClassName;
@@ -24,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static butterknife.compiler.ButterKnifeProcessor.NO_ID;
 import static butterknife.compiler.ButterKnifeProcessor.VIEW_TYPE;
 import static java.util.Collections.singletonList;
 import static javax.lang.model.element.Modifier.FINAL;
@@ -34,7 +32,11 @@ final class BindingClass {
   private static final ClassName VIEW_BINDER = ClassName.get("butterknife.internal", "ViewBinder");
   private static final ClassName UTILS = ClassName.get("butterknife.internal", "Utils");
   private static final ClassName VIEW = ClassName.get("android.view", "View");
-  private static final int NO_ID = -1;
+  private static final ClassName CONTEXT = ClassName.get("android.content", "Context");
+  private static final ClassName RESOURCES = ClassName.get("android.content.res", "Resources");
+  private static final ClassName THEME = RESOURCES.nestedClass("Theme");
+  private static final ClassName BITMAP_FACTORY =
+      ClassName.get("android.graphics", "BitmapFactory");
 
   private final Map<Integer, ViewBindings> viewIdMap = new LinkedHashMap<>();
   private final Map<FieldCollectionViewBinding, int[]> collectionBindings = new LinkedHashMap<>();
@@ -150,16 +152,16 @@ final class BindingClass {
 
     if (requiresResources()) {
       if (requiresTheme()) {
-        result.addStatement("$T context = finder.getContext(source)", Context.class);
-        result.addStatement("$T res = context.getResources()", Resources.class);
-        result.addStatement("$T theme = context.getTheme()", Resources.Theme.class);
+        result.addStatement("$T context = finder.getContext(source)", CONTEXT);
+        result.addStatement("$T res = context.getResources()", RESOURCES);
+        result.addStatement("$T theme = context.getTheme()", THEME);
       } else {
-        result.addStatement("$T res = finder.getContext(source).getResources()", Resources.class);
+        result.addStatement("$T res = finder.getContext(source).getResources()", RESOURCES);
       }
 
       for (FieldBitmapBinding binding : bitmapBindings) {
         result.addStatement("target.$L = $T.decodeResource(res, $L)", binding.getName(),
-            BitmapFactory.class, binding.getId());
+            BITMAP_FACTORY, binding.getId());
       }
 
       for (FieldDrawableBinding binding : drawableBindings) {
