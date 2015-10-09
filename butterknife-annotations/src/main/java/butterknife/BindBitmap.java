@@ -1,6 +1,7 @@
 package butterknife;
 
 import android.graphics.Bitmap;
+import android.support.annotation.DrawableRes;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
@@ -16,5 +17,5 @@ import static java.lang.annotation.RetentionPolicy.CLASS;
 @Retention(CLASS) @Target(FIELD)
 public @interface BindBitmap {
   /** Drawable resource ID from which the {@link Bitmap} will be created. */
-  int value();
+  @DrawableRes int value();
 }

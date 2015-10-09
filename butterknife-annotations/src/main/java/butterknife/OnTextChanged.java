@@ -1,5 +1,6 @@
 package butterknife;
 
+import android.support.annotation.IdRes;
 import android.text.TextWatcher;
 import android.view.View;
 import butterknife.internal.ListenerClass;
@@ -40,7 +41,7 @@ import static java.lang.annotation.RetentionPolicy.CLASS;
 )
 public @interface OnTextChanged {
   /** View IDs to which the method will be bound. */
-  int[] value() default { View.NO_ID };
+  @IdRes int[] value() default { View.NO_ID };
 
   /** Listener callback to which the method will be bound. */
   Callback callback() default Callback.TEXT_CHANGED;
