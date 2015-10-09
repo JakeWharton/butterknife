@@ -33,8 +33,6 @@ public class BindBoolTest {
             "    Resources res = finder.getContext(source).getResources();",
             "    target.one = res.getBoolean(1);",
             "  }",
-            "  @Override public void unbind(T target) {",
-            "  }",
             "}"
         ));
 

@@ -175,15 +175,6 @@ public class ButterKnifeTest {
     assertThat(ButterKnife.BINDERS).containsEntry(Example.class, ButterKnife.NOP_VIEW_BINDER);
   }
 
-  @Test public void zeroBindingsUnbindDoesNotThrowException() {
-    class Example {
-    }
-
-    Example example = new Example();
-    ButterKnife.unbind(example);
-    assertThat(ButterKnife.BINDERS).containsEntry(Example.class, ButterKnife.NOP_VIEW_BINDER);
-  }
-
   @Test public void bindingKnownPackagesIsNoOp() {
     ButterKnife.bind(new Activity());
     assertThat(ButterKnife.BINDERS).isEmpty();

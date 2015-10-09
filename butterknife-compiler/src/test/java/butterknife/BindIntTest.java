@@ -33,8 +33,6 @@ public class BindIntTest {
             "    Resources res = finder.getContext(source).getResources();",
             "    target.one = res.getInteger(1);",
             "  }",
-            "  @Override public void unbind(T target) {",
-            "  }",
             "}"
         ));
 

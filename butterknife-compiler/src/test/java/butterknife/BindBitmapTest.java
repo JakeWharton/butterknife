@@ -35,8 +35,6 @@ public class BindBitmapTest {
             "    Resources res = finder.getContext(source).getResources();",
             "    target.one = BitmapFactory.decodeResource(res, 1);",
             "  }",
-            "  @Override public void unbind(T target) {",
-            "  }",
             "}"
         ));
 

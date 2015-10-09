@@ -39,8 +39,6 @@ public class OnCheckedChangedTest {
             "      }",
             "    });",
             "  }",
-            "  @Override public void unbind(T target) {",
-            "  }",
             "}"
         ));
 

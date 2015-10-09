@@ -39,8 +39,6 @@ public class OnItemLongClickTest {
             "      }",
             "    });",
             "  }",
-            "  @Override public void unbind(T target) {",
-            "  }",
             "}"
         ));
 

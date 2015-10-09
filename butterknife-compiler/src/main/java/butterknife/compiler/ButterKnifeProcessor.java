@@ -9,6 +9,7 @@ import butterknife.BindDimen;
 import butterknife.BindDrawable;
 import butterknife.BindInt;
 import butterknife.BindString;
+import butterknife.Unbinder;
 import butterknife.OnCheckedChanged;
 import butterknife.OnClick;
 import butterknife.OnEditorAction;
@@ -23,6 +24,7 @@ import butterknife.OnTouch;
 import butterknife.internal.ListenerClass;
 import butterknife.internal.ListenerMethod;
 import com.google.auto.common.SuperficialValidation;
+import com.google.auto.service.AutoService;
 import com.squareup.javapoet.TypeName;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -38,8 +40,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import com.google.auto.service.AutoService;
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.Filer;
 import javax.annotation.processing.ProcessingEnvironment;
@@ -78,6 +78,8 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
   private static final String TYPED_ARRAY_TYPE = "android.content.res.TypedArray";
   private static final String NULLABLE_ANNOTATION_NAME = "Nullable";
   private static final String ITERABLE_TYPE = "java.lang.Iterable<?>";
+  private static final String STRING_TYPE = "java.lang.String";
+  private static final String UNBINDER_TYPE = "butterknife.ButterKnife.Unbinder<?>";
   private static final String LIST_TYPE = List.class.getCanonicalName();
   private static final List<Class<? extends Annotation>> LISTENERS = Arrays.asList(//
       OnCheckedChanged.class, //
@@ -122,6 +124,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     types.add(BindDrawable.class.getCanonicalName());
     types.add(BindInt.class.getCanonicalName());
     types.add(BindString.class.getCanonicalName());
+    types.add(Unbinder.class.getCanonicalName());
 
     return types;
   }
@@ -240,6 +243,16 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
         parseResourceString(element, targetClassMap, erasedTargetNames);
       } catch (Exception e) {
         logParsingError(element, BindString.class, e);
+      }
+    }
+
+    // Process each @Unbinder element.
+    for (Element element : env.getElementsAnnotatedWith(Unbinder.class)) {
+      if (!SuperficialValidation.validateElement(element)) continue;
+      try {
+        parseBindUnbinder(element, targetClassMap, erasedTargetNames);
+      } catch (Exception e) {
+        logParsingError(element, Unbinder.class, e);
       }
     }
 
@@ -673,7 +686,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     TypeElement enclosingElement = (TypeElement) element.getEnclosingElement();
 
     // Verify that the target type is String.
-    if (!"java.lang.String".equals(element.asType().toString())) {
+    if (!STRING_TYPE.equals(element.asType().toString())) {
       error(element, "@%s field type must be 'String'. (%s.%s)",
           BindString.class.getSimpleName(), enclosingElement.getQualifiedName(),
           element.getSimpleName());
@@ -733,6 +746,46 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     erasedTargetNames.add(enclosingElement.toString());
   }
 
+  private void parseBindUnbinder(Element element, Map<TypeElement, BindingClass> targetClassMap,
+      Set<String> erasedTargetNames) {
+    boolean hasError = false;
+    TypeElement enclosingElement = (TypeElement) element.getEnclosingElement();
+
+    // Verify that the element type is ButterKnife.Unbinder.
+    TypeMirror elementType = element.asType();
+    if (!isSubtypeOfType(elementType, UNBINDER_TYPE) && !isInterface(elementType)) {
+      error(element,
+          "@%s filed must be of type ButterKnife.Unbinder. (%s.%s)",
+          Unbinder.class.getSimpleName(), enclosingElement.getQualifiedName(),
+          element.getSimpleName());
+      hasError = true;
+    }
+
+    // Verify common restrictions for generated code.
+    hasError |= isInaccessibleViaGeneratedCode(Unbinder.class, "field", element);
+    hasError |= isBindingInWrongPackage(Unbinder.class, element);
+
+    if (hasError) {
+      return;
+    }
+
+    BindingClass bindingClass = targetClassMap.get(enclosingElement);
+    if (bindingClass != null) {
+      if (bindingClass.hasRequestedUnbinder()) {
+        error(element,
+            "Only one filed should be annotated with @%s. (%s.%s)",
+            Unbinder.class.getSimpleName(), enclosingElement.getQualifiedName(),
+            element.getSimpleName());
+        return;
+      }
+    } else {
+      bindingClass = getOrCreateTargetClass(targetClassMap, enclosingElement);
+    }
+
+    bindingClass.requiresUnbinder(element.getSimpleName().toString());
+    erasedTargetNames.add(enclosingElement.toString());
+  }
+
   /**
    * Returns a method name from the {@link android.content.res.Resources} class for array resource
    * binding, null if the element type is not supported.
@@ -745,7 +798,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     if (TypeKind.ARRAY.equals(typeMirror.getKind())) {
       ArrayType arrayType = (ArrayType) typeMirror;
       String componentType = arrayType.getComponentType().toString();
-      if ("java.lang.String".equals(componentType)) {
+      if (STRING_TYPE.equals(componentType)) {
         return "getStringArray";
       } else if ("int".equals(componentType)) {
         return "getIntArray";

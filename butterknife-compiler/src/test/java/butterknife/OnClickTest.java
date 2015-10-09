@@ -38,8 +38,6 @@ public class OnClickTest {
             "      }",
             "    });",
             "  }",
-            "  @Override public void unbind(T target) {",
-            "  }",
             "}"
         ));
 
@@ -89,7 +87,6 @@ public class OnClickTest {
             "      }",
             "    });",
             "  }",
-            "  @Override public void unbind(T target) {",
             "}"));
 
     assertAbout(javaSource()).that(source)
@@ -130,9 +127,6 @@ public class OnClickTest {
             "        target.doStuff();",
             "      }",
             "    });",
-            "  }",
-            "  @Override public void unbind(T target) {",
-            "    target.view = null;",
             "  }",
             "}"
         ));
@@ -225,8 +219,6 @@ public class OnClickTest {
             "      }",
             "    });",
             "  }",
-            "  @Override public void unbind(T target) {",
-            "  }",
             "}"
         ));
 
@@ -279,8 +271,6 @@ public class OnClickTest {
             "      }",
             "    });",
             "  }",
-            "  @Override public void unbind(T target) {",
-            "  }",
             "}"
         ));
 
@@ -321,8 +311,6 @@ public class OnClickTest {
             "        }",
             "      });",
             "    }",
-            "  }",
-            "  @Override public void unbind(T target) {",
             "  }",
             "}"
         ));
@@ -366,9 +354,6 @@ public class OnClickTest {
             "        target.doStuff();",
             "      }",
             "    });",
-            "  }",
-            "  @Override public void unbind(T target) {",
-            "    target.view = null;",
             "  }",
             "}"
         ));

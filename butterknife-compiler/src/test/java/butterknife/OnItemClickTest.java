@@ -39,8 +39,6 @@ public class OnItemClickTest {
             "      }",
             "    });",
             "  }",
-            "  @Override public void unbind(T target) {",
-            "  }",
             "}"
         ));
 
@@ -86,8 +84,6 @@ public class OnItemClickTest {
             "      }",
             "    });",
             "  }",
-            "  @Override public void unbind(T target) {",
-            "  }",
             "}"
         ));
 
@@ -131,8 +127,6 @@ public class OnItemClickTest {
             "        target.doStuff(finder.<ListView>castParam(p0, \"onItemClick\", 0, \"doStuff\", 0), p2);",
             "      }",
             "    });",
-            "  }",
-            "  @Override public void unbind(T target) {",
             "  }",
             "}"
         ));
@@ -178,8 +172,6 @@ public class OnItemClickTest {
             "      }",
             "    });",
             "  }",
-            "  @Override public void unbind(T target) {",
-            "  }",
             "}"
         ));
 
@@ -221,8 +213,6 @@ public class OnItemClickTest {
             "        target.doStuff();",
             "      }",
             "    });",
-            "  }",
-            "  @Override public void unbind(T target) {",
             "  }",
             "}"
         ));

@@ -80,6 +80,12 @@ public final class ButterKnife {
     throw new AssertionError("No instances.");
   }
 
+  /** An unbinder contract that can be bind with {@link butterknife.Unbinder}. */
+  @SuppressWarnings("unused") // Used by generated code.
+  public interface Unbinder {
+    void unbind();
+  }
+
   /** An action that can be applied to a list of views. */
   public interface Action<T extends View> {
     /** Apply the action on the {@code view} which is at {@code index} in the list. */
@@ -98,7 +104,6 @@ public final class ButterKnife {
   static final Map<Class<?>, ViewBinder<Object>> BINDERS = new LinkedHashMap<>();
   static final ViewBinder<Object> NOP_VIEW_BINDER = new ViewBinder<Object>() {
     @Override public void bind(Finder finder, Object target, Object source) { }
-    @Override public void unbind(Object target) { }
   };
 
   /** Control whether debug logging is enabled. */
@@ -133,6 +138,7 @@ public final class ButterKnife {
    *
    * @param target Target dialog for view binding.
    */
+  @SuppressWarnings("unused") // Public api.
   public static void bind(Dialog target) {
     bind(target, target, Finder.DIALOG);
   }
@@ -167,28 +173,9 @@ public final class ButterKnife {
    * @param target Target class for view binding.
    * @param source Dialog on which IDs will be looked up.
    */
+  @SuppressWarnings("unused") // Public api.
   public static void bind(Object target, Dialog source) {
     bind(target, source, Finder.DIALOG);
-  }
-
-  /**
-   * Reset fields annotated with {@link Bind @Bind} to {@code null}.
-   * <p>
-   * This should only be used in the {@code onDestroyView} method of a fragment.
-   *
-   * @param target Target class for field unbind.
-   */
-  public static void unbind(Object target) {
-    Class<?> targetClass = target.getClass();
-    try {
-      if (debug) Log.d(TAG, "Looking up view binder for " + targetClass.getName());
-      ViewBinder<Object> viewBinder = findViewBinderForClass(targetClass);
-      if (viewBinder != null) {
-        viewBinder.unbind(target);
-      }
-    } catch (Exception e) {
-      throw new RuntimeException("Unable to unbind views for " + targetClass.getName(), e);
-    }
   }
 
   static void bind(Object target, Object source, Finder finder) {

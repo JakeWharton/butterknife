@@ -33,8 +33,6 @@ public class BindDimenTest {
             "    Resources res = finder.getContext(source).getResources();",
             "    target.one = res.getDimension(1);",
             "  }",
-            "  @Override public void unbind(T target) {",
-            "  }",
             "}"
         ));
 
@@ -67,8 +65,6 @@ public class BindDimenTest {
             "  @Override public void bind(final Finder finder, final T target, Object source) {",
             "    Resources res = finder.getContext(source).getResources();",
             "    target.one = res.getDimensionPixelSize(1);",
-            "  }",
-            "  @Override public void unbind(T target) {",
             "  }",
             "}"
         ));

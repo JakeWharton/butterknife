@@ -38,8 +38,6 @@ public class BindDrawableTest {
             "    Resources.Theme theme = context.getTheme();",
             "    target.one = Utils.getDrawable(res, theme, 1);",
             "  }",
-            "  @Override public void unbind(T target) {",
-            "  }",
             "}"
         ));
 
@@ -78,8 +76,6 @@ public class BindDrawableTest {
             "    Resources.Theme theme = context.getTheme();",
             "    target.one = Utils.getTintedDrawable(res, theme, 1, 2);",
             "",
-            "  }",
-            "  @Override public void unbind(T target) {",
             "  }",
             "}"
         ));

@@ -25,11 +25,14 @@ import static butterknife.compiler.ButterKnifeProcessor.NO_ID;
 import static butterknife.compiler.ButterKnifeProcessor.VIEW_TYPE;
 import static java.util.Collections.singletonList;
 import static javax.lang.model.element.Modifier.FINAL;
+import static javax.lang.model.element.Modifier.PRIVATE;
 import static javax.lang.model.element.Modifier.PUBLIC;
+import static javax.lang.model.element.Modifier.STATIC;
 
 final class BindingClass {
   private static final ClassName FINDER = ClassName.get("butterknife.internal", "Finder");
   private static final ClassName VIEW_BINDER = ClassName.get("butterknife.internal", "ViewBinder");
+  private static final ClassName UNBINDER = ClassName.get("butterknife", "ButterKnife", "Unbinder");
   private static final ClassName UTILS = ClassName.get("butterknife.internal", "Utils");
   private static final ClassName VIEW = ClassName.get("android.view", "View");
   private static final ClassName CONTEXT = ClassName.get("android.content", "Context");
@@ -47,11 +50,20 @@ final class BindingClass {
   private final String className;
   private final String targetClass;
   private String parentViewBinder;
+  private UnbinderBinding unbinderBinding;
 
   BindingClass(String classPackage, String className, String targetClass) {
     this.classPackage = classPackage;
     this.className = className;
     this.targetClass = targetClass;
+  }
+
+  void requiresUnbinder(String unbinderFieldName) {
+    unbinderBinding = new UnbinderBinding(classPackage, className, unbinderFieldName);
+  }
+
+  boolean hasRequestedUnbinder() {
+    return unbinderBinding != null;
   }
 
   void addBitmap(FieldBitmapBinding binding) {
@@ -73,8 +85,7 @@ final class BindingClass {
   boolean addMethod(int id, ListenerClass listener, ListenerMethod method,
       MethodViewBinding binding) {
     ViewBindings viewBindings = getOrCreateViewBindings(id);
-    if (viewBindings.hasMethodBinding(listener, method)
-        && !"void".equals(method.returnType())) {
+    if (viewBindings.hasMethodBinding(listener, method) && !"void".equals(method.returnType())) {
       return false;
     }
     viewBindings.addMethodBinding(listener, method, binding);
@@ -114,12 +125,90 @@ final class BindingClass {
       result.addSuperinterface(ParameterizedTypeName.get(VIEW_BINDER, TypeVariableName.get("T")));
     }
 
+    if (hasRequestedUnbinder()) {
+      result.addType(createUnbinderClass());
+    }
+
     result.addMethod(createBindMethod());
-    result.addMethod(createUnbindMethod());
 
     return JavaFile.builder(classPackage, result.build())
         .addFileComment("Generated code from Butter Knife. Do not modify!")
         .build();
+  }
+
+  private TypeSpec createUnbinderClass() {
+    ClassName targetClassName = ClassName.bestGuess(targetClass);
+
+    MethodSpec unbinderConstructor = MethodSpec.constructorBuilder()
+        .addParameter(targetClassName, "target")
+        .addStatement("this.$1N = $1N", "target")
+        .build();
+
+    TypeSpec.Builder result =
+        TypeSpec.classBuilder(unbinderBinding.getUnbinderClassName().simpleName())
+        .addSuperinterface(UNBINDER)
+        .addModifiers(PRIVATE, STATIC, FINAL)
+        .addField(targetClassName, "target", PRIVATE)
+        .addMethod(unbinderConstructor);
+
+    // Even if there are no bindings we need to implement the interface method.
+    MethodSpec.Builder unbindMethod = MethodSpec.methodBuilder("unbind")
+        .addAnnotation(Override.class)
+        .addModifiers(PUBLIC);
+
+    // Throw exception if unbind called twice.
+    unbindMethod.addStatement("if (target == null) throw new $T($S)",
+        IllegalStateException.class, "Bindings already cleared.");
+
+    for (ViewBindings bindings : viewIdMap.values()) {
+      addFieldAndUnbindStatement(result, unbindMethod, bindings);
+      for (FieldViewBinding fieldBinding : bindings.getFieldBindings()) {
+        unbindMethod.addStatement("target.$L = null", fieldBinding.getName());
+      }
+    }
+
+    for (FieldCollectionViewBinding fieldCollectionBinding : collectionBindings.keySet()) {
+      unbindMethod.addStatement("target.$L = null", fieldCollectionBinding.getName());
+    }
+
+    unbindMethod.addStatement("target.$L = null", unbinderBinding.getUnbinderFieldName());
+    unbindMethod.addStatement("target = null");
+    result.addMethod(unbindMethod.build());
+
+    return result.build();
+  }
+
+  private void addFieldAndUnbindStatement(TypeSpec.Builder result, MethodSpec.Builder unbindMethod,
+      ViewBindings bindings) {
+    // Only add fields to the unbinder if there are method bindings.
+    Map<ListenerClass, Map<ListenerMethod, Set<MethodViewBinding>>> classMethodBindings =
+        bindings.getMethodBindings();
+    if (classMethodBindings.isEmpty()) {
+      return;
+    }
+
+    // Using view id for name uniqueness.
+    String fieldName = "view" + bindings.getId();
+    result.addField(VIEW, fieldName);
+
+    // We only need to emit the null check if there are zero required bindings.
+    boolean needsNullChecked = bindings.getRequiredBindings().isEmpty();
+    if (needsNullChecked) {
+      unbindMethod.beginControlFlow("if ($L != null)", fieldName);
+    }
+
+    for (ListenerClass listenerClass : classMethodBindings.keySet()) {
+      if (!VIEW_TYPE.equals(listenerClass.targetType())) {
+        unbindMethod.addStatement("(($T) $L).$L(null)", bestGuess(listenerClass.targetType()),
+            fieldName, listenerClass.setter());
+      } else {
+        unbindMethod.addStatement("$L.$L(null)", fieldName, listenerClass.setter());
+      }
+    }
+
+    if (needsNullChecked) {
+      unbindMethod.endControlFlow();
+    }
   }
 
   private MethodSpec createBindMethod() {
@@ -135,6 +224,12 @@ final class BindingClass {
       result.addStatement("super.bind(finder, target, source)");
     }
 
+    // If the caller requested an unbinder, we need to create an instance of it.
+    if (hasRequestedUnbinder()) {
+      result.addStatement("$T unbinder = new $T($N)", unbinderBinding.getUnbinderClassName(),
+          unbinderBinding.getUnbinderClassName(), "target");
+    }
+
     if (!viewIdMap.isEmpty() || !collectionBindings.isEmpty()) {
       // Local variable in which all views will be temporarily stored.
       result.addStatement("$T view", VIEW);
@@ -148,6 +243,11 @@ final class BindingClass {
       for (Map.Entry<FieldCollectionViewBinding, int[]> entry : collectionBindings.entrySet()) {
         emitCollectionBinding(result, entry.getKey(), entry.getValue());
       }
+    }
+
+    // Bind unbinder if was requested.
+    if (hasRequestedUnbinder()) {
+      result.addStatement("target.$L = unbinder", unbinderBinding.getUnbinderFieldName());
     }
 
     if (requiresResources()) {
@@ -259,6 +359,11 @@ final class BindingClass {
       result.beginControlFlow("if (view != null)");
     }
 
+    // Add the view reference to the unbinder.
+    if (hasRequestedUnbinder()) {
+      result.addStatement("unbinder.$L = view", "view" + bindings.getId());
+    }
+
     for (Map.Entry<ListenerClass, Map<ListenerMethod, Set<MethodViewBinding>>> e
         : classMethodBindings.entrySet()) {
       ListenerClass listener = e.getKey();
@@ -347,27 +452,6 @@ final class BindingClass {
     } catch (NoSuchFieldException e) {
       throw new AssertionError(e);
     }
-  }
-
-  private MethodSpec createUnbindMethod() {
-    MethodSpec.Builder result = MethodSpec.methodBuilder("unbind")
-        .addAnnotation(Override.class)
-        .addModifiers(PUBLIC)
-        .addParameter(TypeVariableName.get("T"), "target");
-
-    if (parentViewBinder != null) {
-      result.addStatement("super.unbind(target)");
-    }
-    for (ViewBindings bindings : viewIdMap.values()) {
-      for (FieldViewBinding fieldBinding : bindings.getFieldBindings()) {
-        result.addStatement("target.$L = null", fieldBinding.getName());
-      }
-    }
-    for (FieldCollectionViewBinding fieldCollectionBinding : collectionBindings.keySet()) {
-      result.addStatement("target.$L = null", fieldCollectionBinding.getName());
-    }
-
-    return result.build();
   }
 
   static String asHumanDescription(Collection<? extends ViewBinding> bindings) {
