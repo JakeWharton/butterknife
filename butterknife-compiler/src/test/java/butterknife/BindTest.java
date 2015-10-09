@@ -11,15 +11,16 @@ import static com.google.testing.compile.JavaSourceSubjectFactory.javaSource;
 
 public class BindTest {
   @Test public void bindingView() {
-    JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
-        "package test;",
-        "import android.app.Activity;",
-        "import android.view.View;",
-        "import butterknife.Bind;",
-        "public class Test extends Activity {",
-        "    @Bind(1) View thing;",
-        "}"
-    ));
+    JavaFileObject source = JavaFileObjects.forSourceString("test.Test",
+        Joiner.on('\n').join(
+            "package test;",
+            "import android.app.Activity;",
+            "import android.view.View;",
+            "import butterknife.Bind;",
+            "public class Test extends Activity {",
+            "    @Bind(1) View thing;",
+            "}"
+        ));
 
     JavaFileObject expectedSource = JavaFileObjects.forSourceString("test/Test$$ViewBinder",
         Joiner.on('\n').join(
@@ -34,9 +35,6 @@ public class BindTest {
             "    View view;",
             "    view = finder.findRequiredView(source, 1, \"field 'thing'\");",
             "    target.thing = view;",
-            "  }",
-            "  @Override public void unbind(T target) {",
-            "    target.thing = null;",
             "  }",
             "}"
         ));
@@ -91,9 +89,6 @@ public class BindTest {
             "    view = finder.findRequiredView(source, 1, \"field 'thing'\");",
             "    target.thing = finder.castView(view, 1, \"field 'thing'\");",
             "  }",
-            "  @Override public void unbind(T target) {",
-            "    target.thing = null;",
-            "  }",
             "}"
         ));
 
@@ -129,9 +124,6 @@ public class BindTest {
             "    View view;",
             "    view = finder.findRequiredView(source, 1, \"field 'thing'\");",
             "    target.thing = finder.castView(view, 1, \"field 'thing'\");",
-            "  }",
-            "  @Override public void unbind(T target) {",
-            "    target.thing = null;",
             "  }",
             "}"
         ));
@@ -175,9 +167,6 @@ public class BindTest {
             "        target.doStuff();",
             "      }",
             "    });",
-            "  }",
-            "  @Override public void unbind(T target) {",
-            "    target.thing1 = null;",
             "  }",
             "}"
         ));
@@ -233,9 +222,6 @@ public class BindTest {
             "    view = finder.findOptionalView(source, 1, null);",
             "    target.view = view;",
             "  }",
-            "  @Override public void unbind(T target) {",
-            "    target.view = null;",
-            "  }",
             "}"
         ));
 
@@ -276,9 +262,6 @@ public class BindTest {
             "    view = finder.findRequiredView(source, 1, \"field 'view'\");",
             "    target.view = view;",
             "  }",
-            "  @Override public void unbind(T target) {",
-            "    target.view = null;",
-            "  }",
             "}"
         ));
 
@@ -296,10 +279,6 @@ public class BindTest {
             "    View view;",
             "    view = finder.findRequiredView(source, 1, \"field 'thing'\");",
             "    target.thing = view;",
-            "  }",
-            "  @Override public void unbind(T target) {",
-            "    super.unbind(target);",
-            "    target.thing = null;",
             "  }",
             "}"
         ));
@@ -341,9 +320,6 @@ public class BindTest {
             "    view = finder.findRequiredView(source, 1, \"field 'view'\");",
             "    target.view = view;",
             "  }",
-            "  @Override public void unbind(T target) {",
-            "    target.view = null;",
-            "  }",
             "}"
         ));
 
@@ -361,10 +337,6 @@ public class BindTest {
             "    View view;",
             "    view = finder.findRequiredView(source, 1, \"field 'thing'\");",
             "    target.thing = view;",
-            "  }",
-            "  @Override public void unbind(T target) {",
-            "    super.unbind(target);",
-            "    target.thing = null;",
             "  }",
             "}"
         ));
@@ -602,9 +574,6 @@ public class BindTest {
             "        finder.<View>findRequiredView(source, 3, \"field 'thing'\")",
             "    );",
             "  }",
-            "  @Override public void unbind(T target) {",
-            "    target.thing = null;",
-            "  }",
             "}"
         ));
 
@@ -643,9 +612,6 @@ public class BindTest {
             "        finder.<View>findRequiredView(source, 2, \"field 'thing'\"),",
             "        finder.<View>findRequiredView(source, 3, \"field 'thing'\")",
             "    );",
-            "  }",
-            "  @Override public void unbind(T target) {",
-            "    target.thing = null;",
             "  }",
             "}"
         ));
@@ -687,9 +653,6 @@ public class BindTest {
             "        finder.<TextView>findRequiredView(source, 3, \"field 'thing'\")",
             "    );",
             "  }",
-            "  @Override public void unbind(T target) {",
-            "    target.thing = null;",
-            "  }",
             "}"
         ));
 
@@ -729,9 +692,6 @@ public class BindTest {
             "        finder.<View>findRequiredView(source, 2, \"field 'thing'\"),",
             "        finder.<View>findRequiredView(source, 3, \"field 'thing'\")",
             "    );",
-            "  }",
-            "  @Override public void unbind(T target) {",
-            "    target.thing = null;",
             "  }",
             "}"
         ));
@@ -773,9 +733,6 @@ public class BindTest {
             "        finder.<Test.TestInterface>findRequiredView(source, 3, \"field 'thing'\")",
             "    );",
             "  }",
-            "  @Override public void unbind(T target) {",
-            "    target.thing = null;",
-            "  }",
             "}"
         ));
 
@@ -815,9 +772,6 @@ public class BindTest {
             "        finder.<View>findRequiredView(source, 2, \"field 'thing'\"),",
             "        finder.<View>findRequiredView(source, 3, \"field 'thing'\")",
             "    );",
-            "  }",
-            "  @Override public void unbind(T target) {",
-            "    target.thing = null;",
             "  }",
             "}"
         ));
@@ -859,9 +813,6 @@ public class BindTest {
             "        finder.<View>findOptionalView(source, 2, \"field 'thing'\"),",
             "        finder.<View>findOptionalView(source, 3, \"field 'thing'\")",
             "    );",
-            "  }",
-            "  @Override public void unbind(T target) {",
-            "    target.thing = null;",
             "  }",
             "}"
         ));

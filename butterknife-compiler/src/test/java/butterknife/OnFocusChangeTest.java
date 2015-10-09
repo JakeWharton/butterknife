@@ -38,8 +38,6 @@ public class OnFocusChangeTest {
             "      }",
             "    });",
             "  }",
-            "  @Override public void unbind(T target) {",
-            "  }",
             "}"
         ));
 

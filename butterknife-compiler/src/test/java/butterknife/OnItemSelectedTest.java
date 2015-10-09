@@ -42,8 +42,6 @@ public class OnItemSelectedTest {
             "      }",
             "    });",
             "  }",
-            "  @Override public void unbind(T target) {",
-            "  }",
             "}"
         ));
 
@@ -86,8 +84,6 @@ public class OnItemSelectedTest {
             "        target.doStuff();",
             "      }",
             "    });",
-            "  }",
-            "  @Override public void unbind(T target) {",
             "  }",
             "}"
         ));
@@ -134,8 +130,6 @@ public class OnItemSelectedTest {
             "        target.onNothingSelected();",
             "      }",
             "    });",
-            "  }",
-            "  @Override public void unbind(T target) {",
             "  }",
             "}"
         ));
@@ -198,8 +192,6 @@ public class OnItemSelectedTest {
             "        target.onNothingSelected();",
             "      }",
             "    });",
-            "  }",
-            "  @Override public void unbind(T target) {",
             "  }",
             "}"
         ));

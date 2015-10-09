@@ -33,8 +33,6 @@ public class BindArrayTest {
             "    Resources res = finder.getContext(source).getResources();",
             "    target.one = res.getStringArray(1);",
             "  }",
-            "  @Override public void unbind(T target) {",
-            "  }",
             "}"
         ));
 
@@ -67,8 +65,6 @@ public class BindArrayTest {
             "  @Override public void bind(final Finder finder, final T target, Object source) {",
             "    Resources res = finder.getContext(source).getResources();",
             "    target.one = res.getIntArray(1);",
-            "  }",
-            "  @Override public void unbind(T target) {",
             "  }",
             "}"
         ));
@@ -103,8 +99,6 @@ public class BindArrayTest {
             "    Resources res = finder.getContext(source).getResources();",
             "    target.one = res.getTextArray(1);",
             "  }",
-            "  @Override public void unbind(T target) {",
-            "  }",
             "}"
         ));
 
@@ -138,8 +132,6 @@ public class BindArrayTest {
             "  @Override public void bind(final Finder finder, final T target, Object source) {",
             "    Resources res = finder.getContext(source).getResources();",
             "    target.one = res.obtainTypedArray(1);",
-            "  }",
-            "  @Override public void unbind(T target) {",
             "  }",
             "}"
         ));

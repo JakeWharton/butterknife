@@ -37,8 +37,6 @@ public class BindColorTest {
             "    Resources.Theme theme = context.getTheme();",
             "    target.one = Utils.getColor(res, theme, 1);",
             "  }",
-            "  @Override public void unbind(T target) {",
-            "  }",
             "}"
         ));
 
@@ -76,8 +74,6 @@ public class BindColorTest {
             "    Resources res = context.getResources();",
             "    Resources.Theme theme = context.getTheme();",
             "    target.one = Utils.getColorStateList(res, theme, 1);",
-            "  }",
-            "  @Override public void unbind(T target) {",
             "  }",
             "}"
         ));

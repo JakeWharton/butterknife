@@ -40,8 +40,6 @@ public class OnLongClickTest {
             "      }",
             "    });",
             "  }",
-            "  @Override public void unbind(T target) {",
-            "  }",
             "}"
         ));
 

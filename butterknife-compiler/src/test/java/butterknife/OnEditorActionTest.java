@@ -40,8 +40,6 @@ public class OnEditorActionTest {
             "      }",
             "    });",
             "  }",
-            "  @Override public void unbind(T target) {",
-            "  }",
             "}"
         ));
 

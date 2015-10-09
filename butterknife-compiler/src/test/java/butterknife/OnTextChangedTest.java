@@ -46,8 +46,6 @@ public class OnTextChangedTest {
             "      }",
             "    });",
             "  }",
-            "  @Override public void unbind(T target) {",
-            "  }",
             "}"
         ));
 

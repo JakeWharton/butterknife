@@ -43,8 +43,6 @@ public class OnPageChangeTest {
             "      }",
             "    });",
             "  }",
-            "  @Override public void unbind(T target) {",
-            "  }",
             "}"
         ));
 

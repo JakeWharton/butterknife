@@ -9,6 +9,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import butterknife.Unbinder;
 import java.util.List;
 
 import butterknife.Bind;
@@ -35,6 +36,7 @@ public class SimpleActivity extends Activity {
   @Bind(R.id.hello) Button hello;
   @Bind(R.id.list_of_things) ListView listOfThings;
   @Bind(R.id.footer) TextView footer;
+  @Unbinder ButterKnife.Unbinder unbinder;
 
   @Bind({ R.id.title, R.id.subtitle, R.id.hello })
   List<View> headerViews;
