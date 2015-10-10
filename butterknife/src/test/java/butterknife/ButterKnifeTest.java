@@ -1,6 +1,7 @@
 package butterknife;
 
 import android.app.Activity;
+import android.support.annotation.NonNull;
 import android.util.Property;
 import android.view.View;
 import java.util.Arrays;
@@ -30,17 +31,17 @@ public class ButterKnifeTest {
       };
   private static final ButterKnife.Setter<View, Boolean> SETTER_ENABLED =
       new ButterKnife.Setter<View, Boolean>() {
-        @Override public void set(View view, Boolean value, int index) {
+        @Override public void set(@NonNull View view, Boolean value, int index) {
           view.setEnabled(value);
         }
       };
   private static final ButterKnife.Action<View> ACTION_DISABLE = new ButterKnife.Action<View>() {
-    @Override public void apply(View view, int index) {
+    @Override public void apply(@NonNull View view, int index) {
       view.setEnabled(false);
     }
   };
   private static final ButterKnife.Action<View> ACTION_ZERO_ALPHA = new ButterKnife.Action<View>() {
-    @Override public void apply(View view, int index) {
+    @Override public void apply(@NonNull View view, int index) {
       view.setAlpha(0f);
     }
   };
