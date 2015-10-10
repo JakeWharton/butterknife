@@ -58,7 +58,7 @@ public class ButterKnifeTest {
     assertThat(view.isEnabled()).isFalse();
   }
 
-  @Test public void propertyAppliedToEveryView() {
+  @Test public void propertyAppliedToEveryViewInList() {
     View view1 = new View(Robolectric.application);
     View view2 = new View(Robolectric.application);
     View view3 = new View(Robolectric.application);
@@ -67,6 +67,22 @@ public class ButterKnifeTest {
     assertThat(view3.isEnabled()).isTrue();
 
     List<View> views = Arrays.asList(view1, view2, view3);
+    ButterKnife.apply(views, PROPERTY_ENABLED, false);
+
+    assertThat(view1.isEnabled()).isFalse();
+    assertThat(view2.isEnabled()).isFalse();
+    assertThat(view3.isEnabled()).isFalse();
+  }
+
+  @Test public void propertyAppliedToEveryViewInArray() {
+    View view1 = new View(Robolectric.application);
+    View view2 = new View(Robolectric.application);
+    View view3 = new View(Robolectric.application);
+    assertThat(view1.isEnabled()).isTrue();
+    assertThat(view2.isEnabled()).isTrue();
+    assertThat(view3.isEnabled()).isTrue();
+
+    View[] views = new View[] { view1, view2, view3 };
     ButterKnife.apply(views, PROPERTY_ENABLED, false);
 
     assertThat(view1.isEnabled()).isFalse();
@@ -93,7 +109,7 @@ public class ButterKnifeTest {
     assertThat(view.getAlpha()).isEqualTo(0f);
   }
 
-  @Test public void actionAppliedToEveryView() {
+  @Test public void actionAppliedToEveryViewInList() {
     View view1 = new View(Robolectric.application);
     View view2 = new View(Robolectric.application);
     View view3 = new View(Robolectric.application);
@@ -109,7 +125,23 @@ public class ButterKnifeTest {
     assertThat(view3.isEnabled()).isFalse();
   }
 
-  @Test public void actionsAppliedToEveryView() {
+  @Test public void actionAppliedToEveryViewInArray() {
+    View view1 = new View(Robolectric.application);
+    View view2 = new View(Robolectric.application);
+    View view3 = new View(Robolectric.application);
+    assertThat(view1.isEnabled()).isTrue();
+    assertThat(view2.isEnabled()).isTrue();
+    assertThat(view3.isEnabled()).isTrue();
+
+    View[] views = new View[] { view1, view2, view3 };
+    ButterKnife.apply(views, ACTION_DISABLE);
+
+    assertThat(view1.isEnabled()).isFalse();
+    assertThat(view2.isEnabled()).isFalse();
+    assertThat(view3.isEnabled()).isFalse();
+  }
+
+  @Test public void actionsAppliedToEveryViewInList() {
     View view1 = new View(Robolectric.application);
     View view2 = new View(Robolectric.application);
     View view3 = new View(Robolectric.application);
@@ -131,6 +163,28 @@ public class ButterKnifeTest {
     assertThat(view3.getAlpha()).isEqualTo(0f);
   }
 
+  @Test public void actionsAppliedToEveryViewInArray() {
+    View view1 = new View(Robolectric.application);
+    View view2 = new View(Robolectric.application);
+    View view3 = new View(Robolectric.application);
+    assertThat(view1.isEnabled()).isTrue();
+    assertThat(view2.isEnabled()).isTrue();
+    assertThat(view3.isEnabled()).isTrue();
+    assertThat(view1.getAlpha()).isEqualTo(1f);
+    assertThat(view2.getAlpha()).isEqualTo(1f);
+    assertThat(view3.getAlpha()).isEqualTo(1f);
+
+    View[] views = new View[] { view1, view2, view3 };
+    ButterKnife.apply(views, ACTION_DISABLE, ACTION_ZERO_ALPHA);
+
+    assertThat(view1.isEnabled()).isFalse();
+    assertThat(view2.isEnabled()).isFalse();
+    assertThat(view3.isEnabled()).isFalse();
+    assertThat(view1.getAlpha()).isEqualTo(0f);
+    assertThat(view2.getAlpha()).isEqualTo(0f);
+    assertThat(view3.getAlpha()).isEqualTo(0f);
+  }
+
   @Test public void setterAppliedToView() {
     View view = new View(Robolectric.application);
     assertThat(view.isEnabled()).isTrue();
@@ -140,7 +194,7 @@ public class ButterKnifeTest {
     assertThat(view.isEnabled()).isFalse();
   }
 
-  @Test public void setterAppliedToEveryView() {
+  @Test public void setterAppliedToEveryViewInList() {
     View view1 = new View(Robolectric.application);
     View view2 = new View(Robolectric.application);
     View view3 = new View(Robolectric.application);
@@ -149,6 +203,22 @@ public class ButterKnifeTest {
     assertThat(view3.isEnabled()).isTrue();
 
     List<View> views = Arrays.asList(view1, view2, view3);
+    ButterKnife.apply(views, SETTER_ENABLED, false);
+
+    assertThat(view1.isEnabled()).isFalse();
+    assertThat(view2.isEnabled()).isFalse();
+    assertThat(view3.isEnabled()).isFalse();
+  }
+
+  @Test public void setterAppliedToEveryViewInArray() {
+    View view1 = new View(Robolectric.application);
+    View view2 = new View(Robolectric.application);
+    View view3 = new View(Robolectric.application);
+    assertThat(view1.isEnabled()).isTrue();
+    assertThat(view2.isEnabled()).isTrue();
+    assertThat(view3.isEnabled()).isTrue();
+
+    View[] views = new View[] { view1, view2, view3 };
     ButterKnife.apply(views, SETTER_ENABLED, false);
 
     assertThat(view1.isEnabled()).isFalse();

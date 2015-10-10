@@ -226,10 +226,27 @@ public final class ButterKnife {
     }
   }
 
+  /** Apply the specified {@code actions} across the {@code array} of views. */
+  @SafeVarargs
+  public static <T extends View> void apply(T[] array, Action<? super T>... actions) {
+    for (int i = 0, count = array.length; i < count; i++) {
+      for (Action<? super T> action : actions) {
+        action.apply(array[i], i);
+      }
+    }
+  }
+
   /** Apply the specified {@code action} across the {@code list} of views. */
   public static <T extends View> void apply(List<T> list, Action<? super T> action) {
     for (int i = 0, count = list.size(); i < count; i++) {
       action.apply(list.get(i), i);
+    }
+  }
+
+  /** Apply the specified {@code action} across the {@code array} of views. */
+  public static <T extends View> void apply(T[] array, Action<? super T> action) {
+    for (int i = 0, count = array.length; i < count; i++) {
+      action.apply(array[i], i);
     }
   }
 
@@ -253,6 +270,13 @@ public final class ButterKnife {
     }
   }
 
+  /** Set the {@code value} using the specified {@code setter} across the {@code array} of views. */
+  public static <T extends View, V> void apply(T[] array, Setter<? super T, V> setter, V value) {
+    for (int i = 0, count = array.length; i < count; i++) {
+      setter.set(array[i], value, i);
+    }
+  }
+
   /** Set {@code value} on {@code view} using {@code setter}. */
   public static <T extends View, V> void apply(T view, Setter<? super T, V> setter, V value) {
     setter.set(view, value, 0);
@@ -267,6 +291,18 @@ public final class ButterKnife {
     //noinspection ForLoopReplaceableByForEach
     for (int i = 0, count = list.size(); i < count; i++) {
       setter.set(list.get(i), value);
+    }
+  }
+
+  /**
+   * Apply the specified {@code value} across the {@code array} of views using the {@code property}.
+   */
+  @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
+  public static <T extends View, V> void apply(T[] array, Property<? super T, V> setter,
+      V value) {
+    //noinspection ForLoopReplaceableByForEach
+    for (int i = 0, count = array.length; i < count; i++) {
+      setter.set(array[i], value);
     }
   }
 
