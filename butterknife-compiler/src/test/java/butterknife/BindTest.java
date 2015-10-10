@@ -527,9 +527,9 @@ public class BindTest {
             "import android.content.Context;",
             "import android.view.View;",
             "import butterknife.OnClick;",
+            "import butterknife.Optional;",
             "public class Test extends View {",
-            "  @interface Nullable {}",
-            "  @Nullable @OnClick void doStuff() {}",
+            "  @Optional @OnClick void doStuff() {}",
             "  public Test(Context context) {",
             "    super(context);",
             "  }",
@@ -540,7 +540,7 @@ public class BindTest {
         .processedWith(new ButterKnifeProcessor())
         .failsToCompile()
         .withErrorContaining(
-            ("ID-free binding must not be annotated with @Nullable. (test.Test.doStuff)"))
+            ("ID-free binding must not be annotated with @Optional. (test.Test.doStuff)"))
         .in(source)
         .onLine(7);
   }

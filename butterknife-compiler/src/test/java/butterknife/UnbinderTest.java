@@ -196,11 +196,11 @@ public class UnbinderTest {
               "import android.support.v4.app.Fragment;",
               "import butterknife.ButterKnife;",
               "import butterknife.OnClick;",
+              "import butterknife.Optional;",
               "import butterknife.Unbinder;",
               "public class Test extends Fragment {",
-              "  @interface Nullable {}",
               "  @Unbinder ButterKnife.Unbinder unbinder;",
-              "  @Nullable @OnClick(1) void doStuff() {",
+              "  @Optional @OnClick(1) void doStuff() {",
               "  }",
               "}"
           ));

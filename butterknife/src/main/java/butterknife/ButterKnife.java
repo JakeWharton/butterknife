@@ -65,8 +65,9 @@ import java.util.Map;
  * </code></pre>
  * <p>
  * Be default, views are required to be present in the layout for both field and method bindings.
- * If a view is optional add a {@code @Nullable} annotation such as the one in the
- * <a href="http://tools.android.com/tech-docs/support-annotations">support-annotations</a> library.
+ * If a view is optional add a {@code @Nullable} annotation for fields (such as the one in the
+ * <a href="http://tools.android.com/tech-docs/support-annotations">support-annotations</a> library)
+ * or the {@code @Optional} annotation for methods.
  * <pre><code>
  * {@literal @}Nullable @Bind(R.id.title) TextView subtitleView;
  * </code></pre>
