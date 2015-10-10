@@ -771,7 +771,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
     BindingClass bindingClass = targetClassMap.get(enclosingElement);
     if (bindingClass != null) {
-      if (bindingClass.hasRequestedUnbinder()) {
+      if (bindingClass.hasUnbinder()) {
         error(element,
             "Only one filed should be annotated with @%s. (%s.%s)",
             Unbinder.class.getSimpleName(), enclosingElement.getQualifiedName(),

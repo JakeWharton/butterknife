@@ -2,6 +2,7 @@ package butterknife.compiler;
 
 import butterknife.internal.ListenerClass;
 import butterknife.internal.ListenerMethod;
+import com.squareup.javapoet.AnnotationSpec;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.JavaFile;
@@ -60,10 +61,6 @@ final class BindingClass {
 
   void requiresUnbinder(String unbinderFieldName) {
     unbinderBinding = new UnbinderBinding(classPackage, className, unbinderFieldName);
-  }
-
-  boolean hasRequestedUnbinder() {
-    return unbinderBinding != null;
   }
 
   void addBitmap(FieldBitmapBinding binding) {
@@ -125,7 +122,7 @@ final class BindingClass {
       result.addSuperinterface(ParameterizedTypeName.get(VIEW_BINDER, TypeVariableName.get("T")));
     }
 
-    if (hasRequestedUnbinder()) {
+    if (hasUnbinder()) {
       result.addType(createUnbinderClass());
     }
 
@@ -157,8 +154,8 @@ final class BindingClass {
         .addModifiers(PUBLIC);
 
     // Throw exception if unbind called twice.
-    unbindMethod.addStatement("if (target == null) throw new $T($S)",
-        IllegalStateException.class, "Bindings already cleared.");
+    unbindMethod.addStatement("if (target == null) throw new $T($S)", IllegalStateException.class,
+        "Bindings already cleared.");
 
     for (ViewBindings bindings : viewIdMap.values()) {
       addFieldAndUnbindStatement(result, unbindMethod, bindings);
@@ -219,13 +216,20 @@ final class BindingClass {
         .addParameter(TypeVariableName.get("T"), "target", FINAL)
         .addParameter(Object.class, "source");
 
+    if (hasResourceBindings()) {
+      // Aapt can change IDs out from underneath us, just suppress since all will work at runtime.
+      result.addAnnotation(AnnotationSpec.builder(SuppressWarnings.class)
+          .addMember("value", "$S", "ResourceType")
+          .build());
+    }
+
     // Emit a call to the superclass binder, if any.
     if (parentViewBinder != null) {
       result.addStatement("super.bind(finder, target, source)");
     }
 
     // If the caller requested an unbinder, we need to create an instance of it.
-    if (hasRequestedUnbinder()) {
+    if (hasUnbinder()) {
       result.addStatement("$T unbinder = new $T($N)", unbinderBinding.getUnbinderClassName(),
           unbinderBinding.getUnbinderClassName(), "target");
     }
@@ -246,12 +250,12 @@ final class BindingClass {
     }
 
     // Bind unbinder if was requested.
-    if (hasRequestedUnbinder()) {
+    if (hasUnbinder()) {
       result.addStatement("target.$L = unbinder", unbinderBinding.getUnbinderFieldName());
     }
 
-    if (requiresResources()) {
-      if (requiresTheme()) {
+    if (hasResourceBindings()) {
+      if (hasResourceBindingsNeedingTheme()) {
         result.addStatement("$T context = finder.getContext(source)", CONTEXT);
         result.addStatement("$T res = context.getResources()", RESOURCES);
         result.addStatement("$T theme = context.getTheme()", THEME);
@@ -360,7 +364,7 @@ final class BindingClass {
     }
 
     // Add the view reference to the unbinder.
-    if (hasRequestedUnbinder()) {
+    if (hasUnbinder()) {
       result.addStatement("unbinder.$L = view", "view" + bindings.getId());
     }
 
@@ -503,11 +507,15 @@ final class BindingClass {
     }
   }
 
-  private boolean requiresResources() {
+  boolean hasUnbinder() {
+    return unbinderBinding != null;
+  }
+
+  private boolean hasResourceBindings() {
     return !(bitmapBindings.isEmpty() && drawableBindings.isEmpty() && resourceBindings.isEmpty());
   }
 
-  private boolean requiresTheme() {
+  private boolean hasResourceBindingsNeedingTheme() {
     if (!drawableBindings.isEmpty()) {
       return true;
     }
