@@ -1,10 +1,13 @@
 package butterknife;
 
-import butterknife.compiler.ButterKnifeProcessor;
 import com.google.common.base.Joiner;
 import com.google.testing.compile.JavaFileObjects;
-import javax.tools.JavaFileObject;
+
 import org.junit.Test;
+
+import javax.tools.JavaFileObject;
+
+import butterknife.compiler.ButterKnifeProcessor;
 
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.testing.compile.JavaSourceSubjectFactory.javaSource;
@@ -196,11 +199,11 @@ public class UnbinderTest {
               "import android.support.v4.app.Fragment;",
               "import butterknife.ButterKnife;",
               "import butterknife.OnClick;",
+              "import butterknife.Optional;",
               "import butterknife.Unbinder;",
               "public class Test extends Fragment {",
-              "  @interface Nullable {}",
               "  @Unbinder ButterKnife.Unbinder unbinder;",
-              "  @Nullable @OnClick(1) void doStuff() {",
+              "  @Optional @OnClick(1) void doStuff() {",
               "  }",
               "}"
           ));

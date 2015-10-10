@@ -54,7 +54,7 @@ public enum Finder {
           + id
           + " for "
           + who
-          + " was not found. If this view is optional add '@Nullable' annotation.");
+          + " was not found. If this view is optional add '@Nullable' (fields) or '@Optional' (methods) annotation.");
     }
     return view;
   }

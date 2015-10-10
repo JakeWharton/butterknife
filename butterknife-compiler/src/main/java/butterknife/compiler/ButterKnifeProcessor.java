@@ -1,31 +1,9 @@
 package butterknife.compiler;
 
-import butterknife.Bind;
-import butterknife.BindArray;
-import butterknife.BindBitmap;
-import butterknife.BindBool;
-import butterknife.BindColor;
-import butterknife.BindDimen;
-import butterknife.BindDrawable;
-import butterknife.BindInt;
-import butterknife.BindString;
-import butterknife.Unbinder;
-import butterknife.OnCheckedChanged;
-import butterknife.OnClick;
-import butterknife.OnEditorAction;
-import butterknife.OnFocusChange;
-import butterknife.OnItemClick;
-import butterknife.OnItemLongClick;
-import butterknife.OnItemSelected;
-import butterknife.OnLongClick;
-import butterknife.OnPageChange;
-import butterknife.OnTextChanged;
-import butterknife.OnTouch;
-import butterknife.internal.ListenerClass;
-import butterknife.internal.ListenerMethod;
 import com.google.auto.common.SuperficialValidation;
 import com.google.auto.service.AutoService;
 import com.squareup.javapoet.TypeName;
+
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -40,6 +18,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.Filer;
 import javax.annotation.processing.ProcessingEnvironment;
@@ -60,6 +39,30 @@ import javax.lang.model.type.TypeVariable;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 
+import butterknife.Bind;
+import butterknife.BindArray;
+import butterknife.BindBitmap;
+import butterknife.BindBool;
+import butterknife.BindColor;
+import butterknife.BindDimen;
+import butterknife.BindDrawable;
+import butterknife.BindInt;
+import butterknife.BindString;
+import butterknife.OnCheckedChanged;
+import butterknife.OnClick;
+import butterknife.OnEditorAction;
+import butterknife.OnFocusChange;
+import butterknife.OnItemClick;
+import butterknife.OnItemLongClick;
+import butterknife.OnItemSelected;
+import butterknife.OnLongClick;
+import butterknife.OnPageChange;
+import butterknife.OnTextChanged;
+import butterknife.OnTouch;
+import butterknife.Unbinder;
+import butterknife.internal.ListenerClass;
+import butterknife.internal.ListenerMethod;
+
 import static javax.lang.model.element.ElementKind.CLASS;
 import static javax.lang.model.element.ElementKind.INTERFACE;
 import static javax.lang.model.element.ElementKind.METHOD;
@@ -77,6 +80,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
   private static final String DRAWABLE_TYPE = "android.graphics.drawable.Drawable";
   private static final String TYPED_ARRAY_TYPE = "android.content.res.TypedArray";
   private static final String NULLABLE_ANNOTATION_NAME = "Nullable";
+  private static final String OPTIONAL_ANNOTATION_NAME = "Optional";
   private static final String ITERABLE_TYPE = "java.lang.Iterable<?>";
   private static final String STRING_TYPE = "java.lang.String";
   private static final String UNBINDER_TYPE = "butterknife.ButterKnife.Unbinder<?>";
@@ -896,7 +900,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
       if (id == NO_ID) {
         if (ids.length == 1) {
           if (!required) {
-            error(element, "ID-free binding must not be annotated with @Nullable. (%s.%s)",
+            error(element, "ID-free binding must not be annotated with @Nullable or @Optional. (%s.%s)",
                 enclosingElement.getQualifiedName(), element.getSimpleName());
             hasError = true;
           }
@@ -1143,17 +1147,19 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     return elementUtils.getPackageOf(type).getQualifiedName().toString();
   }
 
-  private static boolean hasAnnotationWithName(Element element, String simpleName) {
+  private static boolean hasAnnotationWithNames(Element element, String... simpleNames) {
     for (AnnotationMirror mirror : element.getAnnotationMirrors()) {
       String annotationName = mirror.getAnnotationType().asElement().getSimpleName().toString();
-      if (simpleName.equals(annotationName)) {
-        return true;
+      for (String simpleName : simpleNames) {
+        if (simpleName.equals(annotationName)) {
+          return true;
+        }
       }
     }
     return false;
   }
 
   private static boolean isRequiredBinding(Element element) {
-    return !hasAnnotationWithName(element, NULLABLE_ANNOTATION_NAME);
+    return !hasAnnotationWithNames(element, NULLABLE_ANNOTATION_NAME, OPTIONAL_ANNOTATION_NAME);
   }
 }
