@@ -14,7 +14,7 @@ public class UnbinderTest {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n')
         .join(
             "package test;",
-            "import android.app.Fragment;",
+            "import android.support.v4.app.Fragment;",
             "import butterknife.ButterKnife;",
             "import butterknife.OnClick;",
             "import butterknife.Unbinder;",
@@ -75,7 +75,7 @@ public class UnbinderTest {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n')
         .join(
             "package test;",
-            "import android.app.Fragment;",
+            "import android.support.v4.app.Fragment;",
             "import butterknife.ButterKnife;",
             "import butterknife.Unbinder;",
             "public class Test extends Fragment {",
@@ -96,7 +96,7 @@ public class UnbinderTest {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n')
         .join(
             "package test;",
-            "import android.app.Fragment;",
+            "import android.support.v4.app.Fragment;",
             "import butterknife.Unbinder;",
             "public class Test extends Fragment {",
             "  @Unbinder Object unbinder;",
@@ -115,7 +115,7 @@ public class UnbinderTest {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n')
         .join(
             "package test;",
-            "import android.app.Fragment;",
+            "import android.support.v4.app.Fragment;",
             "import android.view.View;",
             "import butterknife.Bind;",
             "import butterknife.ButterKnife;",
@@ -193,7 +193,7 @@ public class UnbinderTest {
       JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n')
           .join(
               "package test;",
-              "import android.app.Fragment;",
+              "import android.support.v4.app.Fragment;",
               "import butterknife.ButterKnife;",
               "import butterknife.OnClick;",
               "import butterknife.Unbinder;",
