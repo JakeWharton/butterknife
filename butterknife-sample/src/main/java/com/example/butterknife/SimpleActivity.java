@@ -2,6 +2,7 @@ package com.example.butterknife;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.view.View;
 import android.view.animation.AlphaAnimation;
 import android.widget.Button;
@@ -22,7 +23,7 @@ import static android.widget.Toast.LENGTH_SHORT;
 
 public class SimpleActivity extends Activity {
   private static final ButterKnife.Action<View> ALPHA_FADE = new ButterKnife.Action<View>() {
-    @Override public void apply(View view, int index) {
+    @Override public void apply(@NonNull View view, int index) {
       AlphaAnimation alphaAnimation = new AlphaAnimation(0, 1);
       alphaAnimation.setFillBefore(true);
       alphaAnimation.setDuration(500);

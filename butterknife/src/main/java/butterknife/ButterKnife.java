@@ -4,10 +4,12 @@ import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.Dialog;
 import android.os.Build;
+import android.support.annotation.CheckResult;
+import android.support.annotation.IdRes;
+import android.support.annotation.NonNull;
 import android.util.Log;
 import android.util.Property;
 import android.view.View;
-
 import butterknife.internal.Finder;
 import butterknife.internal.ViewBinder;
 import java.util.LinkedHashMap;
@@ -89,13 +91,13 @@ public final class ButterKnife {
   /** An action that can be applied to a list of views. */
   public interface Action<T extends View> {
     /** Apply the action on the {@code view} which is at {@code index} in the list. */
-    void apply(T view, int index);
+    void apply(@NonNull T view, int index);
   }
 
   /** A setter that can apply a value to a list of views. */
   public interface Setter<T extends View, V> {
     /** Set the {@code value} on the {@code view} which is at {@code index} in the list. */
-    void set(T view, V value, int index);
+    void set(@NonNull T view, V value, int index);
   }
 
   private static final String TAG = "ButterKnife";
@@ -117,7 +119,7 @@ public final class ButterKnife {
    *
    * @param target Target activity for view binding.
    */
-  public static void bind(Activity target) {
+  public static void bind(@NonNull Activity target) {
     bind(target, target, Finder.ACTIVITY);
   }
 
@@ -127,7 +129,8 @@ public final class ButterKnife {
    *
    * @param target Target view for view binding.
    */
-  public static View bind(View target) {
+  @NonNull
+  public static View bind(@NonNull View target) {
     bind(target, target, Finder.VIEW);
     return target;
   }
@@ -139,7 +142,7 @@ public final class ButterKnife {
    * @param target Target dialog for view binding.
    */
   @SuppressWarnings("unused") // Public api.
-  public static void bind(Dialog target) {
+  public static void bind(@NonNull Dialog target) {
     bind(target, target, Finder.DIALOG);
   }
 
@@ -150,7 +153,7 @@ public final class ButterKnife {
    * @param target Target class for view binding.
    * @param source Activity on which IDs will be looked up.
    */
-  public static void bind(Object target, Activity source) {
+  public static void bind(@NonNull Object target, @NonNull Activity source) {
     bind(target, source, Finder.ACTIVITY);
   }
 
@@ -161,7 +164,8 @@ public final class ButterKnife {
    * @param target Target class for view binding.
    * @param source View root on which IDs will be looked up.
    */
-  public static View bind(Object target, View source) {
+  @NonNull
+  public static View bind(@NonNull Object target, @NonNull View source) {
     bind(target, source, Finder.VIEW);
     return source;
   }
@@ -174,23 +178,22 @@ public final class ButterKnife {
    * @param source Dialog on which IDs will be looked up.
    */
   @SuppressWarnings("unused") // Public api.
-  public static void bind(Object target, Dialog source) {
+  public static void bind(@NonNull Object target, @NonNull Dialog source) {
     bind(target, source, Finder.DIALOG);
   }
 
-  static void bind(Object target, Object source, Finder finder) {
+  static void bind(@NonNull Object target, @NonNull Object source, @NonNull Finder finder) {
     Class<?> targetClass = target.getClass();
     try {
       if (debug) Log.d(TAG, "Looking up view binder for " + targetClass.getName());
       ViewBinder<Object> viewBinder = findViewBinderForClass(targetClass);
-      if (viewBinder != null) {
-        viewBinder.bind(finder, target, source);
-      }
+      viewBinder.bind(finder, target, source);
     } catch (Exception e) {
       throw new RuntimeException("Unable to bind views for " + targetClass.getName(), e);
     }
   }
 
+  @NonNull
   private static ViewBinder<Object> findViewBinderForClass(Class<?> cls)
       throws IllegalAccessException, InstantiationException {
     ViewBinder<Object> viewBinder = BINDERS.get(cls);
@@ -217,8 +220,8 @@ public final class ButterKnife {
   }
 
   /** Apply the specified {@code actions} across the {@code list} of views. */
-  @SafeVarargs
-  public static <T extends View> void apply(List<T> list, Action<? super T>... actions) {
+  @SafeVarargs public static <T extends View> void apply(@NonNull List<T> list,
+      @NonNull Action<? super T>... actions) {
     for (int i = 0, count = list.size(); i < count; i++) {
       for (Action<? super T> action : actions) {
         action.apply(list.get(i), i);
@@ -227,8 +230,8 @@ public final class ButterKnife {
   }
 
   /** Apply the specified {@code actions} across the {@code array} of views. */
-  @SafeVarargs
-  public static <T extends View> void apply(T[] array, Action<? super T>... actions) {
+  @SafeVarargs public static <T extends View> void apply(@NonNull T[] array,
+      @NonNull Action<? super T>... actions) {
     for (int i = 0, count = array.length; i < count; i++) {
       for (Action<? super T> action : actions) {
         action.apply(array[i], i);
@@ -237,48 +240,52 @@ public final class ButterKnife {
   }
 
   /** Apply the specified {@code action} across the {@code list} of views. */
-  public static <T extends View> void apply(List<T> list, Action<? super T> action) {
+  public static <T extends View> void apply(@NonNull List<T> list,
+      @NonNull Action<? super T> action) {
     for (int i = 0, count = list.size(); i < count; i++) {
       action.apply(list.get(i), i);
     }
   }
 
   /** Apply the specified {@code action} across the {@code array} of views. */
-  public static <T extends View> void apply(T[] array, Action<? super T> action) {
+  public static <T extends View> void apply(@NonNull T[] array, @NonNull Action<? super T> action) {
     for (int i = 0, count = array.length; i < count; i++) {
       action.apply(array[i], i);
     }
   }
 
   /** Apply {@code actions} to {@code view}. */
-  @SafeVarargs
-  public static <T extends View> void apply(T view, Action<? super T>... actions) {
+  @SafeVarargs public static <T extends View> void apply(@NonNull T view,
+      @NonNull Action<? super T>... actions) {
     for (Action<? super T> action : actions) {
       action.apply(view, 0);
     }
   }
 
   /** Apply {@code action} to {@code view}. */
-  public static <T extends View> void apply(T view, Action<? super T> action) {
+  public static <T extends View> void apply(@NonNull T view, @NonNull Action<? super T> action) {
     action.apply(view, 0);
   }
 
   /** Set the {@code value} using the specified {@code setter} across the {@code list} of views. */
-  public static <T extends View, V> void apply(List<T> list, Setter<? super T, V> setter, V value) {
+  public static <T extends View, V> void apply(@NonNull List<T> list,
+      @NonNull Setter<? super T, V> setter, V value) {
     for (int i = 0, count = list.size(); i < count; i++) {
       setter.set(list.get(i), value, i);
     }
   }
 
   /** Set the {@code value} using the specified {@code setter} across the {@code array} of views. */
-  public static <T extends View, V> void apply(T[] array, Setter<? super T, V> setter, V value) {
+  public static <T extends View, V> void apply(@NonNull T[] array,
+      @NonNull Setter<? super T, V> setter, V value) {
     for (int i = 0, count = array.length; i < count; i++) {
       setter.set(array[i], value, i);
     }
   }
 
   /** Set {@code value} on {@code view} using {@code setter}. */
-  public static <T extends View, V> void apply(T view, Setter<? super T, V> setter, V value) {
+  public static <T extends View, V> void apply(@NonNull T view,
+      @NonNull Setter<? super T, V> setter, V value) {
     setter.set(view, value, 0);
   }
 
@@ -286,8 +293,8 @@ public final class ButterKnife {
    * Apply the specified {@code value} across the {@code list} of views using the {@code property}.
    */
   @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
-  public static <T extends View, V> void apply(List<T> list, Property<? super T, V> setter,
-      V value) {
+  public static <T extends View, V> void apply(@NonNull List<T> list,
+      @NonNull Property<? super T, V> setter, V value) {
     //noinspection ForLoopReplaceableByForEach
     for (int i = 0, count = list.size(); i < count; i++) {
       setter.set(list.get(i), value);
@@ -298,8 +305,8 @@ public final class ButterKnife {
    * Apply the specified {@code value} across the {@code array} of views using the {@code property}.
    */
   @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
-  public static <T extends View, V> void apply(T[] array, Property<? super T, V> setter,
-      V value) {
+  public static <T extends View, V> void apply(@NonNull T[] array,
+      @NonNull Property<? super T, V> setter, V value) {
     //noinspection ForLoopReplaceableByForEach
     for (int i = 0, count = array.length; i < count; i++) {
       setter.set(array[i], value);
@@ -308,25 +315,29 @@ public final class ButterKnife {
 
   /** Apply {@code value} to {@code view} using {@code property}. */
   @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
-  public static <T extends View, V> void apply(T view, Property<? super T, V> setter, V value) {
+  public static <T extends View, V> void apply(@NonNull T view,
+      @NonNull Property<? super T, V> setter, V value) {
     setter.set(view, value);
   }
 
   /** Simpler version of {@link View#findViewById(int)} which infers the target type. */
   @SuppressWarnings({ "unchecked", "UnusedDeclaration" }) // Checked by runtime cast. Public API.
-  public static <T extends View> T findById(View view, int id) {
+  @CheckResult
+  public static <T extends View> T findById(@NonNull View view, @IdRes int id) {
     return (T) view.findViewById(id);
   }
 
   /** Simpler version of {@link Activity#findViewById(int)} which infers the target type. */
   @SuppressWarnings({ "unchecked", "UnusedDeclaration" }) // Checked by runtime cast. Public API.
-  public static <T extends View> T findById(Activity activity, int id) {
+  @CheckResult
+  public static <T extends View> T findById(@NonNull Activity activity, @IdRes int id) {
     return (T) activity.findViewById(id);
   }
 
   /** Simpler version of {@link Dialog#findViewById(int)} which infers the target type. */
   @SuppressWarnings({ "unchecked", "UnusedDeclaration" }) // Checked by runtime cast. Public API.
-  public static <T extends View> T findById(Dialog dialog, int id) {
+  @CheckResult
+  public static <T extends View> T findById(@NonNull Dialog dialog, @IdRes int id) {
     return (T) dialog.findViewById(id);
   }
 }
