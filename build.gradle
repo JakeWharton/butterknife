@@ -34,7 +34,7 @@ subprojects { project ->
 }
 
 ext {
-  minSdkVersion = 15
+  minSdkVersion = 8
   targetSdkVersion = 23
   compileSdkVersion = 23
   buildToolsVersion = '23.0.1'
@@ -44,7 +44,7 @@ ext {
 
 ext.deps = [
     // Android
-    android: 'com.google.android:android:4.1.1.4',
+    android: 'com.google.android:android:2.1.2',
     supportv4: 'com.android.support:support-v4:23.0.1',
     supportAnnotations: 'com.android.support:support-annotations:23.0.1',
 

@@ -9,7 +9,7 @@ import android.support.annotation.ColorRes;
 import android.support.annotation.DrawableRes;
 import android.support.v4.graphics.drawable.DrawableCompat;
 import android.util.TypedValue;
-import java.util.Arrays;
+import java.lang.reflect.Array;
 import java.util.List;
 
 @SuppressWarnings("deprecation") //
@@ -68,13 +68,20 @@ public final class Utils {
 
   private static <T> T[] filterNull(T[] views) {
     int end = 0;
-    for (int i = 0; i < views.length; i++) {
+    int length = views.length;
+    for (int i = 0; i < length; i++) {
       T view = views[i];
       if (view != null) {
         views[end++] = view;
       }
     }
-    return Arrays.copyOfRange(views, 0, end);
+    if (end == length) {
+      return views;
+    }
+    //noinspection unchecked
+    T[] newViews = (T[]) Array.newInstance(views.getClass().getComponentType(), end);
+    System.arraycopy(views, 0, newViews, 0, end);
+    return newViews;
   }
 
   static class SupportV4 {
