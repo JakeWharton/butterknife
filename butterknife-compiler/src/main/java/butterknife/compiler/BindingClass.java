@@ -327,7 +327,7 @@ final class BindingClass {
       result.addStatement("view = finder.findOptionalView(source, $L, null)", bindings.getId());
     } else {
       if (bindings.getId() == NO_ID) {
-        result.addStatement("view = target", bindings.getId());
+        result.addStatement("view = target");
       } else {
         result.addStatement("view = finder.findRequiredView(source, $L, $S)", bindings.getId(),
             asHumanDescription(requiredViewBindings));
