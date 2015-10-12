@@ -69,7 +69,7 @@ import butterknife.internal.ViewBinder;
  * Be default, views are required to be present in the layout for both field and method bindings.
  * If a view is optional add a {@code @Nullable} annotation such as the one in the
  * <a href="http://tools.android.com/tech-docs/support-annotations">support-annotations</a> library
- * for fields, or {@code @Optional} for methods.
+ * for fields or {@code @Optional} for methods.
  * <pre><code>
  * {@literal @}Nullable @Bind(R.id.title) TextView subtitleView;
  * </code></pre>

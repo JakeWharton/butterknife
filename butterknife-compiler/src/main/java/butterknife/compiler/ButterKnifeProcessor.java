@@ -875,7 +875,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
     int[] ids = (int[]) annotationValue.invoke(annotation);
     String name = executableElement.getSimpleName().toString();
-    boolean required = isRequiredBinding(element);
+    boolean required = isOptionalBinding(element);
 
     // Verify that the method and its containing class are accessible via generated code.
     boolean hasError = isInaccessibleViaGeneratedCode(annotationClass, "methods", element);
@@ -900,7 +900,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
       if (id == NO_ID) {
         if (ids.length == 1) {
           if (!required) {
-            error(element, "ID-free binding must not be annotated with @Nullable or @Optional. (%s.%s)",
+            error(element, "ID-free binding must not be annotated with @Optional. (%s.%s)",
                 enclosingElement.getQualifiedName(), element.getSimpleName());
             hasError = true;
           }
@@ -1147,19 +1147,21 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     return elementUtils.getPackageOf(type).getQualifiedName().toString();
   }
 
-  private static boolean hasAnnotationWithNames(Element element, String... simpleNames) {
+  private static boolean hasAnnotationWithName(Element element, String simpleName) {
     for (AnnotationMirror mirror : element.getAnnotationMirrors()) {
       String annotationName = mirror.getAnnotationType().asElement().getSimpleName().toString();
-      for (String simpleName : simpleNames) {
-        if (simpleName.equals(annotationName)) {
-          return true;
-        }
+      if (simpleName.equals(annotationName)) {
+        return true;
       }
     }
     return false;
   }
 
   private static boolean isRequiredBinding(Element element) {
-    return !hasAnnotationWithNames(element, NULLABLE_ANNOTATION_NAME, OPTIONAL_ANNOTATION_NAME);
+    return !hasAnnotationWithName(element, NULLABLE_ANNOTATION_NAME);
+  }
+
+  private static boolean isOptionalBinding(Element element) {
+    return !hasAnnotationWithName(element, OPTIONAL_ANNOTATION_NAME);
   }
 }

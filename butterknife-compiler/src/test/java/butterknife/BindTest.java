@@ -543,7 +543,7 @@ public class BindTest {
         .processedWith(new ButterKnifeProcessor())
         .failsToCompile()
         .withErrorContaining(
-            ("ID-free binding must not be annotated with @Nullable or @Optional. (test.Test.doStuff)"))
+            ("ID-free binding must not be annotated with @Optional. (test.Test.doStuff)"))
         .in(source)
         .onLine(7);
   }
