@@ -9,7 +9,6 @@ import butterknife.BindDimen;
 import butterknife.BindDrawable;
 import butterknife.BindInt;
 import butterknife.BindString;
-import butterknife.Unbinder;
 import butterknife.OnCheckedChanged;
 import butterknife.OnClick;
 import butterknife.OnEditorAction;
@@ -21,6 +20,8 @@ import butterknife.OnLongClick;
 import butterknife.OnPageChange;
 import butterknife.OnTextChanged;
 import butterknife.OnTouch;
+import butterknife.Optional;
+import butterknife.Unbinder;
 import butterknife.internal.ListenerClass;
 import butterknife.internal.ListenerMethod;
 import com.google.auto.common.SuperficialValidation;
@@ -398,7 +399,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
     String name = element.getSimpleName().toString();
     TypeName type = TypeName.get(elementType);
-    boolean required = isRequiredBinding(element);
+    boolean required = isFieldRequired(element);
 
     FieldViewBinding binding = new FieldViewBinding(name, type, required);
     bindingClass.addField(id, binding);
@@ -469,7 +470,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
     assert viewType != null; // Always false as hasError would have been true.
     TypeName type = TypeName.get(viewType);
-    boolean required = isRequiredBinding(element);
+    boolean required = isFieldRequired(element);
 
     BindingClass bindingClass = getOrCreateTargetClass(targetClassMap, enclosingElement);
     FieldCollectionViewBinding binding = new FieldCollectionViewBinding(name, type, kind, required);
@@ -871,7 +872,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
     int[] ids = (int[]) annotationValue.invoke(annotation);
     String name = executableElement.getSimpleName().toString();
-    boolean required = isRequiredBinding(element);
+    boolean required = isListenerRequired(executableElement);
 
     // Verify that the method and its containing class are accessible via generated code.
     boolean hasError = isInaccessibleViaGeneratedCode(annotationClass, "methods", element);
@@ -896,7 +897,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
       if (id == NO_ID) {
         if (ids.length == 1) {
           if (!required) {
-            error(element, "ID-free binding must not be annotated with @Nullable. (%s.%s)",
+            error(element, "ID-free binding must not be annotated with @Optional. (%s.%s)",
                 enclosingElement.getQualifiedName(), element.getSimpleName());
             hasError = true;
           }
@@ -1153,7 +1154,11 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     return false;
   }
 
-  private static boolean isRequiredBinding(Element element) {
+  private static boolean isFieldRequired(Element element) {
     return !hasAnnotationWithName(element, NULLABLE_ANNOTATION_NAME);
+  }
+
+  private static boolean isListenerRequired(ExecutableElement element) {
+    return element.getAnnotation(Optional.class) == null;
   }
 }
