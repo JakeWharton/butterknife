@@ -1,10 +1,13 @@
 package butterknife;
 
-import butterknife.compiler.ButterKnifeProcessor;
 import com.google.common.base.Joiner;
 import com.google.testing.compile.JavaFileObjects;
-import javax.tools.JavaFileObject;
+
 import org.junit.Test;
+
+import javax.tools.JavaFileObject;
+
+import butterknife.compiler.ButterKnifeProcessor;
 
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.testing.compile.JavaSourceSubjectFactory.javaSource;
@@ -286,9 +289,9 @@ public class OnClickTest {
         "package test;",
         "import android.app.Activity;",
         "import butterknife.OnClick;",
+        "import butterknife.Optional;",
         "public class Test extends Activity {",
-        "  @interface Nullable {}",
-        "  @Nullable @OnClick(1) void doStuff() {}",
+        "  @Optional @OnClick(1) void doStuff() {}",
         "}"));
 
     JavaFileObject expectedSource = JavaFileObjects.forSourceString("test/Test$$ViewBinder",
@@ -329,10 +332,10 @@ public class OnClickTest {
         "import android.view.View;",
         "import butterknife.Bind;",
         "import butterknife.OnClick;",
+        "import butterknife.Optional;",
         "public class Test extends Activity {",
-        "  @interface Nullable {}",
         "  @Bind(1) View view;",
-        "  @Nullable @OnClick(1) void doStuff() {}",
+        "  @Optional @OnClick(1) void doStuff() {}",
         "}"));
 
     JavaFileObject expectedSource = JavaFileObjects.forSourceString("test/Test$$ViewBinder",

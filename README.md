@@ -73,7 +73,7 @@ or Gradle:
 ```groovy
 buildscript {
   dependencies {
-    classpath 'com.neenbedankt.gradle.plugins:android-apt:1.6'
+    classpath 'com.neenbedankt.gradle.plugins:android-apt:1.8'
   }
 }
 

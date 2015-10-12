@@ -10,11 +10,13 @@ import android.support.annotation.NonNull;
 import android.util.Log;
 import android.util.Property;
 import android.view.View;
-import butterknife.internal.Finder;
-import butterknife.internal.ViewBinder;
+
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+
+import butterknife.internal.Finder;
+import butterknife.internal.ViewBinder;
 
 /**
  * Field and method binding for Android views. Use this class to simplify finding views and
@@ -66,7 +68,8 @@ import java.util.Map;
  * <p>
  * Be default, views are required to be present in the layout for both field and method bindings.
  * If a view is optional add a {@code @Nullable} annotation such as the one in the
- * <a href="http://tools.android.com/tech-docs/support-annotations">support-annotations</a> library.
+ * <a href="http://tools.android.com/tech-docs/support-annotations">support-annotations</a> library
+ * for fields or {@code @Optional} for methods.
  * <pre><code>
  * {@literal @}Nullable @Bind(R.id.title) TextView subtitleView;
  * </code></pre>
