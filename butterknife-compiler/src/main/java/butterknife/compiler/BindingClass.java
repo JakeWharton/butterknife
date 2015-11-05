@@ -282,11 +282,11 @@ final class BindingClass {
       for (FieldResourceBinding binding : resourceBindings) {
         // TODO being themeable is poor correlation to the need to use Utils.
         if (binding.isThemeable()) {
-          result.addStatement("target.$L = $T.$L(res, theme, $L)", binding.getName(),
-              UTILS, binding.getMethod(), binding.getId());
+          result.addStatement("/* noinspection ResourceType */ target.$L = $T.$L(res, theme, $L)",
+              binding.getName(), UTILS, binding.getMethod(), binding.getId());
         } else {
-          result.addStatement("target.$L = res.$L($L)", binding.getName(), binding.getMethod(),
-              binding.getId());
+          result.addStatement("/* noinspection ResourceType */ target.$L = res.$L($L)",
+              binding.getName(), binding.getMethod(), binding.getId());
         }
       }
     }
