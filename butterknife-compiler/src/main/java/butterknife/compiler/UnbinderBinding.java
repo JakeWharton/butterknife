@@ -3,7 +3,7 @@ package butterknife.compiler;
 import com.squareup.javapoet.ClassName;
 
 final class UnbinderBinding {
-  private static final String UNBINDER_SIMPLE_NAME = "Unbinder";
+  public static final String UNBINDER_SIMPLE_NAME = "Unbinder";
 
   private final String unbinderFieldName;
   private final ClassName unbinderClassName;

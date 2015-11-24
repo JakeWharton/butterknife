@@ -85,7 +85,7 @@ public final class ButterKnife {
 
   /** An unbinder contract that can be bind with {@link butterknife.Unbinder}. */
   @SuppressWarnings("unused") // Used by generated code.
-  public interface Unbinder {
+  public interface ViewUnbinder<T> {
     void unbind();
   }
 

@@ -27,18 +27,20 @@ import static butterknife.compiler.ButterKnifeProcessor.VIEW_TYPE;
 import static java.util.Collections.singletonList;
 import static javax.lang.model.element.Modifier.FINAL;
 import static javax.lang.model.element.Modifier.PRIVATE;
+import static javax.lang.model.element.Modifier.PROTECTED;
 import static javax.lang.model.element.Modifier.PUBLIC;
 import static javax.lang.model.element.Modifier.STATIC;
 
 final class BindingClass {
   private static final ClassName FINDER = ClassName.get("butterknife.internal", "Finder");
   private static final ClassName VIEW_BINDER = ClassName.get("butterknife.internal", "ViewBinder");
-  private static final ClassName UNBINDER = ClassName.get("butterknife", "ButterKnife", "Unbinder");
   private static final ClassName UTILS = ClassName.get("butterknife.internal", "Utils");
   private static final ClassName VIEW = ClassName.get("android.view", "View");
   private static final ClassName CONTEXT = ClassName.get("android.content", "Context");
   private static final ClassName RESOURCES = ClassName.get("android.content.res", "Resources");
   private static final ClassName THEME = RESOURCES.nestedClass("Theme");
+  private static final ClassName UNBINDER =
+      ClassName.get("butterknife", "ButterKnife", "ViewUnbinder");
   private static final ClassName BITMAP_FACTORY =
       ClassName.get("android.graphics", "BitmapFactory");
 
@@ -52,6 +54,7 @@ final class BindingClass {
   private final String targetClass;
   private String parentViewBinder;
   private UnbinderBinding unbinderBinding;
+  private String parentUnbinder;
 
   BindingClass(String classPackage, String className, String targetClass) {
     this.classPackage = classPackage;
@@ -97,6 +100,14 @@ final class BindingClass {
     this.parentViewBinder = parentViewBinder;
   }
 
+  void setParentUnbinder(String parentUnbinder) {
+    this.parentUnbinder = parentUnbinder;
+  }
+
+  String getParentUnbinder() {
+    return parentUnbinder;
+  }
+
   ViewBindings getViewBinding(int id) {
     return viewIdMap.get(id);
   }
@@ -122,11 +133,14 @@ final class BindingClass {
       result.addSuperinterface(ParameterizedTypeName.get(VIEW_BINDER, TypeVariableName.get("T")));
     }
 
-    if (hasUnbinder()) {
-      result.addType(createUnbinderClass());
-    }
-
     result.addMethod(createBindMethod());
+
+    if (hasUnbinder()) {
+      // Create unbinding class.
+      result.addType(createUnbinderClass());
+      // Now we need to provide child classes to access and override unbinder implementations.
+      createUnbinderInternalAccessMethods(result);
+    }
 
     return JavaFile.builder(classPackage, result.build())
         .addFileComment("Generated code from Butter Knife. Do not modify!")
@@ -134,43 +148,77 @@ final class BindingClass {
   }
 
   private TypeSpec createUnbinderClass() {
-    ClassName targetClassName = ClassName.bestGuess(targetClass);
-
-    MethodSpec unbinderConstructor = MethodSpec.constructorBuilder()
-        .addParameter(targetClassName, "target")
-        .addStatement("this.$1N = $1N", "target")
-        .build();
-
+    TypeName generic = TypeVariableName.get("T");
     TypeSpec.Builder result =
         TypeSpec.classBuilder(unbinderBinding.getUnbinderClassName().simpleName())
-        .addSuperinterface(UNBINDER)
-        .addModifiers(PRIVATE, STATIC, FINAL)
-        .addField(targetClassName, "target", PRIVATE)
-        .addMethod(unbinderConstructor);
+        .addModifiers(PUBLIC, STATIC)
+        .addTypeVariable(TypeVariableName.get("T", ClassName.bestGuess(targetClass)));
 
-    // Even if there are no bindings we need to implement the interface method.
-    MethodSpec.Builder unbindMethod = MethodSpec.methodBuilder("unbind")
+    if (parentUnbinder != null) {
+      result.superclass(ParameterizedTypeName.get(
+          ClassName.bestGuess(parentViewBinder + '.' + UnbinderBinding.UNBINDER_SIMPLE_NAME),
+          generic));
+    } else {
+      result.addSuperinterface(ParameterizedTypeName.get(UNBINDER, generic));
+      result.addField(generic, "target", PRIVATE);
+    }
+
+    result.addMethod(createUnbinderConstructor(generic));
+    if (parentUnbinder == null) {
+      result.addMethod(createUnbindInterfaceMethod());
+    }
+    result.addMethod(createUnbindMethod(result, generic));
+
+    return result.build();
+  }
+
+  private MethodSpec createUnbinderConstructor(TypeName targetType) {
+    MethodSpec.Builder constructor = MethodSpec.constructorBuilder()
+        .addModifiers(PROTECTED)
+        .addParameter(targetType, "target");
+    if (parentUnbinder != null) {
+      constructor.addStatement("super(target)");
+    } else {
+      constructor.addStatement("this.$1N = $1N", "target");
+    }
+    return constructor.build();
+  }
+
+  private MethodSpec createUnbindInterfaceMethod() {
+    return MethodSpec.methodBuilder("unbind")
         .addAnnotation(Override.class)
-        .addModifiers(PUBLIC);
+        .addModifiers(PUBLIC, FINAL)
+        .addStatement("if (target == null) throw new $T($S)", IllegalStateException.class,
+            "Bindings already cleared.")
+        .addStatement("unbind(target)")
+        .addStatement("target = null")
+        .build();
+  }
 
-    // Throw exception if unbind called twice.
-    unbindMethod.addStatement("if (target == null) throw new $T($S)", IllegalStateException.class,
-        "Bindings already cleared.");
+  private MethodSpec createUnbindMethod(TypeSpec.Builder unbinderClass, TypeName targetType) {
+    MethodSpec.Builder result = MethodSpec.methodBuilder("unbind")
+        .addModifiers(PROTECTED)
+        .addParameter(targetType, "target");
+
+    if (parentUnbinder != null) {
+      result.addAnnotation(Override.class);
+      result.addStatement("super.unbind(target)");
+    }
 
     for (ViewBindings bindings : viewIdMap.values()) {
-      addFieldAndUnbindStatement(result, unbindMethod, bindings);
+      addFieldAndUnbindStatement(unbinderClass, result, bindings);
       for (FieldViewBinding fieldBinding : bindings.getFieldBindings()) {
-        unbindMethod.addStatement("target.$L = null", fieldBinding.getName());
+        result.addStatement("target.$L = null", fieldBinding.getName());
       }
     }
 
     for (FieldCollectionViewBinding fieldCollectionBinding : collectionBindings.keySet()) {
-      unbindMethod.addStatement("target.$L = null", fieldCollectionBinding.getName());
+      result.addStatement("target.$L = null", fieldCollectionBinding.getName());
     }
 
-    unbindMethod.addStatement("target.$L = null", unbinderBinding.getUnbinderFieldName());
-    unbindMethod.addStatement("target = null");
-    result.addMethod(unbindMethod.build());
+    if (unbinderBinding.getUnbinderFieldName() != null) {
+      result.addStatement("target.$L = null", unbinderBinding.getUnbinderFieldName());
+    }
 
     return result.build();
   }
@@ -208,6 +256,54 @@ final class BindingClass {
     }
   }
 
+  private void createUnbinderInternalAccessMethods(TypeSpec.Builder viewBindingClass) {
+    // Create type variable <U extends Unbinder<T>>.
+    ClassName unbinderClassName;
+    if (parentUnbinder != null) {
+      unbinderClassName = ClassName.bestGuess(parentUnbinder);
+    } else {
+      unbinderClassName = unbinderBinding.getUnbinderClassName();
+    }
+    TypeVariableName returnType = TypeVariableName.get("U", ParameterizedTypeName.get(
+        unbinderClassName, TypeVariableName.get("T")));
+
+    // We are casting inside the access methods.
+    AnnotationSpec suppressWarnign = AnnotationSpec.builder(SuppressWarnings.class)
+        .addMember("value", "\"unchecked\"")
+        .build();
+
+    MethodSpec.Builder createUnbinder = MethodSpec.methodBuilder("createUnbinder")
+        .addAnnotation(suppressWarnign)
+        .addModifiers(PROTECTED)
+        .addTypeVariable(returnType)
+        .returns(returnType)
+        .addParameter(TypeVariableName.get("T"), "target")
+        .addStatement("return ($T) new $T($L)", returnType, unbinderBinding.getUnbinderClassName(),
+            "target");
+
+    if (parentUnbinder != null) {
+      createUnbinder.addAnnotation(Override.class);
+    }
+    viewBindingClass.addMethod(createUnbinder.build());
+
+    // This method makes sense only if we actually have an unbinder requested.
+    if (unbinderBinding.getUnbinderFieldName() != null) {
+      MethodSpec.Builder accessMethod = MethodSpec.methodBuilder("accessUnbinder")
+          .addAnnotation(suppressWarnign)
+          .addModifiers(PROTECTED)
+          .addTypeVariable(returnType)
+          .returns(returnType)
+          .addParameter(TypeVariableName.get("T"), "target")
+          .addStatement("return ($T) target.$L", returnType,
+              unbinderBinding.getUnbinderFieldName());
+
+      if (parentUnbinder != null) {
+        accessMethod.addAnnotation(Override.class);
+      }
+      viewBindingClass.addMethod(accessMethod.build());
+    }
+  }
+
   private MethodSpec createBindMethod() {
     MethodSpec.Builder result = MethodSpec.methodBuilder("bind")
         .addAnnotation(Override.class)
@@ -230,8 +326,14 @@ final class BindingClass {
 
     // If the caller requested an unbinder, we need to create an instance of it.
     if (hasUnbinder()) {
-      result.addStatement("$T unbinder = new $T($N)", unbinderBinding.getUnbinderClassName(),
-          unbinderBinding.getUnbinderClassName(), "target");
+      final String statment;
+      if (parentUnbinder != null) {
+        // Explicitly call super in case this class has child's as well.
+        statment = "$T unbinder = super.accessUnbinder($N)";
+      } else {
+        statment = "$T unbinder = createUnbinder($N)";
+      }
+      result.addStatement(statment, unbinderBinding.getUnbinderClassName(), "target");
     }
 
     if (!viewIdMap.isEmpty() || !collectionBindings.isEmpty()) {
@@ -250,7 +352,7 @@ final class BindingClass {
     }
 
     // Bind unbinder if was requested.
-    if (hasUnbinder()) {
+    if (hasUnbinder() && unbinderBinding.getUnbinderFieldName() != null) {
       result.addStatement("target.$L = unbinder", unbinderBinding.getUnbinderFieldName());
     }
 
