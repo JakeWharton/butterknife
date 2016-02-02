@@ -1,5 +1,45 @@
 package butterknife.compiler;
 
+import com.google.auto.common.SuperficialValidation;
+import com.google.auto.service.AutoService;
+import com.squareup.javapoet.TypeName;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.BitSet;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.annotation.processing.AbstractProcessor;
+import javax.annotation.processing.Filer;
+import javax.annotation.processing.ProcessingEnvironment;
+import javax.annotation.processing.Processor;
+import javax.annotation.processing.RoundEnvironment;
+import javax.lang.model.SourceVersion;
+import javax.lang.model.element.AnnotationMirror;
+import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.Modifier;
+import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.VariableElement;
+import javax.lang.model.type.ArrayType;
+import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.TypeKind;
+import javax.lang.model.type.TypeMirror;
+import javax.lang.model.type.TypeVariable;
+import javax.lang.model.util.Elements;
+import javax.lang.model.util.Types;
+
 import butterknife.Bind;
 import butterknife.BindArray;
 import butterknife.BindBitmap;
@@ -24,42 +64,6 @@ import butterknife.Optional;
 import butterknife.Unbinder;
 import butterknife.internal.ListenerClass;
 import butterknife.internal.ListenerMethod;
-import com.google.auto.common.SuperficialValidation;
-import com.google.auto.service.AutoService;
-import com.squareup.javapoet.TypeName;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.BitSet;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import javax.annotation.processing.AbstractProcessor;
-import javax.annotation.processing.Filer;
-import javax.annotation.processing.ProcessingEnvironment;
-import javax.annotation.processing.Processor;
-import javax.annotation.processing.RoundEnvironment;
-import javax.lang.model.SourceVersion;
-import javax.lang.model.element.AnnotationMirror;
-import javax.lang.model.element.Element;
-import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.element.Modifier;
-import javax.lang.model.element.TypeElement;
-import javax.lang.model.element.VariableElement;
-import javax.lang.model.type.ArrayType;
-import javax.lang.model.type.DeclaredType;
-import javax.lang.model.type.TypeKind;
-import javax.lang.model.type.TypeMirror;
-import javax.lang.model.type.TypeVariable;
-import javax.lang.model.util.Elements;
-import javax.lang.model.util.Types;
 
 import static javax.lang.model.element.ElementKind.CLASS;
 import static javax.lang.model.element.ElementKind.INTERFACE;
@@ -95,6 +99,18 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
       OnTextChanged.class, //
       OnTouch.class //
   );
+  private static final List<Class<? extends Annotation>> FIELD_ANNOTATIONS = Arrays.asList(
+      Bind.class,
+      BindArray.class,
+      BindBitmap.class,
+      BindBool.class,
+      BindColor.class,
+      BindDimen.class,
+      BindDrawable.class,
+      BindInt.class,
+      BindString.class,
+      Unbinder.class
+  );
 
   private Elements elementUtils;
   private Types typeUtils;
@@ -111,21 +127,13 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
   @Override public Set<String> getSupportedAnnotationTypes() {
     Set<String> types = new LinkedHashSet<>();
 
-    types.add(Bind.class.getCanonicalName());
+    for (Class<? extends Annotation> bind : FIELD_ANNOTATIONS) {
+        types.add(bind.getCanonicalName());
+    }
 
     for (Class<? extends Annotation> listener : LISTENERS) {
       types.add(listener.getCanonicalName());
     }
-
-    types.add(BindArray.class.getCanonicalName());
-    types.add(BindBitmap.class.getCanonicalName());
-    types.add(BindBool.class.getCanonicalName());
-    types.add(BindColor.class.getCanonicalName());
-    types.add(BindDimen.class.getCanonicalName());
-    types.add(BindDrawable.class.getCanonicalName());
-    types.add(BindInt.class.getCanonicalName());
-    types.add(BindString.class.getCanonicalName());
-    types.add(Unbinder.class.getCanonicalName());
 
     return types;
   }
@@ -1122,11 +1130,35 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
         return null;
       }
       typeElement = (TypeElement) ((DeclaredType) type).asElement();
-      if (parents.contains(typeElement.toString())) {
-        String packageName = getPackageName(typeElement);
+      String packageName = getPackageName(typeElement);
+      if (packageName.startsWith("android.") || packageName.startsWith("java."))
+        return null;
+      if (parents.contains(typeElement.toString()) ||
+            hasButterknifeAnnotation(typeElement)) {
         return packageName + "." + getClassName(typeElement, packageName);
       }
     }
+  }
+
+  private boolean hasButterknifeAnnotation(TypeElement typeElement) {
+    List<? extends Element> members = elementUtils.getAllMembers(typeElement);
+    for (Element element : members) {
+      if ((element.getKind() == ElementKind.FIELD && hasAnnotation(element, FIELD_ANNOTATIONS))
+            || (element.getKind() == ElementKind.METHOD && hasAnnotation(element, LISTENERS))) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private static boolean hasAnnotation(Element element,
+                                       List<Class<? extends Annotation>> annotations) {
+    for (Class<? extends Annotation> ann : annotations) {
+      if (element.getAnnotation(ann) != null) {
+        return true;
+      }
+    }
+    return false;
   }
 
   @Override public SourceVersion getSupportedSourceVersion() {
