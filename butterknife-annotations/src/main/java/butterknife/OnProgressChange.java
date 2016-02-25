@@ -13,7 +13,8 @@ import java.lang.annotation.Target;
 /**
  * Bind a method to an {@code OnSeekBarChangeListener} on the view for each ID specified.
  * <pre><code>
- * {@literal @}OnProgressChange(R.id.example_seekbar) void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+ * {@literal @}OnProgressChange(R.id.example_seekbar) void onProgressChanged(SeekBar seekBar,
+ * int progress, boolean fromUser) {
  *   Toast.makeText(this, "progress " + progress + "!", Toast.LENGTH_SHORT).show();
  * }
  * </code></pre>
