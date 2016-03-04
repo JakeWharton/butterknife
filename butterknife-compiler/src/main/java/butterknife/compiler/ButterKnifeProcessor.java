@@ -150,7 +150,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
   private Map<TypeElement, BindingClass> findAndParseTargets(RoundEnvironment env) {
     Map<TypeElement, BindingClass> targetClassMap = new LinkedHashMap<>();
-    Set<String> erasedTargetNames = new LinkedHashSet<>();
+    Set<TypeElement> erasedTargetNames = new LinkedHashSet<>();
 
     // Process each @Bind element.
     for (Element element : env.getElementsAnnotatedWith(Bind.class)) {
@@ -259,9 +259,26 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
     // Try to find a parent binder for each.
     for (Map.Entry<TypeElement, BindingClass> entry : targetClassMap.entrySet()) {
-      String parentClassFqcn = findParentFqcn(entry.getKey(), erasedTargetNames);
-      if (parentClassFqcn != null) {
-        entry.getValue().setParentViewBinder(parentClassFqcn + BINDING_CLASS_SUFFIX);
+      TypeElement parentType = findParentType(entry.getKey(), erasedTargetNames);
+      if (parentType != null) {
+        String parentClassFqcn = getFqcn(parentType);
+        BindingClass bindingClass = entry.getValue();
+        bindingClass.setParentViewBinder(parentClassFqcn + BINDING_CLASS_SUFFIX);
+        // Check if parent requested an unbinder.
+        BindingClass parentBindingClass = targetClassMap.get(parentType);
+        if (parentBindingClass.hasUnbinder()) {
+          // Even if the child doesn't request an unbinder explicitly, we need to generate one.
+          if (!bindingClass.hasUnbinder()) {
+            bindingClass.requiresUnbinder(null);
+          }
+          // Check if the parent has a parent unbinder.
+          if (parentBindingClass.getParentUnbinder() != null) {
+            bindingClass.setParentUnbinder(parentBindingClass.getParentUnbinder());
+          } else {
+            bindingClass.setParentUnbinder(parentClassFqcn + BINDING_CLASS_SUFFIX + "."
+                + UnbinderBinding.UNBINDER_SIMPLE_NAME);
+          }
+        }
       }
     }
 
@@ -328,7 +345,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
   }
 
   private void parseBind(Element element, Map<TypeElement, BindingClass> targetClassMap,
-      Set<String> erasedTargetNames) {
+      Set<TypeElement> erasedTargetNames) {
     // Verify common generated code restrictions.
     if (isInaccessibleViaGeneratedCode(Bind.class, "fields", element)
         || isBindingInWrongPackage(Bind.class, element)) {
@@ -350,7 +367,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
   }
 
   private void parseBindOne(Element element, Map<TypeElement, BindingClass> targetClassMap,
-      Set<String> erasedTargetNames) {
+      Set<TypeElement> erasedTargetNames) {
     boolean hasError = false;
     TypeElement enclosingElement = (TypeElement) element.getEnclosingElement();
 
@@ -405,11 +422,11 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     bindingClass.addField(id, binding);
 
     // Add the type-erased version to the valid binding targets set.
-    erasedTargetNames.add(enclosingElement.toString());
+    erasedTargetNames.add(enclosingElement);
   }
 
   private void parseBindMany(Element element, Map<TypeElement, BindingClass> targetClassMap,
-      Set<String> erasedTargetNames) {
+      Set<TypeElement> erasedTargetNames) {
     boolean hasError = false;
     TypeElement enclosingElement = (TypeElement) element.getEnclosingElement();
 
@@ -476,11 +493,11 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     FieldCollectionViewBinding binding = new FieldCollectionViewBinding(name, type, kind, required);
     bindingClass.addFieldCollection(ids, binding);
 
-    erasedTargetNames.add(enclosingElement.toString());
+    erasedTargetNames.add(enclosingElement);
   }
 
   private void parseResourceBool(Element element, Map<TypeElement, BindingClass> targetClassMap,
-      Set<String> erasedTargetNames) {
+      Set<TypeElement> erasedTargetNames) {
     boolean hasError = false;
     TypeElement enclosingElement = (TypeElement) element.getEnclosingElement();
 
@@ -508,11 +525,11 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     FieldResourceBinding binding = new FieldResourceBinding(id, name, "getBoolean", false);
     bindingClass.addResource(binding);
 
-    erasedTargetNames.add(enclosingElement.toString());
+    erasedTargetNames.add(enclosingElement);
   }
 
   private void parseResourceColor(Element element, Map<TypeElement, BindingClass> targetClassMap,
-      Set<String> erasedTargetNames) {
+      Set<TypeElement> erasedTargetNames) {
     boolean hasError = false;
     TypeElement enclosingElement = (TypeElement) element.getEnclosingElement();
 
@@ -545,11 +562,11 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
         isColorStateList ? "getColorStateList" : "getColor", true);
     bindingClass.addResource(binding);
 
-    erasedTargetNames.add(enclosingElement.toString());
+    erasedTargetNames.add(enclosingElement);
   }
 
   private void parseResourceDimen(Element element, Map<TypeElement, BindingClass> targetClassMap,
-      Set<String> erasedTargetNames) {
+      Set<TypeElement> erasedTargetNames) {
     boolean hasError = false;
     TypeElement enclosingElement = (TypeElement) element.getEnclosingElement();
 
@@ -582,11 +599,11 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
         isInt ? "getDimensionPixelSize" : "getDimension", false);
     bindingClass.addResource(binding);
 
-    erasedTargetNames.add(enclosingElement.toString());
+    erasedTargetNames.add(enclosingElement);
   }
 
   private void parseResourceBitmap(Element element, Map<TypeElement, BindingClass> targetClassMap,
-      Set<String> erasedTargetNames) {
+      Set<TypeElement> erasedTargetNames) {
     boolean hasError = false;
     TypeElement enclosingElement = (TypeElement) element.getEnclosingElement();
 
@@ -614,11 +631,11 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     FieldBitmapBinding binding = new FieldBitmapBinding(id, name);
     bindingClass.addBitmap(binding);
 
-    erasedTargetNames.add(enclosingElement.toString());
+    erasedTargetNames.add(enclosingElement);
   }
 
   private void parseResourceDrawable(Element element, Map<TypeElement, BindingClass> targetClassMap,
-      Set<String> erasedTargetNames) {
+      Set<TypeElement> erasedTargetNames) {
     boolean hasError = false;
     TypeElement enclosingElement = (TypeElement) element.getEnclosingElement();
 
@@ -647,11 +664,11 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     FieldDrawableBinding binding = new FieldDrawableBinding(id, name, tint);
     bindingClass.addDrawable(binding);
 
-    erasedTargetNames.add(enclosingElement.toString());
+    erasedTargetNames.add(enclosingElement);
   }
 
   private void parseResourceInt(Element element, Map<TypeElement, BindingClass> targetClassMap,
-      Set<String> erasedTargetNames) {
+      Set<TypeElement> erasedTargetNames) {
     boolean hasError = false;
     TypeElement enclosingElement = (TypeElement) element.getEnclosingElement();
 
@@ -678,11 +695,11 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     FieldResourceBinding binding = new FieldResourceBinding(id, name, "getInteger", false);
     bindingClass.addResource(binding);
 
-    erasedTargetNames.add(enclosingElement.toString());
+    erasedTargetNames.add(enclosingElement);
   }
 
   private void parseResourceString(Element element, Map<TypeElement, BindingClass> targetClassMap,
-      Set<String> erasedTargetNames) {
+      Set<TypeElement> erasedTargetNames) {
     boolean hasError = false;
     TypeElement enclosingElement = (TypeElement) element.getEnclosingElement();
 
@@ -710,11 +727,11 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     FieldResourceBinding binding = new FieldResourceBinding(id, name, "getString", false);
     bindingClass.addResource(binding);
 
-    erasedTargetNames.add(enclosingElement.toString());
+    erasedTargetNames.add(enclosingElement);
   }
 
   private void parseResourceArray(Element element, Map<TypeElement, BindingClass> targetClassMap,
-      Set<String> erasedTargetNames) {
+      Set<TypeElement> erasedTargetNames) {
     boolean hasError = false;
     TypeElement enclosingElement = (TypeElement) element.getEnclosingElement();
 
@@ -744,19 +761,19 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     FieldResourceBinding binding = new FieldResourceBinding(id, name, methodName, false);
     bindingClass.addResource(binding);
 
-    erasedTargetNames.add(enclosingElement.toString());
+    erasedTargetNames.add(enclosingElement);
   }
 
   private void parseBindUnbinder(Element element, Map<TypeElement, BindingClass> targetClassMap,
-      Set<String> erasedTargetNames) {
+      Set<TypeElement> erasedTargetNames) {
     boolean hasError = false;
     TypeElement enclosingElement = (TypeElement) element.getEnclosingElement();
 
-    // Verify that the element type is ButterKnife.Unbinder.
+    // Verify that the element type is ButterKnife.ViewUnbinder.
     TypeMirror elementType = element.asType();
     if (!isSubtypeOfType(elementType, UNBINDER_TYPE) && !isInterface(elementType)) {
       error(element,
-          "@%s filed must be of type ButterKnife.Unbinder. (%s.%s)",
+          "@%s filed must be of type ButterKnife.ViewUnbinder. (%s.%s)",
           Unbinder.class.getSimpleName(), enclosingElement.getQualifiedName(),
           element.getSimpleName());
       hasError = true;
@@ -784,7 +801,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     }
 
     bindingClass.requiresUnbinder(element.getSimpleName().toString());
-    erasedTargetNames.add(enclosingElement.toString());
+    erasedTargetNames.add(enclosingElement);
   }
 
   /**
@@ -835,7 +852,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
   private void findAndParseListener(RoundEnvironment env,
       Class<? extends Annotation> annotationClass, Map<TypeElement, BindingClass> targetClassMap,
-      Set<String> erasedTargetNames) {
+      Set<TypeElement> erasedTargetNames) {
     for (Element element : env.getElementsAnnotatedWith(annotationClass)) {
       if (!SuperficialValidation.validateElement(element)) continue;
       try {
@@ -851,7 +868,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
   }
 
   private void parseListenerAnnotation(Class<? extends Annotation> annotationClass, Element element,
-      Map<TypeElement, BindingClass> targetClassMap, Set<String> erasedTargetNames)
+      Map<TypeElement, BindingClass> targetClassMap, Set<TypeElement> erasedTargetNames)
       throws Exception {
     // This should be guarded by the annotation's @Target but it's worth a check for safe casting.
     if (!(element instanceof ExecutableElement) || element.getKind() != METHOD) {
@@ -1046,7 +1063,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     }
 
     // Add the type-erased version to the valid binding targets set.
-    erasedTargetNames.add(enclosingElement.toString());
+    erasedTargetNames.add(enclosingElement);
   }
 
   private boolean isInterface(TypeMirror typeMirror) {
@@ -1114,7 +1131,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
   }
 
   /** Finds the parent binder type in the supplied set, if any. */
-  private String findParentFqcn(TypeElement typeElement, Set<String> parents) {
+  private TypeElement findParentType(TypeElement typeElement, Set<TypeElement> parents) {
     TypeMirror type;
     while (true) {
       type = typeElement.getSuperclass();
@@ -1122,11 +1139,16 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
         return null;
       }
       typeElement = (TypeElement) ((DeclaredType) type).asElement();
-      if (parents.contains(typeElement.toString())) {
-        String packageName = getPackageName(typeElement);
-        return packageName + "." + getClassName(typeElement, packageName);
+      if (parents.contains(typeElement)) {
+        return typeElement;
       }
     }
+  }
+
+  /** Get full-qualified class name of a {@linkplain TypeElement typeElement} */
+  private String getFqcn(TypeElement typeElement) {
+    String packageName = getPackageName(typeElement);
+    return packageName + "." + getClassName(typeElement, packageName);
   }
 
   @Override public SourceVersion getSupportedSourceVersion() {

@@ -161,11 +161,11 @@ public void pickDoor(DoorView door) {
 </pre>
 
             <h4 id="reset">Binding Reset</h4>
-            <p>Fragments have a different view lifecycle than activities. When binding a fragment in <code>onCreateView</code>, set the views to <code>null</code> in <code>onDestroyView</code>. Butter Knife provides an <code>ButterKnife.Unbinder</code> interface which has an <code>unbind</code> method to do this automatically. Simply bind an unbinder with <code>@Unbinder</code> to the fragment.</p>
+            <p>Fragments have a different view lifecycle than activities. When binding a fragment in <code>onCreateView</code>, set the views to <code>null</code> in <code>onDestroyView</code>. Butter Knife provides an <code>ButterKnife.ViewUnbinder</code> interface which has an <code>unbind</code> method to do this automatically. Simply bind a view unbinder with <code>@Unbinder</code> to the fragment.</p>
             <pre class="prettyprint">public class FancyFragment extends Fragment {
   @Bind(R.id.button1) Button button1;
   @Bind(R.id.button2) Button button2;
-  @Unbinder ButterKnife.Unbinder unbinder;
+  @Unbinder ViewUnbinder unbinder;
 
   @Override public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
     View view = inflater.inflate(R.layout.fancy_fragment, container, false);
