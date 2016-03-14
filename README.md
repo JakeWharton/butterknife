@@ -77,6 +77,13 @@ buildscript {
   }
 }
 
+allprojects {
+  repositories {
+    maven { url "https://oss.sonatype.org/content/repositories/snapshots" }
+  }
+}
+```
+```groovy
 apply plugin: 'com.neenbedankt.android-apt'
 
 dependencies {
