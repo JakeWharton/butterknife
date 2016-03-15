@@ -773,7 +773,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     TypeMirror elementType = element.asType();
     if (!isSubtypeOfType(elementType, UNBINDER_TYPE) && !isInterface(elementType)) {
       error(element,
-          "@%s filed must be of type ButterKnife.ViewUnbinder. (%s.%s)",
+          "@%s field must be of type ButterKnife.ViewUnbinder. (%s.%s)",
           Unbinder.class.getSimpleName(), enclosingElement.getQualifiedName(),
           element.getSimpleName());
       hasError = true;
@@ -791,7 +791,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     if (bindingClass != null) {
       if (bindingClass.hasUnbinder()) {
         error(element,
-            "Only one filed should be annotated with @%s. (%s.%s)",
+            "Only one field should be annotated with @%s. (%s.%s)",
             Unbinder.class.getSimpleName(), enclosingElement.getQualifiedName(),
             element.getSimpleName());
         return;
