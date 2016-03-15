@@ -106,7 +106,7 @@ public class UnbinderTest {
         .processedWith(new ButterKnifeProcessor())
         .failsToCompile()
         .withErrorContaining(
-            "Only one filed should be annotated with @Unbinder. (test.Test.unbinder2)")
+            "Only one field should be annotated with @Unbinder. (test.Test.unbinder2)")
         .in(source)
         .onLine(7);
   }
@@ -127,7 +127,7 @@ public class UnbinderTest {
         .processedWith(new ButterKnifeProcessor())
         .failsToCompile()
         .withErrorContaining(
-            "@Unbinder filed must be of type ButterKnife.ViewUnbinder. (test.Test.unbinder)")
+            "@Unbinder field must be of type ButterKnife.ViewUnbinder. (test.Test.unbinder)")
         .in(source)
         .onLine(5);
   }
