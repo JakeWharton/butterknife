@@ -1,5 +1,45 @@
 package butterknife.compiler;
 
+import com.google.auto.common.SuperficialValidation;
+import com.google.auto.service.AutoService;
+import com.squareup.javapoet.TypeName;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.BitSet;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.annotation.processing.AbstractProcessor;
+import javax.annotation.processing.Filer;
+import javax.annotation.processing.ProcessingEnvironment;
+import javax.annotation.processing.Processor;
+import javax.annotation.processing.RoundEnvironment;
+import javax.lang.model.SourceVersion;
+import javax.lang.model.element.AnnotationMirror;
+import javax.lang.model.element.Element;
+import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.Modifier;
+import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.VariableElement;
+import javax.lang.model.type.ArrayType;
+import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.TypeKind;
+import javax.lang.model.type.TypeMirror;
+import javax.lang.model.type.TypeVariable;
+import javax.lang.model.util.Elements;
+import javax.lang.model.util.Types;
+
 import butterknife.Bind;
 import butterknife.BindArray;
 import butterknife.BindBitmap;
@@ -21,45 +61,10 @@ import butterknife.OnPageChange;
 import butterknife.OnTextChanged;
 import butterknife.OnTouch;
 import butterknife.Optional;
-import butterknife.Unbinder;
 import butterknife.internal.ListenerClass;
 import butterknife.internal.ListenerMethod;
-import com.google.auto.common.SuperficialValidation;
-import com.google.auto.service.AutoService;
-import com.squareup.javapoet.TypeName;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.BitSet;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import javax.annotation.processing.AbstractProcessor;
-import javax.annotation.processing.Filer;
-import javax.annotation.processing.ProcessingEnvironment;
-import javax.annotation.processing.Processor;
-import javax.annotation.processing.RoundEnvironment;
-import javax.lang.model.SourceVersion;
-import javax.lang.model.element.AnnotationMirror;
-import javax.lang.model.element.Element;
-import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.element.Modifier;
-import javax.lang.model.element.TypeElement;
-import javax.lang.model.element.VariableElement;
-import javax.lang.model.type.ArrayType;
-import javax.lang.model.type.DeclaredType;
-import javax.lang.model.type.TypeKind;
-import javax.lang.model.type.TypeMirror;
-import javax.lang.model.type.TypeVariable;
-import javax.lang.model.util.Elements;
-import javax.lang.model.util.Types;
+import rx.Observable;
+import rx.schedulers.Schedulers;
 
 import static javax.lang.model.element.ElementKind.CLASS;
 import static javax.lang.model.element.ElementKind.INTERFACE;
@@ -80,7 +85,6 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
   private static final String NULLABLE_ANNOTATION_NAME = "Nullable";
   private static final String ITERABLE_TYPE = "java.lang.Iterable<?>";
   private static final String STRING_TYPE = "java.lang.String";
-  private static final String UNBINDER_TYPE = "butterknife.ButterKnife.Unbinder<?>";
   private static final String LIST_TYPE = List.class.getCanonicalName();
   private static final List<Class<? extends Annotation>> LISTENERS = Arrays.asList(//
       OnCheckedChanged.class, //
@@ -100,7 +104,8 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
   private Types typeUtils;
   private Filer filer;
 
-  @Override public synchronized void init(ProcessingEnvironment env) {
+  @Override
+  public synchronized void init(ProcessingEnvironment env) {
     super.init(env);
 
     elementUtils = env.getElementUtils();
@@ -108,7 +113,8 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     filer = env.getFiler();
   }
 
-  @Override public Set<String> getSupportedAnnotationTypes() {
+  @Override
+  public Set<String> getSupportedAnnotationTypes() {
     Set<String> types = new LinkedHashSet<>();
 
     types.add(Bind.class.getCanonicalName());
@@ -125,12 +131,12 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     types.add(BindDrawable.class.getCanonicalName());
     types.add(BindInt.class.getCanonicalName());
     types.add(BindString.class.getCanonicalName());
-    types.add(Unbinder.class.getCanonicalName());
 
     return types;
   }
 
-  @Override public boolean process(Set<? extends TypeElement> elements, RoundEnvironment env) {
+  @Override
+  public boolean process(Set<? extends TypeElement> elements, RoundEnvironment env) {
     Map<TypeElement, BindingClass> targetClassMap = findAndParseTargets(env);
 
     for (Map.Entry<TypeElement, BindingClass> entry : targetClassMap.entrySet()) {
@@ -247,42 +253,73 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
       }
     }
 
-    // Process each @Unbinder element.
-    for (Element element : env.getElementsAnnotatedWith(Unbinder.class)) {
-      if (!SuperficialValidation.validateElement(element)) continue;
-      try {
-        parseBindUnbinder(element, targetClassMap, erasedTargetNames);
-      } catch (Exception e) {
-        logParsingError(element, Unbinder.class, e);
-      }
-    }
-
     // Try to find a parent binder for each.
+    HashSet<BindingClass> topLevelClasses = new HashSet<>();
     for (Map.Entry<TypeElement, BindingClass> entry : targetClassMap.entrySet()) {
       TypeElement parentType = findParentType(entry.getKey(), erasedTargetNames);
       if (parentType != null) {
-        String parentClassFqcn = getFqcn(parentType);
         BindingClass bindingClass = entry.getValue();
-        bindingClass.setParentViewBinder(parentClassFqcn + BINDING_CLASS_SUFFIX);
-        // Check if parent requested an unbinder.
         BindingClass parentBindingClass = targetClassMap.get(parentType);
-        if (parentBindingClass.hasUnbinder()) {
-          // Even if the child doesn't request an unbinder explicitly, we need to generate one.
-          if (!bindingClass.hasUnbinder()) {
-            bindingClass.requiresUnbinder(null);
-          }
-          // Check if the parent has a parent unbinder.
-          if (parentBindingClass.getParentUnbinder() != null) {
-            bindingClass.setParentUnbinder(parentBindingClass.getParentUnbinder());
-          } else {
-            bindingClass.setParentUnbinder(parentClassFqcn + BINDING_CLASS_SUFFIX + "."
-                + UnbinderBinding.UNBINDER_SIMPLE_NAME);
-          }
-        }
+        bindingClass.setParent(parentBindingClass);
+        parentBindingClass.addDescendant(bindingClass);
+      } else {
+        // This is a top level parent
+        topLevelClasses.add(entry.getValue());
       }
     }
 
+    Observable.from(topLevelClasses)
+        .flatMap(topLevelClass -> {
+          if (topLevelClass.hasViewBindings()) {
+            // It has an unbinder class and it will also be the highest unbinder class for all
+            // descendants
+            topLevelClass.setHighestUnbinderClassName(topLevelClass.getUnbinderClassName());
+          } else {
+            // No unbinder class. Null it out so we know we can just return the NOP unbinder
+            topLevelClass.setUnbinderClassName(null);
+          }
+
+          // Recursively set up parent unbinding relationships on all its descendants
+          return setParentUnbindingRelationships(topLevelClass.getDescendants());
+        })
+        .toCompletable()
+        .await();
+
     return targetClassMap;
+  }
+
+  /**
+   * Recurse through descendants and set up unbinder inheritance relationships.
+   * This can be multithreaded because there's no multiple inheritance. For small projects, the
+   * difference is negligible. For larger projects though, the overhead of switching schedulers is
+   * amortized. This could especially make a difference for base activities and base fragments.
+   */
+  private Observable<BindingClass> setParentUnbindingRelationships(Iterable<BindingClass> bindings) {
+    return Observable.from(bindings)
+        .flatMap(binding -> {
+          if (binding.hasViewBindings()) {
+            // The descendant has its own unbinder class
+            if (binding.getParentBinding().getHighestUnbinderClassName() != null) {
+              // The descendant is not the first to have its own unbinder class, so its highest
+              // unbinder reference should point to the first
+              binding.setHighestUnbinderClassName(
+                  binding.getParentBinding().getHighestUnbinderClassName());
+            } else {
+              // This descendant is the first to have its own unbinder class, so it will also
+              // be the highest
+              binding.setHighestUnbinderClassName(binding.getUnbinderClassName());
+            }
+          } else {
+            // The descendant has no unbinder class, so just defer it unbinder class and highest
+            // unbinder class to the parent's. This way future descendants looking at this one
+            // will just use the parent's
+            binding.setUnbinderClassName(binding.getParentBinding().getUnbinderClassName());
+            binding.setHighestUnbinderClassName(
+                binding.getParentBinding().getHighestUnbinderClassName());
+          }
+          return setParentUnbindingRelationships(binding.getDescendants());
+        })
+        .subscribeOn(Schedulers.computation());
   }
 
   private void logParsingError(Element element, Class<? extends Annotation> annotation,
@@ -764,46 +801,6 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     erasedTargetNames.add(enclosingElement);
   }
 
-  private void parseBindUnbinder(Element element, Map<TypeElement, BindingClass> targetClassMap,
-      Set<TypeElement> erasedTargetNames) {
-    boolean hasError = false;
-    TypeElement enclosingElement = (TypeElement) element.getEnclosingElement();
-
-    // Verify that the element type is ButterKnife.ViewUnbinder.
-    TypeMirror elementType = element.asType();
-    if (!isSubtypeOfType(elementType, UNBINDER_TYPE) && !isInterface(elementType)) {
-      error(element,
-          "@%s field must be of type ButterKnife.ViewUnbinder. (%s.%s)",
-          Unbinder.class.getSimpleName(), enclosingElement.getQualifiedName(),
-          element.getSimpleName());
-      hasError = true;
-    }
-
-    // Verify common restrictions for generated code.
-    hasError |= isInaccessibleViaGeneratedCode(Unbinder.class, "field", element);
-    hasError |= isBindingInWrongPackage(Unbinder.class, element);
-
-    if (hasError) {
-      return;
-    }
-
-    BindingClass bindingClass = targetClassMap.get(enclosingElement);
-    if (bindingClass != null) {
-      if (bindingClass.hasUnbinder()) {
-        error(element,
-            "Only one field should be annotated with @%s. (%s.%s)",
-            Unbinder.class.getSimpleName(), enclosingElement.getQualifiedName(),
-            element.getSimpleName());
-        return;
-      }
-    } else {
-      bindingClass = getOrCreateTargetClass(targetClassMap, enclosingElement);
-    }
-
-    bindingClass.requiresUnbinder(element.getSimpleName().toString());
-    erasedTargetNames.add(enclosingElement);
-  }
-
   /**
    * Returns a method name from the {@link android.content.res.Resources} class for array resource
    * binding, null if the element type is not supported.
@@ -1118,8 +1115,9 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
       String targetType = enclosingElement.getQualifiedName().toString();
       String classPackage = getPackageName(enclosingElement);
       String className = getClassName(enclosingElement, classPackage) + BINDING_CLASS_SUFFIX;
+      String classFqcn = getFqcn(enclosingElement) + BINDING_CLASS_SUFFIX;
 
-      bindingClass = new BindingClass(classPackage, className, targetType);
+      bindingClass = new BindingClass(classPackage, className, targetType, classFqcn);
       targetClassMap.put(enclosingElement, bindingClass);
     }
     return bindingClass;

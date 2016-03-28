@@ -1,7 +1,5 @@
 package butterknife.compiler;
 
-import butterknife.internal.ListenerClass;
-import butterknife.internal.ListenerMethod;
 import com.squareup.javapoet.AnnotationSpec;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
@@ -12,15 +10,20 @@ import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.TypeVariableName;
 import com.squareup.javapoet.WildcardTypeName;
+
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import butterknife.internal.ListenerClass;
+import butterknife.internal.ListenerMethod;
 
 import static butterknife.compiler.ButterKnifeProcessor.NO_ID;
 import static butterknife.compiler.ButterKnifeProcessor.VIEW_TYPE;
@@ -43,27 +46,35 @@ final class BindingClass {
       ClassName.get("butterknife", "ButterKnife", "ViewUnbinder");
   private static final ClassName BITMAP_FACTORY =
       ClassName.get("android.graphics", "BitmapFactory");
+  public static final String UNBINDER_SIMPLE_NAME = "Unbinder";
 
   private final Map<Integer, ViewBindings> viewIdMap = new LinkedHashMap<>();
   private final Map<FieldCollectionViewBinding, int[]> collectionBindings = new LinkedHashMap<>();
   private final List<FieldBitmapBinding> bitmapBindings = new ArrayList<>();
   private final List<FieldDrawableBinding> drawableBindings = new ArrayList<>();
   private final List<FieldResourceBinding> resourceBindings = new ArrayList<>();
+  private final Set<BindingClass> descendantBindingClasses = new LinkedHashSet<>();
   private final String classPackage;
   private final String className;
   private final String targetClass;
-  private String parentViewBinder;
-  private UnbinderBinding unbinderBinding;
-  private String parentUnbinder;
+  private final String classFqcn;
+  private BindingClass parentBinding;
+  private ClassName unbinderClassName;  // If this is null'd out, it has no unbinder and uses NOP
+  private ClassName highestUnbinderClassName; // If this is null'd out, there is no parent unbinder
 
-  BindingClass(String classPackage, String className, String targetClass) {
+  BindingClass(String classPackage, String className, String targetClass, String classFqcn) {
     this.classPackage = classPackage;
     this.className = className;
     this.targetClass = targetClass;
+    this.classFqcn = classFqcn;
+
+    // Default to this, but this can be null'd out by the processor before we brew if it's not
+    // necessary
+    this.unbinderClassName = ClassName.get(classPackage, className, UNBINDER_SIMPLE_NAME);
   }
 
-  void requiresUnbinder(String unbinderFieldName) {
-    unbinderBinding = new UnbinderBinding(classPackage, className, unbinderFieldName);
+  void addDescendant(BindingClass bindingClass) {
+    descendantBindingClasses.add(bindingClass);
   }
 
   void addBitmap(FieldBitmapBinding binding) {
@@ -82,7 +93,10 @@ final class BindingClass {
     collectionBindings.put(binding, ids);
   }
 
-  boolean addMethod(int id, ListenerClass listener, ListenerMethod method,
+  boolean addMethod(
+      int id,
+      ListenerClass listener,
+      ListenerMethod method,
       MethodViewBinding binding) {
     ViewBindings viewBindings = getOrCreateViewBindings(id);
     if (viewBindings.hasMethodBinding(listener, method) && !"void".equals(method.returnType())) {
@@ -96,16 +110,8 @@ final class BindingClass {
     resourceBindings.add(binding);
   }
 
-  void setParentViewBinder(String parentViewBinder) {
-    this.parentViewBinder = parentViewBinder;
-  }
-
-  void setParentUnbinder(String parentUnbinder) {
-    this.parentUnbinder = parentUnbinder;
-  }
-
-  String getParentUnbinder() {
-    return parentUnbinder;
+  void setParent(BindingClass parent) {
+    this.parentBinding = parent;
   }
 
   ViewBindings getViewBinding(int id) {
@@ -126,8 +132,8 @@ final class BindingClass {
         .addModifiers(PUBLIC)
         .addTypeVariable(TypeVariableName.get("T", ClassName.bestGuess(targetClass)));
 
-    if (parentViewBinder != null) {
-      result.superclass(ParameterizedTypeName.get(ClassName.bestGuess(parentViewBinder),
+    if (hasParentBinding()) {
+      result.superclass(ParameterizedTypeName.get(ClassName.bestGuess(parentBinding.classFqcn),
           TypeVariableName.get("T")));
     } else {
       result.addSuperinterface(ParameterizedTypeName.get(VIEW_BINDER, TypeVariableName.get("T")));
@@ -135,11 +141,11 @@ final class BindingClass {
 
     result.addMethod(createBindMethod());
 
-    if (hasUnbinder()) {
+    if (hasUnbinder() && hasViewBindings()) {
       // Create unbinding class.
       result.addType(createUnbinderClass());
       // Now we need to provide child classes to access and override unbinder implementations.
-      createUnbinderInternalAccessMethods(result);
+      createUnbinderCreateUnbinderMethod(result);
     }
 
     return JavaFile.builder(classPackage, result.build())
@@ -150,21 +156,20 @@ final class BindingClass {
   private TypeSpec createUnbinderClass() {
     TypeName generic = TypeVariableName.get("T");
     TypeSpec.Builder result =
-        TypeSpec.classBuilder(unbinderBinding.getUnbinderClassName().simpleName())
-        .addModifiers(PUBLIC, STATIC)
-        .addTypeVariable(TypeVariableName.get("T", ClassName.bestGuess(targetClass)));
+        TypeSpec.classBuilder(unbinderClassName.simpleName())
+            .addModifiers(PUBLIC, STATIC)
+            .addTypeVariable(TypeVariableName.get("T", ClassName.bestGuess(targetClass)));
 
-    if (parentUnbinder != null) {
+    if (hasParentBinding() && parentBinding.hasUnbinder()) {
       result.superclass(ParameterizedTypeName.get(
-          ClassName.bestGuess(parentViewBinder + '.' + UnbinderBinding.UNBINDER_SIMPLE_NAME),
-          generic));
+          parentBinding.getUnbinderClassName(), generic));
     } else {
       result.addSuperinterface(ParameterizedTypeName.get(UNBINDER, generic));
       result.addField(generic, "target", PRIVATE);
     }
 
     result.addMethod(createUnbinderConstructor(generic));
-    if (parentUnbinder == null) {
+    if (!hasParentBinding() || !parentBinding.hasUnbinder()) {
       result.addMethod(createUnbindInterfaceMethod());
     }
     result.addMethod(createUnbindMethod(result, generic));
@@ -176,7 +181,7 @@ final class BindingClass {
     MethodSpec.Builder constructor = MethodSpec.constructorBuilder()
         .addModifiers(PROTECTED)
         .addParameter(targetType, "target");
-    if (parentUnbinder != null) {
+    if (hasParentBinding() && parentBinding.hasUnbinder()) {
       constructor.addStatement("super(target)");
     } else {
       constructor.addStatement("this.$1N = $1N", "target");
@@ -200,7 +205,7 @@ final class BindingClass {
         .addModifiers(PROTECTED)
         .addParameter(targetType, "target");
 
-    if (parentUnbinder != null) {
+    if (hasParentBinding() && parentBinding.hasUnbinder()) {
       result.addAnnotation(Override.class);
       result.addStatement("super.unbind(target)");
     }
@@ -216,14 +221,12 @@ final class BindingClass {
       result.addStatement("target.$L = null", fieldCollectionBinding.getName());
     }
 
-    if (unbinderBinding.getUnbinderFieldName() != null) {
-      result.addStatement("target.$L = null", unbinderBinding.getUnbinderFieldName());
-    }
-
     return result.build();
   }
 
-  private void addFieldAndUnbindStatement(TypeSpec.Builder result, MethodSpec.Builder unbindMethod,
+  private void addFieldAndUnbindStatement(
+      TypeSpec.Builder result,
+      MethodSpec.Builder unbindMethod,
       ViewBindings bindings) {
     // Only add fields to the unbinder if there are method bindings.
     Map<ListenerClass, Map<ListenerMethod, Set<MethodViewBinding>>> classMethodBindings =
@@ -256,57 +259,38 @@ final class BindingClass {
     }
   }
 
-  private void createUnbinderInternalAccessMethods(TypeSpec.Builder viewBindingClass) {
-    // Create type variable <U extends Unbinder<T>>.
-    ClassName unbinderClassName;
-    if (parentUnbinder != null) {
-      unbinderClassName = ClassName.bestGuess(parentUnbinder);
-    } else {
-      unbinderClassName = unbinderBinding.getUnbinderClassName();
-    }
+  private void createUnbinderCreateUnbinderMethod(TypeSpec.Builder viewBindingClass) {
+    // Create type variable <U extends Unbinder<T>>. If we have an unbinder higher up in the
+    // tree, we want to target that for generics to match the overridden method signature.
+    ClassName typeVariableClassName = highestUnbinderClassName != null
+        ? highestUnbinderClassName
+        : unbinderClassName;
     TypeVariableName returnType = TypeVariableName.get("U", ParameterizedTypeName.get(
-        unbinderClassName, TypeVariableName.get("T")));
+        typeVariableClassName, TypeVariableName.get("T")));
 
     // We are casting inside the access methods.
-    AnnotationSpec suppressWarnign = AnnotationSpec.builder(SuppressWarnings.class)
+    AnnotationSpec suppressWarning = AnnotationSpec.builder(SuppressWarnings.class)
         .addMember("value", "\"unchecked\"")
         .build();
 
     MethodSpec.Builder createUnbinder = MethodSpec.methodBuilder("createUnbinder")
-        .addAnnotation(suppressWarnign)
+        .addAnnotation(suppressWarning)
         .addModifiers(PROTECTED)
         .addTypeVariable(returnType)
         .returns(returnType)
         .addParameter(TypeVariableName.get("T"), "target")
-        .addStatement("return ($T) new $T($L)", returnType, unbinderBinding.getUnbinderClassName(),
-            "target");
+        .addStatement("return ($T) new $T($L)", returnType, unbinderClassName, "target");
 
-    if (parentUnbinder != null) {
+    if (hasParentBinding() && parentBinding.hasUnbinder()) {
       createUnbinder.addAnnotation(Override.class);
     }
     viewBindingClass.addMethod(createUnbinder.build());
-
-    // This method makes sense only if we actually have an unbinder requested.
-    if (unbinderBinding.getUnbinderFieldName() != null) {
-      MethodSpec.Builder accessMethod = MethodSpec.methodBuilder("accessUnbinder")
-          .addAnnotation(suppressWarnign)
-          .addModifiers(PROTECTED)
-          .addTypeVariable(returnType)
-          .returns(returnType)
-          .addParameter(TypeVariableName.get("T"), "target")
-          .addStatement("return ($T) target.$L", returnType,
-              unbinderBinding.getUnbinderFieldName());
-
-      if (parentUnbinder != null) {
-        accessMethod.addAnnotation(Override.class);
-      }
-      viewBindingClass.addMethod(accessMethod.build());
-    }
   }
 
   private MethodSpec createBindMethod() {
     MethodSpec.Builder result = MethodSpec.methodBuilder("bind")
         .addAnnotation(Override.class)
+        .returns(UNBINDER)
         .addModifiers(PUBLIC)
         .addParameter(FINDER, "finder", FINAL)
         .addParameter(TypeVariableName.get("T"), "target", FINAL)
@@ -320,20 +304,29 @@ final class BindingClass {
     }
 
     // Emit a call to the superclass binder, if any.
-    if (parentViewBinder != null) {
-      result.addStatement("super.bind(finder, target, source)");
-    }
-
-    // If the caller requested an unbinder, we need to create an instance of it.
-    if (hasUnbinder()) {
-      final String statment;
-      if (parentUnbinder != null) {
-        // Explicitly call super in case this class has child's as well.
-        statment = "$T unbinder = super.accessUnbinder($N)";
+    if (hasParentBinding()) {
+      if (hasViewBindings()) {
+        if (highestUnbinderClassName != unbinderClassName) {
+          // Has an unbinder class and there exists an unbinder class farther up, so use super
+          // and let the super implementation create it for us
+          result.addStatement("$T unbinder = ($T) super.bind(finder, target, source)",
+              unbinderClassName,
+              unbinderClassName);
+        } else {
+          // Has an unbinder class and there is no implementation higher up, so we'll call super
+          // but ignore the result since it's just the NOP. Instead, create the unbinder here for
+          // our implementation and any descendant classes.
+          result.addStatement("super.bind(finder, target, source)");
+          result.addStatement("$T unbinder = createUnbinder(target)", unbinderClassName);
+        }
       } else {
-        statment = "$T unbinder = createUnbinder($N)";
+        // No unbinder class, just defer to super (which could be NOP or real, we don't care)
+        result.addStatement("$T unbinder = super.bind(finder, target, source)", UNBINDER);
       }
-      result.addStatement(statment, unbinderBinding.getUnbinderClassName(), "target");
+    } else if (hasViewBindings()) {
+      // Top level class but we do have an unbinder class, so no need to call super but go ahead
+      // and create our unbinder.
+      result.addStatement("$T unbinder = createUnbinder(target)", unbinderClassName);
     }
 
     if (!viewIdMap.isEmpty() || !collectionBindings.isEmpty()) {
@@ -349,11 +342,6 @@ final class BindingClass {
       for (Map.Entry<FieldCollectionViewBinding, int[]> entry : collectionBindings.entrySet()) {
         emitCollectionBinding(result, entry.getKey(), entry.getValue());
       }
-    }
-
-    // Bind unbinder if was requested.
-    if (hasUnbinder() && unbinderBinding.getUnbinderFieldName() != null) {
-      result.addStatement("target.$L = unbinder", unbinderBinding.getUnbinderFieldName());
     }
 
     if (hasResourceBindings()) {
@@ -393,10 +381,19 @@ final class BindingClass {
       }
     }
 
+    // Finally return the unbinder
+    if (hasParentBinding() || hasViewBindings()) {
+      result.addStatement("return unbinder");
+    } else {
+      result.addStatement("return butterknife.ButterKnife.NOP_VIEW_UNBINDER");
+    }
+
     return result.build();
   }
 
-  private void emitCollectionBinding(MethodSpec.Builder result, FieldCollectionViewBinding binding,
+  private void emitCollectionBinding(
+      MethodSpec.Builder result,
+      FieldCollectionViewBinding binding,
       int[] ids) {
     String ofName;
     switch (binding.getKind()) {
@@ -610,11 +607,43 @@ final class BindingClass {
   }
 
   boolean hasUnbinder() {
-    return unbinderBinding != null;
+    return unbinderClassName != null;
+  }
+
+  void setHighestUnbinderClassName(ClassName className) {
+    this.highestUnbinderClassName = className;
+  }
+
+  ClassName getHighestUnbinderClassName() {
+    return this.highestUnbinderClassName;
+  }
+
+  void setUnbinderClassName(ClassName className) {
+    unbinderClassName = className;
+  }
+
+  ClassName getUnbinderClassName() {
+    return unbinderClassName;
+  }
+
+  BindingClass getParentBinding() {
+    return parentBinding;
+  }
+
+  boolean hasParentBinding() {
+    return parentBinding != null;
   }
 
   private boolean hasResourceBindings() {
     return !(bitmapBindings.isEmpty() && drawableBindings.isEmpty() && resourceBindings.isEmpty());
+  }
+
+  boolean hasViewBindings() {
+    return !viewIdMap.isEmpty() || !collectionBindings.isEmpty();
+  }
+
+  Iterable<BindingClass> getDescendants() {
+    return descendantBindingClasses;
   }
 
   private boolean hasResourceBindingsNeedingTheme() {
@@ -627,5 +656,10 @@ final class BindingClass {
       }
     }
     return false;
+  }
+
+  @Override
+  public String toString() {
+    return classFqcn;
   }
 }

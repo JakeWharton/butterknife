@@ -10,11 +10,13 @@ import android.support.annotation.NonNull;
 import android.util.Log;
 import android.util.Property;
 import android.view.View;
-import butterknife.internal.Finder;
-import butterknife.internal.ViewBinder;
+
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+
+import butterknife.internal.Finder;
+import butterknife.internal.ViewBinder;
 
 /**
  * Field and method binding for Android views. Use this class to simplify finding views and
@@ -83,7 +85,7 @@ public final class ButterKnife {
     throw new AssertionError("No instances.");
   }
 
-  /** An unbinder contract that can be bind with {@link butterknife.Unbinder}. */
+  /** An unbinder contract that will unbind views when called. */
   @SuppressWarnings("unused") // Used by generated code.
   public interface ViewUnbinder<T> {
     void unbind();
@@ -106,7 +108,14 @@ public final class ButterKnife {
 
   static final Map<Class<?>, ViewBinder<Object>> BINDERS = new LinkedHashMap<>();
   static final ViewBinder<Object> NOP_VIEW_BINDER = new ViewBinder<Object>() {
-    @Override public void bind(Finder finder, Object target, Object source) { }
+    @Override public ViewUnbinder bind(Finder finder, Object target, Object source) {
+      return NOP_VIEW_UNBINDER;
+    }
+  };
+
+  public static final ViewUnbinder NOP_VIEW_UNBINDER = new ViewUnbinder() {
+    @Override
+    public void unbind() { }
   };
 
   /** Control whether debug logging is enabled. */
@@ -120,8 +129,8 @@ public final class ButterKnife {
    *
    * @param target Target activity for view binding.
    */
-  public static void bind(@NonNull Activity target) {
-    bind(target, target, Finder.ACTIVITY);
+  public static ViewUnbinder<?> bind(@NonNull Activity target) {
+    return bind(target, target, Finder.ACTIVITY);
   }
 
   /**
@@ -131,9 +140,8 @@ public final class ButterKnife {
    * @param target Target view for view binding.
    */
   @NonNull
-  public static View bind(@NonNull View target) {
-    bind(target, target, Finder.VIEW);
-    return target;
+  public static ViewUnbinder<?> bind(@NonNull View target) {
+    return bind(target, target, Finder.VIEW);
   }
 
   /**
@@ -143,8 +151,8 @@ public final class ButterKnife {
    * @param target Target dialog for view binding.
    */
   @SuppressWarnings("unused") // Public api.
-  public static void bind(@NonNull Dialog target) {
-    bind(target, target, Finder.DIALOG);
+  public static ViewUnbinder<?> bind(@NonNull Dialog target) {
+    return bind(target, target, Finder.DIALOG);
   }
 
   /**
@@ -154,8 +162,8 @@ public final class ButterKnife {
    * @param target Target class for view binding.
    * @param source Activity on which IDs will be looked up.
    */
-  public static void bind(@NonNull Object target, @NonNull Activity source) {
-    bind(target, source, Finder.ACTIVITY);
+  public static ViewUnbinder<?> bind(@NonNull Object target, @NonNull Activity source) {
+    return bind(target, source, Finder.ACTIVITY);
   }
 
   /**
@@ -166,9 +174,8 @@ public final class ButterKnife {
    * @param source View root on which IDs will be looked up.
    */
   @NonNull
-  public static View bind(@NonNull Object target, @NonNull View source) {
-    bind(target, source, Finder.VIEW);
-    return source;
+  public static ViewUnbinder<?> bind(@NonNull Object target, @NonNull View source) {
+    return bind(target, source, Finder.VIEW);
   }
 
   /**
@@ -179,16 +186,16 @@ public final class ButterKnife {
    * @param source Dialog on which IDs will be looked up.
    */
   @SuppressWarnings("unused") // Public api.
-  public static void bind(@NonNull Object target, @NonNull Dialog source) {
-    bind(target, source, Finder.DIALOG);
+  public static ViewUnbinder<?> bind(@NonNull Object target, @NonNull Dialog source) {
+    return bind(target, source, Finder.DIALOG);
   }
 
-  static void bind(@NonNull Object target, @NonNull Object source, @NonNull Finder finder) {
+  static ViewUnbinder<?> bind(@NonNull Object target, @NonNull Object source, @NonNull Finder finder) {
     Class<?> targetClass = target.getClass();
     try {
       if (debug) Log.d(TAG, "Looking up view binder for " + targetClass.getName());
       ViewBinder<Object> viewBinder = findViewBinderForClass(targetClass);
-      viewBinder.bind(finder, target, source);
+      return viewBinder.bind(finder, target, source);
     } catch (Exception e) {
       throw new RuntimeException("Unable to bind views for " + targetClass.getName(), e);
     }

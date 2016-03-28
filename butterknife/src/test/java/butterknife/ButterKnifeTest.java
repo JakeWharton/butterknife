@@ -4,8 +4,7 @@ import android.app.Activity;
 import android.support.annotation.NonNull;
 import android.util.Property;
 import android.view.View;
-import java.util.Arrays;
-import java.util.List;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -13,6 +12,9 @@ import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
+
+import java.util.Arrays;
+import java.util.List;
 
 import static com.google.common.truth.Truth.assertThat;
 
@@ -230,10 +232,12 @@ public class ButterKnifeTest {
   @Test public void bindingViewReturnsView() {
     View view = new View(Robolectric.application);
 
-    View one = ButterKnife.bind(view);
+    ButterKnife.bind(view);
+    View one = view;
     assertThat(one).isSameAs(view);
 
-    View two = ButterKnife.bind(new Object(), view);
+    ButterKnife.bind(new Object(), view);
+    View two = view;
     assertThat(two).isSameAs(view);
   }
 
