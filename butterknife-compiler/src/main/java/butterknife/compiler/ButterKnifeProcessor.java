@@ -12,7 +12,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.BitSet;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -254,7 +253,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     }
 
     // Try to find a parent binder for each.
-    HashSet<BindingClass> topLevelClasses = new HashSet<>();
+    Set<BindingClass> topLevelClasses = new LinkedHashSet<>();
     for (Map.Entry<TypeElement, BindingClass> entry : targetClassMap.entrySet()) {
       TypeElement parentType = findParentType(entry.getKey(), erasedTargetNames);
       if (parentType != null) {
