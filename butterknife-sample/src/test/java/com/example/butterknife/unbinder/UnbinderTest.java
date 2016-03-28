@@ -1,5 +1,6 @@
 package com.example.butterknife.unbinder;
 
+import android.view.View;
 import android.widget.Button;
 import android.widget.FrameLayout;
 
@@ -29,6 +30,9 @@ public final class UnbinderTest {
     Button button3 = new Button(Robolectric.application);
     button3.setId(android.R.id.button3);
     frameLayout.addView(button3);
+    View content = new View(Robolectric.application);
+    content.setId(android.R.id.content);
+    frameLayout.addView(content);
     H h = new H(frameLayout);
 
     ButterKnife.ViewUnbinder unbinder = ButterKnife.bind(h, frameLayout);
