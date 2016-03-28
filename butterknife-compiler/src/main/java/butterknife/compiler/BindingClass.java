@@ -60,8 +60,8 @@ final class BindingClass {
   private final String targetClass;
   private final String classFqcn;
   private BindingClass parentBinding;
-  private ClassName unbinderClassName;  // If this is null'd out, it has no unbinder and uses NOP
-  private ClassName highestUnbinderClassName; // If this is null'd out, there is no parent unbinder
+  private ClassName unbinderClassName;  // If this is null'd out, it has no unbinder and uses NOP.
+  private ClassName highestUnbinderClassName; // If this is null'd out, there is no parent unbinder.
 
   BindingClass(String classPackage, String className, String targetClass, String classFqcn) {
     this.classPackage = classPackage;
@@ -70,7 +70,7 @@ final class BindingClass {
     this.classFqcn = classFqcn;
 
     // Default to this, but this can be null'd out by the processor before we brew if it's not
-    // necessary
+    // necessary.
     this.unbinderClassName = ClassName.get(classPackage, className, UNBINDER_SIMPLE_NAME);
   }
 
@@ -308,25 +308,26 @@ final class BindingClass {
     if (hasParentBinding()) {
       if (hasViewBindings()) {
         if (highestUnbinderClassName != unbinderClassName) {
-          // Has an unbinder class and there exists an unbinder class farther up, so use super
-          // and let the super implementation create it for us
+          // This has an unbinder class and there exists an unbinder class farther up, so use super
+          // and let the super implementation create it for us.
           result.addStatement("$T unbinder = ($T) super.bind(finder, target, source)",
               unbinderClassName,
               unbinderClassName);
         } else {
-          // Has an unbinder class and there is no implementation higher up, so we'll call super
-          // but ignore the result since it's just the NOP. Instead, create the unbinder here for
-          // our implementation and any descendant classes.
+          // This has an unbinder class and there is no implementation higher up, so we'll call
+          // super but ignore the result since it's just the NOP. Instead, create the unbinder here
+          // for our implementation and any descendant classes.
           result.addStatement("super.bind(finder, target, source)");
           result.addStatement("$T unbinder = createUnbinder(target)", unbinderClassName);
         }
       } else {
-        // No unbinder class, just defer to super (which could be NOP or real, we don't care)
+        // This has no unbinder class, just defer to super (which could be NOP or real,
+        // we don't care).
         result.addStatement("$T unbinder = super.bind(finder, target, source)", UNBINDER);
       }
     } else if (hasViewBindings()) {
-      // Top level class but we do have an unbinder class, so no need to call super but go ahead
-      // and create our unbinder.
+      // This is a top-level class but we do have an unbinder class, so no need to call super but
+      // go ahead and create our unbinder.
       result.addStatement("$T unbinder = createUnbinder(target)", unbinderClassName);
     }
 
@@ -382,7 +383,7 @@ final class BindingClass {
       }
     }
 
-    // Finally return the unbinder
+    // Finally return the unbinder.
     if (hasParentBinding() || hasViewBindings()) {
       result.addStatement("return unbinder");
     } else {

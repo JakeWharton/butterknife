@@ -262,7 +262,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
         bindingClass.setParent(parentBindingClass);
         parentBindingClass.addDescendant(bindingClass);
       } else {
-        // This is a top level parent
+        // This is a top level parent.
         topLevelClasses.add(entry.getValue());
       }
     }
@@ -271,14 +271,14 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
         .flatMap(topLevelClass -> {
           if (topLevelClass.hasViewBindings()) {
             // It has an unbinder class and it will also be the highest unbinder class for all
-            // descendants
+            // descendants.
             topLevelClass.setHighestUnbinderClassName(topLevelClass.getUnbinderClassName());
           } else {
-            // No unbinder class. Null it out so we know we can just return the NOP unbinder
+            // No unbinder class, so null it out so we know we can just return the NOP unbinder.
             topLevelClass.setUnbinderClassName(null);
           }
 
-          // Recursively set up parent unbinding relationships on all its descendants
+          // Recursively set up parent unbinding relationships on all its descendants.
           return setParentUnbindingRelationships(topLevelClass.getDescendants());
         })
         .toCompletable()
@@ -297,21 +297,21 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     return Observable.from(bindings)
         .flatMap(binding -> {
           if (binding.hasViewBindings()) {
-            // The descendant has its own unbinder class
+            // The descendant has its own unbinder class.
             if (binding.getParentBinding().getHighestUnbinderClassName() != null) {
               // The descendant is not the first to have its own unbinder class, so its highest
-              // unbinder reference should point to the first
+              // unbinder reference should point to the first.
               binding.setHighestUnbinderClassName(
                   binding.getParentBinding().getHighestUnbinderClassName());
             } else {
               // This descendant is the first to have its own unbinder class, so it will also
-              // be the highest
+              // be the highest.
               binding.setHighestUnbinderClassName(binding.getUnbinderClassName());
             }
           } else {
             // The descendant has no unbinder class, so just defer it unbinder class and highest
-            // unbinder class to the parent's. This way future descendants looking at this one
-            // will just use the parent's
+            // unbinder class to the parent's. This way, future descendants looking at this one
+            // will just use the parent's.
             binding.setUnbinderClassName(binding.getParentBinding().getUnbinderClassName());
             binding.setHighestUnbinderClassName(
                 binding.getParentBinding().getHighestUnbinderClassName());
