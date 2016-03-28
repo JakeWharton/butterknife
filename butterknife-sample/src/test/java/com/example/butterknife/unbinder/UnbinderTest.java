@@ -4,8 +4,6 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.FrameLayout;
 
-import com.google.common.truth.Truth;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
@@ -13,6 +11,8 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 import butterknife.ButterKnife;
+
+import static com.google.common.truth.Truth.assertThat;
 
 @RunWith(RobolectricTestRunner.class) //
 @Config(manifest = "src/main/AndroidManifest.xml")
@@ -42,15 +42,15 @@ public final class UnbinderTest {
   }
 
   private void verifyHBound(H h) {
-    Truth.assertThat(h.button1).isNotNull();
-    Truth.assertThat(h.button2).isNotNull();
-    Truth.assertThat(h.button3).isNotNull();
+    assertThat(h.button1).isNotNull();
+    assertThat(h.button2).isNotNull();
+    assertThat(h.button3).isNotNull();
   }
 
   private void verifyHUnbound(H h) {
-    Truth.assertThat(h.button1).isNull();
-    Truth.assertThat(h.button2).isNull();
-    Truth.assertThat(h.button3).isNull();
+    assertThat(h.button1).isNull();
+    assertThat(h.button2).isNull();
+    assertThat(h.button3).isNull();
   }
 
 }
