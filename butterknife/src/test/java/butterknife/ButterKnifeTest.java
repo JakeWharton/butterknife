@@ -229,18 +229,6 @@ public class ButterKnifeTest {
     assertThat(view3.isEnabled()).isFalse();
   }
 
-  @Test public void bindingViewReturnsView() {
-    View view = new View(Robolectric.application);
-
-    ButterKnife.bind(view);
-    View one = view;
-    assertThat(one).isSameAs(view);
-
-    ButterKnife.bind(new Object(), view);
-    View two = view;
-    assertThat(two).isSameAs(view);
-  }
-
   @Test public void zeroBindingsBindDoesNotThrowException() {
     class Example {
     }
