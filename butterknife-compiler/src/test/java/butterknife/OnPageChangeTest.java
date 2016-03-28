@@ -33,7 +33,7 @@ public class OnPageChangeTest {
             "  @Override public void bind(final Finder finder, final T target, Object source) {",
             "    View view;",
             "    view = finder.findRequiredView(source, 1, \"method 'doStuff'\");",
-            "    ((ViewPager) view).setOnPageChangeListener(new ViewPager.OnPageChangeListener() {",
+            "    ((ViewPager) view).addOnPageChangeListener(new ViewPager.OnPageChangeListener() {",
             "      @Override public void onPageSelected(int p0) {",
             "        target.doStuff();",
             "      }",
