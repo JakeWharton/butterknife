@@ -42,6 +42,7 @@ final class BindingClass {
   private static final ClassName CONTEXT = ClassName.get("android.content", "Context");
   private static final ClassName RESOURCES = ClassName.get("android.content.res", "Resources");
   private static final ClassName THEME = RESOURCES.nestedClass("Theme");
+  private static final ClassName BUTTERKNIFE = ClassName.get("butterknife", "ButterKnife");
   private static final ClassName UNBINDER =
       ClassName.get("butterknife", "ButterKnife", "ViewUnbinder");
   private static final ClassName BITMAP_FACTORY =
@@ -385,7 +386,7 @@ final class BindingClass {
     if (hasParentBinding() || hasViewBindings()) {
       result.addStatement("return unbinder");
     } else {
-      result.addStatement("return butterknife.ButterKnife.NOP_VIEW_UNBINDER");
+      result.addStatement("return $T.NOP_VIEW_UNBINDER", BUTTERKNIFE);
     }
 
     return result.build();
