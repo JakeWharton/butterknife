@@ -290,8 +290,8 @@ final class BindingClass {
   private MethodSpec createBindMethod() {
     MethodSpec.Builder result = MethodSpec.methodBuilder("bind")
         .addAnnotation(Override.class)
-        .returns(UNBINDER)
         .addModifiers(PUBLIC)
+        .returns(UNBINDER)
         .addParameter(FINDER, "finder", FINAL)
         .addParameter(TypeVariableName.get("T"), "target", FINAL)
         .addParameter(Object.class, "source");
