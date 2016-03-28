@@ -183,7 +183,7 @@ public void pickDoor(DoorView door) {
             <h4 id="optional">Optional Bindings</h4>
             <p>By default, both <code>@Bind</code> and listener bindings are required. An exception will be thrown if the target view cannot be found.</p>
             <p>To suppress this behavior and create an optional binding, add a <code>@Nullable</code> annotation to fields or the <code>@Optional</code> annotation to methods.</p>
-            <p>Note: Any annotation named <code>@Nullable</code> or can be used for fields. It is encouraged to use the <code>@Nullable</code> annotation from <a href="http://tools.android.com/tech-docs/support-annotations">Android's "support-annotations" library</a>.</p>
+            <p>Note: Any annotation named <code>@Nullable</code> can be used for fields. It is encouraged to use the <code>@Nullable</code> annotation from <a href="http://tools.android.com/tech-docs/support-annotations">Android's "support-annotations" library</a>.</p>
             <pre class="prettyprint">@Nullable @Bind(R.id.might_not_be_there) TextView mightNotBeThere;
 
 @Optional @OnClick(R.id.maybe_missing) void onMaybeMissingClicked() {
