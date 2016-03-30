@@ -43,8 +43,7 @@ final class BindingClass {
   private static final ClassName RESOURCES = ClassName.get("android.content.res", "Resources");
   private static final ClassName THEME = RESOURCES.nestedClass("Theme");
   private static final ClassName BUTTERKNIFE = ClassName.get("butterknife", "ButterKnife");
-  private static final ClassName UNBINDER =
-      ClassName.get("butterknife", "ButterKnife", "ViewUnbinder");
+  private static final ClassName UNBINDER = BUTTERKNIFE.nestedClass("ViewUnbinder");
   private static final ClassName BITMAP_FACTORY =
       ClassName.get("android.graphics", "BitmapFactory");
   public static final String UNBINDER_SIMPLE_NAME = "Unbinder";
