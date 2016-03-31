@@ -293,7 +293,8 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
    * difference is negligible. For larger projects though, the overhead of switching schedulers is
    * amortized. This could especially make a difference for base activities and base fragments.
    */
-  private Observable<BindingClass> setParentUnbindingRelationships(Iterable<BindingClass> bindings) {
+  private Observable<BindingClass> setParentUnbindingRelationships(
+      Iterable<BindingClass> bindings) {
     return Observable.from(bindings)
         .flatMap(binding -> {
           if (binding.hasViewBindings()) {
