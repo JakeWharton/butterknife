@@ -11,6 +11,7 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 import butterknife.ButterKnife;
+import butterknife.Unbinder;
 
 import static com.google.common.truth.Truth.assertThat;
 
@@ -35,7 +36,7 @@ public final class UnbinderTest {
     frameLayout.addView(content);
     H h = new H(frameLayout);
 
-    ButterKnife.Unbinder unbinder = ButterKnife.bind(h, frameLayout);
+    Unbinder unbinder = ButterKnife.bind(h, frameLayout);
     verifyHBound(h);
     unbinder.unbind();
     verifyHUnbound(h);

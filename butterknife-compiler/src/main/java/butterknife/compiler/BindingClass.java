@@ -43,10 +43,10 @@ final class BindingClass {
   private static final ClassName RESOURCES = ClassName.get("android.content.res", "Resources");
   private static final ClassName THEME = RESOURCES.nestedClass("Theme");
   private static final ClassName BUTTERKNIFE = ClassName.get("butterknife", "ButterKnife");
-  private static final ClassName BUTTERKNIFE_UNBINDER = BUTTERKNIFE.nestedClass("Unbinder");
+  private static final ClassName UNBINDER = ClassName.get("butterknife", "Unbinder");
   private static final ClassName BITMAP_FACTORY =
       ClassName.get("android.graphics", "BitmapFactory");
-  public static final String UNBINDER_SIMPLE_NAME = "Unbinder";
+  public static final String UNBINDER_SIMPLE_NAME = "InnerUnbinder";
 
   private final Map<Integer, ViewBindings> viewIdMap = new LinkedHashMap<>();
   private final Map<FieldCollectionViewBinding, int[]> collectionBindings = new LinkedHashMap<>();
@@ -164,7 +164,7 @@ final class BindingClass {
       result.superclass(ParameterizedTypeName.get(
           parentBinding.getUnbinderClassName(), generic));
     } else {
-      result.addSuperinterface(BUTTERKNIFE_UNBINDER);
+      result.addSuperinterface(UNBINDER);
       result.addField(generic, "target", PRIVATE);
     }
 
@@ -291,7 +291,7 @@ final class BindingClass {
     MethodSpec.Builder result = MethodSpec.methodBuilder("bind")
         .addAnnotation(Override.class)
         .addModifiers(PUBLIC)
-        .returns(BUTTERKNIFE_UNBINDER)
+        .returns(UNBINDER)
         .addParameter(FINDER, "finder", FINAL)
         .addParameter(TypeVariableName.get("T"), "target", FINAL)
         .addParameter(Object.class, "source");
@@ -322,7 +322,7 @@ final class BindingClass {
       } else {
         // This has no unbinder class, just defer to super (which could be NOP or real,
         // we don't care).
-        result.addStatement("$T unbinder = super.bind(finder, target, source)", BUTTERKNIFE_UNBINDER);
+        result.addStatement("$T unbinder = super.bind(finder, target, source)", UNBINDER);
       }
     } else if (hasViewBindings()) {
       // This is a top-level class but we do have an unbinder class, so no need to call super but

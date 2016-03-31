@@ -85,12 +85,6 @@ public final class ButterKnife {
     throw new AssertionError("No instances.");
   }
 
-  /** An unbinder contract that will unbind views when called. */
-  @SuppressWarnings("unused") // Used by generated code.
-  public interface Unbinder {
-    void unbind();
-  }
-
   /** An action that can be applied to a list of views. */
   public interface Action<T extends View> {
     /** Apply the action on the {@code view} which is at {@code index} in the list. */

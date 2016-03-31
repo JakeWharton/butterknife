@@ -7,6 +7,7 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 import butterknife.ButterKnife;
+import butterknife.Unbinder;
 
 import static com.google.common.truth.Truth.assertThat;
 
@@ -16,7 +17,7 @@ public class SimpleActivityTest {
   @Test public void verifyContentViewBinding() {
     SimpleActivity activity = Robolectric.buildActivity(SimpleActivity.class).create().get();
 
-    ButterKnife.Unbinder unbinder = ButterKnife.bind(activity);
+    Unbinder unbinder = ButterKnife.bind(activity);
     verifySimpleActivityBound(activity);
     unbinder.unbind();
     verifySimpleActivityUnbound(activity);
