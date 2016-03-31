@@ -386,7 +386,7 @@ final class BindingClass {
     if (hasParentBinding() || hasViewBindings()) {
       result.addStatement("return unbinder");
     } else {
-      result.addStatement("return $T.NOP_VIEW_UNBINDER", BUTTERKNIFE);
+      result.addStatement("return $T.NOP_UNBINDER", BUTTERKNIFE);
     }
 
     return result.build();
