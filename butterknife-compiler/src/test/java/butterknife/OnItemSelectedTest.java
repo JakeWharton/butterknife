@@ -1,10 +1,13 @@
 package butterknife;
 
-import butterknife.compiler.ButterKnifeProcessor;
 import com.google.common.base.Joiner;
 import com.google.testing.compile.JavaFileObjects;
-import javax.tools.JavaFileObject;
+
 import org.junit.Test;
+
+import javax.tools.JavaFileObject;
+
+import butterknife.compiler.ButterKnifeProcessor;
 
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.testing.compile.JavaSourceSubjectFactory.javaSource;
@@ -21,29 +24,56 @@ public class OnItemSelectedTest {
         "}"
     ));
 
-    JavaFileObject expectedSource = JavaFileObjects.forSourceString("test/Test$$ViewBinder",
-        Joiner.on('\n').join(
-            "package test;",
-            "import android.view.View;",
-            "import android.widget.AdapterView;",
-            "import butterknife.internal.Finder;",
-            "import butterknife.internal.ViewBinder;",
-            "import java.lang.Object;",
-            "import java.lang.Override;",
-            "public class Test$$ViewBinder<T extends Test> implements ViewBinder<T> {",
-            "  @Override public void bind(final Finder finder, final T target, Object source) {",
-            "    View view;",
-            "    view = finder.findRequiredView(source, 1, \"method 'doStuff'\");",
-            "    ((AdapterView<?>) view).setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {",
-            "      @Override public void onItemSelected(AdapterView<?> p0, View p1, int p2, long p3) {",
-            "        target.doStuff();",
-            "      }",
-            "      @Override public void onNothingSelected(AdapterView<?> p0) {",
-            "      }",
-            "    });",
-            "  }",
-            "}"
-        ));
+    JavaFileObject expectedSource = JavaFileObjects.forSourceString("test/Test$$ViewBinder", ""
+        + "package test;\n"
+        + "import android.view.View;\n"
+        + "import android.widget.AdapterView;\n"
+        + "import butterknife.Unbinder;\n"
+        + "import butterknife.internal.Finder;\n"
+        + "import butterknife.internal.ViewBinder;\n"
+        + "import java.lang.IllegalStateException;\n"
+        + "import java.lang.Object;\n"
+        + "import java.lang.Override;\n"
+        + "import java.lang.SuppressWarnings;\n"
+        + "public class Test$$ViewBinder<T extends Test> implements ViewBinder<T> {\n"
+        + "  @Override\n"
+        + "  public Unbinder bind(final Finder finder, final T target, Object source) {\n"
+        + "    InnerUnbinder unbinder = createUnbinder(target);\n"
+        + "    View view;\n"
+        + "    view = finder.findRequiredView(source, 1, \"method 'doStuff'\");\n"
+        + "    unbinder.view1 = view;\n"
+        + "    ((AdapterView<?>) view).setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {\n"
+        + "      @Override\n"
+        + "      public void onItemSelected(AdapterView<?> p0, View p1, int p2, long p3) {\n"
+        + "        target.doStuff();\n"
+        + "      }\n"
+        + "      @Override\n"
+        + "      public void onNothingSelected(AdapterView<?> p0) {\n"
+        + "      }\n"
+        + "    });\n"
+        + "    return unbinder;\n"
+        + "  }\n"
+        + "  @SuppressWarnings(\"unchecked\")\n"
+        + "  protected <U extends InnerUnbinder<T>> U createUnbinder(T target) {\n"
+        + "    return (U) new InnerUnbinder(target);\n"
+        + "  }\n"
+        + "  public static class InnerUnbinder<T extends Test> implements Unbinder {\n"
+        + "    private T target;\n"
+        + "    View view1;\n"
+        + "    protected InnerUnbinder(T target) {\n"
+        + "      this.target = target;\n"
+        + "    }\n"
+        + "    @Override\n"
+        + "    public final void unbind() {\n"
+        + "      if (target == null) throw new IllegalStateException(\"Bindings already cleared.\");\n"
+        + "      unbind(target);\n"
+        + "      target = null;\n"
+        + "    }\n"
+        + "    protected void unbind(T target) {\n"
+        + "      ((AdapterView<?>) view1).setOnItemSelectedListener(null);\n"
+        + "    }\n"
+        + "  }\n"
+        + "}");
 
     assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
@@ -64,29 +94,56 @@ public class OnItemSelectedTest {
         "}"
     ));
 
-    JavaFileObject expectedSource = JavaFileObjects.forSourceString("test/Test$$ViewBinder",
-        Joiner.on('\n').join(
-            "package test;",
-            "import android.view.View;",
-            "import android.widget.AdapterView;",
-            "import butterknife.internal.Finder;",
-            "import butterknife.internal.ViewBinder;",
-            "import java.lang.Object;",
-            "import java.lang.Override;",
-            "public class Test$$ViewBinder<T extends Test> implements ViewBinder<T> {",
-            "  @Override public void bind(final Finder finder, final T target, Object source) {",
-            "    View view;",
-            "    view = finder.findRequiredView(source, 1, \"method 'doStuff'\");",
-            "    ((AdapterView<?>) view).setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {",
-            "      @Override public void onItemSelected(AdapterView<?> p0, View p1, int p2, long p3) {",
-            "      }",
-            "      @Override public void onNothingSelected(AdapterView<?> p0) {",
-            "        target.doStuff();",
-            "      }",
-            "    });",
-            "  }",
-            "}"
-        ));
+    JavaFileObject expectedSource = JavaFileObjects.forSourceString("test/Test$$ViewBinder", ""
+        + "package test;\n"
+        + "import android.view.View;\n"
+        + "import android.widget.AdapterView;\n"
+        + "import butterknife.Unbinder;\n"
+        + "import butterknife.internal.Finder;\n"
+        + "import butterknife.internal.ViewBinder;\n"
+        + "import java.lang.IllegalStateException;\n"
+        + "import java.lang.Object;\n"
+        + "import java.lang.Override;\n"
+        + "import java.lang.SuppressWarnings;\n"
+        + "public class Test$$ViewBinder<T extends Test> implements ViewBinder<T> {\n"
+        + "  @Override\n"
+        + "  public Unbinder bind(final Finder finder, final T target, Object source) {\n"
+        + "    InnerUnbinder unbinder = createUnbinder(target);\n"
+        + "    View view;\n"
+        + "    view = finder.findRequiredView(source, 1, \"method 'doStuff'\");\n"
+        + "    unbinder.view1 = view;\n"
+        + "    ((AdapterView<?>) view).setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {\n"
+        + "      @Override\n"
+        + "      public void onItemSelected(AdapterView<?> p0, View p1, int p2, long p3) {\n"
+        + "      }\n"
+        + "      @Override\n"
+        + "      public void onNothingSelected(AdapterView<?> p0) {\n"
+        + "        target.doStuff();\n"
+        + "      }\n"
+        + "    });\n"
+        + "    return unbinder;\n"
+        + "  }\n"
+        + "  @SuppressWarnings(\"unchecked\")\n"
+        + "  protected <U extends InnerUnbinder<T>> U createUnbinder(T target) {\n"
+        + "    return (U) new InnerUnbinder(target);\n"
+        + "  }\n"
+        + "  public static class InnerUnbinder<T extends Test> implements Unbinder {\n"
+        + "    private T target;\n"
+        + "    View view1;\n"
+        + "    protected InnerUnbinder(T target) {\n"
+        + "      this.target = target;\n"
+        + "    }\n"
+        + "    @Override\n"
+        + "    public final void unbind() {\n"
+        + "      if (target == null) throw new IllegalStateException(\"Bindings already cleared.\");\n"
+        + "      unbind(target);\n"
+        + "      target = null;\n"
+        + "    }\n"
+        + "    protected void unbind(T target) {\n"
+        + "      ((AdapterView<?>) view1).setOnItemSelectedListener(null);\n"
+        + "    }\n"
+        + "  }\n"
+        + "}");
 
     assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
@@ -109,30 +166,57 @@ public class OnItemSelectedTest {
         "}"
     ));
 
-    JavaFileObject expectedSource = JavaFileObjects.forSourceString("test/Test$$ViewBinder",
-        Joiner.on('\n').join(
-            "package test;",
-            "import android.view.View;",
-            "import android.widget.AdapterView;",
-            "import butterknife.internal.Finder;",
-            "import butterknife.internal.ViewBinder;",
-            "import java.lang.Object;",
-            "import java.lang.Override;",
-            "public class Test$$ViewBinder<T extends Test> implements ViewBinder<T> {",
-            "  @Override public void bind(final Finder finder, final T target, Object source) {",
-            "    View view;",
-            "    view = finder.findRequiredView(source, 1, \"method 'onItemSelected' and method 'onNothingSelected'\");",
-            "    ((AdapterView<?>) view).setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {",
-            "      @Override public void onItemSelected(AdapterView<?> p0, View p1, int p2, long p3) {",
-            "        target.onItemSelected();",
-            "      }",
-            "      @Override public void onNothingSelected(AdapterView<?> p0) {",
-            "        target.onNothingSelected();",
-            "      }",
-            "    });",
-            "  }",
-            "}"
-        ));
+    JavaFileObject expectedSource = JavaFileObjects.forSourceString("test/Test$$ViewBinder", ""
+        + "package test;\n"
+        + "import android.view.View;\n"
+        + "import android.widget.AdapterView;\n"
+        + "import butterknife.Unbinder;\n"
+        + "import butterknife.internal.Finder;\n"
+        + "import butterknife.internal.ViewBinder;\n"
+        + "import java.lang.IllegalStateException;\n"
+        + "import java.lang.Object;\n"
+        + "import java.lang.Override;\n"
+        + "import java.lang.SuppressWarnings;\n"
+        + "public class Test$$ViewBinder<T extends Test> implements ViewBinder<T> {\n"
+        + "  @Override\n"
+        + "  public Unbinder bind(final Finder finder, final T target, Object source) {\n"
+        + "    InnerUnbinder unbinder = createUnbinder(target);\n"
+        + "    View view;\n"
+        + "    view = finder.findRequiredView(source, 1, \"method 'onItemSelected' and method 'onNothingSelected'\");\n"
+        + "    unbinder.view1 = view;\n"
+        + "    ((AdapterView<?>) view).setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {\n"
+        + "      @Override\n"
+        + "      public void onItemSelected(AdapterView<?> p0, View p1, int p2, long p3) {\n"
+        + "        target.onItemSelected();\n"
+        + "      }\n"
+        + "      @Override\n"
+        + "      public void onNothingSelected(AdapterView<?> p0) {\n"
+        + "        target.onNothingSelected();\n"
+        + "      }\n"
+        + "    });\n"
+        + "    return unbinder;\n"
+        + "  }\n"
+        + "  @SuppressWarnings(\"unchecked\")\n"
+        + "  protected <U extends InnerUnbinder<T>> U createUnbinder(T target) {\n"
+        + "    return (U) new InnerUnbinder(target);\n"
+        + "  }\n"
+        + "  public static class InnerUnbinder<T extends Test> implements Unbinder {\n"
+        + "    private T target;\n"
+        + "    View view1;\n"
+        + "    protected InnerUnbinder(T target) {\n"
+        + "      this.target = target;\n"
+        + "    }\n"
+        + "    @Override\n"
+        + "    public final void unbind() {\n"
+        + "      if (target == null) throw new IllegalStateException(\"Bindings already cleared.\");\n"
+        + "      unbind(target);\n"
+        + "      target = null;\n"
+        + "    }\n"
+        + "    protected void unbind(T target) {\n"
+        + "      ((AdapterView<?>) view1).setOnItemSelectedListener(null);\n"
+        + "    }\n"
+        + "  }\n"
+        + "}");
 
     assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
@@ -155,46 +239,83 @@ public class OnItemSelectedTest {
         "}"
     ));
 
-    JavaFileObject expectedSource = JavaFileObjects.forSourceString("test/Test$$ViewBinder",
-        Joiner.on('\n').join(
-            "package test;",
-            "import android.view.View;",
-            "import android.widget.AdapterView;",
-            "import butterknife.internal.Finder;",
-            "import butterknife.internal.ViewBinder;",
-            "import java.lang.Object;",
-            "import java.lang.Override;",
-            "public class Test$$ViewBinder<T extends Test> implements ViewBinder<T> {",
-            "  @Override public void bind(final Finder finder, final T target, Object source) {",
-            "    View view;",
-            "    view = finder.findRequiredView(source, 1, \"method 'onItemSelected' and method 'onNothingSelected'\");",
-            "    ((AdapterView<?>) view).setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {",
-            "      @Override public void onItemSelected(AdapterView<?> p0, View p1, int p2, long p3) {",
-            "        target.onItemSelected();",
-            "      }",
-            "      @Override public void onNothingSelected(AdapterView<?> p0) {",
-            "        target.onNothingSelected();",
-            "      }",
-            "    });",
-            "    view = finder.findRequiredView(source, 2, \"method 'onItemSelected'\");",
-            "    ((AdapterView<?>) view).setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {",
-            "      @Override public void onItemSelected(AdapterView<?> p0, View p1, int p2, long p3) {",
-            "        target.onItemSelected();",
-            "      }",
-            "      @Override public void onNothingSelected(AdapterView<?> p0) {",
-            "      }",
-            "    });",
-            "    view = finder.findRequiredView(source, 3, \"method 'onNothingSelected'\");",
-            "    ((AdapterView<?>) view).setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {",
-            "      @Override public void onItemSelected(AdapterView<?> p0, View p1, int p2, long p3) {",
-            "      }",
-            "      @Override public void onNothingSelected(AdapterView<?> p0) {",
-            "        target.onNothingSelected();",
-            "      }",
-            "    });",
-            "  }",
-            "}"
-        ));
+    JavaFileObject expectedSource = JavaFileObjects.forSourceString("test/Test$$ViewBinder", ""
+        + "package test;\n"
+        + "import android.view.View;\n"
+        + "import android.widget.AdapterView;\n"
+        + "import butterknife.Unbinder;\n"
+        + "import butterknife.internal.Finder;\n"
+        + "import butterknife.internal.ViewBinder;\n"
+        + "import java.lang.IllegalStateException;\n"
+        + "import java.lang.Object;\n"
+        + "import java.lang.Override;\n"
+        + "import java.lang.SuppressWarnings;\n"
+        + "public class Test$$ViewBinder<T extends Test> implements ViewBinder<T> {\n"
+        + "  @Override\n"
+        + "  public Unbinder bind(final Finder finder, final T target, Object source) {\n"
+        + "    InnerUnbinder unbinder = createUnbinder(target);\n"
+        + "    View view;\n"
+        + "    view = finder.findRequiredView(source, 1, \"method 'onItemSelected' and method 'onNothingSelected'\");\n"
+        + "    unbinder.view1 = view;\n"
+        + "    ((AdapterView<?>) view).setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {\n"
+        + "      @Override\n"
+        + "      public void onItemSelected(AdapterView<?> p0, View p1, int p2, long p3) {\n"
+        + "        target.onItemSelected();\n"
+        + "      }\n"
+        + "      @Override\n"
+        + "      public void onNothingSelected(AdapterView<?> p0) {\n"
+        + "        target.onNothingSelected();\n"
+        + "      }\n"
+        + "    });\n"
+        + "    view = finder.findRequiredView(source, 2, \"method 'onItemSelected'\");\n"
+        + "    unbinder.view2 = view;\n"
+        + "    ((AdapterView<?>) view).setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {\n"
+        + "      @Override\n"
+        + "      public void onItemSelected(AdapterView<?> p0, View p1, int p2, long p3) {\n"
+        + "        target.onItemSelected();\n"
+        + "      }\n"
+        + "      @Override\n"
+        + "      public void onNothingSelected(AdapterView<?> p0) {\n"
+        + "      }\n"
+        + "    });\n"
+        + "    view = finder.findRequiredView(source, 3, \"method 'onNothingSelected'\");\n"
+        + "    unbinder.view3 = view;\n"
+        + "    ((AdapterView<?>) view).setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {\n"
+        + "      @Override\n"
+        + "      public void onItemSelected(AdapterView<?> p0, View p1, int p2, long p3) {\n"
+        + "      }\n"
+        + "      @Override\n"
+        + "      public void onNothingSelected(AdapterView<?> p0) {\n"
+        + "        target.onNothingSelected();\n"
+        + "      }\n"
+        + "    });\n"
+        + "    return unbinder;\n"
+        + "  }\n"
+        + "  @SuppressWarnings(\"unchecked\")\n"
+        + "  protected <U extends InnerUnbinder<T>> U createUnbinder(T target) {\n"
+        + "    return (U) new InnerUnbinder(target);\n"
+        + "  }\n"
+        + "  public static class InnerUnbinder<T extends Test> implements Unbinder {\n"
+        + "    private T target;\n"
+        + "    View view1;\n"
+        + "    View view2;\n"
+        + "    View view3;\n"
+        + "    protected InnerUnbinder(T target) {\n"
+        + "      this.target = target;\n"
+        + "    }\n"
+        + "    @Override\n"
+        + "    public final void unbind() {\n"
+        + "      if (target == null) throw new IllegalStateException(\"Bindings already cleared.\");\n"
+        + "      unbind(target);\n"
+        + "      target = null;\n"
+        + "    }\n"
+        + "    protected void unbind(T target) {\n"
+        + "      ((AdapterView<?>) view1).setOnItemSelectedListener(null);\n"
+        + "      ((AdapterView<?>) view2).setOnItemSelectedListener(null);\n"
+        + "      ((AdapterView<?>) view3).setOnItemSelectedListener(null);\n"
+        + "    }\n"
+        + "  }\n"
+        + "}");
 
     assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())

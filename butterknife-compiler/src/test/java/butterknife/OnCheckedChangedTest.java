@@ -1,10 +1,13 @@
 package butterknife;
 
-import butterknife.compiler.ButterKnifeProcessor;
 import com.google.common.base.Joiner;
 import com.google.testing.compile.JavaFileObjects;
-import javax.tools.JavaFileObject;
+
 import org.junit.Test;
+
+import javax.tools.JavaFileObject;
+
+import butterknife.compiler.ButterKnifeProcessor;
 
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.testing.compile.JavaSourceSubjectFactory.javaSource;
@@ -20,27 +23,53 @@ public class OnCheckedChangedTest {
         "}"
     ));
 
-    JavaFileObject expectedSource = JavaFileObjects.forSourceString("test/Test$$ViewBinder",
-        Joiner.on('\n').join(
-            "package test;",
-            "import android.view.View;",
-            "import android.widget.CompoundButton;",
-            "import butterknife.internal.Finder;",
-            "import butterknife.internal.ViewBinder;",
-            "import java.lang.Object;",
-            "import java.lang.Override;",
-            "public class Test$$ViewBinder<T extends Test> implements ViewBinder<T> {",
-            "  @Override public void bind(final Finder finder, final T target, Object source) {",
-            "    View view;",
-            "    view = finder.findRequiredView(source, 1, \"method 'doStuff'\");",
-            "    ((CompoundButton) view).setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {",
-            "      @Override public void onCheckedChanged(CompoundButton p0, boolean p1) {",
-            "        target.doStuff();",
-            "      }",
-            "    });",
-            "  }",
-            "}"
-        ));
+    JavaFileObject expectedSource = JavaFileObjects.forSourceString("test/Test$$ViewBinder", ""
+        + "package test;\n"
+        + "import android.view.View;\n"
+        + "import android.widget.CompoundButton;\n"
+        + "import butterknife.Unbinder;\n"
+        + "import butterknife.internal.Finder;\n"
+        + "import butterknife.internal.ViewBinder;\n"
+        + "import java.lang.IllegalStateException;\n"
+        + "import java.lang.Object;\n"
+        + "import java.lang.Override;\n"
+        + "import java.lang.SuppressWarnings;\n"
+        + "public class Test$$ViewBinder<T extends Test> implements ViewBinder<T> {\n"
+        + "  @Override\n"
+        + "  public Unbinder bind(final Finder finder, final T target, Object source) {\n"
+        + "    InnerUnbinder unbinder = createUnbinder(target);\n"
+        + "    View view;\n"
+        + "    view = finder.findRequiredView(source, 1, \"method 'doStuff'\");\n"
+        + "    unbinder.view1 = view;\n"
+        + "    ((CompoundButton) view).setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {\n"
+        + "      @Override\n"
+        + "      public void onCheckedChanged(CompoundButton p0, boolean p1) {\n"
+        + "        target.doStuff();\n"
+        + "      }\n"
+        + "    });\n"
+        + "    return unbinder;\n"
+        + "  }\n"
+        + "  @SuppressWarnings(\"unchecked\")\n"
+        + "  protected <U extends InnerUnbinder<T>> U createUnbinder(T target) {\n"
+        + "    return (U) new InnerUnbinder(target);\n"
+        + "  }\n"
+        + "  public static class InnerUnbinder<T extends Test> implements Unbinder {\n"
+        + "    private T target;\n"
+        + "    View view1;\n"
+        + "    protected InnerUnbinder(T target) {\n"
+        + "      this.target = target;\n"
+        + "    }\n"
+        + "    @Override\n"
+        + "    public final void unbind() {\n"
+        + "      if (target == null) throw new IllegalStateException(\"Bindings already cleared.\");\n"
+        + "      unbind(target);\n"
+        + "      target = null;\n"
+        + "    }\n"
+        + "    protected void unbind(T target) {\n"
+        + "      ((CompoundButton) view1).setOnCheckedChangeListener(null);\n"
+        + "    }\n"
+        + "  }\n"
+        + "}");
 
     assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
