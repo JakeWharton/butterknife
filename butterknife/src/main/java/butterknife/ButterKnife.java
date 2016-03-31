@@ -87,7 +87,7 @@ public final class ButterKnife {
 
   /** An unbinder contract that will unbind views when called. */
   @SuppressWarnings("unused") // Used by generated code.
-  public interface ViewUnbinder<T> {
+  public interface Unbinder<T> {
     void unbind();
   }
 
@@ -108,12 +108,12 @@ public final class ButterKnife {
 
   static final Map<Class<?>, ViewBinder<Object>> BINDERS = new LinkedHashMap<>();
   static final ViewBinder<Object> NOP_VIEW_BINDER = new ViewBinder<Object>() {
-    @Override public ViewUnbinder bind(Finder finder, Object target, Object source) {
+    @Override public Unbinder bind(Finder finder, Object target, Object source) {
       return NOP_VIEW_UNBINDER;
     }
   };
 
-  public static final ViewUnbinder NOP_VIEW_UNBINDER = new ViewUnbinder() {
+  public static final Unbinder NOP_VIEW_UNBINDER = new Unbinder() {
     @Override
     public void unbind() { }
   };
@@ -129,7 +129,7 @@ public final class ButterKnife {
    *
    * @param target Target activity for view binding.
    */
-  public static ViewUnbinder<?> bind(@NonNull Activity target) {
+  public static Unbinder<?> bind(@NonNull Activity target) {
     return bind(target, target, Finder.ACTIVITY);
   }
 
@@ -140,7 +140,7 @@ public final class ButterKnife {
    * @param target Target view for view binding.
    */
   @NonNull
-  public static ViewUnbinder<?> bind(@NonNull View target) {
+  public static Unbinder<?> bind(@NonNull View target) {
     return bind(target, target, Finder.VIEW);
   }
 
@@ -151,7 +151,7 @@ public final class ButterKnife {
    * @param target Target dialog for view binding.
    */
   @SuppressWarnings("unused") // Public api.
-  public static ViewUnbinder<?> bind(@NonNull Dialog target) {
+  public static Unbinder<?> bind(@NonNull Dialog target) {
     return bind(target, target, Finder.DIALOG);
   }
 
@@ -162,7 +162,7 @@ public final class ButterKnife {
    * @param target Target class for view binding.
    * @param source Activity on which IDs will be looked up.
    */
-  public static ViewUnbinder<?> bind(@NonNull Object target, @NonNull Activity source) {
+  public static Unbinder<?> bind(@NonNull Object target, @NonNull Activity source) {
     return bind(target, source, Finder.ACTIVITY);
   }
 
@@ -174,7 +174,7 @@ public final class ButterKnife {
    * @param source View root on which IDs will be looked up.
    */
   @NonNull
-  public static ViewUnbinder<?> bind(@NonNull Object target, @NonNull View source) {
+  public static Unbinder<?> bind(@NonNull Object target, @NonNull View source) {
     return bind(target, source, Finder.VIEW);
   }
 
@@ -186,11 +186,11 @@ public final class ButterKnife {
    * @param source Dialog on which IDs will be looked up.
    */
   @SuppressWarnings("unused") // Public api.
-  public static ViewUnbinder<?> bind(@NonNull Object target, @NonNull Dialog source) {
+  public static Unbinder<?> bind(@NonNull Object target, @NonNull Dialog source) {
     return bind(target, source, Finder.DIALOG);
   }
 
-  static ViewUnbinder<?> bind(@NonNull Object target, @NonNull Object source, @NonNull Finder finder) {
+  static Unbinder<?> bind(@NonNull Object target, @NonNull Object source, @NonNull Finder finder) {
     Class<?> targetClass = target.getClass();
     try {
       if (debug) Log.d(TAG, "Looking up view binder for " + targetClass.getName());

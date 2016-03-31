@@ -35,7 +35,7 @@ public final class UnbinderTest {
     frameLayout.addView(content);
     H h = new H(frameLayout);
 
-    ButterKnife.ViewUnbinder unbinder = ButterKnife.bind(h, frameLayout);
+    ButterKnife.Unbinder unbinder = ButterKnife.bind(h, frameLayout);
     verifyHBound(h);
     unbinder.unbind();
     verifyHUnbound(h);
