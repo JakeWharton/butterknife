@@ -164,7 +164,7 @@ final class BindingClass {
       result.superclass(ParameterizedTypeName.get(
           parentBinding.getUnbinderClassName(), generic));
     } else {
-      result.addSuperinterface(ParameterizedTypeName.get(BUTTERKNIFE_UNBINDER, generic));
+      result.addSuperinterface(BUTTERKNIFE_UNBINDER);
       result.addField(generic, "target", PRIVATE);
     }
 
