@@ -1,7 +1,5 @@
 package butterknife.compiler;
 
-import butterknife.internal.ListenerClass;
-import butterknife.internal.ListenerMethod;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
@@ -9,6 +7,9 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import butterknife.internal.ListenerClass;
+import butterknife.internal.ListenerMethod;
 
 final class ViewBindings {
   private final int id;
@@ -75,5 +76,17 @@ final class ViewBindings {
       }
     }
     return requiredViewBindings;
+  }
+
+  /**
+   * ViewBindings with no IDs are tricky, because they're used in unbinder field names to
+   * distinguish them. {@link ButterKnifeProcessor#NO_ID} is equal to -1, and '-' isn't a valid
+   * field name character. Since these are only going to happen for views where the target
+   * <em>is</em> the view we're applying the binding on, we'll just append {@code "Original"}.
+   */
+  public String getUniqueIdSuffix() {
+    return getId() == ButterKnifeProcessor.NO_ID
+        ? "Original"
+        : Integer.toString(getId());
   }
 }

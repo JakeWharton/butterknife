@@ -235,8 +235,8 @@ final class BindingClass {
       return;
     }
 
-    // Using view id for name uniqueness.
-    String fieldName = "view" + bindings.getId();
+    // Using unique view id for name uniqueness.
+    String fieldName = "view" + bindings.getUniqueIdSuffix();
     result.addField(VIEW, fieldName);
 
     // We only need to emit the null check if there are zero required bindings.
@@ -465,7 +465,7 @@ final class BindingClass {
 
     // Add the view reference to the unbinder.
     if (hasUnbinder()) {
-      result.addStatement("unbinder.$L = view", "view" + bindings.getId());
+      result.addStatement("unbinder.$L = view", "view" + bindings.getUniqueIdSuffix());
     }
 
     for (Map.Entry<ListenerClass, Map<ListenerMethod, Set<MethodViewBinding>>> e
