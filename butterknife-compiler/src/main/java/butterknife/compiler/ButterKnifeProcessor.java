@@ -104,8 +104,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
   private Types typeUtils;
   private Filer filer;
 
-  @Override
-  public synchronized void init(ProcessingEnvironment env) {
+  @Override public synchronized void init(ProcessingEnvironment env) {
     super.init(env);
 
     elementUtils = env.getElementUtils();
@@ -113,8 +112,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     filer = env.getFiler();
   }
 
-  @Override
-  public Set<String> getSupportedAnnotationTypes() {
+  @Override public Set<String> getSupportedAnnotationTypes() {
     Set<String> types = new LinkedHashSet<>();
 
     types.add(Bind.class.getCanonicalName());
@@ -135,8 +133,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     return types;
   }
 
-  @Override
-  public boolean process(Set<? extends TypeElement> elements, RoundEnvironment env) {
+  @Override public boolean process(Set<? extends TypeElement> elements, RoundEnvironment env) {
     Map<TypeElement, BindingClass> targetClassMap = findAndParseTargets(env);
 
     for (Map.Entry<TypeElement, BindingClass> entry : targetClassMap.entrySet()) {
@@ -270,8 +267,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
     Observable.from(topLevelClasses)
         .flatMap(new Func1<BindingClass, Observable<?>>() {
-          @Override
-          public Observable<?> call(BindingClass topLevelClass) {
+          @Override public Observable<?> call(BindingClass topLevelClass) {
             if (topLevelClass.hasViewBindings()) {
               // It has an unbinder class and it will also be the highest unbinder class for all
               // descendants.
@@ -302,8 +298,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
       Iterable<BindingClass> bindings) {
     return Observable.from(bindings)
         .flatMap(new Func1<BindingClass, Observable<? extends BindingClass>>() {
-          @Override
-          public Observable<? extends BindingClass> call(BindingClass binding) {
+          @Override public Observable<? extends BindingClass> call(BindingClass binding) {
             if (binding.hasViewBindings()) {
               // The descendant has its own unbinder class.
               if (binding.getParentBinding().getHighestUnbinderClassName() != null) {
