@@ -157,7 +157,7 @@ final class BindingClass {
     TypeName generic = TypeVariableName.get("T");
     TypeSpec.Builder result =
         TypeSpec.classBuilder(unbinderClassName.simpleName())
-            .addModifiers(PUBLIC, STATIC)
+            .addModifiers(PROTECTED, STATIC)
             .addTypeVariable(TypeVariableName.get("T", ClassName.bestGuess(targetClass)));
 
     if (hasParentBinding() && parentBinding.hasUnbinder()) {

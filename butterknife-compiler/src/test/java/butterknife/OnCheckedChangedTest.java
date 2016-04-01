@@ -53,7 +53,7 @@ public class OnCheckedChangedTest {
         + "  protected <U extends InnerUnbinder<T>> U createUnbinder(T target) {\n"
         + "    return (U) new InnerUnbinder(target);\n"
         + "  }\n"
-        + "  public static class InnerUnbinder<T extends Test> implements Unbinder {\n"
+        + "  protected static class InnerUnbinder<T extends Test> implements Unbinder {\n"
         + "    private T target;\n"
         + "    View view1;\n"
         + "    protected InnerUnbinder(T target) {\n"
