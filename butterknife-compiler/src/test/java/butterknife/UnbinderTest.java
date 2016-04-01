@@ -861,7 +861,6 @@ public class UnbinderTest {
             + "package test;\n"
         + "import android.content.Context;\n"
         + "import android.content.res.Resources;\n"
-        + "import butterknife.ButterKnife;\n"
         + "import butterknife.Unbinder;\n"
         + "import butterknife.internal.Finder;\n"
         + "import butterknife.internal.Utils;\n"
@@ -877,7 +876,7 @@ public class UnbinderTest {
         + "    Resources res = context.getResources();\n"
         + "    Resources.Theme theme = context.getTheme();\n"
         + "    target.blackColor = Utils.getColor(res, theme, 17170444);\n"
-        + "    return ButterKnife.NOP_UNBINDER;\n"
+        + "    return Unbinder.EMPTY;\n"
         + "  }\n"
         + "}\n");
 

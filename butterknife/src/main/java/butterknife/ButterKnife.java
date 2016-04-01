@@ -103,13 +103,8 @@ public final class ButterKnife {
   static final Map<Class<?>, ViewBinder<Object>> BINDERS = new LinkedHashMap<>();
   static final ViewBinder<Object> NOP_VIEW_BINDER = new ViewBinder<Object>() {
     @Override public Unbinder bind(Finder finder, Object target, Object source) {
-      return NOP_UNBINDER;
+      return Unbinder.EMPTY;
     }
-  };
-
-  public static final Unbinder NOP_UNBINDER = new Unbinder() {
-    @Override
-    public void unbind() { }
   };
 
   /** Control whether debug logging is enabled. */

@@ -26,7 +26,6 @@ public class BindArrayTest {
     JavaFileObject expectedSource = JavaFileObjects.forSourceString("test/Test$$ViewBinder", ""
         + "package test;\n"
         + "import android.content.res.Resources;\n"
-        + "import butterknife.ButterKnife;\n"
         + "import butterknife.Unbinder;\n"
         + "import butterknife.internal.Finder;\n"
         + "import butterknife.internal.ViewBinder;\n"
@@ -39,7 +38,7 @@ public class BindArrayTest {
         + "  public Unbinder bind(final Finder finder, final T target, Object source) {\n"
         + "    Resources res = finder.getContext(source).getResources();\n"
         + "    target.one = res.getStringArray(1);\n"
-        + "    return ButterKnife.NOP_UNBINDER;\n"
+        + "    return Unbinder.EMPTY;\n"
         + "  }\n"
         + "}");
 
@@ -64,7 +63,6 @@ public class BindArrayTest {
         Joiner.on('\n').join(
             "package test;",
             "import android.content.res.Resources;",
-            "import butterknife.ButterKnife;",
             "import butterknife.Unbinder;",
             "import butterknife.internal.Finder;",
             "import butterknife.internal.ViewBinder;",
@@ -77,7 +75,7 @@ public class BindArrayTest {
             "  public Unbinder bind(final Finder finder, final T target, Object source) {",
             "    Resources res = finder.getContext(source).getResources();",
             "    target.one = res.getIntArray(1);",
-            "    return ButterKnife.NOP_UNBINDER",
+            "    return Unbinder.EMPTY",
             "  }",
             "}"
         ));
@@ -103,7 +101,6 @@ public class BindArrayTest {
         Joiner.on('\n').join(
             "package test;",
             "import android.content.res.Resources;",
-            "import butterknife.ButterKnife;",
             "import butterknife.Unbinder;",
             "import butterknife.internal.Finder;",
             "import butterknife.internal.ViewBinder;",
@@ -116,7 +113,7 @@ public class BindArrayTest {
             "  public Unbinder bind(final Finder finder, final T target, Object source) {",
             "    Resources res = finder.getContext(source).getResources();",
             "    target.one = res.getTextArray(1);",
-            "    return ButterKnife.NOP_UNBINDER",
+            "    return Unbinder.EMPTY",
             "  }",
             "}"
         ));
@@ -143,7 +140,6 @@ public class BindArrayTest {
         Joiner.on('\n').join(
             "package test;",
             "import android.content.res.Resources;",
-            "import butterknife.ButterKnife;",
             "import butterknife.Unbinder;",
             "import butterknife.internal.Finder;",
             "import butterknife.internal.ViewBinder;",
@@ -156,7 +152,7 @@ public class BindArrayTest {
             "  public Unbinder bind(final Finder finder, final T target, Object source) {",
             "    Resources res = finder.getContext(source).getResources();",
             "    target.one = res.obtainTypedArray(1);",
-            "    return ButterKnife.NOP_UNBINDER",
+            "    return Unbinder.EMPTY",
             "  }",
             "}"
         ));

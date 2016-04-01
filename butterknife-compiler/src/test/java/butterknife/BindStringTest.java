@@ -27,7 +27,6 @@ public class BindStringTest {
         Joiner.on('\n').join(
             "package test;",
             "import android.content.res.Resources;",
-            "import butterknife.ButterKnife;",
             "import butterknife.Unbinder;",
             "import butterknife.internal.Finder;",
             "import butterknife.internal.ViewBinder;",
@@ -40,7 +39,7 @@ public class BindStringTest {
             "  public Unbinder bind(final Finder finder, final T target, Object source) {",
             "    Resources res = finder.getContext(source).getResources();",
             "    target.one = res.getString(1);",
-            "    return ButterKnife.NOP_UNBINDER",
+            "    return Unbinder.EMPTY",
             "  }",
             "}"
         ));

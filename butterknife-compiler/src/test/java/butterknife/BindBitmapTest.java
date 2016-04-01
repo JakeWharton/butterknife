@@ -29,7 +29,6 @@ public class BindBitmapTest {
             "package test;",
             "import android.content.res.Resources;",
             "import android.graphics.BitmapFactory;",
-            "import butterknife.ButterKnife;",
             "import butterknife.Unbinder;",
             "import butterknife.internal.Finder;",
             "import butterknife.internal.ViewBinder;",
@@ -42,7 +41,7 @@ public class BindBitmapTest {
             "  public Unbinder bind(final Finder finder, final T target, Object source) {",
             "    Resources res = finder.getContext(source).getResources();",
             "    target.one = BitmapFactory.decodeResource(res, 1);",
-            "    return ButterKnife.NOP_UNBINDER",
+            "    return Unbinder.EMPTY",
             "  }",
             "}"
         ));

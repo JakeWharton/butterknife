@@ -29,7 +29,6 @@ public class BindDrawableTest {
             "package test;",
             "import android.content.Context;",
             "import android.content.res.Resources;",
-            "import butterknife.ButterKnife;",
             "import butterknife.Unbinder;",
             "import butterknife.internal.Finder;",
             "import butterknife.internal.Utils;",
@@ -45,7 +44,7 @@ public class BindDrawableTest {
             "    Resources res = context.getResources();",
             "    Resources.Theme theme = context.getTheme();",
             "    target.one = Utils.getDrawable(res, theme, 1);",
-            "    return ButterKnife.NOP_UNBINDER",
+            "    return Unbinder.EMPTY",
             "  }",
             "}"
         ));
@@ -73,7 +72,6 @@ public class BindDrawableTest {
             "package test;",
             "import android.content.Context;",
             "import android.content.res.Resources;",
-            "import butterknife.ButterKnife;",
             "import butterknife.Unbinder;",
             "import butterknife.internal.Finder;",
             "import butterknife.internal.Utils;",
@@ -89,7 +87,7 @@ public class BindDrawableTest {
             "    Resources res = context.getResources();",
             "    Resources.Theme theme = context.getTheme();",
             "    target.one = Utils.getTintedDrawable(res, theme, 1, 2);",
-            "    return ButterKnife.NOP_UNBINDER",
+            "    return Unbinder.EMPTY",
             "",
             "  }",
             "}"
