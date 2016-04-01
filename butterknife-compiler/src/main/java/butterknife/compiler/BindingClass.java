@@ -260,26 +260,15 @@ final class BindingClass {
   }
 
   private void createUnbinderCreateUnbinderMethod(TypeSpec.Builder viewBindingClass) {
-    // Create type variable <U extends Unbinder<T>>. If we have an unbinder higher up in the
-    // tree, we want to target that for generics to match the overridden method signature.
-    ClassName typeVariableClassName = highestUnbinderClassName != null
-        ? highestUnbinderClassName
-        : unbinderClassName;
-    TypeVariableName returnType = TypeVariableName.get("U", ParameterizedTypeName.get(
-        typeVariableClassName, TypeVariableName.get("T")));
-
-    // We are casting inside the access methods.
-    AnnotationSpec suppressWarning = AnnotationSpec.builder(SuppressWarnings.class)
-        .addMember("value", "\"unchecked\"")
-        .build();
+    // Create type variable InnerUnbinder<T>
+    TypeName returnType = ParameterizedTypeName.get(
+        unbinderClassName, TypeVariableName.get("T"));
 
     MethodSpec.Builder createUnbinder = MethodSpec.methodBuilder("createUnbinder")
-        .addAnnotation(suppressWarning)
         .addModifiers(PROTECTED)
-        .addTypeVariable(returnType)
         .returns(returnType)
         .addParameter(TypeVariableName.get("T"), "target")
-        .addStatement("return ($T) new $T($L)", returnType, unbinderClassName, "target");
+        .addStatement("return new $T($L)", unbinderClassName, "target");
 
     if (hasParentBinding() && parentBinding.hasUnbinder()) {
       createUnbinder.addAnnotation(Override.class);
