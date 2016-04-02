@@ -23,6 +23,11 @@ android {
       minifyEnabled true
     }
   }
+
+  lintOptions {
+    textReport true
+    textOutput 'stdout'
+  }
 }
 
 dependencies {
