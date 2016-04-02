@@ -4,9 +4,9 @@ android:
   components:
     - tools
     - platform-tools
-    - build-tools-23.0.1
-    - android-23
+    - build-tools-23.0.2
     - extra-android-m2repository
+    - android-23
   licenses:
     - android-sdk-license-5be876d5
 
