@@ -1,10 +1,13 @@
 package butterknife;
 
-import butterknife.compiler.ButterKnifeProcessor;
 import com.google.common.base.Joiner;
 import com.google.testing.compile.JavaFileObjects;
-import javax.tools.JavaFileObject;
+
 import org.junit.Test;
+
+import javax.tools.JavaFileObject;
+
+import butterknife.compiler.ButterKnifeProcessor;
 
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.testing.compile.JavaSourceSubjectFactory.javaSource;
@@ -26,6 +29,7 @@ public class BindDrawableTest {
             "package test;",
             "import android.content.Context;",
             "import android.content.res.Resources;",
+            "import butterknife.Unbinder;",
             "import butterknife.internal.Finder;",
             "import butterknife.internal.Utils;",
             "import butterknife.internal.ViewBinder;",
@@ -35,11 +39,12 @@ public class BindDrawableTest {
             "public class Test$$ViewBinder<T extends Test> implements ViewBinder<T> {",
             "  @Override",
             "  @SuppressWarnings(\"ResourceType\")",
-            "  public void bind(final Finder finder, final T target, Object source) {",
+            "  public Unbinder bind(final Finder finder, final T target, Object source) {",
             "    Context context = finder.getContext(source);",
             "    Resources res = context.getResources();",
             "    Resources.Theme theme = context.getTheme();",
             "    target.one = Utils.getDrawable(res, theme, 1);",
+            "    return Unbinder.EMPTY",
             "  }",
             "}"
         ));
@@ -67,6 +72,7 @@ public class BindDrawableTest {
             "package test;",
             "import android.content.Context;",
             "import android.content.res.Resources;",
+            "import butterknife.Unbinder;",
             "import butterknife.internal.Finder;",
             "import butterknife.internal.Utils;",
             "import butterknife.internal.ViewBinder;",
@@ -76,11 +82,12 @@ public class BindDrawableTest {
             "public class Test$$ViewBinder<T extends Test> implements ViewBinder<T> {",
             "  @Override",
             "  @SuppressWarnings(\"ResourceType\")",
-            "  public void bind(final Finder finder, final T target, Object source) {",
+            "  public Unbinder bind(final Finder finder, final T target, Object source) {",
             "    Context context = finder.getContext(source);",
             "    Resources res = context.getResources();",
             "    Resources.Theme theme = context.getTheme();",
             "    target.one = Utils.getTintedDrawable(res, theme, 1, 2);",
+            "    return Unbinder.EMPTY",
             "",
             "  }",
             "}"

@@ -1,5 +1,7 @@
 package butterknife.internal;
 
+import butterknife.Unbinder;
+
 public interface ViewBinder<T> {
-  void bind(Finder finder, T target, Object source);
+  Unbinder bind(Finder finder, T target, Object source);
 }

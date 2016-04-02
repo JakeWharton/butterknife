@@ -1,6 +1,9 @@
 apply plugin: 'java'
 apply plugin: 'checkstyle'
 
+sourceCompatibility = 1.7
+targetCompatibility = 1.7
+
 def logger = new com.android.build.gradle.internal.LoggerWrapper(project.logger)
 def sdkHandler = new com.android.build.gradle.internal.SdkHandler(project, logger)
 for (File file : sdkHandler.sdkLoader.repositories) {
@@ -14,6 +17,7 @@ dependencies {
   compile deps.autoservice
   compile deps.autocommon
   compile deps.javapoet
+  compile deps.rxjava
 
   testCompile deps.junit
   testCompile deps.truth

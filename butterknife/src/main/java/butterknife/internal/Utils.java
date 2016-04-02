@@ -22,6 +22,8 @@ public final class Utils {
       return true;
     } catch (ClassNotFoundException ignored) {
       return false;
+    } catch (VerifyError ignored) {
+      return false;
     }
   }
 

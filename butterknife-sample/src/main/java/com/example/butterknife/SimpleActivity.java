@@ -10,12 +10,10 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import butterknife.Unbinder;
 import java.util.List;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
-import butterknife.ButterKnife.ViewUnbinder;
 import butterknife.OnClick;
 import butterknife.OnItemClick;
 import butterknife.OnLongClick;
@@ -38,7 +36,6 @@ public class SimpleActivity extends Activity {
   @Bind(R.id.hello) Button hello;
   @Bind(R.id.list_of_things) ListView listOfThings;
   @Bind(R.id.footer) TextView footer;
-  @Unbinder ViewUnbinder unbinder;
 
   @Bind({ R.id.title, R.id.subtitle, R.id.hello })
   List<View> headerViews;
