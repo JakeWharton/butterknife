@@ -22,6 +22,7 @@ dependencies {
   testCompile deps.junit
   testCompile deps.truth
   testCompile deps.robolectric
+  testCompile deps.supportv4
   testCompile deps.compiletesting
   testCompile files(org.gradle.internal.jvm.Jvm.current().getToolsJar())
 }

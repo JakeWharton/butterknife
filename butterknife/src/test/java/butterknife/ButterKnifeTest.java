@@ -1,6 +1,8 @@
 package butterknife;
 
+import android.annotation.TargetApi;
 import android.app.Activity;
+import android.os.Build;
 import android.support.annotation.NonNull;
 import android.util.Property;
 import android.view.View;
@@ -9,8 +11,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.robolectric.Robolectric;
-import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RobolectricGradleTestRunner;
+import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 
 import java.util.Arrays;
@@ -18,8 +20,13 @@ import java.util.List;
 
 import static com.google.common.truth.Truth.assertThat;
 
-@RunWith(RobolectricTestRunner.class)
-@Config(manifest = Config.NONE)
+@RunWith(RobolectricGradleTestRunner.class)
+@Config(
+    sdk = 18,
+    manifest = Config.NONE,
+    constants = BuildConfig.class
+)
+@TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
 public class ButterKnifeTest {
   private static final Property<View, Boolean> PROPERTY_ENABLED =
       new Property<View, Boolean>(Boolean.class, "enabled") {
@@ -54,7 +61,7 @@ public class ButterKnifeTest {
   }
 
   @Test public void propertyAppliedToView() {
-    View view = new View(Robolectric.application);
+    View view = new View(RuntimeEnvironment.application);
     assertThat(view.isEnabled()).isTrue();
 
     ButterKnife.apply(view, PROPERTY_ENABLED, false);
@@ -62,9 +69,9 @@ public class ButterKnifeTest {
   }
 
   @Test public void propertyAppliedToEveryViewInList() {
-    View view1 = new View(Robolectric.application);
-    View view2 = new View(Robolectric.application);
-    View view3 = new View(Robolectric.application);
+    View view1 = new View(RuntimeEnvironment.application);
+    View view2 = new View(RuntimeEnvironment.application);
+    View view3 = new View(RuntimeEnvironment.application);
     assertThat(view1.isEnabled()).isTrue();
     assertThat(view2.isEnabled()).isTrue();
     assertThat(view3.isEnabled()).isTrue();
@@ -78,9 +85,9 @@ public class ButterKnifeTest {
   }
 
   @Test public void propertyAppliedToEveryViewInArray() {
-    View view1 = new View(Robolectric.application);
-    View view2 = new View(Robolectric.application);
-    View view3 = new View(Robolectric.application);
+    View view1 = new View(RuntimeEnvironment.application);
+    View view2 = new View(RuntimeEnvironment.application);
+    View view3 = new View(RuntimeEnvironment.application);
     assertThat(view1.isEnabled()).isTrue();
     assertThat(view2.isEnabled()).isTrue();
     assertThat(view3.isEnabled()).isTrue();
@@ -94,7 +101,7 @@ public class ButterKnifeTest {
   }
 
   @Test public void actionAppliedToView() {
-    View view = new View(Robolectric.application);
+    View view = new View(RuntimeEnvironment.application);
     assertThat(view.isEnabled()).isTrue();
 
     ButterKnife.apply(view, ACTION_DISABLE);
@@ -103,7 +110,7 @@ public class ButterKnifeTest {
   }
 
   @Test public void actionsAppliedToView() {
-    View view = new View(Robolectric.application);
+    View view = new View(RuntimeEnvironment.application);
     assertThat(view.isEnabled()).isTrue();
     assertThat(view.getAlpha()).isEqualTo(1f);
 
@@ -113,9 +120,9 @@ public class ButterKnifeTest {
   }
 
   @Test public void actionAppliedToEveryViewInList() {
-    View view1 = new View(Robolectric.application);
-    View view2 = new View(Robolectric.application);
-    View view3 = new View(Robolectric.application);
+    View view1 = new View(RuntimeEnvironment.application);
+    View view2 = new View(RuntimeEnvironment.application);
+    View view3 = new View(RuntimeEnvironment.application);
     assertThat(view1.isEnabled()).isTrue();
     assertThat(view2.isEnabled()).isTrue();
     assertThat(view3.isEnabled()).isTrue();
@@ -129,9 +136,9 @@ public class ButterKnifeTest {
   }
 
   @Test public void actionAppliedToEveryViewInArray() {
-    View view1 = new View(Robolectric.application);
-    View view2 = new View(Robolectric.application);
-    View view3 = new View(Robolectric.application);
+    View view1 = new View(RuntimeEnvironment.application);
+    View view2 = new View(RuntimeEnvironment.application);
+    View view3 = new View(RuntimeEnvironment.application);
     assertThat(view1.isEnabled()).isTrue();
     assertThat(view2.isEnabled()).isTrue();
     assertThat(view3.isEnabled()).isTrue();
@@ -145,9 +152,9 @@ public class ButterKnifeTest {
   }
 
   @Test public void actionsAppliedToEveryViewInList() {
-    View view1 = new View(Robolectric.application);
-    View view2 = new View(Robolectric.application);
-    View view3 = new View(Robolectric.application);
+    View view1 = new View(RuntimeEnvironment.application);
+    View view2 = new View(RuntimeEnvironment.application);
+    View view3 = new View(RuntimeEnvironment.application);
     assertThat(view1.isEnabled()).isTrue();
     assertThat(view2.isEnabled()).isTrue();
     assertThat(view3.isEnabled()).isTrue();
@@ -167,9 +174,9 @@ public class ButterKnifeTest {
   }
 
   @Test public void actionsAppliedToEveryViewInArray() {
-    View view1 = new View(Robolectric.application);
-    View view2 = new View(Robolectric.application);
-    View view3 = new View(Robolectric.application);
+    View view1 = new View(RuntimeEnvironment.application);
+    View view2 = new View(RuntimeEnvironment.application);
+    View view3 = new View(RuntimeEnvironment.application);
     assertThat(view1.isEnabled()).isTrue();
     assertThat(view2.isEnabled()).isTrue();
     assertThat(view3.isEnabled()).isTrue();
@@ -189,7 +196,7 @@ public class ButterKnifeTest {
   }
 
   @Test public void setterAppliedToView() {
-    View view = new View(Robolectric.application);
+    View view = new View(RuntimeEnvironment.application);
     assertThat(view.isEnabled()).isTrue();
 
     ButterKnife.apply(view, SETTER_ENABLED, false);
@@ -198,9 +205,9 @@ public class ButterKnifeTest {
   }
 
   @Test public void setterAppliedToEveryViewInList() {
-    View view1 = new View(Robolectric.application);
-    View view2 = new View(Robolectric.application);
-    View view3 = new View(Robolectric.application);
+    View view1 = new View(RuntimeEnvironment.application);
+    View view2 = new View(RuntimeEnvironment.application);
+    View view3 = new View(RuntimeEnvironment.application);
     assertThat(view1.isEnabled()).isTrue();
     assertThat(view2.isEnabled()).isTrue();
     assertThat(view3.isEnabled()).isTrue();
@@ -214,9 +221,9 @@ public class ButterKnifeTest {
   }
 
   @Test public void setterAppliedToEveryViewInArray() {
-    View view1 = new View(Robolectric.application);
-    View view2 = new View(Robolectric.application);
-    View view3 = new View(Robolectric.application);
+    View view1 = new View(RuntimeEnvironment.application);
+    View view2 = new View(RuntimeEnvironment.application);
+    View view3 = new View(RuntimeEnvironment.application);
     assertThat(view1.isEnabled()).isTrue();
     assertThat(view2.isEnabled()).isTrue();
     assertThat(view3.isEnabled()).isTrue();

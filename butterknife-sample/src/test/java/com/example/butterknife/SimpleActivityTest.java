@@ -3,7 +3,7 @@ package com.example.butterknife;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
-import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RobolectricGradleTestRunner;
 import org.robolectric.annotation.Config;
 
 import butterknife.ButterKnife;
@@ -11,8 +11,11 @@ import butterknife.Unbinder;
 
 import static com.google.common.truth.Truth.assertThat;
 
-@RunWith(RobolectricTestRunner.class) //
-@Config(manifest = "src/main/AndroidManifest.xml")
+@RunWith(RobolectricGradleTestRunner.class)
+@Config(
+    manifest = "src/main/AndroidManifest.xml",
+    constants = BuildConfig.class
+)
 public class SimpleActivityTest {
   @Test public void verifyContentViewBinding() {
     SimpleActivity activity = Robolectric.buildActivity(SimpleActivity.class).create().get();

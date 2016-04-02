@@ -9,6 +9,11 @@ android {
 
     consumerProguardFiles 'proguard-rules.txt'
   }
+
+  lintOptions {
+    textReport true
+    textOutput 'stdout'
+  }
 }
 
 dependencies {
