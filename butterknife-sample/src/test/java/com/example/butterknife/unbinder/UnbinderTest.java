@@ -6,32 +6,36 @@ import android.widget.FrameLayout;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.robolectric.Robolectric;
-import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RobolectricGradleTestRunner;
+import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
+import butterknife.BuildConfig;
 
 import static com.google.common.truth.Truth.assertThat;
 
-@RunWith(RobolectricTestRunner.class) //
-@Config(manifest = "src/main/AndroidManifest.xml")
+@RunWith(RobolectricGradleTestRunner.class)
+@Config(
+    manifest = "src/main/AndroidManifest.xml",
+    constants = BuildConfig.class
+)
 public final class UnbinderTest {
 
   @Test
   public void verifyContentViewBinding() {
-    FrameLayout frameLayout = new FrameLayout(Robolectric.application);
-    Button button1 = new Button(Robolectric.application);
+    FrameLayout frameLayout = new FrameLayout(RuntimeEnvironment.application);
+    Button button1 = new Button(RuntimeEnvironment.application);
     button1.setId(android.R.id.button1);
     frameLayout.addView(button1);
-    Button button2 = new Button(Robolectric.application);
+    Button button2 = new Button(RuntimeEnvironment.application);
     button2.setId(android.R.id.button2);
     frameLayout.addView(button2);
-    Button button3 = new Button(Robolectric.application);
+    Button button3 = new Button(RuntimeEnvironment.application);
     button3.setId(android.R.id.button3);
     frameLayout.addView(button3);
-    View content = new View(Robolectric.application);
+    View content = new View(RuntimeEnvironment.application);
     content.setId(android.R.id.content);
     frameLayout.addView(content);
     H h = new H(frameLayout);
