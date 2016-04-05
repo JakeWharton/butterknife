@@ -45,16 +45,6 @@
   activity.title = (android.widget.TextView) activity.findViewById(2130968577);
 }</pre>
 
-            <h4 id="resource">Resource Binding</h4>
-            <p>Bind pre-defined resources with <code>@BindBool</code>, <code>@BindColor</code>, <code>@BindDimen</code>, <code>@BindDrawable</code>, <code>@BindInt</code>, <code>@BindString</code>, which binds an <code>R.bool</code> ID (or your specified type) to its corresponding field.</p>
-            <pre class="prettyprint">class ExampleActivity extends Activity {
-  @BindString(R.string.title) String title;
-  @BindDrawable(R.drawable.graphic) Drawable graphic;
-  @BindColor(R.color.red) int red; // int or ColorStateList field
-  @BindDimen(R.dimen.spacer) Float spacer; // int (for pixel size) or float (for exact value) field
-  // ...
-}</pre>
-
             <h4 id="non-activity">Non-Activity Binding</h4>
             <p>You can also perform binding on arbitrary objects by supplying your own view root.</p>
             <pre class="prettyprint">public class FancyFragment extends Fragment {
@@ -161,11 +151,10 @@ public void pickDoor(DoorView door) {
 </pre>
 
             <h4 id="reset">Binding Reset</h4>
-            <p>Fragments have a different view lifecycle than activities. When binding a fragment in <code>onCreateView</code>, set the views to <code>null</code> in <code>onDestroyView</code>. Butter Knife provides an <code>ButterKnife.Unbinder</code> interface which has an <code>unbind</code> method to do this automatically. Simply bind an unbinder with <code>@Unbinder</code> to the fragment.</p>
+            <p>Fragments have a different view lifecycle than activities. When binding a fragment in <code>onCreateView</code>, set the views to <code>null</code> in <code>onDestroyView</code>. Butter Knife has an <code>unbind</code> method to do this automatically.</p>
             <pre class="prettyprint">public class FancyFragment extends Fragment {
   @Bind(R.id.button1) Button button1;
   @Bind(R.id.button2) Button button2;
-  @Unbinder ButterKnife.Unbinder unbinder;
 
   @Override public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
     View view = inflater.inflate(R.layout.fancy_fragment, container, false);
@@ -176,17 +165,17 @@ public void pickDoor(DoorView door) {
 
   @Override public void onDestroyView() {
     super.onDestroyView();
-    unbinder.unbind();
+    ButterKnife.unbind(this);
   }
 }</pre>
 
             <h4 id="optional">Optional Bindings</h4>
             <p>By default, both <code>@Bind</code> and listener bindings are required. An exception will be thrown if the target view cannot be found.</p>
-            <p>To suppress this behavior and create an optional binding, add a <code>@Nullable</code> annotation to fields or the <code>@Optional</code> annotation to methods.</p>
-            <p>Note: Any annotation named <code>@Nullable</code> or can be used for fields. It is encouraged to use the <code>@Nullable</code> annotation from <a href="http://tools.android.com/tech-docs/support-annotations">Android's "support-annotations" library</a>.</p>
+            <p>To suppress this behavior and create an optional binding, add a <code>@Nullable</code> annotation to the field or method.</p>
+            <p>Note: Any annotation named <code>@Nullable</code> can be used for this purpose. It is encouraged to use the <code>@Nullable</code> annotation from Android's "support-annotations" library, see <a href="http://tools.android.com/tech-docs/support-annotations">Android Tools Project</a>.</p>
             <pre class="prettyprint">@Nullable @Bind(R.id.might_not_be_there) TextView mightNotBeThere;
 
-@Optional @OnClick(R.id.maybe_missing) void onMaybeMissingClicked() {
+@Nullable @OnClick(R.id.maybe_missing) void onMaybeMissingClicked() {
   // TODO ...
 }</pre>
 
@@ -241,6 +230,21 @@ ImageView photo = ButterKnife.findById(view, R.id.photo);</pre>
               <li><em>IntelliJ IDEA</em> &mdash; If your project uses an external configuration (like a Maven <code>pom.xml</code>) then annotation processing should just work. If not, try <a href="ide-idea.html">manual configuration</a>.</li>
               <li><em>Eclipse</em> &mdash; Set up <a href="ide-eclipse.html">manual configuration</a>.</li>
             </ul>
+
+            <h4 id="proguard">ProGuard</h4>
+            <p>Butter Knife generates and uses classes dynamically which means that static analysis tools like ProGuard may think they are unused. In order to prevent them from being removed, explicitly mark them to be kept.
+                To prevent ProGuard renaming classes that use @Bind on a member field the <code>keepclasseswithmembernames</code> option is used.</p>
+            <pre>-keep class butterknife.** { *; }
+-dontwarn butterknife.internal.**
+-keep class **$$ViewBinder { *; }
+
+-keepclasseswithmembernames class * {
+    @butterknife.* &lt;fields&gt;;
+}
+
+-keepclasseswithmembernames class * {
+    @butterknife.* &lt;methods&gt;;
+}</pre>
 
             <h3 id="license">License</h3>
             <pre class="license">Copyright 2013 Jake Wharton
