@@ -18,6 +18,11 @@ android {
     versionName '1.0.0'
   }
 
+  lintOptions {
+    textReport true
+    textOutput 'stdout'
+  }
+
   buildTypes {
     debug {
       minifyEnabled true
