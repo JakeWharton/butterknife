@@ -25,8 +25,8 @@ import butterknife.internal.ViewBinder;
  * Finding views from your activity is as easy as:
  * <pre><code>
  * public class ExampleActivity extends Activity {
- *   {@literal @}Bind(R.id.title) EditText titleView;
- *   {@literal @}Bind(R.id.subtitle) EditText subtitleView;
+ *   {@literal @}BindView(R.id.title) EditText titleView;
+ *   {@literal @}BindView(R.id.subtitle) EditText subtitleView;
  *
  *   {@literal @}Override protected void onCreate(Bundle savedInstanceState) {
  *     super.onCreate(savedInstanceState);
@@ -43,7 +43,7 @@ import butterknife.internal.ViewBinder;
  * <p>
  * Group multiple views together into a {@link List} or array.
  * <pre><code>
- * {@literal @}Bind({R.id.first_name, R.id.middle_name, R.id.last_name})
+ * {@literal @}BindView({R.id.first_name, R.id.middle_name, R.id.last_name})
  * List<EditText> nameViews;
  * </code></pre>
  * There are three convenience methods for working with view collections:
@@ -71,7 +71,7 @@ import butterknife.internal.ViewBinder;
  * <a href="http://tools.android.com/tech-docs/support-annotations">support-annotations</a> library)
  * or the {@code @Optional} annotation for methods.
  * <pre><code>
- * {@literal @}Nullable @Bind(R.id.title) TextView subtitleView;
+ * {@literal @}Nullable @BindView(R.id.title) TextView subtitleView;
  * </code></pre>
  * Resources can also be bound to fields to simplify programmatically working with views:
  * <pre><code>
@@ -113,7 +113,7 @@ public final class ButterKnife {
   }
 
   /**
-   * Bind annotated fields and methods in the specified {@link Activity}. The current content
+   * BindView annotated fields and methods in the specified {@link Activity}. The current content
    * view is used as the view root.
    *
    * @param target Target activity for view binding.
@@ -123,7 +123,7 @@ public final class ButterKnife {
   }
 
   /**
-   * Bind annotated fields and methods in the specified {@link View}. The view and its children
+   * BindView annotated fields and methods in the specified {@link View}. The view and its children
    * are used as the view root.
    *
    * @param target Target view for view binding.
@@ -134,7 +134,7 @@ public final class ButterKnife {
   }
 
   /**
-   * Bind annotated fields and methods in the specified {@link Dialog}. The current content
+   * BindView annotated fields and methods in the specified {@link Dialog}. The current content
    * view is used as the view root.
    *
    * @param target Target dialog for view binding.
@@ -145,7 +145,7 @@ public final class ButterKnife {
   }
 
   /**
-   * Bind annotated fields and methods in the specified {@code target} using the {@code source}
+   * BindView annotated fields and methods in the specified {@code target} using the {@code source}
    * {@link Activity} as the view root.
    *
    * @param target Target class for view binding.
@@ -156,7 +156,7 @@ public final class ButterKnife {
   }
 
   /**
-   * Bind annotated fields and methods in the specified {@code target} using the {@code source}
+   * BindView annotated fields and methods in the specified {@code target} using the {@code source}
    * {@link View} as the view root.
    *
    * @param target Target class for view binding.
@@ -168,7 +168,7 @@ public final class ButterKnife {
   }
 
   /**
-   * Bind annotated fields and methods in the specified {@code target} using the {@code source}
+   * BindView annotated fields and methods in the specified {@code target} using the {@code source}
    * {@link Dialog} as the view root.
    *
    * @param target Target class for view binding.

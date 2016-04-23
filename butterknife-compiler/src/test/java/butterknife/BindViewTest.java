@@ -12,16 +12,16 @@ import butterknife.compiler.ButterKnifeProcessor;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.testing.compile.JavaSourceSubjectFactory.javaSource;
 
-public class BindTest {
+public class BindViewTest {
   @Test public void bindingView() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test",
         Joiner.on('\n').join(
             "package test;",
             "import android.app.Activity;",
             "import android.view.View;",
-            "import butterknife.Bind;",
+            "import butterknife.BindView;",
             "public class Test extends Activity {",
-            "    @Bind(1) View thing;",
+            "    @BindView(1) View thing;",
             "}"
         ));
 
@@ -74,16 +74,16 @@ public class BindTest {
         "package test;",
         "import android.app.Activity;",
         "import android.view.View;",
-        "import butterknife.Bind;",
+        "import butterknife.BindView;",
         "public class Test extends Activity {",
-        "    @Bind({1, 2}) View thing;",
+        "    @BindView({1, 2}) View thing;",
         "}"
     ));
 
     assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
         .failsToCompile()
-        .withErrorContaining("@Bind for a view must only specify one ID. Found: [1, 2]. (test.Test.thing)")
+        .withErrorContaining("@BindView for a view must only specify one ID. Found: [1, 2]. (test.Test.thing)")
         .in(source).onLine(6);
   }
 
@@ -92,10 +92,10 @@ public class BindTest {
         "package test;",
         "import android.app.Activity;",
         "import android.view.View;",
-        "import butterknife.Bind;",
+        "import butterknife.BindView;",
         "public class Test extends Activity {",
         "    interface TestInterface {}",
-        "    @Bind(1) TestInterface thing;",
+        "    @BindView(1) TestInterface thing;",
         "}"
     ));
 
@@ -150,9 +150,9 @@ public class BindTest {
         "import android.app.Activity;",
         "import android.widget.EditText;",
         "import android.widget.TextView;",
-        "import butterknife.Bind;",
+        "import butterknife.BindView;",
         "class Test<T extends TextView> extends Activity {",
-        "    @Bind(1) T thing;",
+        "    @BindView(1) T thing;",
         "}"
     ));
 
@@ -206,10 +206,10 @@ public class BindTest {
         "package test;",
         "import android.app.Activity;",
         "import android.view.View;",
-        "import butterknife.Bind;",
+        "import butterknife.BindView;",
         "import butterknife.OnClick;",
         "public class Test extends Activity {",
-        "  @Bind(1) View thing1;",
+        "  @BindView(1) View thing1;",
         "  @OnClick(1) void doStuff() {}",
         "}"
     ));
@@ -274,11 +274,11 @@ public class BindTest {
         "package test;",
         "import android.app.Activity;",
         "import android.view.View;",
-        "import butterknife.Bind;",
+        "import butterknife.BindView;",
         "public class Test extends Activity {",
-        "  @Bind(1) public View thing1;",
-        "  @Bind(2) View thing2;",
-        "  @Bind(3) protected View thing3;",
+        "  @BindView(1) public View thing1;",
+        "  @BindView(2) View thing2;",
+        "  @BindView(3) protected View thing3;",
         "}"
     ));
 
@@ -292,10 +292,10 @@ public class BindTest {
         "package test;",
         "import android.app.Activity;",
         "import android.view.View;",
-        "import butterknife.Bind;",
+        "import butterknife.BindView;",
         "public class Test extends Activity {",
         "  @interface Nullable {}",
-        "  @Nullable @Bind(1) View view;",
+        "  @Nullable @BindView(1) View view;",
         "}"
     ));
 
@@ -349,12 +349,12 @@ public class BindTest {
         "package test;",
         "import android.app.Activity;",
         "import android.view.View;",
-        "import butterknife.Bind;",
+        "import butterknife.BindView;",
         "public class Test extends Activity {",
-        "  @Bind(1) View view;",
+        "  @BindView(1) View view;",
         "}",
         "class TestOne extends Test {",
-        "  @Bind(1) View thing;",
+        "  @BindView(1) View thing;",
         "}",
         "class TestTwo extends Test {",
         "}"
@@ -443,12 +443,12 @@ public class BindTest {
         "package test;",
         "import android.app.Activity;",
         "import android.view.View;",
-        "import butterknife.Bind;",
+        "import butterknife.BindView;",
         "public class Test<T> extends Activity {",
-        "  @Bind(1) View view;",
+        "  @BindView(1) View view;",
         "}",
         "class TestOne extends Test<String> {",
-        "  @Bind(1) View thing;",
+        "  @BindView(1) View thing;",
         "}",
         "class TestTwo extends Test<Object> {",
         "}"
@@ -535,9 +535,9 @@ public class BindTest {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
         "package java.test;",
         "import android.view.View;",
-        "import butterknife.Bind;",
+        "import butterknife.BindView;",
         "public class Test {",
-        "  @Bind(1) View thing;",
+        "  @BindView(1) View thing;",
         "}"
     ));
 
@@ -545,7 +545,7 @@ public class BindTest {
         .processedWith(new ButterKnifeProcessor())
         .failsToCompile()
         .withErrorContaining(
-            "@Bind-annotated class incorrectly in Java framework package. (java.test.Test)")
+            "@BindView-annotated class incorrectly in Java framework package. (java.test.Test)")
         .in(source).onLine(5);
   }
 
@@ -553,9 +553,9 @@ public class BindTest {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
         "package android.test;",
         "import android.view.View;",
-        "import butterknife.Bind;",
+        "import butterknife.BindView;",
         "public class Test {",
-        "  @Bind(1) View thing;",
+        "  @BindView(1) View thing;",
         "}"
     ));
 
@@ -563,7 +563,7 @@ public class BindTest {
         .processedWith(new ButterKnifeProcessor())
         .failsToCompile()
         .withErrorContaining(
-            "@Bind-annotated class incorrectly in Android framework package. (android.test.Test)")
+            "@BindView-annotated class incorrectly in Android framework package. (android.test.Test)")
         .in(source).onLine(5);
   }
 
@@ -571,10 +571,10 @@ public class BindTest {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
         "package test;",
         "import android.view.View;",
-        "import butterknife.Bind;",
+        "import butterknife.BindView;",
         "public class Test {",
         "  private static class Inner {",
-        "    @Bind(1) View thing;",
+        "    @BindView(1) View thing;",
         "  }",
         "}"
     ));
@@ -583,7 +583,7 @@ public class BindTest {
         .processedWith(new ButterKnifeProcessor())
         .failsToCompile()
         .withErrorContaining(
-            "@Bind fields may not be contained in private classes. (test.Test.Inner.thing)")
+            "@BindView fields may not be contained in private classes. (test.Test.Inner.thing)")
         .in(source).onLine(5);
   }
 
@@ -591,16 +591,16 @@ public class BindTest {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
         "package test;",
         "import android.app.Activity;",
-        "import butterknife.Bind;",
+        "import butterknife.BindView;",
         "public class Test extends Activity {",
-        "  @Bind(1) String thing;",
+        "  @BindView(1) String thing;",
         "}"
     ));
 
     assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
         .failsToCompile()
-        .withErrorContaining("@Bind fields must extend from View or be an interface. (test.Test.thing)")
+        .withErrorContaining("@BindView fields must extend from View or be an interface. (test.Test.thing)")
         .in(source).onLine(5);
   }
 
@@ -608,9 +608,9 @@ public class BindTest {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
         "package test;",
         "import android.view.View;",
-        "import butterknife.Bind;",
+        "import butterknife.BindView;",
         "public interface Test {",
-        "    @Bind(1) View thing = null;",
+        "    @BindView(1) View thing = null;",
         "}"
     ));
 
@@ -618,7 +618,7 @@ public class BindTest {
         .processedWith(new ButterKnifeProcessor())
         .failsToCompile()
         .withErrorContaining(
-            "@Bind fields may only be contained in classes. (test.Test.thing)")
+            "@BindView fields may only be contained in classes. (test.Test.thing)")
         .in(source).onLine(4);
   }
 
@@ -627,16 +627,16 @@ public class BindTest {
         "package test;",
         "import android.app.Activity;",
         "import android.view.View;",
-        "import butterknife.Bind;",
+        "import butterknife.BindView;",
         "public class Test extends Activity {",
-        "    @Bind(1) private View thing;",
+        "    @BindView(1) private View thing;",
         "}"
     ));
 
     assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
         .failsToCompile()
-        .withErrorContaining("@Bind fields must not be private or static. (test.Test.thing)")
+        .withErrorContaining("@BindView fields must not be private or static. (test.Test.thing)")
         .in(source).onLine(6);
   }
 
@@ -645,16 +645,16 @@ public class BindTest {
         "package test;",
         "import android.app.Activity;",
         "import android.view.View;",
-        "import butterknife.Bind;",
+        "import butterknife.BindView;",
         "public class Test extends Activity {",
-        "    @Bind(1) static View thing;",
+        "    @BindView(1) static View thing;",
         "}"
     ));
 
     assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
         .failsToCompile()
-        .withErrorContaining("@Bind fields must not be private or static. (test.Test.thing)")
+        .withErrorContaining("@BindView fields must not be private or static. (test.Test.thing)")
         .in(source).onLine(6);
   }
 
@@ -663,10 +663,10 @@ public class BindTest {
         "package test;",
         "import android.app.Activity;",
         "import android.view.View;",
-        "import butterknife.Bind;",
+        "import butterknife.BindView;",
         "public class Test extends Activity {",
-        "    @Bind(1) View thing1;",
-        "    @Bind(1) View thing2;",
+        "    @BindView(1) View thing1;",
+        "    @BindView(1) View thing2;",
         "}"
     ));
 
@@ -674,7 +674,7 @@ public class BindTest {
         .processedWith(new ButterKnifeProcessor())
         .failsToCompile()
         .withErrorContaining(
-            "Attempt to use @Bind for an already bound ID 1 on 'thing1'. (test.Test.thing2)")
+            "Attempt to use @BindView for an already bound ID 1 on 'thing1'. (test.Test.thing2)")
         .in(source).onLine(7);
   }
 
@@ -733,9 +733,9 @@ public class BindTest {
         "package test;",
         "import android.app.Activity;",
         "import android.view.View;",
-        "import butterknife.Bind;",
+        "import butterknife.BindView;",
         "public class Test extends Activity {",
-        "    @Bind({1, 2, 3}) View[] thing;",
+        "    @BindView({1, 2, 3}) View[] thing;",
         "}"
     ));
 
@@ -792,9 +792,9 @@ public class BindTest {
         "package test;",
         "import android.app.Activity;",
         "import android.view.View;",
-        "import butterknife.Bind;",
+        "import butterknife.BindView;",
         "public class Test<T extends View> extends Activity {",
-        "    @Bind({1, 2, 3}) T[] thing;",
+        "    @BindView({1, 2, 3}) T[] thing;",
         "}"
     ));
 
@@ -851,9 +851,9 @@ public class BindTest {
         "package test;",
         "import android.app.Activity;",
         "import android.widget.TextView;",
-        "import butterknife.Bind;",
+        "import butterknife.BindView;",
         "public class Test extends Activity {",
-        "    @Bind({1, 2, 3}) TextView[] thing;",
+        "    @BindView({1, 2, 3}) TextView[] thing;",
         "}"
     ));
 
@@ -911,10 +911,10 @@ public class BindTest {
         "package test;",
         "import android.app.Activity;",
         "import android.view.View;",
-        "import butterknife.Bind;",
+        "import butterknife.BindView;",
         "import java.util.List;",
         "public class Test extends Activity {",
-        "    @Bind({1, 2, 3}) List<View> thing;",
+        "    @BindView({1, 2, 3}) List<View> thing;",
         "}"
     ));
 
@@ -970,11 +970,11 @@ public class BindTest {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
         "package test;",
         "import android.app.Activity;",
-        "import butterknife.Bind;",
+        "import butterknife.BindView;",
         "import java.util.List;",
         "public class Test {",
         "    interface TestInterface {}",
-        "    @Bind({1, 2, 3}) List<TestInterface> thing;",
+        "    @BindView({1, 2, 3}) List<TestInterface> thing;",
         "}"
     ));
 
@@ -1031,10 +1031,10 @@ public class BindTest {
         "package test;",
         "import android.app.Activity;",
         "import android.view.View;",
-        "import butterknife.Bind;",
+        "import butterknife.BindView;",
         "import java.util.List;",
         "public class Test<T extends View> extends Activity {",
-        "    @Bind({1, 2, 3}) List<T> thing;",
+        "    @BindView({1, 2, 3}) List<T> thing;",
         "}"
     ));
 
@@ -1091,11 +1091,11 @@ public class BindTest {
         "package test;",
         "import android.app.Activity;",
         "import android.view.View;",
-        "import butterknife.Bind;",
+        "import butterknife.BindView;",
         "import java.util.List;",
         "public class Test extends Activity {",
         "    @interface Nullable {}",
-        "    @Nullable @Bind({1, 2, 3}) List<View> thing;",
+        "    @Nullable @BindView({1, 2, 3}) List<View> thing;",
         "}"
     ));
 
@@ -1151,34 +1151,34 @@ public class BindTest {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
         "package test;",
         "import android.view.View;",
-        "import butterknife.Bind;",
+        "import butterknife.BindView;",
         "import java.util.List;",
         "public class Test {",
-        "  @Bind({}) List<View> thing;",
+        "  @BindView({}) List<View> thing;",
         "}"
     ));
 
     assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
         .failsToCompile()
-        .withErrorContaining("@Bind must specify at least one ID. (test.Test.thing)")
+        .withErrorContaining("@BindView must specify at least one ID. (test.Test.thing)")
         .in(source).onLine(6);
   }
 
   @Test public void failsIfNoGenericType() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
         "package test;",
-        "import butterknife.Bind;",
+        "import butterknife.BindView;",
         "import java.util.List;",
         "public class Test {",
-        "  @Bind(1) List thing;",
+        "  @BindView(1) List thing;",
         "}"
     ));
 
     assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
         .failsToCompile()
-        .withErrorContaining("@Bind List must have a generic component. (test.Test.thing)")
+        .withErrorContaining("@BindView List must have a generic component. (test.Test.thing)")
         .in(source).onLine(5);
   }
 
@@ -1186,17 +1186,17 @@ public class BindTest {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
         "package test;",
         "import android.view.View;",
-        "import butterknife.Bind;",
+        "import butterknife.BindView;",
         "import java.util.Deque;",
         "public class Test {",
-        "  @Bind(1) Deque<View> thing;",
+        "  @BindView(1) Deque<View> thing;",
         "}"
     ));
 
     assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
         .failsToCompile()
-        .withErrorContaining("@Bind must be a List or array. (test.Test.thing)")
+        .withErrorContaining("@BindView must be a List or array. (test.Test.thing)")
         .in(source).onLine(6);
   }
 
@@ -1204,17 +1204,17 @@ public class BindTest {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
         "package test;",
         "import android.app.Activity;",
-        "import butterknife.Bind;",
+        "import butterknife.BindView;",
         "import java.util.List;",
         "public class Test extends Activity {",
-        "  @Bind(1) List<String> thing;",
+        "  @BindView(1) List<String> thing;",
         "}"
     ));
 
     assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
         .failsToCompile()
-        .withErrorContaining("@Bind List or array type must extend from View or be an interface. (test.Test.thing)")
+        .withErrorContaining("@BindView List or array type must extend from View or be an interface. (test.Test.thing)")
         .in(source).onLine(6);
   }
 
@@ -1222,15 +1222,15 @@ public class BindTest {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
         "package test;",
         "import android.app.Activity;",
-        "import butterknife.Bind;",
+        "import butterknife.BindView;",
         "public class Test extends Activity {",
-        "  @Bind(1) String[] thing;",
+        "  @BindView(1) String[] thing;",
         "}"));
 
     assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
         .failsToCompile()
-        .withErrorContaining("@Bind List or array type must extend from View or be an interface. (test.Test.thing)")
+        .withErrorContaining("@BindView List or array type must extend from View or be an interface. (test.Test.thing)")
         .in(source).onLine(5);
   }
 
@@ -1239,17 +1239,17 @@ public class BindTest {
         "package test;",
         "import android.app.Activity;",
         "import android.view.View;",
-        "import butterknife.Bind;",
+        "import butterknife.BindView;",
         "import java.util.List;",
         "public class Test extends Activity {",
-        "    @Bind({1, 1}) List<View> thing;",
+        "    @BindView({1, 1}) List<View> thing;",
         "}"
     ));
 
     assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
         .failsToCompile()
-        .withErrorContaining("@Bind annotation contains duplicate ID 1. (test.Test.thing)")
+        .withErrorContaining("@BindView annotation contains duplicate ID 1. (test.Test.thing)")
         .in(source).onLine(7);
   }
 }
