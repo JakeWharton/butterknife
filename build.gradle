@@ -58,9 +58,9 @@ ext.deps = [
 
     // Test dependencies
     junit: 'junit:junit:4.12',
-    truth: 'com.google.truth:truth:0.27',
+    truth: 'com.google.truth:truth:0.28',
     robolectric: 'org.robolectric:robolectric:2.2',
-    compiletesting: 'com.google.testing.compile:compile-testing:0.7',
+    compiletesting: 'com.google.testing.compile:compile-testing:0.9',
     autoservice: 'com.google.auto.service:auto-service:1.0-rc2',
-    autocommon: 'com.google.auto:auto-common:0.4'
+    autocommon: 'com.google.auto:auto-common:0.6'
 ]
