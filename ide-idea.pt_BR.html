@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Butter Knife</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Field and method binding for Android views.">
+    <link href="http://fonts.googleapis.com/css?family=Roboto:regular,medium,thin,italic,mediumitalic,bold" rel="stylesheet" title="roboto">
+    <link href="static/bootstrap.min.css" rel="stylesheet">
+    <link href="static/bootstrap-responsive.min.css" rel="stylesheet">
+    <link href="static/prettify.css" rel="stylesheet">
+    <link href="static/app.css" rel="stylesheet">
+  </head>
+  <body>
+    <div class="container">
+      <div class="row">
+        <div class="span4 side">
+          <img src="static/logo.png">
+          <h1>Butter Knife</h1>
+          <h2>Field and method binding for Android views</h2>
+        </div>
+        <div class="offset4 span8 main">
+          <div class="main-inner">
+            <p><a href="index.html">&laquo; Back to Butter Knife</a></p>
+
+            <h3 id="introduction">IntelliJ IDEA Configuration</h3>
+            <p>Open IDEA's preference and navigate to <em>Compiler &rarr; Annotation Processors</em>. Check <em>"Enable annotation processing"</em>.<p>
+            <p><img src="static/ide-idea1.png"/></p>
+
+            <a id="ribbon" href="https://github.com/JakeWharton/butterknife"><img src="static/ribbon.png" alt="Fork me on GitHub"></a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+    <script src="static/jquery-maven-artifact.min.js"></script>
+    <script src="static/prettify.js"></script>
+    <script>
+      prettyPrint();
+      $.fn.artifactVersion('com.jakewharton', 'butterknife', function(version, url) {
+        $('.version').text(version);
+        $('#download-btn').text('Butter Knife v' + version + ' JAR').attr('href', url);
+      });
+    </script>
+  </body>
+</html>

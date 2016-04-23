@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Butter Knife</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Field and method binding for Android views.">
+    <link href="http://fonts.googleapis.com/css?family=Roboto:regular,medium,thin,italic,mediumitalic,bold" rel="stylesheet" title="roboto">
+    <link href="static/bootstrap.min.css" rel="stylesheet">
+    <link href="static/bootstrap-responsive.min.css" rel="stylesheet">
+    <link href="static/prettify.css" rel="stylesheet">
+    <link href="static/app.css" rel="stylesheet">
+  </head>
+  <body>
+    <div class="container">
+      <div class="row">
+        <div class="span4 side">
+          <img src="static/logo.png">
+          <h1>Butter Knife</h1>
+          <h2>Field and method binding for Android views</h2>
+          <p><a href="javadoc/">Javadoc</a> &middot; <a href="http://stackoverflow.com/questions/ask?tags=butterknife">StackOverflow</a></p>
+        </div>
+        <div class="offset4 span8 main">
+          <div class="main-inner">
+            <h3 id="introduction">Introduction</h3>
+            <p>Annotate fields with <code>@Bind</code> and a view ID for Butter Knife to find and automatically cast the corresponding view in your layout.</p>
+            <pre class="prettyprint">class ExampleActivity extends Activity {
+  @Bind(R.id.title) TextView title;
+  @Bind(R.id.subtitle) TextView subtitle;
+  @Bind(R.id.footer) TextView footer;
+
+  @Override public void onCreate(Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+    setContentView(R.layout.simple_activity);
+    ButterKnife.bind(this);
+    // TODO Use fields...
+  }
+}</pre>
+            <p>Instead of slow reflection, code is generated to perform the view look-ups. Calling <code>bind</code> delegates to this generated code that you can see and debug.</p>
+            <p>The generated code for the above example is roughly equivalent to the following:</p>
+            <pre class="prettyprint">public void bind(ExampleActivity activity) {
+  activity.subtitle = (android.widget.TextView) activity.findViewById(2130968578);
+  activity.footer = (android.widget.TextView) activity.findViewById(2130968579);
+  activity.title = (android.widget.TextView) activity.findViewById(2130968577);
+}</pre>
+
+            <h4 id="non-activity">Non-Activity Binding</h4>
+            <p>You can also perform binding on arbitrary objects by supplying your own view root.</p>
+            <pre class="prettyprint">public class FancyFragment extends Fragment {
+  @Bind(R.id.button1) Button button1;
+  @Bind(R.id.button2) Button button2;
+
+  @Override public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    View view = inflater.inflate(R.layout.fancy_fragment, container, false);
+    ButterKnife.bind(this, view);
+    // TODO Use fields...
+    return view;
+  }
+}</pre>
+            <p>Another use is simplifying the view holder pattern inside of a list adapter.</p>
+            <pre class="prettyprint">public class MyAdapter extends BaseAdapter {
+  @Override public View getView(int position, View view, ViewGroup parent) {
+    ViewHolder holder;
+    if (view != null) {
+      holder = (ViewHolder) view.getTag();
+    } else {
+      view = inflater.inflate(R.layout.whatever, parent, false);
+      holder = new ViewHolder(view);
+      view.setTag(holder);
+    }
+
+    holder.name.setText("John Doe");
+    // etc...
+
+    return view;
+  }
+
+  static class ViewHolder {
+    @Bind(R.id.title) TextView name;
+    @Bind(R.id.job_title) TextView jobTitle;
+
+    public ViewHolder(View view) {
+      ButterKnife.bind(this, view);
+    }
+  }
+}</pre>
+            <p>You can see this implementation in action in the provided sample.</p>
+            <p>Calls to <code>ButterKnife.bind</code> can be made anywhere you would otherwise put <code>findViewById</code> calls.</p>
+            <p>Other provided binding APIs:</p>
+            <ul>
+              <li>Bind arbitrary objects using an activity as the view root. If you use a pattern like MVC you can bind the controller using its activity with <code>ButterKnife.bind(this, activity)</code>.</li>
+              <li>Bind a view's children into fields using <code>ButterKnife.bind(this)</code>. If you use <code>&lt;merge></code> tags in a layout and inflate in a custom view constructor you can
+   call this immediately after. Alternatively, custom view types inflated from
+   XML can use it in the <code>onFinishInflate()</code> callback.</li>
+            </ul>
+
+            <h4 id="view-lists">View Lists</h4>
+            <p>You can group multiple views into a <code>List</code> or array.</p>
+            <pre class="prettyprint">@Bind({ R.id.first_name, R.id.middle_name, R.id.last_name })
+List&lt;EditText> nameViews;</pre>
+            <p>The <code>apply</code> method allows you to act on all the views in a list at once.</p>
+            <pre class="prettyprint">ButterKnife.apply(nameViews, DISABLE);
+ButterKnife.apply(nameViews, ENABLED, false);</pre>
+            <p><code>Action</code> and <code>Setter</code> interfaces allow specifying simple behavior.</p>
+            <pre class="prettyprint">static final ButterKnife.Action&lt;View> DISABLE = new ButterKnife.Action&lt;View>() {
+  @Override public void apply(View view, int index) {
+    view.setEnabled(false);
+  }
+};
+static final ButterKnife.Setter&lt;View, Boolean> ENABLED = new ButterKnife.Setter&lt;View, Boolean>() {
+  @Override public void set(View view, Boolean value, int index) {
+    view.setEnabled(value);
+  }
+};</pre>
+            <p>An Android <a href="https://developer.android.com/reference/android/util/Property.html"><code>Property</code></a> can also be used with the <code>apply</code> method.</p>
+            <pre class="prettyprint">ButterKnife.apply(nameViews, View.ALPHA, 0.0f);</pre>
+
+            <h4 id="listener-binding">Listener Binding</h4>
+            <p>Listeners can also automatically be configured onto methods.</p>
+            <pre class="prettyprint">@OnClick(R.id.submit)
+public void submit(View view) {
+  // TODO submit data to server...
+}</pre>
+            <p>All arguments to the listener method are optional.</p>
+            <pre class="prettyprint">@OnClick(R.id.submit)
+public void submit() {
+  // TODO submit data to server...
+}</pre>
+            <p>Define a specific type and it will automatically be cast.</p>
+            <pre class="prettyprint">@OnClick(R.id.submit)
+public void sayHi(Button button) {
+  button.setText("Hello!");
+}</pre>
+            <p>Specify multiple IDs in a single binding for common event handling.</p>
+            <pre class="prettyprint">@OnClick({ R.id.door1, R.id.door2, R.id.door3 })
+public void pickDoor(DoorView door) {
+  if (door.hasPrizeBehind()) {
+    Toast.makeText(this, "You win!", LENGTH_SHORT).show();
+  } else {
+    Toast.makeText(this, "Try again", LENGTH_SHORT).show();
+  }
+}</pre>
+            <p>Custom views can bind to their own listeners by not specifying an ID.</p>
+            <pre class="prettyprint">public class FancyButton extends Button {
+  @OnClick
+  public void onClick() {
+    // TODO do something!
+  }
+}
+</pre>
+
+            <h4 id="reset">Binding Reset</h4>
+            <p>Fragments have a different view lifecycle than activities. When binding a fragment in <code>onCreateView</code>, set the views to <code>null</code> in <code>onDestroyView</code>. Butter Knife has an <code>unbind</code> method to do this automatically.</p>
+            <pre class="prettyprint">public class FancyFragment extends Fragment {
+  @Bind(R.id.button1) Button button1;
+  @Bind(R.id.button2) Button button2;
+
+  @Override public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    View view = inflater.inflate(R.layout.fancy_fragment, container, false);
+    ButterKnife.bind(this, view);
+    // TODO Use fields...
+    return view;
+  }
+
+  @Override public void onDestroyView() {
+    super.onDestroyView();
+    ButterKnife.unbind(this);
+  }
+}</pre>
+
+            <h4 id="optional">Optional Bindings</h4>
+            <p>By default, both <code>@Bind</code> and listener bindings are required. An exception will be thrown if the target view cannot be found.</p>
+            <p>To suppress this behavior and create an optional binding, add a <code>@Nullable</code> annotation to the field or method.</p>
+            <p>Note: Any annotation named <code>@Nullable</code> can be used for this purpose. It is encouraged to use the <code>@Nullable</code> annotation from Android's "support-annotations" library, see <a href="http://tools.android.com/tech-docs/support-annotations">Android Tools Project</a>.</p>
+            <pre class="prettyprint">@Nullable @Bind(R.id.might_not_be_there) TextView mightNotBeThere;
+
+@Nullable @OnClick(R.id.maybe_missing) void onMaybeMissingClicked() {
+  // TODO ...
+}</pre>
+
+            <h4 id="multi-method-listeners">Multi-Method Listeners</h4>
+            <p>Method annotations whose corresponding listener has multiple callbacks can be used to bind to any one of them. Each annotation has a default callback that it binds to. Specify an alternate using the <code>callback</code> parameter.</p>
+            <pre class="prettyprint">@OnItemSelected(R.id.list_view)
+void onItemSelected(int position) {
+  // TODO ...
+}
+
+@OnItemSelected(value = R.id.maybe_missing, callback = NOTHING_SELECTED)
+void onNothingSelected() {
+  // TODO ...
+}</pre>
+
+            <h4 id="bonus">Bonus</h4>
+            <p>Also included are <code>findById</code> methods which simplify code that still has to find views on a <code>View</code>, <code>Activity</code>, or <code>Dialog</code>. It uses generics to infer the return type and automatically performs the cast.</p>
+            <pre class="prettyprint">View view = LayoutInflater.from(context).inflate(R.layout.thing, null);
+TextView firstName = ButterKnife.findById(view, R.id.first_name);
+TextView lastName = ButterKnife.findById(view, R.id.last_name);
+ImageView photo = ButterKnife.findById(view, R.id.photo);</pre>
+            <p>Add a static import for <code>ButterKnife.findById</code> and enjoy even more fun.</p>
+
+            <h3 id="download">Download</h3>
+            <p class="downloads">
+              <a href="http://repository.sonatype.org/service/local/artifact/maven/redirect?r=central-proxy&g=com.jakewharton&a=butterknife&v=LATEST" class="btn btn-large btn-inverse" id="download-btn">Butter Knife JAR <span class="runner-version"></span></a>
+            </p>
+            <p>The source code to the library and sample application as well as this website is <a href="http://github.com/JakeWharton/butterknife">available on GitHub</a>. The Javadoc is also <a href="javadoc/index.html">available to browse</a>.</p>
+
+            <h4>Maven</h4>
+            <p>If you are using Maven for compilation you can declare the library as a dependency.</p>
+            <pre class="prettyprint">&lt;dependency>
+  &lt;groupId>com.jakewharton&lt;/groupId>
+  &lt;artifactId>butterknife&lt;/artifactId>
+  &lt;version><span class="version"><em>(insert latest version)</em></span>&lt;/version>
+&lt;/dependency></pre>
+
+            <h4>Gradle</h4>
+            <pre class="prettyprint">compile 'com.jakewharton:butterknife:<span class="version"><em>(insert latest version)</em></span>'</pre>
+            <p>Be sure to suppress this lint warning in your <code>build.gradle</code>.</p>
+            <pre class="prettyprint">lintOptions {
+  disable 'InvalidPackage'
+}</pre>
+            <p>Some configurations may also require additional exclusions.</p>
+            <pre class="prettyprint">packagingOptions {
+  exclude 'META-INF/services/javax.annotation.processing.Processor'
+}</pre>
+
+            <h4 id="ide">IDE Configuration</h4>
+            <p>Some IDEs require additional configuration in order to enable annotation processing.</p>
+            <ul>
+              <li><em>IntelliJ IDEA</em> &mdash; If your project uses an external configuration (like a Maven <code>pom.xml</code>) then annotation processing should just work. If not, try <a href="ide-idea.html">manual configuration</a>.</li>
+              <li><em>Eclipse</em> &mdash; Set up <a href="ide-eclipse.html">manual configuration</a>.</li>
+            </ul>
+
+            <h4 id="proguard">ProGuard</h4>
+            <p>Butter Knife generates and uses classes dynamically which means that static analysis tools like ProGuard may think they are unused. In order to prevent them from being removed, explicitly mark them to be kept.
+                To prevent ProGuard renaming classes that use @Bind on a member field the <code>keepclasseswithmembernames</code> option is used.</p>
+            <pre>-keep class butterknife.** { *; }
+-dontwarn butterknife.internal.**
+-keep class **$$ViewBinder { *; }
+
+-keepclasseswithmembernames class * {
+    @butterknife.* &lt;fields&gt;;
+}
+
+-keepclasseswithmembernames class * {
+    @butterknife.* &lt;methods&gt;;
+}</pre>
+
+            <h3 id="license">License</h3>
+            <pre class="license">Copyright 2013 Jake Wharton
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.</pre>
+
+            <a id="ribbon" href="https://github.com/JakeWharton/butterknife"><img src="static/ribbon.png" alt="Fork me on GitHub"></a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+    <script src="static/jquery-maven-artifact.min.js"></script>
+    <script src="static/prettify.js"></script>
+    <script>
+      prettyPrint();
+      $.fn.artifactVersion('com.jakewharton', 'butterknife', function(version, url) {
+        $('.version').text(version);
+        $('#download-btn').text('Butter Knife v' + version + ' JAR').attr('href', url);
+      });
+    </script>
+  </body>
+</html>
