@@ -18,35 +18,35 @@
         <div class="span4 side">
           <img src="static/logo.png">
           <h1>Butter Knife</h1>
-          <h2>Field and method binding for Android views</h2>
+          <h2>Binding de campos e métodos para views do Android</h2>
           <p><a href="javadoc/">Javadoc</a> &middot; <a href="http://stackoverflow.com/questions/ask?tags=butterknife">StackOverflow</a></p>
         </div>
         <div class="offset4 span8 main">
           <div class="main-inner">
-            <h3 id="introduction">Introduction</h3>
-            <p>Annotate fields with <code>@Bind</code> and a view ID for Butter Knife to find and automatically cast the corresponding view in your layout.</p>
-            <pre class="prettyprint">class ExampleActivity extends Activity {
-  @Bind(R.id.title) TextView title;
-  @Bind(R.id.subtitle) TextView subtitle;
-  @Bind(R.id.footer) TextView footer;
+            <h3 id="introduction">Introdução</h3>
+            <p>Adicione anotações <code>@Bind</code> e um ID à view para o Butter Knife encontrar e fazer o cast automáticamente da view correspondente no seu layout.</p>
+            <pre class="prettyprint">class ActivityExemplo extends Activity {
+  @Bind(R.id.title) TextView titulo;
+  @Bind(R.id.subtitle) TextView subtitulo;
+  @Bind(R.id.footer) TextView rodape;
 
   @Override public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.simple_activity);
     ButterKnife.bind(this);
-    // TODO Use fields...
+    // TODO Use os campos...
   }
 }</pre>
-            <p>Instead of slow reflection, code is generated to perform the view look-ups. Calling <code>bind</code> delegates to this generated code that you can see and debug.</p>
-            <p>The generated code for the above example is roughly equivalent to the following:</p>
+            <p>Ao invés de uma reflexão lenta, o código é gerado para encontrar as views. Chamar <code>bind</code> gera o código abaixo que você pode ver e depurar.</p>
+            <p>O código gerado para o exemplo acima é equivalente ao seguinte:</p>
             <pre class="prettyprint">public void bind(ExampleActivity activity) {
-  activity.subtitle = (android.widget.TextView) activity.findViewById(2130968578);
-  activity.footer = (android.widget.TextView) activity.findViewById(2130968579);
-  activity.title = (android.widget.TextView) activity.findViewById(2130968577);
+  activity.subtitulo = (android.widget.TextView) activity.findViewById(2130968578);
+  activity.rodape = (android.widget.TextView) activity.findViewById(2130968579);
+  activity.titulo = (android.widget.TextView) activity.findViewById(2130968577);
 }</pre>
 
-            <h4 id="non-activity">Non-Activity Binding</h4>
-            <p>You can also perform binding on arbitrary objects by supplying your own view root.</p>
+            <h4 id="non-activity">Binding fora da Activity</h4>
+            <p>Você também pode vincular objetos arbritários passando sua view raíz.</p>
             <pre class="prettyprint">public class FancyFragment extends Fragment {
   @Bind(R.id.button1) Button button1;
   @Bind(R.id.button2) Button button2;
@@ -58,7 +58,7 @@
     return view;
   }
 }</pre>
-            <p>Another use is simplifying the view holder pattern inside of a list adapter.</p>
+            <p>Outro uso do Butter Knife é para simplificar o pattern view holder dentro de um list adapter.</p>
             <pre class="prettyprint">public class MyAdapter extends BaseAdapter {
   @Override public View getView(int position, View view, ViewGroup parent) {
     ViewHolder holder;
@@ -85,24 +85,22 @@
     }
   }
 }</pre>
-            <p>You can see this implementation in action in the provided sample.</p>
-            <p>Calls to <code>ButterKnife.bind</code> can be made anywhere you would otherwise put <code>findViewById</code> calls.</p>
-            <p>Other provided binding APIs:</p>
+            <p>Você pode ver essa implementação em ação no exemplo mostrado.</p>
+            <p>Chamadas ao <code>ButterKnife.bind</code> podem ser feitas em qualquer lugar em que você utilizaria <code>findViewById</code>.</p>
+            <p>Outras APIs de Binding providas:</p>
             <ul>
-              <li>Bind arbitrary objects using an activity as the view root. If you use a pattern like MVC you can bind the controller using its activity with <code>ButterKnife.bind(this, activity)</code>.</li>
-              <li>Bind a view's children into fields using <code>ButterKnife.bind(this)</code>. If you use <code>&lt;merge></code> tags in a layout and inflate in a custom view constructor you can
-   call this immediately after. Alternatively, custom view types inflated from
-   XML can use it in the <code>onFinishInflate()</code> callback.</li>
+              <li>Vincule objetos arbitrários usando uma activity como view raíz. Se você utiliza um pattern como o MVC você pode vincular o controller usando sua activity. <code>ButterKnife.bind(this, activity)</code>.</li>
+              <li>Vincule uma view filha em campos utilizando <code>ButterKnife.bind(this)</code>. Se você utiliza tags <code>&lt;merge></code> em um layout e inflar no construtor de uma view customizada você pode chamar esse código logo em seguida. Alternativamente, tipos de views customizadas infladas do XML podem usá-lo no callback <code>onFinishInflate()</code>.</li>
             </ul>
 
-            <h4 id="view-lists">View Lists</h4>
-            <p>You can group multiple views into a <code>List</code> or array.</p>
+            <h4 id="view-lists">Listas de Views</h4>
+            <p>Você pode agrupar multiplos Views em um<code>List</code> ou array.</p>
             <pre class="prettyprint">@Bind({ R.id.first_name, R.id.middle_name, R.id.last_name })
 List&lt;EditText> nameViews;</pre>
-            <p>The <code>apply</code> method allows you to act on all the views in a list at once.</p>
+            <p>O método <code>apply</code> permite que você use todas as views em uma lista de uma só vez.</p>
             <pre class="prettyprint">ButterKnife.apply(nameViews, DISABLE);
 ButterKnife.apply(nameViews, ENABLED, false);</pre>
-            <p><code>Action</code> and <code>Setter</code> interfaces allow specifying simple behavior.</p>
+            <p><code>As interfaces Action</code> e <code>Setter</code> permitem especificar um comportamento simples.</p>
             <pre class="prettyprint">static final ButterKnife.Action&lt;View> DISABLE = new ButterKnife.Action&lt;View>() {
   @Override public void apply(View view, int index) {
     view.setEnabled(false);
