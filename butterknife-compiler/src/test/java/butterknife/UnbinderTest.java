@@ -90,14 +90,14 @@ public class UnbinderTest {
                 "package test;",
                 "import android.support.v4.app.Fragment;",
                 "import android.view.View;",
-                "import butterknife.Bind;",
+                "import butterknife.BindView;",
                 "import butterknife.ButterKnife;",
                 "import butterknife.OnClick;",
                 "import butterknife.OnLongClick;",
                 "import butterknife.Unbinder;",
                 "public class Test extends Fragment {",
-                "  @Bind(1) View view;",
-                "  @Bind(2) View view2;",
+                "  @BindView(1) View view;",
+                "  @BindView(2) View view2;",
                 "  @OnClick(1) void doStuff() {",
                 "  }",
                 "  @OnLongClick(1) boolean doMoreStuff() { return false; }",
@@ -727,12 +727,12 @@ public class UnbinderTest {
         + "package test;\n"
         + "import android.support.annotation.ColorInt;\n"
         + "import android.view.View;\n"
-        + "import butterknife.Bind;\n"
+        + "import butterknife.BindView;\n"
         + "import butterknife.BindColor;\n"
         + "import butterknife.ButterKnife;\n"
         + "public class C extends B {\n"
         + "  @BindColor(android.R.color.transparent) @ColorInt int transparentColor;\n"
-        + "  @Bind(android.R.id.button1) View button1;\n"
+        + "  @BindView(android.R.id.button1) View button1;\n"
         + "  public C(View view) {\n"
         + "    super(view);\n"
         + "    ButterKnife.bind(this, view);\n"
@@ -785,13 +785,13 @@ public class UnbinderTest {
         + "package test;\n"
         + "import android.support.annotation.ColorInt;\n"
         + "import android.view.View;\n"
-        + "import butterknife.Bind;\n"
+        + "import butterknife.BindView;\n"
         + "import butterknife.BindColor;\n"
         + "import butterknife.ButterKnife;\n"
         + "import butterknife.OnClick;\n"
         + "public class G extends E {\n"
         + "  @BindColor(android.R.color.darker_gray) @ColorInt int grayColor;\n"
-        + "  @Bind(android.R.id.button2) View button2;\n"
+        + "  @BindView(android.R.id.button2) View button2;\n"
         + "  public G(View view) {\n"
         + "    super(view);\n"
         + "    ButterKnife.bind(this, view);\n"
@@ -804,12 +804,12 @@ public class UnbinderTest {
         + "package test;\n"
         + "import android.support.annotation.ColorInt;\n"
         + "import android.view.View;\n"
-        + "import butterknife.Bind;\n"
+        + "import butterknife.BindView;\n"
         + "import butterknife.BindColor;\n"
         + "import butterknife.ButterKnife;\n"
         + "public class H extends G {\n"
         + "  @BindColor(android.R.color.primary_text_dark) @ColorInt int grayColor;\n"
-        + "  @Bind(android.R.id.button3) View button3;\n"
+        + "  @BindView(android.R.id.button3) View button3;\n"
         + "  public H(View view) {\n"
         + "    super(view);\n"
         + "    ButterKnife.bind(this, view);\n"

@@ -1,5 +1,6 @@
 package butterknife.compiler;
 
+import butterknife.BindView;
 import com.google.auto.common.SuperficialValidation;
 import com.google.auto.service.AutoService;
 import com.squareup.javapoet.TypeName;
@@ -39,7 +40,6 @@ import javax.lang.model.type.TypeVariable;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 
-import butterknife.Bind;
 import butterknife.BindArray;
 import butterknife.BindBitmap;
 import butterknife.BindBool;
@@ -115,7 +115,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
   @Override public Set<String> getSupportedAnnotationTypes() {
     Set<String> types = new LinkedHashSet<>();
 
-    types.add(Bind.class.getCanonicalName());
+    types.add(BindView.class.getCanonicalName());
 
     for (Class<? extends Annotation> listener : LISTENERS) {
       types.add(listener.getCanonicalName());
@@ -155,13 +155,13 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     Map<TypeElement, BindingClass> targetClassMap = new LinkedHashMap<>();
     Set<TypeElement> erasedTargetNames = new LinkedHashSet<>();
 
-    // Process each @Bind element.
-    for (Element element : env.getElementsAnnotatedWith(Bind.class)) {
+    // Process each @BindView element.
+    for (Element element : env.getElementsAnnotatedWith(BindView.class)) {
       if (!SuperficialValidation.validateElement(element)) continue;
       try {
         parseBind(element, targetClassMap, erasedTargetNames);
       } catch (Exception e) {
-        logParsingError(element, Bind.class, e);
+        logParsingError(element, BindView.class, e);
       }
     }
 
@@ -388,8 +388,8 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
   private void parseBind(Element element, Map<TypeElement, BindingClass> targetClassMap,
       Set<TypeElement> erasedTargetNames) {
     // Verify common generated code restrictions.
-    if (isInaccessibleViaGeneratedCode(Bind.class, "fields", element)
-        || isBindingInWrongPackage(Bind.class, element)) {
+    if (isInaccessibleViaGeneratedCode(BindView.class, "fields", element)
+        || isBindingInWrongPackage(BindView.class, element)) {
       return;
     }
 
@@ -399,7 +399,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     } else if (LIST_TYPE.equals(doubleErasure(elementType))) {
       parseBindMany(element, targetClassMap, erasedTargetNames);
     } else if (isSubtypeOfType(elementType, ITERABLE_TYPE)) {
-      error(element, "@%s must be a List or array. (%s.%s)", Bind.class.getSimpleName(),
+      error(element, "@%s must be a List or array. (%s.%s)", BindView.class.getSimpleName(),
           ((TypeElement) element.getEnclosingElement()).getQualifiedName(),
           element.getSimpleName());
     } else {
@@ -420,15 +420,16 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     }
     if (!isSubtypeOfType(elementType, VIEW_TYPE) && !isInterface(elementType)) {
       error(element, "@%s fields must extend from View or be an interface. (%s.%s)",
-          Bind.class.getSimpleName(), enclosingElement.getQualifiedName(), element.getSimpleName());
+          BindView.class.getSimpleName(), enclosingElement.getQualifiedName(),
+          element.getSimpleName());
       hasError = true;
     }
 
     // Assemble information on the field.
-    int[] ids = element.getAnnotation(Bind.class).value();
+    int[] ids = element.getAnnotation(BindView.class).value();
     if (ids.length != 1) {
       error(element, "@%s for a view must only specify one ID. Found: %s. (%s.%s)",
-          Bind.class.getSimpleName(), Arrays.toString(ids), enclosingElement.getQualifiedName(),
+          BindView.class.getSimpleName(), Arrays.toString(ids), enclosingElement.getQualifiedName(),
           element.getSimpleName());
       hasError = true;
     }
@@ -446,7 +447,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
         if (iterator.hasNext()) {
           FieldViewBinding existingBinding = iterator.next();
           error(element, "Attempt to use @%s for an already bound ID %d on '%s'. (%s.%s)",
-              Bind.class.getSimpleName(), id, existingBinding.getName(),
+              BindView.class.getSimpleName(), id, existingBinding.getName(),
               enclosingElement.getQualifiedName(), element.getSimpleName());
           return;
         }
@@ -485,7 +486,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
       List<? extends TypeMirror> typeArguments = declaredType.getTypeArguments();
       if (typeArguments.size() != 1) {
         error(element, "@%s List must have a generic component. (%s.%s)",
-            Bind.class.getSimpleName(), enclosingElement.getQualifiedName(),
+            BindView.class.getSimpleName(), enclosingElement.getQualifiedName(),
             element.getSimpleName());
         hasError = true;
       } else {
@@ -503,7 +504,8 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     // Verify that the target type extends from View.
     if (viewType != null && !isSubtypeOfType(viewType, VIEW_TYPE) && !isInterface(viewType)) {
       error(element, "@%s List or array type must extend from View or be an interface. (%s.%s)",
-          Bind.class.getSimpleName(), enclosingElement.getQualifiedName(), element.getSimpleName());
+          BindView.class.getSimpleName(), enclosingElement.getQualifiedName(),
+          element.getSimpleName());
       hasError = true;
     }
 
@@ -513,17 +515,18 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
     // Assemble information on the field.
     String name = element.getSimpleName().toString();
-    int[] ids = element.getAnnotation(Bind.class).value();
+    int[] ids = element.getAnnotation(BindView.class).value();
     if (ids.length == 0) {
-      error(element, "@%s must specify at least one ID. (%s.%s)", Bind.class.getSimpleName(),
+      error(element, "@%s must specify at least one ID. (%s.%s)", BindView.class.getSimpleName(),
           enclosingElement.getQualifiedName(), element.getSimpleName());
       return;
     }
 
     Integer duplicateId = findDuplicate(ids);
     if (duplicateId != null) {
-      error(element, "@%s annotation contains duplicate ID %d. (%s.%s)", Bind.class.getSimpleName(),
-          duplicateId, enclosingElement.getQualifiedName(), element.getSimpleName());
+      error(element, "@%s annotation contains duplicate ID %d. (%s.%s)",
+          BindView.class.getSimpleName(), duplicateId, enclosingElement.getQualifiedName(),
+          element.getSimpleName());
     }
 
     assert viewType != null; // Always false as hasError would have been true.

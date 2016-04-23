@@ -157,10 +157,10 @@ public class OnClickTest {
         "package test;",
         "import android.app.Activity;",
         "import android.view.View;",
-        "import butterknife.Bind;",
+        "import butterknife.BindView;",
         "import butterknife.OnClick;",
         "public class Test extends Activity {",
-        "  @Bind(1) View view;",
+        "  @BindView(1) View view;",
         "  @OnClick(1) void doStuff() {}",
         "}"));
 
@@ -509,11 +509,11 @@ public class OnClickTest {
         "package test;",
         "import android.app.Activity;",
         "import android.view.View;",
-        "import butterknife.Bind;",
+        "import butterknife.BindView;",
         "import butterknife.OnClick;",
         "import butterknife.Optional;",
         "public class Test extends Activity {",
-        "  @Bind(1) View view;",
+        "  @BindView(1) View view;",
         "  @Optional @OnClick(1) void doStuff() {}",
         "}"));
 
