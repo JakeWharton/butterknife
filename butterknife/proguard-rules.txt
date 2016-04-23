@@ -4,3 +4,4 @@
 # Prevent obfuscation of types which use ButterKnife annotations since the simple name
 # is used to reflectively look up the generated ViewBinder.
 -keepclasseswithmembernames class * { @butterknife.* *; }
+-dontwarn butterknife.internal.**
