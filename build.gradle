@@ -51,7 +51,7 @@ ext.deps = [
     supportAnnotations: 'com.android.support:support-annotations:23.0.1',
 
     // Square
-    javapoet: 'com.squareup:javapoet:1.4.0',
+    javapoet: 'com.squareup:javapoet:1.6.1',
 
     // Other
     rxjava: 'io.reactivex:rxjava:1.1.2',
