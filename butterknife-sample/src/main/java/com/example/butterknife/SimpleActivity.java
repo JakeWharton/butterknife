@@ -9,14 +9,13 @@ import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import butterknife.BindView;
-import java.util.List;
-
+import butterknife.BindViews;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import butterknife.OnItemClick;
 import butterknife.OnLongClick;
+import java.util.List;
 
 import static android.widget.Toast.LENGTH_SHORT;
 
@@ -37,7 +36,7 @@ public class SimpleActivity extends Activity {
   @BindView(R.id.list_of_things) ListView listOfThings;
   @BindView(R.id.footer) TextView footer;
 
-  @BindView({ R.id.title, R.id.subtitle, R.id.hello })
+  @BindViews({ R.id.title, R.id.subtitle, R.id.hello })
   List<View> headerViews;
 
   private SimpleAdapter adapter;

@@ -107,7 +107,7 @@
 
             <h4 id="view-lists">View Lists</h4>
             <p>You can group multiple views into a <code>List</code> or array.</p>
-            <pre class="prettyprint">@BindView({ R.id.first_name, R.id.middle_name, R.id.last_name })
+            <pre class="prettyprint">@BindViews({ R.id.first_name, R.id.middle_name, R.id.last_name })
 List&lt;EditText> nameViews;</pre>
             <p>The <code>apply</code> method allows you to act on all the views in a list at once.</p>
             <pre class="prettyprint">ButterKnife.apply(nameViews, DISABLE);
