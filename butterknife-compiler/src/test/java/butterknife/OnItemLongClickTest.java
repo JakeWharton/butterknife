@@ -23,51 +23,53 @@ public class OnItemLongClickTest {
         "}"
     ));
 
-    JavaFileObject expectedSource = JavaFileObjects.forSourceString("test/Test$$ViewBinder", ""
-        + "package test;\n"
-        + "import android.view.View;\n"
-        + "import android.widget.AdapterView;\n"
-        + "import butterknife.Unbinder;\n"
-        + "import butterknife.internal.Finder;\n"
-        + "import butterknife.internal.ViewBinder;\n"
-        + "import java.lang.IllegalStateException;\n"
-        + "import java.lang.Object;\n"
-        + "import java.lang.Override;\n"
-        + "public class Test$$ViewBinder<T extends Test> implements ViewBinder<T> {\n"
-        + "  @Override\n"
-        + "  public Unbinder bind(final Finder finder, final T target, Object source) {\n"
-        + "    InnerUnbinder unbinder = createUnbinder(target);\n"
-        + "    View view;\n"
-        + "    view = finder.findRequiredView(source, 1, \"method 'doStuff'\");\n"
-        + "    unbinder.view1 = view;\n"
-        + "    ((AdapterView<?>) view).setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {\n"
-        + "      @Override\n"
-        + "      public boolean onItemLongClick(AdapterView<?> p0, View p1, int p2, long p3) {\n"
-        + "        return target.doStuff();\n"
-        + "      }\n"
-        + "    });\n"
-        + "    return unbinder;\n"
-        + "  }\n"
-        + "  protected InnerUnbinder<T> createUnbinder(T target) {\n"
-        + "    return new InnerUnbinder(target);\n"
-        + "  }\n"
-        + "  protected static class InnerUnbinder<T extends Test> implements Unbinder {\n"
-        + "    private T target;\n"
-        + "    View view1;\n"
-        + "    protected InnerUnbinder(T target) {\n"
-        + "      this.target = target;\n"
-        + "    }\n"
-        + "    @Override\n"
-        + "    public final void unbind() {\n"
-        + "      if (target == null) throw new IllegalStateException(\"Bindings already cleared.\");\n"
-        + "      unbind(target);\n"
-        + "      target = null;\n"
-        + "    }\n"
-        + "    protected void unbind(T target) {\n"
-        + "      ((AdapterView<?>) view1).setOnItemLongClickListener(null);\n"
-        + "    }\n"
-        + "  }\n"
-        + "}");
+    JavaFileObject expectedSource = JavaFileObjects.forSourceString("test/Test$$ViewBinder",
+        Joiner.on('\n').join(
+            "package test;",
+            "import android.view.View;",
+            "import android.widget.AdapterView;",
+            "import butterknife.Unbinder;",
+            "import butterknife.internal.Finder;",
+            "import butterknife.internal.ViewBinder;",
+            "import java.lang.IllegalStateException;",
+            "import java.lang.Object;",
+            "import java.lang.Override;",
+            "public class Test$$ViewBinder<T extends Test> implements ViewBinder<T> {",
+            "  @Override",
+            "  public Unbinder bind(final Finder finder, final T target, Object source) {",
+            "    InnerUnbinder unbinder = createUnbinder(target);",
+            "    View view;",
+            "    view = finder.findRequiredView(source, 1, \"method 'doStuff'\");",
+            "    unbinder.view1 = view;",
+            "    ((AdapterView<?>) view).setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {",
+            "      @Override",
+            "      public boolean onItemLongClick(AdapterView<?> p0, View p1, int p2, long p3) {",
+            "        return target.doStuff();",
+            "      }",
+            "    });",
+            "    return unbinder;",
+            "  }",
+            "  protected InnerUnbinder<T> createUnbinder(T target) {",
+            "    return new InnerUnbinder(target);",
+            "  }",
+            "  protected static class InnerUnbinder<T extends Test> implements Unbinder {",
+            "    private T target;",
+            "    View view1;",
+            "    protected InnerUnbinder(T target) {",
+            "      this.target = target;",
+            "    }",
+            "    @Override",
+            "    public final void unbind() {",
+            "      if (target == null) throw new IllegalStateException(\"Bindings already cleared.\");",
+            "      unbind(target);",
+            "      target = null;",
+            "    }",
+            "    protected void unbind(T target) {",
+            "      ((AdapterView<?>) view1).setOnItemLongClickListener(null);",
+            "    }",
+            "  }",
+            "}"
+        ));
 
     assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
