@@ -22,22 +22,22 @@
         </div>
         <div class="offset4 span8 main">
           <div class="main-inner">
-            <p><a href="index.html">&laquo; voltar para Butter Knife</a></p>
+            <p><a href="index.pt_BR.html">&laquo; voltar para Butter Knife</a></p>
 
             <h3 id="introduction">Configuração no Eclipse</h3>
             <ol>
               <li>
-                <p>Dê um clique direto no seu projeto no <em>Explorador de pacotes</em>, vá para <em>Propriedades</em>, navegue para <em>compilador Java &rarr; processamento de anotações</em> e marque <em>"Habilitar configurações específicas do projeto"</em>.<p>
+                <p>Clique com o botão direito no <em>Explorador de pacotes</em> do seu projeto, vá para <em>Propriedades</em>, navegue para <em>compilador Java &rarr; processamento de anotações</em> e marque <em>"Habilitar configurações específicas do projeto"</em>.<p>
                 <p>Garanta que a outra configuração de processamento de anotações são as mesmas que as mostradas abaixo:</p>
                 <p><img src="static/ide-eclipse1.png"/></p>
               </li>
               <li>
-                <p>Expanda a seção de <em>Processamento de Anotações</em> e selecione <em>Factory Path</em>. Marque <em>"Habilitar configurações específicas do projeto"</em> e então clique em <em>"Add JARs…"</em>. Navegue para a pasta <code>libs/</code> do projetoe selecione o jar do Butter Knife.</p>
+                <p>Expanda a seção de <em>Processamento de Anotações</em> e selecione <em>Factory Path</em>. Marque <em>"Habilitar configurações específicas do projeto"</em> e então clique em <em>"Add JARs…"</em>. Navegue para a pasta <code>libs/</code> do projeto e selecione o jar do Butter Knife.</p>
                 <p><img src="static/ide-eclipse2.png"/></p>
               </li>
-              <li>Clique em <em>"Ok"</em> para salvar as novas configurações. O Eclipse irá perguntar a você para refazer seu projeto o qual você pode clicar em <em>"Sim"</em></li>
-              <li>Confira se a pasta <code>.apt_generated/</code> está na raíz do seu projeto. Ela pode conter arquivos como <code>YOURACTIVITY$$ViewBinder.java</code>. Se estes arquivos não estiverem presentes trigger a clean build by selected <em>Project &rarr; Clean</em>. Esta pasta e os arquivos podem não ser marcados no controle de revisão.
-              <li>Por último, em <em>"Compilador Java"</em>, confira se o <em>level de conformidade do compilador</em> está definido para a versão 1.6 do Java no mínimo.</li>
+              <li>Clique em <em>"Ok"</em> para salvar as novas configurações. O Eclipse irá pedir para fazer o rebuild de seu projeto, você deve clicar em <em>"Sim"</em></li>
+              <li>Confira se a pasta <code>.apt_generated/</code> está na raíz do seu projeto. Ela pode conter arquivos como <code>YOURACTIVITY$$ViewBinder.java</code>. Se estes arquivos não estiverem presentes dê um clean build selecionando <em>Project &rarr; Clean</em>. Esta pasta e seus arquivos não devem ser marcados no controle de revisão.
+              <li>Por último, em <em>"Compilador Java"</em>, confira se a <em>versão do java</em> está definido para maior ou igual a 1.6.</li>
             </ol>
 
             <a id="ribbon" href="https://github.com/JakeWharton/butterknife"><img src="static/ribbon.png" alt="Fork me on GitHub"></a>
