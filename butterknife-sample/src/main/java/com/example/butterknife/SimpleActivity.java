@@ -36,11 +36,9 @@ public class SimpleActivity extends Activity {
   @BindView(R.id.list_of_things) ListView listOfThings;
   @BindView(R.id.footer) TextView footer;
 
-  @BindViews({ R.id.title, R.id.subtitle, R.id.hello })
-  List<View> headerViews;
+  @BindViews({ R.id.title, R.id.subtitle, R.id.hello }) List<View> headerViews;
 
   private SimpleAdapter adapter;
-
 
   @OnClick(R.id.hello) void sayHello() {
     Toast.makeText(this, "Hello, views!", LENGTH_SHORT).show();
