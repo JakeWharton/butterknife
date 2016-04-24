@@ -111,26 +111,26 @@ static final ButterKnife.Setter&lt;View, Boolean> ENABLED = new ButterKnife.Sett
     view.setEnabled(value);
   }
 };</pre>
-            <p>An Android <a href="https://developer.android.com/reference/android/util/Property.html"><code>Property</code></a> can also be used with the <code>apply</code> method.</p>
+            <p>Uma <a href="https://developer.android.com/reference/android/util/Property.html"><code>Property</code></a> do Android também pode ser utilizada com o método <code>apply</code>.</p>
             <pre class="prettyprint">ButterKnife.apply(nameViews, View.ALPHA, 0.0f);</pre>
 
-            <h4 id="listener-binding">Listener Binding</h4>
+            <h4 id="listener-binding">Vinculação de Listeners</h4>
             <p>Listeners can also automatically be configured onto methods.</p>
             <pre class="prettyprint">@OnClick(R.id.submit)
 public void submit(View view) {
   // TODO submit data to server...
 }</pre>
-            <p>All arguments to the listener method are optional.</p>
+            <p>Todos os argumentos do listener são opcionais.</p>
             <pre class="prettyprint">@OnClick(R.id.submit)
 public void submit() {
   // TODO submit data to server...
 }</pre>
-            <p>Define a specific type and it will automatically be cast.</p>
+            <p>Defina um tipo específico e ele será convertido automaticamente.</p>
             <pre class="prettyprint">@OnClick(R.id.submit)
 public void sayHi(Button button) {
   button.setText("Hello!");
 }</pre>
-            <p>Specify multiple IDs in a single binding for common event handling.</p>
+            <p>Especifique múltiplos IDs em um único binding para tratar eventos comuns.</p>
             <pre class="prettyprint">@OnClick({ R.id.door1, R.id.door2, R.id.door3 })
 public void pickDoor(DoorView door) {
   if (door.hasPrizeBehind()) {
@@ -139,7 +139,7 @@ public void pickDoor(DoorView door) {
     Toast.makeText(this, "Try again", LENGTH_SHORT).show();
   }
 }</pre>
-            <p>Custom views can bind to their own listeners by not specifying an ID.</p>
+            <p>Views customizadas podem vincular seus próprios listeners não especificando um ID.</p>
             <pre class="prettyprint">public class FancyButton extends Button {
   @OnClick
   public void onClick() {
@@ -148,8 +148,8 @@ public void pickDoor(DoorView door) {
 }
 </pre>
 
-            <h4 id="reset">Binding Reset</h4>
-            <p>Fragments have a different view lifecycle than activities. When binding a fragment in <code>onCreateView</code>, set the views to <code>null</code> in <code>onDestroyView</code>. Butter Knife has an <code>unbind</code> method to do this automatically.</p>
+            <h4 id="reset">Desvinculação</h4>
+            <p>Fragments têm um ciclo de vida diferente de activities. Quando um fragment é vinculado no <code>onCreateView</code>, atribua <code>null</code> às views no <code>onDestroyView</code>. Butter Knife tem um método <code>unbind</code> para desvincular automaticamente.</p>
             <pre class="prettyprint">public class FancyFragment extends Fragment {
   @Bind(R.id.button1) Button button1;
   @Bind(R.id.button2) Button button2;
@@ -167,18 +167,18 @@ public void pickDoor(DoorView door) {
   }
 }</pre>
 
-            <h4 id="optional">Optional Bindings</h4>
-            <p>By default, both <code>@Bind</code> and listener bindings are required. An exception will be thrown if the target view cannot be found.</p>
-            <p>To suppress this behavior and create an optional binding, add a <code>@Nullable</code> annotation to the field or method.</p>
-            <p>Note: Any annotation named <code>@Nullable</code> can be used for this purpose. It is encouraged to use the <code>@Nullable</code> annotation from Android's "support-annotations" library, see <a href="http://tools.android.com/tech-docs/support-annotations">Android Tools Project</a>.</p>
+            <h4 id="optional">Vínculos Opcionais</h4>
+            <p>Por default, tanto o <code>@Bind</code> quanto os binds de listeners são requeridos. Uma excessão será lançada se a view alvo não puder ser encontrada.</p>
+            <p>Para ignorar esse comportamento e criar binds opcionais, adicione a anotação <code>@Nullable</code> ao campo ou método.</p>
+            <p>Nota: Qualquer anotação <code>@Nullable</code> pode ser utilizada para isso. É recomendado utilizar a anotação <code>@Nullable</code> da biblioteca "support-annotations" do Android, veja <a href="http://tools.android.com/tech-docs/support-annotations">Android Tools Project</a>.</p>
             <pre class="prettyprint">@Nullable @Bind(R.id.might_not_be_there) TextView mightNotBeThere;
 
 @Nullable @OnClick(R.id.maybe_missing) void onMaybeMissingClicked() {
   // TODO ...
 }</pre>
 
-            <h4 id="multi-method-listeners">Multi-Method Listeners</h4>
-            <p>Method annotations whose corresponding listener has multiple callbacks can be used to bind to any one of them. Each annotation has a default callback that it binds to. Specify an alternate using the <code>callback</code> parameter.</p>
+            <h4 id="multi-method-listeners">Listeners de múltiplos métodos</h4>
+            <p>Anotações de métodos em que os listeners correspondentes possuem múltiplos callbacks podem ser utilizados para vincular qualquer um deles. Cada anotação é vinculada a um callback default. Especifique um outro utilizando o parâmetro <code>callback</code>.</p>
             <pre class="prettyprint">@OnItemSelected(R.id.list_view)
 void onItemSelected(int position) {
   // TODO ...
@@ -190,48 +190,48 @@ void onNothingSelected() {
 }</pre>
 
             <h4 id="bonus">Bonus</h4>
-            <p>Also included are <code>findById</code> methods which simplify code that still has to find views on a <code>View</code>, <code>Activity</code>, or <code>Dialog</code>. It uses generics to infer the return type and automatically performs the cast.</p>
+            <p>Métodos <code>findById</code> que simplificam código que ainda tem que encontrar views em uma <code>View</code>, <code>Activity</code>, or <code>Dialog</code>, também estão inclusos. É utilizado tipos genéricos para inferir o tipo do retorno e automaticamente o converte.</p>
             <pre class="prettyprint">View view = LayoutInflater.from(context).inflate(R.layout.thing, null);
 TextView firstName = ButterKnife.findById(view, R.id.first_name);
 TextView lastName = ButterKnife.findById(view, R.id.last_name);
 ImageView photo = ButterKnife.findById(view, R.id.photo);</pre>
-            <p>Add a static import for <code>ButterKnife.findById</code> and enjoy even more fun.</p>
+            <p>Adicione um import estático a <code>ButterKnife.findById</code> e se divirta ainda mais.</p>
 
             <h3 id="download">Download</h3>
             <p class="downloads">
-              <a href="http://repository.sonatype.org/service/local/artifact/maven/redirect?r=central-proxy&g=com.jakewharton&a=butterknife&v=LATEST" class="btn btn-large btn-inverse" id="download-btn">Butter Knife JAR <span class="runner-version"></span></a>
+              <a href="http://repository.sonatype.org/service/local/artifact/maven/redirect?r=central-proxy&g=com.jakewharton&a=butterknife&v=LATEST" class="btn btn-large btn-inverse" id="download-btn">JAR do Butter Knife<span class="runner-version"></span></a>
             </p>
-            <p>The source code to the library and sample application as well as this website is <a href="http://github.com/JakeWharton/butterknife">available on GitHub</a>. The Javadoc is also <a href="javadoc/index.html">available to browse</a>.</p>
+            <p>O código fonte dessa biblioteca e da aplicação de exemplo assim como o desse site está <a href="http://github.com/JakeWharton/butterknife">disponível no GitHub</a>. O <a href="javadoc/index.html">Javadoc</a> também está disponível.</p>
 
             <h4>Maven</h4>
-            <p>If you are using Maven for compilation you can declare the library as a dependency.</p>
+            <p>Se você está utilizando Maven você pode declarar está biblioteca como uma dependência.</p>
             <pre class="prettyprint">&lt;dependency>
   &lt;groupId>com.jakewharton&lt;/groupId>
   &lt;artifactId>butterknife&lt;/artifactId>
-  &lt;version><span class="version"><em>(insert latest version)</em></span>&lt;/version>
+  &lt;version><span class="version"><em>(Coloque a última versão)</em></span>&lt;/version>
 &lt;/dependency></pre>
 
             <h4>Gradle</h4>
-            <pre class="prettyprint">compile 'com.jakewharton:butterknife:<span class="version"><em>(insert latest version)</em></span>'</pre>
-            <p>Be sure to suppress this lint warning in your <code>build.gradle</code>.</p>
+            <pre class="prettyprint">compile 'com.jakewharton:butterknife:<span class="version"><em>(Coloque a última versão)</em></span>'</pre>
+            <p>Certifique-se de que não receba este aviso no seu <code>build.gradle</code>.</p>
             <pre class="prettyprint">lintOptions {
   disable 'InvalidPackage'
 }</pre>
-            <p>Some configurations may also require additional exclusions.</p>
+            <p>Algumas configurações também podem requerir exclusões adicionais.</p>
             <pre class="prettyprint">packagingOptions {
   exclude 'META-INF/services/javax.annotation.processing.Processor'
 }</pre>
 
-            <h4 id="ide">IDE Configuration</h4>
-            <p>Some IDEs require additional configuration in order to enable annotation processing.</p>
+            <h4 id="ide">Configuração da IDE</h4>
+            <p>Algumas IDEs requerem configurações adicionais para habilitar o processamento de anotações.</p>
             <ul>
-              <li><em>IntelliJ IDEA</em> &mdash; If your project uses an external configuration (like a Maven <code>pom.xml</code>) then annotation processing should just work. If not, try <a href="ide-idea.html">manual configuration</a>.</li>
-              <li><em>Eclipse</em> &mdash; Set up <a href="ide-eclipse.html">manual configuration</a>.</li>
+              <li><em>IntelliJ IDEA</em> &mdash; Se você utiliza alguma configuração externa em seu projeto (Como <code>pom.xml</code> do Maven) o processamento de anotações deve funcionar. Se não, veja o <a href="ide-idea.html">manual de configuração</a>.</li>
+              <li><em>Eclipse</em> &mdash; <a href="ide-eclipse.pt_BR.html">manual de configuração</a>.</li>
             </ul>
 
             <h4 id="proguard">ProGuard</h4>
-            <p>Butter Knife generates and uses classes dynamically which means that static analysis tools like ProGuard may think they are unused. In order to prevent them from being removed, explicitly mark them to be kept.
-                To prevent ProGuard renaming classes that use @Bind on a member field the <code>keepclasseswithmembernames</code> option is used.</p>
+            <p>O Butter Knife utiliza e gera classes dinamicamente, o que significa que ferramentas de análises estáticas como o ProGuard podem pensar que estão inutilizados. Pra previnir que elas sejam removidas, marque elas explicitamente para que continuem.
+                Para previnir que o ProGuard renomeie classes que usam @Bind em um campo a opção <code>keepclasseswithmembernames</code> é utilizada.</p>
             <pre>-keep class butterknife.** { *; }
 -dontwarn butterknife.internal.**
 -keep class **$$ViewBinder { *; }
@@ -244,20 +244,20 @@ ImageView photo = ButterKnife.findById(view, R.id.photo);</pre>
     @butterknife.* &lt;methods&gt;;
 }</pre>
 
-            <h3 id="license">License</h3>
+            <h3 id="license">Licença</h3>
             <pre class="license">Copyright 2013 Jake Wharton
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
+Licenciado sob a licença do Apache, Versão 2.0 (a "Licença");
+    você não pode usar este arquivo exceto em conformidade com a Licença.
+    Você pode obter uma cópia da Licença em
 
    http://www.apache.org/licenses/LICENSE-2.0
 
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.</pre>
+A menos que seja exigido pela lei aplicável ou acordado por escrito, software
+distribuído sob a Licença é distribuído na base "AS IS",
+EM GARANTIAS OU CONDIÇÕES DE QUALQUER NATUREZA, evidente ou implícita. 
+Veja a Licença para as permissões específicas da linguagem e as limitações
+sob a licença.</pre>
 
             <a id="ribbon" href="https://github.com/JakeWharton/butterknife"><img src="static/ribbon.png" alt="Fork me on GitHub"></a>
           </div>
