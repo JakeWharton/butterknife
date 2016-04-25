@@ -1,6 +1,26 @@
 Change Log
 ==========
 
+Version 8.0.0 *(2016-04-25)*
+----------------------------
+
+ *  `@Bind` becomes `@BindView` and `@BindViews` (one view and multiple views, respectively).
+ *  Calls to `bind` now return an `Unbinder` instance which can be used to `null` references. This replaces
+    the `unbind` API and adds support for being able to clear listeners.
+ *  New: `@BindArray` binds `String`, `CharSequence`, and `int` arrays and `TypeArray` to fields.
+ *  New: `@BindBitmap` binds `Bitmap` instances from resources to fields.
+ *  `@BindDrawable` now supports a `tint` field which accepts a theme attribute.
+ *  The runtime and compiler are now split into two artifacts.
+
+    ```groovy
+    compile 'com.jakewharton:butterknife:8.0.0'
+    apt 'com.jakewharton:butterknife-compiler:8.0.0'
+    ```
+ *  New: `apply` overloads which accept a single view and arrays of views.
+ *  ProGuard rules now ship inside of the library and are included automatically.
+ *  `@Optional` annotation is back to mark methods as being optional.
+
+
 Version 7.0.1 *(2015-06-30)*
 ----------------------------
 
