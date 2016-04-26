@@ -1109,10 +1109,11 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     if (bindingClass == null) {
       String targetType = enclosingElement.getQualifiedName().toString();
       String classPackage = getPackageName(enclosingElement);
+      boolean isFinal = enclosingElement.getModifiers().contains(Modifier.FINAL);
       String className = getClassName(enclosingElement, classPackage) + BINDING_CLASS_SUFFIX;
       String classFqcn = getFqcn(enclosingElement) + BINDING_CLASS_SUFFIX;
 
-      bindingClass = new BindingClass(classPackage, className, targetType, classFqcn);
+      bindingClass = new BindingClass(classPackage, className, isFinal, targetType, classFqcn);
       targetClassMap.put(enclosingElement, bindingClass);
     }
     return bindingClass;

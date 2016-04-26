@@ -1,5 +1,7 @@
 package butterknife.compiler;
 
+import butterknife.internal.ListenerClass;
+import butterknife.internal.ListenerMethod;
 import com.squareup.javapoet.AnnotationSpec;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
@@ -10,7 +12,6 @@ import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.TypeVariableName;
 import com.squareup.javapoet.WildcardTypeName;
-
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -21,9 +22,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import butterknife.internal.ListenerClass;
-import butterknife.internal.ListenerMethod;
+import javax.lang.model.element.Modifier;
 
 import static butterknife.compiler.ButterKnifeProcessor.NO_ID;
 import static butterknife.compiler.ButterKnifeProcessor.VIEW_TYPE;
@@ -56,15 +55,18 @@ final class BindingClass {
   private final Set<BindingClass> descendantBindingClasses = new LinkedHashSet<>();
   private final String classPackage;
   private final String className;
+  private final boolean isFinal;
   private final String targetClass;
   private final String classFqcn;
   private BindingClass parentBinding;
   private ClassName unbinderClassName;  // If this is null'd out, it has no unbinder and uses NOP.
   private ClassName highestUnbinderClassName; // If this is null'd out, there is no parent unbinder.
 
-  BindingClass(String classPackage, String className, String targetClass, String classFqcn) {
+  BindingClass(String classPackage, String className, boolean isFinal, String targetClass,
+      String classFqcn) {
     this.classPackage = classPackage;
     this.className = className;
+    this.isFinal = isFinal;
     this.targetClass = targetClass;
     this.classFqcn = classFqcn;
 
@@ -131,6 +133,9 @@ final class BindingClass {
     TypeSpec.Builder result = TypeSpec.classBuilder(className)
         .addModifiers(PUBLIC)
         .addTypeVariable(TypeVariableName.get("T", ClassName.bestGuess(targetClass)));
+    if (isFinal) {
+      result.addModifiers(Modifier.FINAL);
+    }
 
     if (hasParentBinding()) {
       result.superclass(ParameterizedTypeName.get(ClassName.bestGuess(parentBinding.classFqcn),
@@ -144,8 +149,11 @@ final class BindingClass {
     if (hasUnbinder() && hasViewBindings()) {
       // Create unbinding class.
       result.addType(createUnbinderClass());
-      // Now we need to provide child classes to access and override unbinder implementations.
-      createUnbinderCreateUnbinderMethod(result);
+
+      if (!isFinal) {
+        // Now we need to provide child classes to access and override unbinder implementations.
+        createUnbinderCreateUnbinderMethod(result);
+      }
     }
 
     return JavaFile.builder(classPackage, result.build())
@@ -159,6 +167,9 @@ final class BindingClass {
         TypeSpec.classBuilder(unbinderClassName.simpleName())
             .addModifiers(PROTECTED, STATIC)
             .addTypeVariable(TypeVariableName.get("T", ClassName.bestGuess(targetClass)));
+    if (isFinal) {
+      result.addModifiers(Modifier.FINAL);
+    }
 
     if (hasParentBinding() && parentBinding.hasUnbinder()) {
       result.superclass(ParameterizedTypeName.get(
@@ -170,9 +181,11 @@ final class BindingClass {
 
     result.addMethod(createUnbinderConstructor(generic));
     if (!hasParentBinding() || !parentBinding.hasUnbinder()) {
-      result.addMethod(createUnbindInterfaceMethod());
+      result.addMethod(createUnbindInterfaceMethod(result));
     }
-    result.addMethod(createUnbindMethod(result, generic));
+    if (!isFinal) {
+      result.addMethod(createUnbindMethod(result, generic));
+    }
 
     return result.build();
   }
@@ -189,13 +202,18 @@ final class BindingClass {
     return constructor.build();
   }
 
-  private MethodSpec createUnbindInterfaceMethod() {
-    return MethodSpec.methodBuilder("unbind")
+  private MethodSpec createUnbindInterfaceMethod(TypeSpec.Builder unbinderClass) {
+    MethodSpec.Builder result = MethodSpec.methodBuilder("unbind")
         .addAnnotation(Override.class)
         .addModifiers(PUBLIC, FINAL)
         .addStatement("if (target == null) throw new $T($S)", IllegalStateException.class,
-            "Bindings already cleared.")
-        .addStatement("unbind(target)")
+            "Bindings already cleared.");
+    if (isFinal) {
+      populateUnbindImplementation(unbinderClass, result);
+    } else {
+      result.addStatement("unbind(target)");
+    }
+    return result
         .addStatement("target = null")
         .build();
   }
@@ -204,9 +222,16 @@ final class BindingClass {
     MethodSpec.Builder result = MethodSpec.methodBuilder("unbind")
         .addModifiers(PROTECTED)
         .addParameter(targetType, "target");
-
     if (hasParentBinding() && parentBinding.hasUnbinder()) {
       result.addAnnotation(Override.class);
+    }
+    populateUnbindImplementation(unbinderClass, result);
+    return result.build();
+  }
+
+  private void populateUnbindImplementation(TypeSpec.Builder unbinderClass,
+      MethodSpec.Builder result) {
+    if (hasParentBinding() && parentBinding.hasUnbinder()) {
       result.addStatement("super.unbind(target)");
     }
 
@@ -220,8 +245,6 @@ final class BindingClass {
     for (FieldCollectionViewBinding fieldCollectionBinding : collectionBindings.keySet()) {
       result.addStatement("target.$L = null", fieldCollectionBinding.getName());
     }
-
-    return result.build();
   }
 
   private void addFieldAndUnbindStatement(
@@ -316,7 +339,11 @@ final class BindingClass {
     } else if (hasViewBindings()) {
       // This is a top-level class but we do have an unbinder class, so no need to call super but
       // go ahead and create our unbinder.
-      result.addStatement("$T unbinder = createUnbinder(target)", unbinderClassName);
+      if (isFinal) {
+        result.addStatement("$1T unbinder = new $1T(target)", unbinderClassName);
+      } else {
+        result.addStatement("$T unbinder = createUnbinder(target)", unbinderClassName);
+      }
     }
 
     if (!viewIdMap.isEmpty() || !collectionBindings.isEmpty()) {
