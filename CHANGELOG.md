@@ -1,6 +1,13 @@
 Change Log
 ==========
 
+Version 8.0.1 *(2016-04-27)*
+----------------------------
+
+ * Fix: ProGuard rules now prevent obfuscation of only types which reference ButterKnife annotations.
+ * Eliminate some of the generated machinery when referenced from `final` types.
+
+
 Version 8.0.0 *(2016-04-25)*
 ----------------------------
 
