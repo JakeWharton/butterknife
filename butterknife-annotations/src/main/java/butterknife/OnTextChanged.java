@@ -36,6 +36,7 @@ import static java.lang.annotation.RetentionPolicy.CLASS;
 @ListenerClass(
     targetType = "android.widget.TextView",
     setter = "addTextChangedListener",
+    remover = "removeTextChangedListener",
     type = "android.text.TextWatcher",
     callbacks = OnTextChanged.Callback.class
 )

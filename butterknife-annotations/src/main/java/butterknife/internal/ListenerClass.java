@@ -10,8 +10,14 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 public @interface ListenerClass {
   String targetType();
 
-  /** Name of the setter method on the {@link #targetType() target type} for the listener. */
+  /** Name of the setter method on the {@linkplain #targetType() target type} for the listener. */
   String setter();
+
+  /**
+   * Name of the method on the {@linkplain #targetType() target type} to remove the listener. If
+   * empty {@link #setter()} will be used by default.
+   */
+  String remover() default "";
 
   /** Fully-qualified class name of the listener type. */
   String type();
