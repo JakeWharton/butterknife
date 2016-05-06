@@ -41,7 +41,6 @@ final class BindingClass {
   private static final ClassName CONTEXT = ClassName.get("android.content", "Context");
   private static final ClassName RESOURCES = ClassName.get("android.content.res", "Resources");
   private static final ClassName THEME = RESOURCES.nestedClass("Theme");
-  private static final ClassName BUTTERKNIFE = ClassName.get("butterknife", "ButterKnife");
   private static final ClassName UNBINDER = ClassName.get("butterknife", "Unbinder");
   private static final ClassName BITMAP_FACTORY =
       ClassName.get("android.graphics", "BitmapFactory");
@@ -269,17 +268,38 @@ final class BindingClass {
     }
 
     for (ListenerClass listenerClass : classMethodBindings.keySet()) {
+      // We need to keep a reference to the listener
+      // in case we need to unbind it via a remove method.
+      boolean requiresRemoval = listenerClass.remover().length() != 0;
+      String listenerField = "null";
+      if (requiresRemoval) {
+        TypeName listenerClassName = bestGuess(listenerClass.type());
+        listenerField = fieldName + ((ClassName) listenerClassName).simpleName();
+        result.addField(listenerClassName, listenerField);
+      }
+
       if (!VIEW_TYPE.equals(listenerClass.targetType())) {
-        unbindMethod.addStatement("(($T) $L).$L(null)", bestGuess(listenerClass.targetType()),
-            fieldName, listenerClass.setter());
+        unbindMethod.addStatement("(($T) $L).$L($L)", bestGuess(listenerClass.targetType()),
+            fieldName, removerOrSetter(listenerClass, requiresRemoval), listenerField);
       } else {
-        unbindMethod.addStatement("$L.$L(null)", fieldName, listenerClass.setter());
+        unbindMethod.addStatement("$L.$L($L)", fieldName,
+            removerOrSetter(listenerClass, requiresRemoval), listenerField);
+      }
+
+      if (requiresRemoval) {
+        unbindMethod.addStatement("$L = null", listenerField);
       }
     }
 
     if (needsNullChecked) {
       unbindMethod.endControlFlow();
     }
+  }
+
+  private String removerOrSetter(ListenerClass listenerClass, boolean requiresRemoval) {
+    return requiresRemoval
+        ? listenerClass.remover()
+        : listenerClass.setter();
   }
 
   private void createUnbinderCreateUnbinderMethod(TypeSpec.Builder viewBindingClass) {
@@ -480,8 +500,9 @@ final class BindingClass {
     }
 
     // Add the view reference to the unbinder.
+    String fieldName = "view" + bindings.getUniqueIdSuffix();
     if (hasUnbinder()) {
-      result.addStatement("unbinder.$L = view", "view" + bindings.getUniqueIdSuffix());
+      result.addStatement("unbinder.$L = view", fieldName);
     }
 
     for (Map.Entry<ListenerClass, Map<ListenerMethod, Set<MethodViewBinding>>> e
@@ -537,11 +558,20 @@ final class BindingClass {
         callback.addMethod(callbackMethod.build());
       }
 
+      boolean requiresRemoval = hasUnbinder() && listener.remover().length() != 0;
+      String listenerField = null;
+      if (requiresRemoval) {
+        TypeName listenerClassName = bestGuess(listener.type());
+        listenerField = fieldName + ((ClassName) listenerClassName).simpleName();
+        result.addStatement("unbinder.$L = $L", listenerField, callback.build());
+      }
+
       if (!VIEW_TYPE.equals(listener.targetType())) {
         result.addStatement("(($T) view).$L($L)", bestGuess(listener.targetType()),
-            listener.setter(), callback.build());
+            listener.setter(), requiresRemoval ? "unbinder." + listenerField : callback.build());
       } else {
-        result.addStatement("view.$L($L)", listener.setter(), callback.build());
+        result.addStatement("view.$L($L)", listener.setter(),
+            requiresRemoval ? "unbinder." + listenerField : callback.build());
       }
     }
 
