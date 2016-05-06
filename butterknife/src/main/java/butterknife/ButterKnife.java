@@ -119,7 +119,7 @@ public final class ButterKnife {
    * @param target Target activity for view binding.
    */
   public static Unbinder bind(@NonNull Activity target) {
-    return bind(target, target, Finder.ACTIVITY);
+    return getViewBinder(target).bind(Finder.ACTIVITY, target, target);
   }
 
   /**
@@ -130,7 +130,7 @@ public final class ButterKnife {
    */
   @NonNull
   public static Unbinder bind(@NonNull View target) {
-    return bind(target, target, Finder.VIEW);
+    return getViewBinder(target).bind(Finder.VIEW, target, target);
   }
 
   /**
@@ -141,7 +141,7 @@ public final class ButterKnife {
    */
   @SuppressWarnings("unused") // Public api.
   public static Unbinder bind(@NonNull Dialog target) {
-    return bind(target, target, Finder.DIALOG);
+    return getViewBinder(target).bind(Finder.DIALOG, target, target);
   }
 
   /**
@@ -152,7 +152,7 @@ public final class ButterKnife {
    * @param source Activity on which IDs will be looked up.
    */
   public static Unbinder bind(@NonNull Object target, @NonNull Activity source) {
-    return bind(target, source, Finder.ACTIVITY);
+    return getViewBinder(target).bind(Finder.VIEW, target, source);
   }
 
   /**
@@ -164,7 +164,7 @@ public final class ButterKnife {
    */
   @NonNull
   public static Unbinder bind(@NonNull Object target, @NonNull View source) {
-    return bind(target, source, Finder.VIEW);
+    return getViewBinder(target).bind(Finder.VIEW, target, source);
   }
 
   /**
@@ -176,23 +176,17 @@ public final class ButterKnife {
    */
   @SuppressWarnings("unused") // Public api.
   public static Unbinder bind(@NonNull Object target, @NonNull Dialog source) {
-    return bind(target, source, Finder.DIALOG);
+    return getViewBinder(target).bind(Finder.DIALOG, target, source);
   }
 
-  static Unbinder bind(@NonNull Object target, @NonNull Object source, @NonNull Finder finder) {
+  static ViewBinder<Object> getViewBinder(@NonNull Object target) {
     Class<?> targetClass = target.getClass();
-    try {
-      if (debug) Log.d(TAG, "Looking up view binder for " + targetClass.getName());
-      ViewBinder<Object> viewBinder = findViewBinderForClass(targetClass);
-      return viewBinder.bind(finder, target, source);
-    } catch (Exception e) {
-      throw new RuntimeException("Unable to bind views for " + targetClass.getName(), e);
-    }
+    if (debug) Log.d(TAG, "Looking up view binder for " + targetClass.getName());
+    return findViewBinderForClass(targetClass);
   }
 
   @NonNull
-  private static ViewBinder<Object> findViewBinderForClass(Class<?> cls)
-      throws IllegalAccessException, InstantiationException {
+  private static ViewBinder<Object> findViewBinderForClass(Class<?> cls) {
     ViewBinder<Object> viewBinder = BINDERS.get(cls);
     if (viewBinder != null) {
       if (debug) Log.d(TAG, "HIT: Cached in view binder map.");
@@ -203,6 +197,7 @@ public final class ButterKnife {
       if (debug) Log.d(TAG, "MISS: Reached framework class. Abandoning search.");
       return NOP_VIEW_BINDER;
     }
+    //noinspection TryWithIdenticalCatches Resolves to API 19+ only type.
     try {
       Class<?> viewBindingClass = Class.forName(clsName + "$$ViewBinder");
       //noinspection unchecked
@@ -211,6 +206,10 @@ public final class ButterKnife {
     } catch (ClassNotFoundException e) {
       if (debug) Log.d(TAG, "Not found. Trying superclass " + cls.getSuperclass().getName());
       viewBinder = findViewBinderForClass(cls.getSuperclass());
+    } catch (InstantiationException e) {
+      throw new RuntimeException("Unable to create view binder for " + clsName, e);
+    } catch (IllegalAccessException e) {
+      throw new RuntimeException("Unable to create view binder for " + clsName, e);
     }
     BINDERS.put(cls, viewBinder);
     return viewBinder;

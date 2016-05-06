@@ -234,7 +234,7 @@ public class ButterKnifeTest {
     }
 
     Example example = new Example();
-    ButterKnife.bind(example, null, null);
+    assertThat(ButterKnife.getViewBinder(example)).isSameAs(ButterKnife.NOP_VIEW_BINDER);
     assertThat(ButterKnife.BINDERS).containsEntry(Example.class, ButterKnife.NOP_VIEW_BINDER);
   }
 
