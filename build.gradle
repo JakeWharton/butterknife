@@ -53,9 +53,6 @@ ext.deps = [
     // Square
     javapoet: 'com.squareup:javapoet:1.6.1',
 
-    // Other
-    rxjava: 'io.reactivex:rxjava:1.1.3',
-
     // Test dependencies
     junit: 'junit:junit:4.12',
     truth: 'com.google.truth:truth:0.28',
