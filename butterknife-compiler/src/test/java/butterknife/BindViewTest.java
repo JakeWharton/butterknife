@@ -529,7 +529,7 @@ public class BindViewTest {
         + "    protected InnerUnbinder(T target, Finder finder, Object source) {\n"
         + "      this.target = target;\n"
         + "      View view;\n"
-        + "      view = finder.findOptionalView(source, 1, null);\n"
+        + "      view = finder.findOptionalView(source, 1);\n"
         + "      target.view = view;\n"
         + "    }\n"
         + "    @Override\n"

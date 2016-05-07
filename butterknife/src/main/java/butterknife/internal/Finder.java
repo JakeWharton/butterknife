@@ -8,7 +8,7 @@ import android.view.View;
 @SuppressWarnings("UnusedDeclaration") // Used by generated code.
 public enum Finder {
   VIEW {
-    @Override protected View findView(Object source, int id) {
+    @Override public View findOptionalView(Object source, int id) {
       return ((View) source).findViewById(id);
     }
 
@@ -26,7 +26,7 @@ public enum Finder {
     }
   },
   ACTIVITY {
-    @Override protected View findView(Object source, int id) {
+    @Override public View findOptionalView(Object source, int id) {
       return ((Activity) source).findViewById(id);
     }
 
@@ -35,7 +35,7 @@ public enum Finder {
     }
   },
   DIALOG {
-    @Override protected View findView(Object source, int id) {
+    @Override public View findOptionalView(Object source, int id) {
       return ((Dialog) source).findViewById(id);
     }
 
@@ -44,35 +44,29 @@ public enum Finder {
     }
   };
 
-  public <T> T findRequiredView(Object source, int id, String who) {
-    T view = findOptionalView(source, id, who);
-    if (view == null) {
-      String name = getResourceEntryName(source, id);
-      throw new IllegalStateException("Required view '"
-          + name
-          + "' with ID "
-          + id
-          + " for "
-          + who
-          + " was not found. If this view is optional add '@Nullable' (fields) or '@Optional'"
-          + " (methods) annotation.");
-    }
-    return view;
-  }
+  public abstract View findOptionalView(Object source, int id);
 
-  public <T> T findOptionalView(Object source, int id, String who) {
-    View view = findView(source, id);
-    return castView(view, id, who);
+  public final View findRequiredView(Object source, int id, String who) {
+    View view = findOptionalView(source, id);
+    if (view != null) {
+      return view;
+    }
+    String name = getResourceEntryName(source, id);
+    throw new IllegalStateException("Required view '"
+        + name
+        + "' with ID "
+        + id
+        + " for "
+        + who
+        + " was not found. If this view is optional add '@Nullable' (fields) or '@Optional'"
+        + " (methods) annotation.");
   }
 
   @SuppressWarnings("unchecked") // That's the point.
-  public <T> T castView(View view, int id, String who) {
+  public final <T> T castView(View view, int id, String who) {
     try {
       return (T) view;
     } catch (ClassCastException e) {
-      if (who == null) {
-        throw new AssertionError();
-      }
       String name = getResourceEntryName(view, id);
       throw new IllegalStateException("View '"
           + name
@@ -85,16 +79,16 @@ public enum Finder {
   }
 
   @SuppressWarnings("unchecked") // That's the point.
-  public <T> T castParam(Object value, String from, int fromPosition, String to, int toPosition) {
+  public final <T> T castParam(Object value, String from, int fromPos, String to, int toPos) {
     try {
       return (T) value;
     } catch (ClassCastException e) {
       throw new IllegalStateException("Parameter #"
-          + (fromPosition + 1)
+          + (fromPos + 1)
           + " of method '"
           + from
           + "' was of the wrong type for parameter #"
-          + (toPosition + 1)
+          + (toPos + 1)
           + " of method '"
           + to
           + "'. See cause for more info.", e);
@@ -104,8 +98,6 @@ public enum Finder {
   protected String getResourceEntryName(Object source, int id) {
     return getContext(source).getResources().getResourceEntryName(id);
   }
-
-  protected abstract View findView(Object source, int id);
 
   public abstract Context getContext(Object source);
 }

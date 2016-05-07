@@ -2,28 +2,21 @@ package butterknife.internal;
 
 import android.content.Context;
 import android.view.View;
-import java.util.List;
 
 public class Finder {
 
-  private static <T> T[] filterNull(T[] views) {
+  public View findRequiredView(Object source, int id, String who) {
     throw new RuntimeException("Stub!");
   }
 
-  public <T> T findRequiredView(Object source, int id, String who) {
+  public View findOptionalView(Object source, int id) {
     throw new RuntimeException("Stub!");
   }
 
-  public <T> T findOptionalView(Object source, int id, String who) {
-    throw new RuntimeException("Stub!");
-  }
-
-  @SuppressWarnings("unchecked") // That's the point.
   public <T> T castView(View view, int id, String who) {
     throw new RuntimeException("Stub!");
   }
 
-  @SuppressWarnings("unchecked") // That's the point.
   public <T> T castParam(Object value, String from, int fromPosition, String to, int toPosition) {
     throw new RuntimeException("Stub!");
   }

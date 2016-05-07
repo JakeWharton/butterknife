@@ -470,9 +470,16 @@ final class BindingClass {
       if (i > 0) {
         builder.add(", ");
       }
-      String findMethod = binding.isRequired() ? "findRequiredView" : "findOptionalView";
-      builder.add("\nfinder.<$T>$L(source, $L, $S)", binding.getType(), findMethod, ids[i],
-          asHumanDescription(singletonList(binding)));
+      builder.add("\n");
+      if (requiresCast(binding.getType())) {
+        builder.add("($T) ", binding.getType());
+      }
+      if (binding.isRequired()) {
+        builder.add("finder.findRequiredView(source, $L, $S)", ids[i],
+            asHumanDescription(singletonList(binding)));
+      } else {
+        builder.add("finder.findOptionalView(source, $L)", ids[i]);
+      }
     }
 
     result.addStatement("target.$L = $T.$L($L)", binding.getName(), UTILS, ofName, builder.build());
@@ -481,7 +488,7 @@ final class BindingClass {
   private void addViewBindings(MethodSpec.Builder result, ViewBindings bindings) {
     List<ViewBinding> requiredViewBindings = bindings.getRequiredBindings();
     if (requiredViewBindings.isEmpty()) {
-      result.addStatement("view = finder.findOptionalView(source, $L, null)", bindings.getId());
+      result.addStatement("view = finder.findOptionalView(source, $L)", bindings.getId());
     } else {
       if (bindings.getId() == NO_ID) {
         result.addStatement("view = target");
@@ -498,7 +505,7 @@ final class BindingClass {
   private void addFieldBindings(MethodSpec.Builder result, ViewBindings bindings) {
     Collection<FieldViewBinding> fieldBindings = bindings.getFieldBindings();
     for (FieldViewBinding fieldBinding : fieldBindings) {
-      if (fieldBinding.requiresCast()) {
+      if (requiresCast(fieldBinding.getType())) {
         result.addStatement("target.$L = finder.castView(view, $L, $S)", fieldBinding.getName(),
             bindings.getId(), asHumanDescription(fieldBindings));
       } else {
@@ -748,6 +755,10 @@ final class BindingClass {
   private boolean bindNeedsTheme() {
     return hasResourceBindings() && hasResourceBindingsNeedingTheme() //
         || hasParentBinding() && parentBinding.bindNeedsTheme();
+  }
+
+  private static boolean requiresCast(TypeName type) {
+    return !VIEW_TYPE.equals(type.toString());
   }
 
   @Override public String toString() {

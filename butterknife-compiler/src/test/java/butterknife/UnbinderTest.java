@@ -128,7 +128,7 @@ public class UnbinderTest {
         + "    protected InnerUnbinder(final T target, Finder finder, Object source) {\n"
         + "      this.target = target;\n"
         + "      View view;\n"
-        + "      view = finder.findOptionalView(source, 1, null);\n"
+        + "      view = finder.findOptionalView(source, 1);\n"
         + "      if (view != null) {\n"
         + "        view1 = view;\n"
         + "        view.setOnClickListener(new DebouncingOnClickListener() {\n"
