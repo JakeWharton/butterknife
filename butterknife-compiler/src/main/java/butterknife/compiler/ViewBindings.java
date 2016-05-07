@@ -78,6 +78,10 @@ final class ViewBindings {
     return requiredViewBindings;
   }
 
+  public boolean requiresLocal() {
+    return !methodBindings.isEmpty() || fieldBindings.size() != 1;
+  }
+
   /**
    * ViewBindings with no IDs are tricky, because they're used in unbinder field names to
    * distinguish them. {@link ButterKnifeProcessor#NO_ID} is equal to -1, and '-' isn't a valid

@@ -9,7 +9,15 @@ public class Finder {
     throw new RuntimeException("Stub!");
   }
 
+  public <T> T findRequiredViewAsType(Object source, int id, String who, Class<T> cls) {
+    throw new RuntimeException("Stub!");
+  }
+
   public View findOptionalView(Object source, int id) {
+    throw new RuntimeException("Stub!");
+  }
+
+  public <T> T findOptionalViewAsType(Object source, int id, String who, Class<T> cls) {
     throw new RuntimeException("Stub!");
   }
 

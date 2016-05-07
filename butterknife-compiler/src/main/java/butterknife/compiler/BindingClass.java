@@ -405,8 +405,10 @@ final class BindingClass {
     }
 
     if (hasViewBindings()) {
-      // Local variable in which all views will be temporarily stored.
-      result.addStatement("$T view", VIEW);
+      if (bindNeedsViewLocal()) {
+        // Local variable in which all views will be temporarily stored.
+        result.addStatement("$T view", VIEW);
+      }
 
       // Loop over each view bindings and emit it.
       for (ViewBindings bindings : viewIdMap.values()) {
@@ -490,6 +492,28 @@ final class BindingClass {
   }
 
   private void addViewBindings(MethodSpec.Builder result, ViewBindings bindings) {
+    if (!bindings.requiresLocal()) {
+      // Optimize the common case where there's a single binding directly to a field.
+      Collection<FieldViewBinding> fieldBindings = bindings.getFieldBindings();
+      for (FieldViewBinding fieldBinding : fieldBindings) {
+        CodeBlock.Builder invoke = CodeBlock.builder()
+            .add("target.$L = finder.find", fieldBinding.getName());
+        invoke.add(fieldBinding.isRequired() ? "RequiredView" : "OptionalView");
+        if (requiresCast(fieldBinding.getType())) {
+          invoke.add("AsType");
+        }
+        invoke.add("(source, $L", bindings.getId());
+        if (fieldBinding.isRequired() || requiresCast(fieldBinding.getType())) {
+          invoke.add(", $S", asHumanDescription(fieldBindings));
+        }
+        if (requiresCast(fieldBinding.getType())) {
+          invoke.add(", $T.class", fieldBinding.getRawType());
+        }
+        result.addStatement("$L)", invoke.build());
+      }
+      return;
+    }
+
     List<ViewBinding> requiredViewBindings = bindings.getRequiredBindings();
     if (requiredViewBindings.isEmpty()) {
       result.addStatement("view = finder.findOptionalView(source, $L)", bindings.getId());
@@ -781,6 +805,15 @@ final class BindingClass {
   private boolean bindNeedsTheme() {
     return hasResourceBindings() && hasResourceBindingsNeedingTheme() //
         || hasParentBinding() && parentBinding.bindNeedsTheme();
+  }
+
+  private boolean bindNeedsViewLocal() {
+    for (ViewBindings viewBindings : viewIdMap.values()) {
+      if (viewBindings.requiresLocal()) {
+        return true;
+      }
+    }
+    return false;
   }
 
   private static boolean requiresCast(TypeName type) {

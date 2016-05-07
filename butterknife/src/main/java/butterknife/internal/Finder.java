@@ -46,6 +46,22 @@ public enum Finder {
 
   public abstract View findOptionalView(Object source, int id);
 
+  public final <T> T findOptionalViewAsType(Object source, int id, String who, Class<T> cls) {
+    View view = findOptionalView(source, id);
+    try {
+      return cls.cast(view);
+    } catch (ClassCastException e) {
+      String name = getResourceEntryName(view, id);
+      throw new IllegalStateException("View '"
+          + name
+          + "' with ID "
+          + id
+          + " for "
+          + who
+          + " was of the wrong type. See cause for more info.", e);
+    }
+  }
+
   public final View findRequiredView(Object source, int id, String who) {
     View view = findOptionalView(source, id);
     if (view != null) {
@@ -60,6 +76,22 @@ public enum Finder {
         + who
         + " was not found. If this view is optional add '@Nullable' (fields) or '@Optional'"
         + " (methods) annotation.");
+  }
+
+  public final <T> T findRequiredViewAsType(Object source, int id, String who, Class<T> cls) {
+    View view = findRequiredView(source, id, who);
+    try {
+      return cls.cast(view);
+    } catch (ClassCastException e) {
+      String name = getResourceEntryName(view, id);
+      throw new IllegalStateException("View '"
+          + name
+          + "' with ID "
+          + id
+          + " for "
+          + who
+          + " was of the wrong type. See cause for more info.", e);
+    }
   }
 
   @SuppressWarnings("unchecked") // That's the point.
