@@ -1,5 +1,7 @@
 package butterknife.compiler;
 
+import com.squareup.javapoet.ClassName;
+import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 
 final class FieldViewBinding implements ViewBinding {
@@ -19,6 +21,13 @@ final class FieldViewBinding implements ViewBinding {
 
   public TypeName getType() {
     return type;
+  }
+
+  public ClassName getRawType() {
+    if (type instanceof ParameterizedTypeName) {
+      return ((ParameterizedTypeName) type).rawType;
+    }
+    return (ClassName) type;
   }
 
   @Override public String getDescription() {
