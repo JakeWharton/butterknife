@@ -28,7 +28,6 @@ import static butterknife.compiler.ButterKnifeProcessor.NO_ID;
 import static butterknife.compiler.ButterKnifeProcessor.VIEW_TYPE;
 import static java.util.Collections.singletonList;
 import static javax.lang.model.element.Modifier.FINAL;
-import static javax.lang.model.element.Modifier.PRIVATE;
 import static javax.lang.model.element.Modifier.PROTECTED;
 import static javax.lang.model.element.Modifier.PUBLIC;
 import static javax.lang.model.element.Modifier.STATIC;
@@ -164,20 +163,17 @@ final class BindingClass {
       result.addTypeVariable(TypeVariableName.get("T", targetTypeName));
     }
 
-    if (hasParentBinding() && parentBinding.hasUnbinder()) {
+    if (hasParentUnbinder()) {
       result.superclass(ParameterizedTypeName.get(
           parentBinding.getUnbinderClassName(), targetType));
     } else {
       result.addSuperinterface(UNBINDER);
-      result.addField(targetType, "target", PRIVATE);
+      result.addField(targetType, "target", PROTECTED);
     }
 
     result.addMethod(createUnbinderConstructor(targetType));
-    if (!hasParentBinding() || !parentBinding.hasUnbinder()) {
-      result.addMethod(createUnbindInterfaceMethod(result));
-    }
-    if (!isFinal || hasParentBinding()) {
-      result.addMethod(createUnbindMethod(result, targetType));
+    if (hasViewBindings()) {
+      result.addMethod(createUnbindInterfaceMethod(result, targetType));
     }
 
     return result.build();
@@ -187,57 +183,52 @@ final class BindingClass {
     MethodSpec.Builder constructor = MethodSpec.constructorBuilder()
         .addModifiers(PROTECTED)
         .addParameter(targetType, "target");
-    if (hasParentBinding() && parentBinding.hasUnbinder()) {
+    if (hasParentUnbinder()) {
       constructor.addStatement("super(target)");
     } else {
-      constructor.addStatement("this.$1N = $1N", "target");
+      constructor.addStatement("this.target = target");
     }
     return constructor.build();
   }
 
-  private MethodSpec createUnbindInterfaceMethod(TypeSpec.Builder unbinderClass) {
+  private MethodSpec createUnbindInterfaceMethod(TypeSpec.Builder unbinderClass,
+      TypeName targetType) {
     MethodSpec.Builder result = MethodSpec.methodBuilder("unbind")
         .addAnnotation(Override.class)
-        .addModifiers(PUBLIC, FINAL)
-        .addStatement("if (target == null) throw new $T($S)", IllegalStateException.class,
-            "Bindings already cleared.");
-    if (isFinal) {
-      populateUnbindImplementation(unbinderClass, result);
+        .addModifiers(PUBLIC)
+        .addStatement("$T target = this.target", targetType);
+    if (!hasParentUnbinder()) {
+      result.addStatement("if (target == null) throw new $T($S)", IllegalStateException.class,
+          "Bindings already cleared.");
     } else {
-      result.addStatement("unbind(target)");
-    }
-    return result
-        .addStatement("target = null")
-        .build();
-  }
-
-  private MethodSpec createUnbindMethod(TypeSpec.Builder unbinderClass, TypeName targetType) {
-    MethodSpec.Builder result = MethodSpec.methodBuilder("unbind")
-        .addModifiers(PROTECTED)
-        .addParameter(targetType, "target");
-    if (hasParentBinding() && parentBinding.hasUnbinder()) {
-      result.addAnnotation(Override.class);
-    }
-    populateUnbindImplementation(unbinderClass, result);
-    return result.build();
-  }
-
-  private void populateUnbindImplementation(TypeSpec.Builder unbinderClass,
-      MethodSpec.Builder result) {
-    if (hasParentBinding() && parentBinding.hasUnbinder()) {
-      result.addStatement("super.unbind(target)");
+      result.addStatement("super.unbind()");
     }
 
-    for (ViewBindings bindings : viewIdMap.values()) {
-      addFieldAndUnbindStatement(unbinderClass, result, bindings);
-      for (FieldViewBinding fieldBinding : bindings.getFieldBindings()) {
-        result.addStatement("target.$L = null", fieldBinding.getName());
+    if (hasFieldBindings()) {
+      result.addCode("\n");
+      for (ViewBindings bindings : viewIdMap.values()) {
+        for (FieldViewBinding fieldBinding : bindings.getFieldBindings()) {
+          result.addStatement("target.$L = null", fieldBinding.getName());
+        }
+      }
+      for (FieldCollectionViewBinding fieldCollectionBinding : collectionBindings.keySet()) {
+        result.addStatement("target.$L = null", fieldCollectionBinding.getName());
       }
     }
 
-    for (FieldCollectionViewBinding fieldCollectionBinding : collectionBindings.keySet()) {
-      result.addStatement("target.$L = null", fieldCollectionBinding.getName());
+    if (hasMethodBindings()) {
+      result.addCode("\n");
+      for (ViewBindings bindings : viewIdMap.values()) {
+        addFieldAndUnbindStatement(unbinderClass, result, bindings);
+      }
     }
+
+    if (!hasParentUnbinder()) {
+      result.addCode("\n");
+      result.addStatement("this.target = null");
+    }
+
+    return result.build();
   }
 
   private void addFieldAndUnbindStatement(
@@ -258,13 +249,13 @@ final class BindingClass {
     // We only need to emit the null check if there are zero required bindings.
     boolean needsNullChecked = bindings.getRequiredBindings().isEmpty();
     if (needsNullChecked) {
-      unbindMethod.beginControlFlow("if ($L != null)", fieldName);
+      unbindMethod.beginControlFlow("if ($N != null)", fieldName);
     }
 
     for (ListenerClass listenerClass : classMethodBindings.keySet()) {
       // We need to keep a reference to the listener
       // in case we need to unbind it via a remove method.
-      boolean requiresRemoval = listenerClass.remover().length() != 0;
+      boolean requiresRemoval = !listenerClass.remover().isEmpty();
       String listenerField = "null";
       if (requiresRemoval) {
         TypeName listenerClassName = bestGuess(listenerClass.type());
@@ -273,17 +264,19 @@ final class BindingClass {
       }
 
       if (!VIEW_TYPE.equals(listenerClass.targetType())) {
-        unbindMethod.addStatement("(($T) $L).$L($L)", bestGuess(listenerClass.targetType()),
+        unbindMethod.addStatement("(($T) $N).$N($N)", bestGuess(listenerClass.targetType()),
             fieldName, removerOrSetter(listenerClass, requiresRemoval), listenerField);
       } else {
-        unbindMethod.addStatement("$L.$L($L)", fieldName,
+        unbindMethod.addStatement("$N.$N($N)", fieldName,
             removerOrSetter(listenerClass, requiresRemoval), listenerField);
       }
 
       if (requiresRemoval) {
-        unbindMethod.addStatement("$L = null", listenerField);
+        unbindMethod.addStatement("$N = null", listenerField);
       }
     }
+
+    unbindMethod.addStatement("$N = null", fieldName);
 
     if (needsNullChecked) {
       unbindMethod.endControlFlow();
@@ -704,6 +697,10 @@ final class BindingClass {
     return parentBinding != null;
   }
 
+  private boolean hasParentUnbinder() {
+    return hasParentBinding() && parentBinding.hasUnbinder();
+  }
+
   private boolean hasResourceBindings() {
     return !(bitmapBindings.isEmpty() && drawableBindings.isEmpty() && resourceBindings.isEmpty());
   }
@@ -751,6 +748,15 @@ final class BindingClass {
   private boolean hasMethodBindings() {
     for (ViewBindings viewBindings : viewIdMap.values()) {
       if (!viewBindings.getMethodBindings().isEmpty()) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private boolean hasFieldBindings() {
+    for (ViewBindings viewBindings : viewIdMap.values()) {
+      if (!viewBindings.getFieldBindings().isEmpty()) {
         return true;
       }
     }
