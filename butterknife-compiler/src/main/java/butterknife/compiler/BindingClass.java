@@ -44,7 +44,8 @@ final class BindingClass {
   private static final ClassName UNBINDER = ClassName.get("butterknife", "Unbinder");
   private static final ClassName BITMAP_FACTORY =
       ClassName.get("android.graphics", "BitmapFactory");
-  public static final String UNBINDER_SIMPLE_NAME = "InnerUnbinder";
+  private static final String UNBINDER_SIMPLE_NAME = "InnerUnbinder";
+  private static final String BIND_TO_TARGET = "bindToTarget";
 
   private final Map<Integer, ViewBindings> viewIdMap = new LinkedHashMap<>();
   private final Map<FieldCollectionViewBinding, int[]> collectionBindings = new LinkedHashMap<>();
@@ -132,23 +133,21 @@ final class BindingClass {
       result.addTypeVariable(TypeVariableName.get("T", targetTypeName));
     }
 
-    TypeName viewType = isFinal ? targetTypeName : TypeVariableName.get("T");
+    TypeName targetType = isFinal ? targetTypeName : TypeVariableName.get("T");
     if (hasParentBinding()) {
-      result.superclass(ParameterizedTypeName.get(parentBinding.generatedClassName, viewType));
+      result.superclass(ParameterizedTypeName.get(parentBinding.generatedClassName, targetType));
     } else {
-      result.addSuperinterface(ParameterizedTypeName.get(VIEW_BINDER, viewType));
+      result.addSuperinterface(ParameterizedTypeName.get(VIEW_BINDER, targetType));
     }
 
-    result.addMethod(createBindMethod(viewType));
+    result.addMethod(createNewBindMethod(targetType));
+    if (!isFinal) {
+      result.addMethod(createNewBindToTargetMethod());
+    }
 
     if (hasUnbinder() && hasViewBindings()) {
       // Create unbinding class.
-      result.addType(createUnbinderClass(viewType));
-
-      if (!isFinal || hasParentBinding()) {
-        // Now we need to provide child classes to access and override unbinder implementations.
-        createUnbinderCreateUnbinderMethod(result, viewType);
-      }
+      result.addType(createUnbinderClass(targetType));
     }
 
     return JavaFile.builder(generatedClassName.packageName(), result.build())
@@ -156,7 +155,7 @@ final class BindingClass {
         .build();
   }
 
-  private TypeSpec createUnbinderClass(TypeName viewType) {
+  private TypeSpec createUnbinderClass(TypeName targetType) {
     TypeSpec.Builder result = TypeSpec.classBuilder(unbinderClassName.simpleName())
             .addModifiers(PROTECTED, STATIC);
     if (isFinal) {
@@ -167,18 +166,18 @@ final class BindingClass {
 
     if (hasParentBinding() && parentBinding.hasUnbinder()) {
       result.superclass(ParameterizedTypeName.get(
-          parentBinding.getUnbinderClassName(), viewType));
+          parentBinding.getUnbinderClassName(), targetType));
     } else {
       result.addSuperinterface(UNBINDER);
-      result.addField(viewType, "target", PRIVATE);
+      result.addField(targetType, "target", PRIVATE);
     }
 
-    result.addMethod(createUnbinderConstructor(viewType));
+    result.addMethod(createUnbinderConstructor(targetType));
     if (!hasParentBinding() || !parentBinding.hasUnbinder()) {
       result.addMethod(createUnbindInterfaceMethod(result));
     }
     if (!isFinal || hasParentBinding()) {
-      result.addMethod(createUnbindMethod(result, viewType));
+      result.addMethod(createUnbindMethod(result, targetType));
     }
 
     return result.build();
@@ -297,30 +296,58 @@ final class BindingClass {
         : listenerClass.setter();
   }
 
-  private void createUnbinderCreateUnbinderMethod(TypeSpec.Builder viewBindingClass,
-      TypeName viewType) {
-    MethodSpec.Builder createUnbinder = MethodSpec.methodBuilder("createUnbinder")
-        .addModifiers(PROTECTED)
-        .returns(
-            isFinal ? unbinderClassName : ParameterizedTypeName.get(unbinderClassName, viewType))
-        .addParameter(viewType, "target")
-        .addStatement("return new $T($L)", unbinderClassName, "target");
-
-    if (hasParentBinding() && parentBinding.hasUnbinder()) {
-      createUnbinder.addAnnotation(Override.class);
-    }
-    viewBindingClass.addMethod(createUnbinder.build());
-  }
-
-  private MethodSpec createBindMethod(TypeName viewType) {
+  private MethodSpec createNewBindMethod(TypeName targetType) {
     MethodSpec.Builder result = MethodSpec.methodBuilder("bind")
         .addAnnotation(Override.class)
         .addModifiers(PUBLIC)
         .returns(UNBINDER)
-        .addParameter(FINDER, "finder", FINAL)
-        .addParameter(viewType, "target", FINAL)
+        .addParameter(FINDER, "finder")
+        .addParameter(targetType, "target")
         .addParameter(Object.class, "source");
 
+    if (bindViewNeedsUnbinder()) {
+      result.addStatement("$1T unbinder = new $1T(target)", unbinderClassName);
+      if (isFinal) {
+        result.addCode("\n");
+        generateBindViewBody(result);
+        result.addCode("\n");
+      } else {
+        result.addStatement("$N(target, finder, source, unbinder)", BIND_TO_TARGET);
+      }
+      result.addStatement("return unbinder");
+    } else if (hasUnbinder()) {
+      if (isFinal) {
+        generateBindViewBody(result);
+        result.addCode("\n");
+      } else {
+        result.addStatement("$N(target, finder, source)", BIND_TO_TARGET);
+      }
+      result.addStatement("return new $T(target)", unbinderClassName);
+    } else {
+      result.addStatement("$N(target, finder, source)", BIND_TO_TARGET);
+      result.addStatement("return $T.EMPTY", UNBINDER);
+    }
+
+    return result.build();
+  }
+
+  private MethodSpec createNewBindToTargetMethod() {
+    MethodSpec.Builder result = MethodSpec.methodBuilder(BIND_TO_TARGET)
+        .addModifiers(PROTECTED, STATIC)
+        .addParameter(targetTypeName, "target", FINAL)
+        .addParameter(FINDER, "finder")
+        .addParameter(Object.class, "source");
+
+    if (bindViewNeedsUnbinder()) {
+      result.addParameter(unbinderClassName, "unbinder");
+    }
+
+    generateBindViewBody(result);
+
+    return result.build();
+  }
+
+  private void generateBindViewBody(MethodSpec.Builder result) {
     if (hasResourceBindings()) {
       // Aapt can change IDs out from underneath us, just suppress since all will work at runtime.
       result.addAnnotation(AnnotationSpec.builder(SuppressWarnings.class)
@@ -328,35 +355,15 @@ final class BindingClass {
           .build());
     }
 
-    // Emit a call to the superclass binder, if any.
     if (hasParentBinding()) {
-      if (hasViewBindings()) {
-        if (highestUnbinderClassName != unbinderClassName) {
-          // This has an unbinder class and there exists an unbinder class farther up, so use super
-          // and let the super implementation create it for us.
-          result.addStatement("$T unbinder = ($T) super.bind(finder, target, source)",
-              unbinderClassName,
-              unbinderClassName);
-        } else {
-          // This has an unbinder class and there is no implementation higher up, so we'll call
-          // super but ignore the result since it's just the NOP. Instead, create the unbinder here
-          // for our implementation and any descendant classes.
-          result.addStatement("super.bind(finder, target, source)");
-          result.addStatement("$T unbinder = createUnbinder(target)", unbinderClassName);
-        }
+      if (parentBinding.bindViewNeedsUnbinder()) {
+        result.addStatement("$T.$N(target, finder, source, unbinder)",
+            parentBinding.generatedClassName, BIND_TO_TARGET);
       } else {
-        // This has no unbinder class, just defer to super (which could be NOP or real,
-        // we don't care).
-        result.addStatement("$T unbinder = super.bind(finder, target, source)", UNBINDER);
+        result.addStatement("$T.$N(target, finder, source)",
+            parentBinding.generatedClassName, BIND_TO_TARGET);
       }
-    } else if (hasViewBindings()) {
-      // This is a top-level class but we do have an unbinder class, so no need to call super but
-      // go ahead and create our unbinder.
-      if (isFinal) {
-        result.addStatement("$1T unbinder = new $1T(target)", unbinderClassName);
-      } else {
-        result.addStatement("$T unbinder = createUnbinder(target)", unbinderClassName);
-      }
+      result.addCode("\n");
     }
 
     if (!viewIdMap.isEmpty() || !collectionBindings.isEmpty()) {
@@ -371,6 +378,10 @@ final class BindingClass {
       // Loop over each collection binding and emit it.
       for (Map.Entry<FieldCollectionViewBinding, int[]> entry : collectionBindings.entrySet()) {
         emitCollectionBinding(result, entry.getKey(), entry.getValue());
+      }
+
+      if (hasResourceBindings()) {
+        result.addCode("\n");
       }
     }
 
@@ -410,15 +421,6 @@ final class BindingClass {
         }
       }
     }
-
-    // Finally return the unbinder.
-    if (hasParentBinding() || hasViewBindings()) {
-      result.addStatement("return unbinder");
-    } else {
-      result.addStatement("return $T.EMPTY", UNBINDER);
-    }
-
-    return result.build();
   }
 
   private void emitCollectionBinding(
@@ -696,6 +698,17 @@ final class BindingClass {
       }
     }
     return false;
+  }
+
+  private boolean bindViewNeedsUnbinder() {
+    if (hasUnbinder()) {
+      for (ViewBindings viewBindings : viewIdMap.values()) {
+        if (!viewBindings.getMethodBindings().isEmpty()) {
+          return true;
+        }
+      }
+    }
+    return hasParentBinding() && parentBinding.bindViewNeedsUnbinder();
   }
 
   @Override public String toString() {

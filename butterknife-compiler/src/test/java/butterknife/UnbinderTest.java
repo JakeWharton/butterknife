@@ -16,19 +16,15 @@ import static java.util.Arrays.asList;
 
 public class UnbinderTest {
   @Test public void bindingUnbinder() {
-    JavaFileObject source = JavaFileObjects.forSourceString("test.Test",
-        Joiner.on('\n')
-            .join(
-                "package test;",
-                "import android.support.v4.app.Fragment;",
-                "import butterknife.ButterKnife;",
-                "import butterknife.OnClick;",
-                "import butterknife.Unbinder;",
-                "public class Test extends Fragment {",
-                "  @OnClick(1) void doStuff() {",
-                "  }",
-                "}"
-            ));
+    JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
+        + "package test;\n"
+        + "import android.support.v4.app.Fragment;\n"
+        + "import butterknife.ButterKnife;\n"
+        + "import butterknife.OnClick;\n"
+        + "import butterknife.Unbinder;\n"
+        + "public class Test extends Fragment {\n"
+        + "  @OnClick(1) void doStuff() {}\n"
+        + "}");
 
     JavaFileObject expectedSource = JavaFileObjects.forSourceString("test/Test$$ViewBinder", ""
         + "package test;\n"
@@ -42,8 +38,12 @@ public class UnbinderTest {
         + "import java.lang.Override;\n"
         + "public class Test$$ViewBinder<T extends Test> implements ViewBinder<T> {\n"
         + "  @Override\n"
-        + "  public Unbinder bind(final Finder finder, final T target, Object source) {\n"
-        + "    InnerUnbinder unbinder = createUnbinder(target);\n"
+        + "  public Unbinder bind(Finder finder, T target, Object source) {\n"
+        + "    InnerUnbinder unbinder = new InnerUnbinder(target);\n"
+        + "    bindToTarget(target, finder, source, unbinder);\n"
+        + "    return unbinder;\n"
+        + "  }\n"
+        + "  protected static void bindToTarget(final Test target, Finder finder, Object source, InnerUnbinder unbinder) {\n"
         + "    View view;\n"
         + "    view = finder.findRequiredView(source, 1, \"method 'doStuff'\");\n"
         + "    unbinder.view1 = view;\n"
@@ -53,10 +53,6 @@ public class UnbinderTest {
         + "        target.doStuff();\n"
         + "      }\n"
         + "    });\n"
-        + "    return unbinder;\n"
-        + "  }\n"
-        + "  protected InnerUnbinder<T> createUnbinder(T target) {\n"
-        + "    return new InnerUnbinder(target);\n"
         + "  }\n"
         + "  protected static class InnerUnbinder<T extends Test> implements Unbinder {\n"
         + "    private T target;\n"
@@ -74,7 +70,8 @@ public class UnbinderTest {
         + "      view1.setOnClickListener(null);\n"
         + "    }\n"
         + "  }\n"
-        + "}");
+        + "}"
+    );
 
     assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
@@ -84,25 +81,22 @@ public class UnbinderTest {
   }
 
   @Test public void multipleBindings() {
-    JavaFileObject source = JavaFileObjects.forSourceString("test.Test",
-        Joiner.on('\n')
-            .join(
-                "package test;",
-                "import android.support.v4.app.Fragment;",
-                "import android.view.View;",
-                "import butterknife.BindView;",
-                "import butterknife.ButterKnife;",
-                "import butterknife.OnClick;",
-                "import butterknife.OnLongClick;",
-                "import butterknife.Unbinder;",
-                "public class Test extends Fragment {",
-                "  @BindView(1) View view;",
-                "  @BindView(2) View view2;",
-                "  @OnClick(1) void doStuff() {",
-                "  }",
-                "  @OnLongClick(1) boolean doMoreStuff() { return false; }",
-                "}"
-            ));
+    JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
+        + "package test;\n"
+        + "import android.support.v4.app.Fragment;\n"
+        + "import android.view.View;\n"
+        + "import butterknife.BindView;\n"
+        + "import butterknife.ButterKnife;\n"
+        + "import butterknife.OnClick;\n"
+        + "import butterknife.OnLongClick;\n"
+        + "import butterknife.Unbinder;\n"
+        + "public class Test extends Fragment {\n"
+        + "  @BindView(1) View view;\n"
+        + "  @BindView(2) View view2;\n"
+        + "  @OnClick(1) void doStuff() {}\n"
+        + "  @OnLongClick(1) boolean doMoreStuff() { return false; }\n"
+        + "}"
+    );
 
     JavaFileObject expectedSource = JavaFileObjects.forSourceString("test/Test$$ViewBinder", ""
         + "package test;\n"
@@ -116,8 +110,12 @@ public class UnbinderTest {
         + "import java.lang.Override;\n"
         + "public class Test$$ViewBinder<T extends Test> implements ViewBinder<T> {\n"
         + "  @Override\n"
-        + "  public Unbinder bind(final Finder finder, final T target, Object source) {\n"
-        + "    InnerUnbinder unbinder = createUnbinder(target);\n"
+        + "  public Unbinder bind(Finder finder, T target, Object source) {\n"
+        + "    InnerUnbinder unbinder = new InnerUnbinder(target);\n"
+        + "    bindToTarget(target, finder, source, unbinder);\n"
+        + "    return unbinder;\n"
+        + "  }\n"
+        + "  protected static void bindToTarget(final Test target, Finder finder, Object source, InnerUnbinder unbinder) {\n"
         + "    View view;\n"
         + "    view = finder.findRequiredView(source, 1, \"field 'view', method 'doStuff', and method 'doMoreStuff'\");\n"
         + "    target.view = view;\n"
@@ -136,10 +134,6 @@ public class UnbinderTest {
         + "    });\n"
         + "    view = finder.findRequiredView(source, 2, \"field 'view2'\");\n"
         + "    target.view2 = view;\n"
-        + "    return unbinder;\n"
-        + "  }\n"
-        + "  protected InnerUnbinder<T> createUnbinder(T target) {\n"
-        + "    return new InnerUnbinder(target);\n"
         + "  }\n"
         + "  protected static class InnerUnbinder<T extends Test> implements Unbinder {\n"
         + "    private T target;\n"
@@ -160,7 +154,8 @@ public class UnbinderTest {
         + "      target.view2 = null;\n"
         + "    }\n"
         + "  }\n"
-        + "}");
+        + "}"
+    );
 
     assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
@@ -170,20 +165,17 @@ public class UnbinderTest {
   }
 
   @Test public void unbinderRespectsNullable() {
-    JavaFileObject source = JavaFileObjects.forSourceString("test.Test",
-        Joiner.on('\n')
-            .join(
-                "package test;",
-                "import android.support.v4.app.Fragment;",
-                "import butterknife.ButterKnife;",
-                "import butterknife.OnClick;",
-                "import butterknife.Optional;",
-                "import butterknife.Unbinder;",
-                "public class Test extends Fragment {",
-                "  @Optional @OnClick(1) void doStuff() {",
-                "  }",
-                "}"
-            ));
+    JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
+        + "package test;\n"
+        + "import android.support.v4.app.Fragment;\n"
+        + "import butterknife.ButterKnife;\n"
+        + "import butterknife.OnClick;\n"
+        + "import butterknife.Optional;\n"
+        + "import butterknife.Unbinder;\n"
+        + "public class Test extends Fragment {\n"
+        + "  @Optional @OnClick(1) void doStuff() {}\n"
+        + "}"
+    );
 
     JavaFileObject expectedSource = JavaFileObjects.forSourceString("test/Test$$ViewBinder", ""
         + "package test;\n"
@@ -197,8 +189,12 @@ public class UnbinderTest {
         + "import java.lang.Override;\n"
         + "public class Test$$ViewBinder<T extends Test> implements ViewBinder<T> {\n"
         + "  @Override\n"
-        + "  public Unbinder bind(final Finder finder, final T target, Object source) {\n"
-        + "    InnerUnbinder unbinder = createUnbinder(target);\n"
+        + "  public Unbinder bind(Finder finder, T target, Object source) {\n"
+        + "    InnerUnbinder unbinder = new InnerUnbinder(target);\n"
+        + "    bindToTarget(target, finder, source, unbinder);\n"
+        + "    return unbinder;\n"
+        + "  }\n"
+        + "  protected static void bindToTarget(final Test target, Finder finder, Object source, InnerUnbinder unbinder) {\n"
         + "    View view;\n"
         + "    view = finder.findOptionalView(source, 1, null);\n"
         + "    if (view != null) {\n"
@@ -210,10 +206,6 @@ public class UnbinderTest {
         + "        }\n"
         + "      });\n"
         + "    }\n"
-        + "    return unbinder;\n"
-        + "  }\n"
-        + "  protected InnerUnbinder<T> createUnbinder(T target) {\n"
-        + "    return new InnerUnbinder(target);\n"
         + "  }\n"
         + "  protected static class InnerUnbinder<T extends Test> implements Unbinder {\n"
         + "    private T target;\n"
@@ -233,7 +225,8 @@ public class UnbinderTest {
         + "      }\n"
         + "    }\n"
         + "  }\n"
-        + "}");
+        + "}"
+    );
 
     assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
@@ -243,23 +236,20 @@ public class UnbinderTest {
   }
 
   @Test public void childBindsSecondUnbinder() {
-    JavaFileObject source = JavaFileObjects.forSourceString("test.Test",
-        Joiner.on('\n')
-            .join(
-                "package test;",
-                "import android.support.v4.app.Fragment;",
-                "import butterknife.ButterKnife;",
-                "import butterknife.OnClick;",
-                "import butterknife.Unbinder;",
-                "public class Test extends Fragment {",
-                "  @OnClick(1) void doStuff1() { }",
-                "}",
-                "class TestOne extends Test {",
-                "  @OnClick(1) void doStuff2() { }",
-                "}",
-                "class TestTwo extends Test {",
-                "}"
-            ));
+    JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
+        + "package test;\n"
+        + "import android.support.v4.app.Fragment;\n"
+        + "import butterknife.ButterKnife;\n"
+        + "import butterknife.OnClick;\n"
+        + "import butterknife.Unbinder;\n"
+        + "public class Test extends Fragment {\n"
+        + "  @OnClick(1) void doStuff1() {}\n"
+        + "}\n"
+        + "class TestOne extends Test {\n"
+        + "  @OnClick(1) void doStuff2() {}\n"
+        + "}\n"
+        + "class TestTwo extends Test {}"
+    );
 
     JavaFileObject expectedSource1 = JavaFileObjects.forSourceString("test/Test$$ViewBinder", ""
         + "package test;\n"
@@ -271,8 +261,13 @@ public class UnbinderTest {
         + "import java.lang.Override;\n"
         + "public class TestOne$$ViewBinder<T extends TestOne> extends Test$$ViewBinder<T> {\n"
         + "  @Override\n"
-        + "  public Unbinder bind(final Finder finder, final T target, Object source) {\n"
-        + "    InnerUnbinder unbinder = (InnerUnbinder) super.bind(finder, target, source);\n"
+        + "  public Unbinder bind(Finder finder, T target, Object source) {\n"
+        + "    InnerUnbinder unbinder = new InnerUnbinder(target);\n"
+        + "    bindToTarget(target, finder, source, unbinder);\n"
+        + "    return unbinder;\n"
+        + "  }\n"
+        + "  protected static void bindToTarget(final TestOne target, Finder finder, Object source, InnerUnbinder unbinder) {\n"
+        + "    Test$$ViewBinder.bindToTarget(target, finder, source, unbinder);\n"
         + "    View view;\n"
         + "    view = finder.findRequiredView(source, 1, \"method 'doStuff2'\");\n"
         + "    unbinder.view1 = view;\n"
@@ -282,11 +277,6 @@ public class UnbinderTest {
         + "        target.doStuff2();\n"
         + "      }\n"
         + "    });\n"
-        + "    return unbinder;\n"
-        + "  }\n"
-        + "  @Override\n"
-        + "  protected InnerUnbinder<T> createUnbinder(T target) {\n"
-        + "    return new InnerUnbinder(target);\n"
         + "  }\n"
         + "  protected static class InnerUnbinder<T extends TestOne> extends Test$$ViewBinder.InnerUnbinder<T> {\n"
         + "    View view1;\n"
@@ -299,7 +289,8 @@ public class UnbinderTest {
         + "      view1.setOnClickListener(null);\n"
         + "    }\n"
         + "  }\n"
-        + "}\n");
+        + "}"
+    );
 
     JavaFileObject expectedSource2 = JavaFileObjects.forSourceString("test/TestOne$$ViewBinder", ""
         + "package test;\n"
@@ -313,8 +304,12 @@ public class UnbinderTest {
         + "import java.lang.Override;\n"
         + "public class Test$$ViewBinder<T extends Test> implements ViewBinder<T> {\n"
         + "  @Override\n"
-        + "  public Unbinder bind(final Finder finder, final T target, Object source) {\n"
-        + "    InnerUnbinder unbinder = createUnbinder(target);\n"
+        + "  public Unbinder bind(Finder finder, T target, Object source) {\n"
+        + "    InnerUnbinder unbinder = new InnerUnbinder(target);\n"
+        + "    bindToTarget(target, finder, source, unbinder);\n"
+        + "    return unbinder;\n"
+        + "  }\n"
+        + "  protected static void bindToTarget(final Test target, Finder finder, Object source, InnerUnbinder unbinder) {\n"
         + "    View view;\n"
         + "    view = finder.findRequiredView(source, 1, \"method 'doStuff1'\");\n"
         + "    unbinder.view1 = view;\n"
@@ -324,10 +319,6 @@ public class UnbinderTest {
         + "        target.doStuff1();\n"
         + "      }\n"
         + "    });\n"
-        + "    return unbinder;\n"
-        + "  }\n"
-        + "  protected InnerUnbinder<T> createUnbinder(T target) {\n"
-        + "    return new InnerUnbinder(target);\n"
         + "  }\n"
         + "  protected static class InnerUnbinder<T extends Test> implements Unbinder {\n"
         + "    private T target;\n"
@@ -345,7 +336,8 @@ public class UnbinderTest {
         + "      view1.setOnClickListener(null);\n"
         + "    }\n"
         + "  }\n"
-        + "}\n");
+        + "}"
+    );
 
     assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
@@ -381,8 +373,13 @@ public class UnbinderTest {
         + "import java.lang.Override;\n"
         + "public class TestOne$$ViewBinder<T extends TestOne> extends Test$$ViewBinder<T> {\n"
         + "  @Override\n"
-        + "  public Unbinder bind(final Finder finder, final T target, Object source) {\n"
-        + "    InnerUnbinder unbinder = (InnerUnbinder) super.bind(finder, target, source);\n"
+        + "  public Unbinder bind(Finder finder, T target, Object source) {\n"
+        + "    InnerUnbinder unbinder = new InnerUnbinder(target);\n"
+        + "    bindToTarget(target, finder, source, unbinder);\n"
+        + "    return unbinder;\n"
+        + "  }\n"
+        + "  protected static void bindToTarget(final TestOne target, Finder finder, Object source, InnerUnbinder unbinder) {\n"
+        + "    Test$$ViewBinder.bindToTarget(target, finder, source, unbinder);\n"
         + "    View view;\n"
         + "    view = finder.findRequiredView(source, 1, \"method 'doStuff2'\");\n"
         + "    unbinder.view1 = view;\n"
@@ -392,11 +389,6 @@ public class UnbinderTest {
         + "        target.doStuff2();\n"
         + "      }\n"
         + "    });\n"
-        + "    return unbinder;\n"
-        + "  }\n"
-        + "  @Override\n"
-        + "  protected InnerUnbinder<T> createUnbinder(T target) {\n"
-        + "    return new InnerUnbinder(target);\n"
         + "  }\n"
         + "  protected static class InnerUnbinder<T extends TestOne> extends Test$$ViewBinder.InnerUnbinder<T> {\n"
         + "    View view1;\n"
@@ -409,7 +401,8 @@ public class UnbinderTest {
         + "      view1.setOnClickListener(null);\n"
         + "    }\n"
         + "  }\n"
-        + "}\n");
+        + "}"
+    );
 
     JavaFileObject expectedSource2 = JavaFileObjects.forSourceString("test/TestOne$$ViewBinder", ""
         + "package test;\n"
@@ -423,8 +416,12 @@ public class UnbinderTest {
         + "import java.lang.Override;\n"
         + "public class Test$$ViewBinder<T extends Test> implements ViewBinder<T> {\n"
         + "  @Override\n"
-        + "  public Unbinder bind(final Finder finder, final T target, Object source) {\n"
-        + "    InnerUnbinder unbinder = createUnbinder(target);\n"
+        + "  public Unbinder bind(Finder finder, T target, Object source) {\n"
+        + "    InnerUnbinder unbinder = new InnerUnbinder(target);\n"
+        + "    bindToTarget(target, finder, source, unbinder);\n"
+        + "    return unbinder;\n"
+        + "  }\n"
+        + "  protected static void bindToTarget(final Test target, Finder finder, Object source, InnerUnbinder unbinder) {\n"
         + "    View view;\n"
         + "    view = finder.findRequiredView(source, 1, \"method 'doStuff1'\");\n"
         + "    unbinder.view1 = view;\n"
@@ -434,10 +431,6 @@ public class UnbinderTest {
         + "        target.doStuff1();\n"
         + "      }\n"
         + "    });\n"
-        + "    return unbinder;\n"
-        + "  }\n"
-        + "  protected InnerUnbinder<T> createUnbinder(T target) {\n"
-        + "    return new InnerUnbinder(target);\n"
         + "  }\n"
         + "  protected static class InnerUnbinder<T extends Test> implements Unbinder {\n"
         + "    private T target;\n"
@@ -455,7 +448,8 @@ public class UnbinderTest {
         + "      view1.setOnClickListener(null);\n"
         + "    }\n"
         + "  }\n"
-        + "}\n");
+        + "}"
+    );
 
     assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
@@ -490,91 +484,93 @@ public class UnbinderTest {
             ));
 
     JavaFileObject expectedSource1 = JavaFileObjects.forSourceString("test/Test$$ViewBinder", ""
-            + "package test;\n"
-            + "import android.view.View;\n"
-            + "import butterknife.Unbinder;\n"
-            + "import butterknife.internal.DebouncingOnClickListener;\n"
-            + "import butterknife.internal.Finder;\n"
-            + "import butterknife.internal.ViewBinder;\n"
-            + "import java.lang.IllegalStateException;\n"
-            + "import java.lang.Object;\n"
-            + "import java.lang.Override;\n"
-            + "public class Test$$ViewBinder<T extends Test> implements ViewBinder<T> {\n"
-            + "  @Override\n"
-            + "  public Unbinder bind(final Finder finder, final T target, Object source) {\n"
-            + "    InnerUnbinder unbinder = createUnbinder(target);\n"
-            + "    View view;\n"
-            + "    view = finder.findRequiredView(source, 1, \"method 'doStuff1'\");\n"
-            + "    unbinder.view1 = view;\n"
-            + "    view.setOnClickListener(new DebouncingOnClickListener() {\n"
-            + "      @Override\n"
-            + "      public void doClick(View p0) {\n"
-            + "        target.doStuff1();\n"
-            + "      }\n"
-            + "    });\n"
-            + "    return unbinder;\n"
-            + "  }\n"
-            + "  protected InnerUnbinder<T> createUnbinder(T target) {\n"
-            + "    return new InnerUnbinder(target);\n"
-            + "  }\n"
-            + "  protected static class InnerUnbinder<T extends Test> implements Unbinder {\n"
-            + "    private T target;\n"
-            + "    View view1;\n"
-            + "    protected InnerUnbinder(T target) {\n"
-            + "      this.target = target;\n"
-            + "    }\n"
-            + "    @Override\n"
-            + "    public final void unbind() {\n"
-            + "      if (target == null) throw new IllegalStateException(\"Bindings already cleared.\");\n"
-            + "      unbind(target);\n"
-            + "      target = null;\n"
-            + "    }\n"
-            + "    protected void unbind(T target) {\n"
-            + "      view1.setOnClickListener(null);\n"
-            + "    }\n"
-            + "  }\n"
-            + "}");
+        + "package test;\n"
+        + "import android.view.View;\n"
+        + "import butterknife.Unbinder;\n"
+        + "import butterknife.internal.DebouncingOnClickListener;\n"
+        + "import butterknife.internal.Finder;\n"
+        + "import butterknife.internal.ViewBinder;\n"
+        + "import java.lang.IllegalStateException;\n"
+        + "import java.lang.Object;\n"
+        + "import java.lang.Override;\n"
+        + "public class Test$$ViewBinder<T extends Test> implements ViewBinder<T> {\n"
+        + "  @Override\n"
+        + "  public Unbinder bind(Finder finder, T target, Object source) {\n"
+        + "    InnerUnbinder unbinder = new InnerUnbinder(target);\n"
+        + "    bindToTarget(target, finder, source, unbinder);\n"
+        + "    return unbinder;\n"
+        + "  }\n"
+        + "  protected static void bindToTarget(final Test target, Finder finder, Object source, InnerUnbinder unbinder) {\n"
+        + "    View view;\n"
+        + "    view = finder.findRequiredView(source, 1, \"method 'doStuff1'\");\n"
+        + "    unbinder.view1 = view;\n"
+        + "    view.setOnClickListener(new DebouncingOnClickListener() {\n"
+        + "      @Override\n"
+        + "      public void doClick(View p0) {\n"
+        + "        target.doStuff1();\n"
+        + "      }\n"
+        + "    });\n"
+        + "  }\n"
+        + "  protected static class InnerUnbinder<T extends Test> implements Unbinder {\n"
+        + "    private T target;\n"
+        + "    View view1;\n"
+        + "    protected InnerUnbinder(T target) {\n"
+        + "      this.target = target;\n"
+        + "    }\n"
+        + "    @Override\n"
+        + "    public final void unbind() {\n"
+        + "      if (target == null) throw new IllegalStateException(\"Bindings already cleared.\");\n"
+        + "      unbind(target);\n"
+        + "      target = null;\n"
+        + "    }\n"
+        + "    protected void unbind(T target) {\n"
+        + "      view1.setOnClickListener(null);\n"
+        + "    }\n"
+        + "  }\n"
+        + "}"
+    );
 
-    JavaFileObject expectedSource2 = JavaFileObjects.forSourceString("test/one/TestOne$$ViewBinder", ""
-            + "package test.one;\n"
-            + "import android.view.View;\n"
-            + "import butterknife.Unbinder;\n"
-            + "import butterknife.internal.DebouncingOnClickListener;\n"
-            + "import butterknife.internal.Finder;\n"
-            + "import java.lang.Object;\n"
-            + "import java.lang.Override;\n"
-            + "import test.Test$$ViewBinder;\n"
-            + "public class TestOne$$ViewBinder<T extends TestOne> extends Test$$ViewBinder<T> {\n"
-            + "  @Override\n"
-            + "  public Unbinder bind(final Finder finder, final T target, Object source) {\n"
-            + "    InnerUnbinder unbinder = (InnerUnbinder) super.bind(finder, target, source);\n"
-            + "    View view;\n"
-            + "    view = finder.findRequiredView(source, 2, \"method 'doStuff2'\");\n"
-            + "    unbinder.view2 = view;\n"
-            + "    view.setOnClickListener(new DebouncingOnClickListener() {\n"
-            + "      @Override\n"
-            + "      public void doClick(View p0) {\n"
-            + "        target.doStuff2();\n"
-            + "      }\n"
-            + "    });\n"
-            + "    return unbinder;\n"
-            + "  }\n"
-            + "  @Override\n"
-            + "  protected InnerUnbinder<T> createUnbinder(T target) {\n"
-            + "    return new InnerUnbinder(target);\n"
-            + "  }\n"
-            + "  protected static class InnerUnbinder<T extends TestOne> extends Test$$ViewBinder.InnerUnbinder<T> {\n"
-            + "    View view2;\n"
-            + "    protected InnerUnbinder(T target) {\n"
-            + "      super(target);\n"
-            + "    }\n"
-            + "    @Override\n"
-            + "    protected void unbind(T target) {\n"
-            + "      super.unbind(target);\n"
-            + "      view2.setOnClickListener(null);\n"
-            + "    }\n"
-            + "  }\n"
-            + "}\n");
+    JavaFileObject expectedSource2 = JavaFileObjects.forSourceString("test/one/TestOne$$ViewBinder", "package test.one;\n"
+        + "\n"
+        + "import android.view.View;\n"
+        + "import butterknife.Unbinder;\n"
+        + "import butterknife.internal.DebouncingOnClickListener;\n"
+        + "import butterknife.internal.Finder;\n"
+        + "import java.lang.Object;\n"
+        + "import java.lang.Override;\n"
+        + "import test.Test$$ViewBinder;\n"
+        + "public class TestOne$$ViewBinder<T extends TestOne> extends Test$$ViewBinder<T> {\n"
+        + "  @Override\n"
+        + "  public Unbinder bind(Finder finder, T target, Object source) {\n"
+        + "    InnerUnbinder unbinder = new InnerUnbinder(target);\n"
+        + "    bindToTarget(target, finder, source, unbinder);\n"
+        + "    return unbinder;\n"
+        + "  }\n"
+        + "  protected static void bindToTarget(final TestOne target, Finder finder, Object source, InnerUnbinder unbinder) {\n"
+        + "    Test$$ViewBinder.bindToTarget(target, finder, source, unbinder);\n"
+        + "    View view;\n"
+        + "    view = finder.findRequiredView(source, 2, \"method 'doStuff2'\");\n"
+        + "    unbinder.view2 = view;\n"
+        + "    view.setOnClickListener(new DebouncingOnClickListener() {\n"
+        + "      @Override\n"
+        + "      public void doClick(View p0) {\n"
+        + "        target.doStuff2();\n"
+        + "      }\n"
+        + "    });\n"
+        + "  }\n"
+        + "  protected static class InnerUnbinder<T extends TestOne> extends Test$$ViewBinder.InnerUnbinder<T> {\n"
+        + "    View view2;\n"
+        + "    protected InnerUnbinder(T target) {\n"
+        + "      super(target);\n"
+        + "    }\n"
+        + "    @Override\n"
+        + "    protected void unbind(T target) {\n"
+        + "      super.unbind(target);\n"
+        + "      view2.setOnClickListener(null);\n"
+        + "    }\n"
+        + "  }\n"
+        + "}"
+    );
 
     assertAbout(javaSources()).that(asList(source1, source2))
         .processedWith(new ButterKnifeProcessor())
@@ -614,8 +610,12 @@ public class UnbinderTest {
         + "import java.lang.Override;\n"
         + "public class Test$$ViewBinder<T extends Test> implements ViewBinder<T> {\n"
         + "  @Override\n"
-        + "  public Unbinder bind(final Finder finder, final T target, Object source) {\n"
-        + "    InnerUnbinder unbinder = createUnbinder(target);\n"
+        + "  public Unbinder bind(Finder finder, T target, Object source) {\n"
+        + "    InnerUnbinder unbinder = new InnerUnbinder(target);\n"
+        + "    bindToTarget(target, finder, source, unbinder);\n"
+        + "    return unbinder;\n"
+        + "  }\n"
+        + "  protected static void bindToTarget(final Test target, Finder finder, Object source, InnerUnbinder unbinder) {\n"
         + "    View view;\n"
         + "    view = finder.findRequiredView(source, 1, \"method 'doStuff1'\");\n"
         + "    unbinder.view1 = view;\n"
@@ -625,10 +625,6 @@ public class UnbinderTest {
         + "        target.doStuff1();\n"
         + "      }\n"
         + "    });\n"
-        + "    return unbinder;\n"
-        + "  }\n"
-        + "  protected InnerUnbinder<T> createUnbinder(T target) {\n"
-        + "    return new InnerUnbinder(target);\n"
         + "  }\n"
         + "  protected static class InnerUnbinder<T extends Test> implements Unbinder {\n"
         + "    private T target;\n"
@@ -646,7 +642,8 @@ public class UnbinderTest {
         + "      view1.setOnClickListener(null);\n"
         + "    }\n"
         + "  }\n"
-        + "}\n");
+        + "}"
+    );
 
     JavaFileObject expectedSource2 = JavaFileObjects.forSourceString("test/TestTwo$$ViewBinder", ""
         + "package test;\n"
@@ -658,8 +655,13 @@ public class UnbinderTest {
         + "import java.lang.Override;\n"
         + "public class TestTwo$$ViewBinder<T extends TestTwo> extends Test$$ViewBinder<T> {\n"
         + "  @Override\n"
-        + "  public Unbinder bind(final Finder finder, final T target, Object source) {\n"
-        + "    InnerUnbinder unbinder = (InnerUnbinder) super.bind(finder, target, source);\n"
+        + "  public Unbinder bind(Finder finder, T target, Object source) {\n"
+        + "    InnerUnbinder unbinder = new InnerUnbinder(target);\n"
+        + "    bindToTarget(target, finder, source, unbinder);\n"
+        + "    return unbinder;\n"
+        + "  }\n"
+        + "  protected static void bindToTarget(final TestTwo target, Finder finder, Object source, InnerUnbinder unbinder) {\n"
+        + "    Test$$ViewBinder.bindToTarget(target, finder, source, unbinder);\n"
         + "    View view;\n"
         + "    view = finder.findRequiredView(source, 1, \"method 'doStuff2'\");\n"
         + "    unbinder.view1 = view;\n"
@@ -669,11 +671,6 @@ public class UnbinderTest {
         + "        target.doStuff2();\n"
         + "      }\n"
         + "    });\n"
-        + "    return unbinder;\n"
-        + "  }\n"
-        + "  @Override\n"
-        + "  protected InnerUnbinder<T> createUnbinder(T target) {\n"
-        + "    return new InnerUnbinder(target);\n"
         + "  }\n"
         + "  protected static class InnerUnbinder<T extends TestTwo> extends Test$$ViewBinder.InnerUnbinder<T> {\n"
         + "    View view1;\n"
@@ -686,7 +683,8 @@ public class UnbinderTest {
         + "      view1.setOnClickListener(null);\n"
         + "    }\n"
         + "  }\n"
-        + "}\n");
+        + "}"
+    );
 
     assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
@@ -829,15 +827,19 @@ public class UnbinderTest {
         + "import java.lang.SuppressWarnings;\n"
         + "public class A$$ViewBinder<T extends A> implements ViewBinder<T> {\n"
         + "  @Override\n"
+        + "  public Unbinder bind(Finder finder, T target, Object source) {\n"
+        + "    bindToTarget(target, finder, source);\n"
+        + "    return Unbinder.EMPTY;\n"
+        + "  }\n"
         + "  @SuppressWarnings(\"ResourceType\")\n"
-        + "  public Unbinder bind(final Finder finder, final T target, Object source) {\n"
+        + "  protected static void bindToTarget(final A target, Finder finder, Object source) {\n"
         + "    Context context = finder.getContext(source);\n"
         + "    Resources res = context.getResources();\n"
         + "    Resources.Theme theme = context.getTheme();\n"
         + "    target.blackColor = Utils.getColor(res, theme, 17170444);\n"
-        + "    return Unbinder.EMPTY;\n"
         + "  }\n"
-        + "}\n");
+        + "}"
+    );
 
     JavaFileObject expectedSourceB = JavaFileObjects.forSourceString("test/B$$ViewBinder", ""
         + "package test;\n"
@@ -851,16 +853,20 @@ public class UnbinderTest {
         + "import java.lang.SuppressWarnings;\n"
         + "public class B$$ViewBinder<T extends B> extends A$$ViewBinder<T> {\n"
         + "  @Override\n"
+        + "  public Unbinder bind(Finder finder, T target, Object source) {\n"
+        + "    bindToTarget(target, finder, source);\n"
+        + "    return Unbinder.EMPTY;\n"
+        + "  }\n"
         + "  @SuppressWarnings(\"ResourceType\")\n"
-        + "  public Unbinder bind(final Finder finder, final T target, Object source) {\n"
-        + "    Unbinder unbinder = super.bind(finder, target, source);\n"
+        + "  protected static void bindToTarget(final B target, Finder finder, Object source) {\n"
+        + "    A$$ViewBinder.bindToTarget(target, finder, source);\n"
         + "    Context context = finder.getContext(source);\n"
         + "    Resources res = context.getResources();\n"
         + "    Resources.Theme theme = context.getTheme();\n"
         + "    target.whiteColor = Utils.getColor(res, theme, 17170443);\n"
-        + "    return unbinder;\n"
         + "  }\n"
-        + "}\n");
+        + "}"
+    );
 
     JavaFileObject expectedSourceC = JavaFileObjects.forSourceString("test/C$$ViewBinder", ""
         + "package test;\n"
@@ -876,10 +882,13 @@ public class UnbinderTest {
         + "import java.lang.SuppressWarnings;\n"
         + "public class C$$ViewBinder<T extends C> extends B$$ViewBinder<T> {\n"
         + "  @Override\n"
+        + "  public Unbinder bind(Finder finder, T target, Object source) {\n"
+        + "    bindToTarget(target, finder, source);\n"
+        + "    return new InnerUnbinder(target);\n"
+        + "  }\n"
         + "  @SuppressWarnings(\"ResourceType\")\n"
-        + "  public Unbinder bind(final Finder finder, final T target, Object source) {\n"
-        + "    super.bind(finder, target, source);\n"
-        + "    InnerUnbinder unbinder = createUnbinder(target);\n"
+        + "  protected static void bindToTarget(final C target, Finder finder, Object source) {\n"
+        + "    B$$ViewBinder.bindToTarget(target, finder, source);\n"
         + "    View view;\n"
         + "    view = finder.findRequiredView(source, 16908313, \"field 'button1'\");\n"
         + "    target.button1 = view;\n"
@@ -887,10 +896,6 @@ public class UnbinderTest {
         + "    Resources res = context.getResources();\n"
         + "    Resources.Theme theme = context.getTheme();\n"
         + "    target.transparentColor = Utils.getColor(res, theme, 17170445);\n"
-        + "    return unbinder;\n"
-        + "  }\n"
-        + "  protected InnerUnbinder<T> createUnbinder(T target) {\n"
-        + "    return new InnerUnbinder(target);\n"
         + "  }\n"
         + "  protected static class InnerUnbinder<T extends C> implements Unbinder {\n"
         + "    private T target;\n"
@@ -907,7 +912,8 @@ public class UnbinderTest {
         + "      target.button1 = null;\n"
         + "    }\n"
         + "  }\n"
-        + "}\n");
+        + "}"
+    );
 
     JavaFileObject expectedSourceD = JavaFileObjects.forSourceString("test/D$$ViewBinder", ""
         + "package test;\n"
@@ -921,16 +927,20 @@ public class UnbinderTest {
         + "import java.lang.SuppressWarnings;\n"
         + "public class D$$ViewBinder<T extends D> extends C$$ViewBinder<T> {\n"
         + "  @Override\n"
+        + "  public Unbinder bind(Finder finder, T target, Object source) {\n"
+        + "    bindToTarget(target, finder, source);\n"
+        + "    return new C$$ViewBinder.InnerUnbinder(target);\n"
+        + "  }\n"
         + "  @SuppressWarnings(\"ResourceType\")\n"
-        + "  public Unbinder bind(final Finder finder, final T target, Object source) {\n"
-        + "    Unbinder unbinder = super.bind(finder, target, source);\n"
+        + "  protected static void bindToTarget(final D target, Finder finder, Object source) {\n"
+        + "    C$$ViewBinder.bindToTarget(target, finder, source);\n"
         + "    Context context = finder.getContext(source);\n"
         + "    Resources res = context.getResources();\n"
         + "    Resources.Theme theme = context.getTheme();\n"
         + "    target.grayColor = Utils.getColor(res, theme, 17170432);\n"
-        + "    return unbinder;\n"
         + "  }\n"
-        + "}\n");
+        + "}"
+    );
 
     JavaFileObject expectedSourceE = JavaFileObjects.forSourceString("test/E$$ViewBinder", ""
         + "package test;\n"
@@ -944,16 +954,20 @@ public class UnbinderTest {
         + "import java.lang.SuppressWarnings;\n"
         + "public class E$$ViewBinder<T extends E> extends C$$ViewBinder<T> {\n"
         + "  @Override\n"
+        + "  public Unbinder bind(Finder finder, T target, Object source) {\n"
+        + "    bindToTarget(target, finder, source);\n"
+        + "    return new C$$ViewBinder.InnerUnbinder(target);\n"
+        + "  }\n"
         + "  @SuppressWarnings(\"ResourceType\")\n"
-        + "  public Unbinder bind(final Finder finder, final T target, Object source) {\n"
-        + "    Unbinder unbinder = super.bind(finder, target, source);\n"
+        + "  protected static void bindToTarget(final E target, Finder finder, Object source) {\n"
+        + "    C$$ViewBinder.bindToTarget(target, finder, source);\n"
         + "    Context context = finder.getContext(source);\n"
         + "    Resources res = context.getResources();\n"
         + "    Resources.Theme theme = context.getTheme();\n"
         + "    target.backgroundDarkColor = Utils.getColor(res, theme, 17170446);\n"
-        + "    return unbinder;\n"
         + "  }\n"
-        + "}\n");
+        + "}"
+    );
 
     JavaFileObject expectedSourceF = JavaFileObjects.forSourceString("test/F$$ViewBinder", ""
         + "package test;\n"
@@ -967,16 +981,20 @@ public class UnbinderTest {
         + "import java.lang.SuppressWarnings;\n"
         + "public class F$$ViewBinder<T extends F> extends D$$ViewBinder<T> {\n"
         + "  @Override\n"
+        + "  public Unbinder bind(Finder finder, T target, Object source) {\n"
+        + "    bindToTarget(target, finder, source);\n"
+        + "    return new C$$ViewBinder.InnerUnbinder(target);\n"
+        + "  }\n"
         + "  @SuppressWarnings(\"ResourceType\")\n"
-        + "  public Unbinder bind(final Finder finder, final T target, Object source) {\n"
-        + "    Unbinder unbinder = super.bind(finder, target, source);\n"
+        + "  protected static void bindToTarget(final F target, Finder finder, Object source) {\n"
+        + "    D$$ViewBinder.bindToTarget(target, finder, source);\n"
         + "    Context context = finder.getContext(source);\n"
         + "    Resources res = context.getResources();\n"
         + "    Resources.Theme theme = context.getTheme();\n"
         + "    target.backgroundLightColor = Utils.getColor(res, theme, 17170447);\n"
-        + "    return unbinder;\n"
         + "  }\n"
-        + "}\n");
+        + "}"
+    );
 
     JavaFileObject expectedSourceG = JavaFileObjects.forSourceString("test/G$$ViewBinder", ""
         + "package test;\n"
@@ -992,9 +1010,14 @@ public class UnbinderTest {
         + "import java.lang.SuppressWarnings;\n"
         + "public class G$$ViewBinder<T extends G> extends E$$ViewBinder<T> {\n"
         + "  @Override\n"
+        + "  public Unbinder bind(Finder finder, T target, Object source) {\n"
+        + "    InnerUnbinder unbinder = new InnerUnbinder(target);\n"
+        + "    bindToTarget(target, finder, source, unbinder);\n"
+        + "    return unbinder;\n"
+        + "  }\n"
         + "  @SuppressWarnings(\"ResourceType\")\n"
-        + "  public Unbinder bind(final Finder finder, final T target, Object source) {\n"
-        + "    InnerUnbinder unbinder = (InnerUnbinder) super.bind(finder, target, source);\n"
+        + "  protected static void bindToTarget(final G target, Finder finder, Object source, InnerUnbinder unbinder) {\n"
+        + "    E$$ViewBinder.bindToTarget(target, finder, source);\n"
         + "    View view;\n"
         + "    view = finder.findRequiredView(source, 16908314, \"field 'button2'\");\n"
         + "    target.button2 = view;\n"
@@ -1010,11 +1033,6 @@ public class UnbinderTest {
         + "    Resources res = context.getResources();\n"
         + "    Resources.Theme theme = context.getTheme();\n"
         + "    target.grayColor = Utils.getColor(res, theme, 17170432);\n"
-        + "    return unbinder;\n"
-        + "  }\n"
-        + "  @Override\n"
-        + "  protected InnerUnbinder<T> createUnbinder(T target) {\n"
-        + "    return new InnerUnbinder(target);\n"
         + "  }\n"
         + "  protected static class InnerUnbinder<T extends G> extends C$$ViewBinder.InnerUnbinder<T> {\n"
         + "    View view16908290;\n"
@@ -1028,7 +1046,8 @@ public class UnbinderTest {
         + "      view16908290.setOnClickListener(null);\n"
         + "    }\n"
         + "  }\n"
-        + "}\n");
+        + "}"
+    );
 
     JavaFileObject expectedSourceH = JavaFileObjects.forSourceString("test/H$$ViewBinder", ""
         + "package test;\n"
@@ -1043,9 +1062,14 @@ public class UnbinderTest {
         + "import java.lang.SuppressWarnings;\n"
         + "public class H$$ViewBinder<T extends H> extends G$$ViewBinder<T> {\n"
         + "  @Override\n"
+        + "  public Unbinder bind(Finder finder, T target, Object source) {\n"
+        + "    InnerUnbinder unbinder = new InnerUnbinder(target);\n"
+        + "    bindToTarget(target, finder, source, unbinder);\n"
+        + "    return unbinder;\n"
+        + "  }\n"
         + "  @SuppressWarnings(\"ResourceType\")\n"
-        + "  public Unbinder bind(final Finder finder, final T target, Object source) {\n"
-        + "    InnerUnbinder unbinder = (InnerUnbinder) super.bind(finder, target, source);\n"
+        + "  protected static void bindToTarget(final H target, Finder finder, Object source, InnerUnbinder unbinder) {\n"
+        + "    G$$ViewBinder.bindToTarget(target, finder, source, unbinder);\n"
         + "    View view;\n"
         + "    view = finder.findRequiredView(source, 16908315, \"field 'button3'\");\n"
         + "    target.button3 = view;\n"
@@ -1053,11 +1077,6 @@ public class UnbinderTest {
         + "    Resources res = context.getResources();\n"
         + "    Resources.Theme theme = context.getTheme();\n"
         + "    target.grayColor = Utils.getColor(res, theme, 17170433);\n"
-        + "    return unbinder;\n"
-        + "  }\n"
-        + "  @Override\n"
-        + "  protected InnerUnbinder<T> createUnbinder(T target) {\n"
-        + "    return new InnerUnbinder(target);\n"
         + "  }\n"
         + "  protected static class InnerUnbinder<T extends H> extends G$$ViewBinder.InnerUnbinder<T> {\n"
         + "    protected InnerUnbinder(T target) {\n"
@@ -1069,7 +1088,8 @@ public class UnbinderTest {
         + "      target.button3 = null;\n"
         + "    }\n"
         + "  }\n"
-        + "}\n");
+        + "}"
+    );
 
     assertAbout(javaSources())
         .that(asList(sourceA,

@@ -1,27 +1,23 @@
 package butterknife;
 
-import com.google.common.base.Joiner;
-import com.google.testing.compile.JavaFileObjects;
-
-import org.junit.Test;
-
-import javax.tools.JavaFileObject;
-
 import butterknife.compiler.ButterKnifeProcessor;
+import com.google.testing.compile.JavaFileObjects;
+import javax.tools.JavaFileObject;
+import org.junit.Test;
 
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.testing.compile.JavaSourceSubjectFactory.javaSource;
 
 public class OnTextChangedTest {
   @Test public void textChanged() {
-    JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
-        "package test;",
-        "import android.app.Activity;",
-        "import butterknife.OnTextChanged;",
-        "public class Test extends Activity {",
-        "  @OnTextChanged(1) void doStuff() {}",
-        "}"
-    ));
+    JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
+        + "package test;\n"
+        + "import android.app.Activity;\n"
+        + "import butterknife.OnTextChanged;\n"
+        + "public class Test extends Activity {\n"
+        + "  @OnTextChanged(1) void doStuff() {}\n"
+        + "}"
+    );
 
     JavaFileObject expectedSource = JavaFileObjects.forSourceString("test/Test$$ViewBinder", ""
         + "package test;\n"
@@ -38,8 +34,12 @@ public class OnTextChangedTest {
         + "import java.lang.Override;\n"
         + "public class Test$$ViewBinder<T extends Test> implements ViewBinder<T> {\n"
         + "  @Override\n"
-        + "  public Unbinder bind(final Finder finder, final T target, Object source) {\n"
-        + "    InnerUnbinder unbinder = createUnbinder(target);\n"
+        + "  public Unbinder bind(Finder finder, T target, Object source) {\n"
+        + "    InnerUnbinder unbinder = new InnerUnbinder(target);\n"
+        + "    bindToTarget(target, finder, source, unbinder);\n"
+        + "    return unbinder;\n"
+        + "  }\n"
+        + "  protected static void bindToTarget(final Test target, Finder finder, Object source, InnerUnbinder unbinder) {\n"
         + "    View view;\n"
         + "    view = finder.findRequiredView(source, 1, \"method 'doStuff'\");\n"
         + "    unbinder.view1 = view;\n"
@@ -56,10 +56,6 @@ public class OnTextChangedTest {
         + "      }\n"
         + "    };\n"
         + "    ((TextView) view).addTextChangedListener(unbinder.view1TextWatcher);\n"
-        + "    return unbinder;\n"
-        + "  }\n"
-        + "  protected InnerUnbinder<T> createUnbinder(T target) {\n"
-        + "    return new InnerUnbinder(target);\n"
         + "  }\n"
         + "  protected static class InnerUnbinder<T extends Test> implements Unbinder {\n"
         + "    private T target;\n"
@@ -79,7 +75,8 @@ public class OnTextChangedTest {
         + "      view1TextWatcher = null;\n"
         + "    }\n"
         + "  }\n"
-        + "}");
+        + "}"
+    );
 
     assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
