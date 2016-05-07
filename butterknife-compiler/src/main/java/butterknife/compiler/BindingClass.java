@@ -305,26 +305,45 @@ final class BindingClass {
         .addParameter(targetType, "target")
         .addParameter(Object.class, "source");
 
-    if (bindViewNeedsUnbinder()) {
-      result.addStatement("$1T unbinder = new $1T(target)", unbinderClassName);
-      if (isFinal) {
-        result.addCode("\n");
-        generateBindViewBody(result);
-        result.addCode("\n");
+    boolean needsFinder = bindNeedsFinder();
+    boolean needsResources = bindNeedsResources();
+    boolean needsTheme = bindNeedsTheme();
+    boolean needsUnbinder = bindNeedsUnbinder();
+
+    if (needsResources) {
+      if (needsTheme) {
+        result.addStatement("$T context = finder.getContext(source)", CONTEXT);
+        result.addStatement("$T res = context.getResources()", RESOURCES);
+        result.addStatement("$T theme = context.getTheme()", THEME);
       } else {
-        result.addStatement("$N(target, finder, source, unbinder)", BIND_TO_TARGET);
+        result.addStatement("$T res = finder.getContext(source).getResources()", RESOURCES);
       }
+    }
+
+    if (needsUnbinder) {
+      result.addStatement("$1T unbinder = new $1T(target)", unbinderClassName);
+    }
+
+    if (isFinal) {
+      if (needsResources || needsUnbinder) {
+        result.addCode("\n");
+      }
+      generateBindViewBody(result);
+      result.addCode("\n");
+    } else {
+      CodeBlock.Builder invoke = CodeBlock.builder().add("$N(target", BIND_TO_TARGET);
+      if (needsFinder) invoke.add(", finder, source");
+      if (needsResources) invoke.add(", res");
+      if (needsTheme) invoke.add(", theme");
+      if (needsUnbinder) invoke.add(", unbinder");
+      result.addStatement("$L", invoke.add(")").build());
+    }
+
+    if (needsUnbinder) {
       result.addStatement("return unbinder");
     } else if (hasUnbinder()) {
-      if (isFinal) {
-        generateBindViewBody(result);
-        result.addCode("\n");
-      } else {
-        result.addStatement("$N(target, finder, source)", BIND_TO_TARGET);
-      }
       result.addStatement("return new $T(target)", unbinderClassName);
     } else {
-      result.addStatement("$N(target, finder, source)", BIND_TO_TARGET);
       result.addStatement("return $T.EMPTY", UNBINDER);
     }
 
@@ -334,11 +353,19 @@ final class BindingClass {
   private MethodSpec createNewBindToTargetMethod() {
     MethodSpec.Builder result = MethodSpec.methodBuilder(BIND_TO_TARGET)
         .addModifiers(PROTECTED, STATIC)
-        .addParameter(targetTypeName, "target", FINAL)
-        .addParameter(FINDER, "finder")
-        .addParameter(Object.class, "source");
+        .addParameter(targetTypeName, "target", FINAL);
 
-    if (bindViewNeedsUnbinder()) {
+    if (bindNeedsFinder()) {
+      result.addParameter(FINDER, "finder")
+          .addParameter(Object.class, "source");
+    }
+    if (bindNeedsResources()) {
+      result.addParameter(RESOURCES, "res");
+    }
+    if (bindNeedsTheme()) {
+      result.addParameter(THEME, "theme");
+    }
+    if (bindNeedsUnbinder()) {
       result.addParameter(unbinderClassName, "unbinder");
     }
 
@@ -356,13 +383,13 @@ final class BindingClass {
     }
 
     if (hasParentBinding()) {
-      if (parentBinding.bindViewNeedsUnbinder()) {
-        result.addStatement("$T.$N(target, finder, source, unbinder)",
-            parentBinding.generatedClassName, BIND_TO_TARGET);
-      } else {
-        result.addStatement("$T.$N(target, finder, source)",
-            parentBinding.generatedClassName, BIND_TO_TARGET);
-      }
+      CodeBlock.Builder invoke = CodeBlock.builder() //
+          .add("$T.$N(target", parentBinding.generatedClassName, BIND_TO_TARGET);
+      if (parentBinding.bindNeedsFinder()) invoke.add(", finder, source");
+      if (parentBinding.bindNeedsResources()) invoke.add(", res");
+      if (parentBinding.bindNeedsTheme()) invoke.add(", theme");
+      if (parentBinding.bindNeedsUnbinder()) invoke.add(", unbinder");
+      result.addStatement("$L", invoke.add(")").build());
       result.addCode("\n");
     }
 
@@ -386,14 +413,6 @@ final class BindingClass {
     }
 
     if (hasResourceBindings()) {
-      if (hasResourceBindingsNeedingTheme()) {
-        result.addStatement("$T context = finder.getContext(source)", CONTEXT);
-        result.addStatement("$T res = context.getResources()", RESOURCES);
-        result.addStatement("$T theme = context.getTheme()", THEME);
-      } else {
-        result.addStatement("$T res = finder.getContext(source).getResources()", RESOURCES);
-      }
-
       for (FieldBitmapBinding binding : bitmapBindings) {
         result.addStatement("target.$L = $T.decodeResource(res, $L)", binding.getName(),
             BITMAP_FACTORY, binding.getId());
@@ -700,7 +719,22 @@ final class BindingClass {
     return false;
   }
 
-  private boolean bindViewNeedsUnbinder() {
+  private boolean bindNeedsFinder() {
+    return hasViewBindings() //
+        || hasParentBinding() && parentBinding.bindNeedsFinder();
+  }
+
+  private boolean bindNeedsResources() {
+    return hasResourceBindings() //
+        || hasParentBinding() && parentBinding.bindNeedsResources();
+  }
+
+  private boolean bindNeedsTheme() {
+    return hasResourceBindings() && hasResourceBindingsNeedingTheme() //
+        || hasParentBinding() && parentBinding.bindNeedsTheme();
+  }
+
+  private boolean bindNeedsUnbinder() {
     if (hasUnbinder()) {
       for (ViewBindings viewBindings : viewIdMap.values()) {
         if (!viewBindings.getMethodBindings().isEmpty()) {
@@ -708,7 +742,7 @@ final class BindingClass {
         }
       }
     }
-    return hasParentBinding() && parentBinding.bindViewNeedsUnbinder();
+    return hasParentBinding() && parentBinding.bindNeedsUnbinder();
   }
 
   @Override public String toString() {
