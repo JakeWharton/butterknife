@@ -55,18 +55,18 @@ final class BindingClass {
   private final String classPackage;
   private final String className;
   private final boolean isFinal;
-  private final String targetClass;
+  private final TypeName targetTypeName;
   private final String classFqcn;
   private BindingClass parentBinding;
   private ClassName unbinderClassName;  // If this is null'd out, it has no unbinder and uses NOP.
   private ClassName highestUnbinderClassName; // If this is null'd out, there is no parent unbinder.
 
-  BindingClass(String classPackage, String className, boolean isFinal, String targetClass,
+  BindingClass(String classPackage, String className, boolean isFinal, TypeName targetTypeName,
       String classFqcn) {
     this.classPackage = classPackage;
     this.className = className;
     this.isFinal = isFinal;
-    this.targetClass = targetClass;
+    this.targetTypeName = targetTypeName;
     this.classFqcn = classFqcn;
 
     // Default to this, but this can be null'd out by the processor before we brew if it's not
@@ -131,7 +131,7 @@ final class BindingClass {
   JavaFile brewJava() {
     TypeSpec.Builder result = TypeSpec.classBuilder(className)
         .addModifiers(PUBLIC)
-        .addTypeVariable(TypeVariableName.get("T", ClassName.bestGuess(targetClass)));
+        .addTypeVariable(TypeVariableName.get("T", targetTypeName));
     if (isFinal) {
       result.addModifiers(Modifier.FINAL);
     }
@@ -165,7 +165,7 @@ final class BindingClass {
     TypeSpec.Builder result =
         TypeSpec.classBuilder(unbinderClassName.simpleName())
             .addModifiers(PROTECTED, STATIC)
-            .addTypeVariable(TypeVariableName.get("T", ClassName.bestGuess(targetClass)));
+            .addTypeVariable(TypeVariableName.get("T", targetTypeName));
     if (isFinal) {
       result.addModifiers(Modifier.FINAL);
     }

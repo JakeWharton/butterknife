@@ -26,6 +26,7 @@ import butterknife.internal.ListenerClass;
 import butterknife.internal.ListenerMethod;
 import com.google.auto.common.SuperficialValidation;
 import com.google.auto.service.AutoService;
+import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -1107,13 +1108,17 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
       TypeElement enclosingElement) {
     BindingClass bindingClass = targetClassMap.get(enclosingElement);
     if (bindingClass == null) {
-      String targetType = enclosingElement.getQualifiedName().toString();
-      String classPackage = getPackageName(enclosingElement);
+      TypeName targetType = TypeName.get(enclosingElement.asType());
+      if (targetType instanceof ParameterizedTypeName) {
+        targetType = ((ParameterizedTypeName) targetType).rawType;
+      }
+      String targetPackage = getPackageName(enclosingElement);
       boolean isFinal = enclosingElement.getModifiers().contains(Modifier.FINAL);
-      String className = getClassName(enclosingElement, classPackage) + BINDING_CLASS_SUFFIX;
+
+      String className = getClassName(enclosingElement, targetPackage) + BINDING_CLASS_SUFFIX;
       String classFqcn = getFqcn(enclosingElement) + BINDING_CLASS_SUFFIX;
 
-      bindingClass = new BindingClass(classPackage, className, isFinal, targetType, classFqcn);
+      bindingClass = new BindingClass(targetPackage, className, isFinal, targetType, classFqcn);
       targetClassMap.put(enclosingElement, bindingClass);
     }
     return bindingClass;
