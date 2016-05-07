@@ -195,8 +195,10 @@ final class BindingClass {
       TypeName targetType) {
     MethodSpec.Builder result = MethodSpec.methodBuilder("unbind")
         .addAnnotation(Override.class)
-        .addModifiers(PUBLIC)
-        .addStatement("$T target = this.target", targetType);
+        .addModifiers(PUBLIC);
+    if (!hasParentUnbinder() || hasFieldBindings()) {
+      result.addStatement("$T target = this.target", targetType);
+    }
     if (!hasParentUnbinder()) {
       result.addStatement("if (target == null) throw new $T($S)", IllegalStateException.class,
           "Bindings already cleared.");
