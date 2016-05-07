@@ -196,11 +196,13 @@ final class BindingClass {
     MethodSpec.Builder result = MethodSpec.methodBuilder("unbind")
         .addAnnotation(Override.class)
         .addModifiers(PUBLIC);
-    if (!hasParentUnbinder() || hasFieldBindings()) {
+    boolean rootUnbinderWithFields = !hasParentUnbinder() && hasFieldBindings();
+    if (hasFieldBindings() || rootUnbinderWithFields) {
       result.addStatement("$T target = this.target", targetType);
     }
     if (!hasParentUnbinder()) {
-      result.addStatement("if (target == null) throw new $T($S)", IllegalStateException.class,
+      String target = rootUnbinderWithFields ? "target" : "this.target";
+      result.addStatement("if ($N == null) throw new $T($S)", target, IllegalStateException.class,
           "Bindings already cleared.");
     } else {
       result.addStatement("super.unbind()");
