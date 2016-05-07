@@ -26,6 +26,7 @@ import butterknife.internal.ListenerClass;
 import butterknife.internal.ListenerMethod;
 import com.google.auto.common.SuperficialValidation;
 import com.google.auto.service.AutoService;
+import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import java.io.IOException;
@@ -1112,13 +1113,14 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
       if (targetType instanceof ParameterizedTypeName) {
         targetType = ((ParameterizedTypeName) targetType).rawType;
       }
-      String targetPackage = getPackageName(enclosingElement);
+
+      String packageName = getPackageName(enclosingElement);
+      ClassName classFqcn = ClassName.get(packageName,
+          getClassName(enclosingElement, packageName) + BINDING_CLASS_SUFFIX);
+
       boolean isFinal = enclosingElement.getModifiers().contains(Modifier.FINAL);
 
-      String className = getClassName(enclosingElement, targetPackage) + BINDING_CLASS_SUFFIX;
-      String classFqcn = getFqcn(enclosingElement) + BINDING_CLASS_SUFFIX;
-
-      bindingClass = new BindingClass(targetPackage, className, isFinal, targetType, classFqcn);
+      bindingClass = new BindingClass(targetType, classFqcn, isFinal);
       targetClassMap.put(enclosingElement, bindingClass);
     }
     return bindingClass;
@@ -1142,12 +1144,6 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
         return typeElement;
       }
     }
-  }
-
-  /** Get full-qualified class name of a {@linkplain TypeElement typeElement} */
-  private String getFqcn(TypeElement typeElement) {
-    String packageName = getPackageName(typeElement);
-    return packageName + "." + getClassName(typeElement, packageName);
   }
 
   @Override public SourceVersion getSupportedSourceVersion() {

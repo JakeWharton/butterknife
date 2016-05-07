@@ -52,26 +52,21 @@ final class BindingClass {
   private final List<FieldDrawableBinding> drawableBindings = new ArrayList<>();
   private final List<FieldResourceBinding> resourceBindings = new ArrayList<>();
   private final Set<BindingClass> descendantBindingClasses = new LinkedHashSet<>();
-  private final String classPackage;
-  private final String className;
   private final boolean isFinal;
   private final TypeName targetTypeName;
-  private final String classFqcn;
+  private final ClassName generatedClassName;
   private BindingClass parentBinding;
   private ClassName unbinderClassName;  // If this is null'd out, it has no unbinder and uses NOP.
   private ClassName highestUnbinderClassName; // If this is null'd out, there is no parent unbinder.
 
-  BindingClass(String classPackage, String className, boolean isFinal, TypeName targetTypeName,
-      String classFqcn) {
-    this.classPackage = classPackage;
-    this.className = className;
+  BindingClass(TypeName targetTypeName, ClassName generatedClassName, boolean isFinal) {
     this.isFinal = isFinal;
     this.targetTypeName = targetTypeName;
-    this.classFqcn = classFqcn;
+    this.generatedClassName = generatedClassName;
 
     // Default to this, but this can be null'd out by the processor before we brew if it's not
     // necessary.
-    this.unbinderClassName = ClassName.get(classPackage, className, UNBINDER_SIMPLE_NAME);
+    this.unbinderClassName = generatedClassName.nestedClass(UNBINDER_SIMPLE_NAME);
   }
 
   void addDescendant(BindingClass bindingClass) {
@@ -129,7 +124,7 @@ final class BindingClass {
   }
 
   JavaFile brewJava() {
-    TypeSpec.Builder result = TypeSpec.classBuilder(className)
+    TypeSpec.Builder result = TypeSpec.classBuilder(generatedClassName)
         .addModifiers(PUBLIC);
     if (isFinal) {
       result.addModifiers(Modifier.FINAL);
@@ -139,8 +134,7 @@ final class BindingClass {
 
     TypeName viewType = isFinal ? targetTypeName : TypeVariableName.get("T");
     if (hasParentBinding()) {
-      result.superclass(ParameterizedTypeName.get(ClassName.bestGuess(parentBinding.classFqcn),
-          viewType));
+      result.superclass(ParameterizedTypeName.get(parentBinding.generatedClassName, viewType));
     } else {
       result.addSuperinterface(ParameterizedTypeName.get(VIEW_BINDER, viewType));
     }
@@ -157,7 +151,7 @@ final class BindingClass {
       }
     }
 
-    return JavaFile.builder(classPackage, result.build())
+    return JavaFile.builder(generatedClassName.packageName(), result.build())
         .addFileComment("Generated code from Butter Knife. Do not modify!")
         .build();
   }
@@ -704,8 +698,7 @@ final class BindingClass {
     return false;
   }
 
-  @Override
-  public String toString() {
-    return classFqcn;
+  @Override public String toString() {
+    return generatedClassName.toString();
   }
 }
