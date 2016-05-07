@@ -1,16 +1,15 @@
 package butterknife;
 
+import butterknife.compiler.ButterKnifeProcessor;
 import com.google.common.base.Joiner;
 import com.google.testing.compile.JavaFileObjects;
-
-import org.junit.Test;
-
+import java.util.Arrays;
 import javax.tools.JavaFileObject;
-
-import butterknife.compiler.ButterKnifeProcessor;
+import org.junit.Test;
 
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.testing.compile.JavaSourceSubjectFactory.javaSource;
+import static com.google.testing.compile.JavaSourcesSubjectFactory.javaSources;
 
 public class BindViewTest {
   @Test public void bindingView() {
@@ -119,6 +118,104 @@ public class BindViewTest {
         .compilesWithoutError()
         .and()
         .generatesSources(expectedSource);
+  }
+
+  @Test public void bindingViewFinalClassWithBaseClass() {
+    JavaFileObject baseSource = JavaFileObjects.forSourceString("test.Base",
+        Joiner.on('\n').join(
+            "package test;",
+            "import android.app.Activity;",
+            "import android.view.View;",
+            "import butterknife.BindView;",
+            "public class Base extends Activity {",
+            "    @BindView(1) View thing;",
+            "}"
+        ));
+    JavaFileObject testSource = JavaFileObjects.forSourceString("test.Test",
+        Joiner.on('\n').join(
+            "package test;",
+            "import android.view.View;",
+            "import butterknife.BindView;",
+            "public final class Test extends Base {",
+            "    @BindView(1) View thing;",
+            "}"
+        ));
+
+    JavaFileObject expectedBaseSource = JavaFileObjects.forSourceString("test/Base$$ViewBinder", ""
+        + "package test;\n"
+        + "import android.view.View;\n"
+        + "import butterknife.Unbinder;\n"
+        + "import butterknife.internal.Finder;\n"
+        + "import butterknife.internal.ViewBinder;\n"
+        + "import java.lang.IllegalStateException;\n"
+        + "import java.lang.Object;\n"
+        + "import java.lang.Override;\n"
+        + "public class Base$$ViewBinder<T extends Base> implements ViewBinder<T> {\n"
+        + "  @Override\n"
+        + "  public Unbinder bind(final Finder finder, final T target, Object source) {\n"
+        + "    InnerUnbinder unbinder = createUnbinder(target);\n"
+        + "    View view;\n"
+        + "    view = finder.findRequiredView(source, 1, \"field 'thing'\");\n"
+        + "    target.thing = view;\n"
+        + "    return unbinder;\n"
+        + "  }\n"
+        + "  protected InnerUnbinder<T> createUnbinder(T target) {\n"
+        + "    return new InnerUnbinder(target);\n"
+        + "  }\n"
+        + "  protected static class InnerUnbinder<T extends Base> implements Unbinder {\n"
+        + "    private T target;\n"
+        + "    protected InnerUnbinder(T target) {\n"
+        + "      this.target = target;\n"
+        + "    }\n"
+        + "    @Override\n"
+        + "    public final void unbind() {\n"
+        + "      if (target == null) throw new IllegalStateException(\"Bindings already cleared.\");\n"
+        + "      unbind(target)\n"
+        + "      target = null;\n"
+        + "    }\n"
+        + "    protected void unbind(T target) {\n"
+        + "      target.thing = null;\n"
+        + "    }\n"
+        + "  }\n"
+        + "}");
+
+    JavaFileObject expectedTestSource = JavaFileObjects.forSourceString("test/Test$$ViewBinder", ""
+        + "package test;\n"
+        + "import android.view.View;\n"
+        + "import butterknife.Unbinder;\n"
+        + "import butterknife.internal.Finder;\n"
+        + "import java.lang.Object;\n"
+        + "import java.lang.Override;\n"
+        + "public final class Test$$ViewBinder<T extends Test> extends Base$$ViewBinder<T> {\n"
+        + "  @Override\n"
+        + "  public Unbinder bind(final Finder finder, final T target, Object source) {\n"
+        + "    InnerUnbinder unbinder = (InnerUnbinder) super.bind(finder, target, source);\n"
+        + "    View view;\n"
+        + "    view = finder.findRequiredView(source, 1, \"field 'thing'\");\n"
+        + "    target.thing = view;\n"
+        + "    return unbinder;\n"
+        + "  }\n"
+        + "  @Override\n"
+        + "  protected InnerUnbinder<T> createUnbinder(T target) {\n"
+        + "    return new InnerUnbinder(target);\n"
+        + "  }\n"
+        + "  protected static final class InnerUnbinder<T extends Test> extends Base$$ViewBinder.InnerUnbinder<T> {\n"
+        + "    protected InnerUnbinder(T target) {\n"
+        + "      super(target);\n"
+        + "    }\n"
+        + "    @Override\n"
+        + "    protected void unbind(T target) {\n"
+        + "      super.unbind(target);\n"
+        + "      target.thing = null;\n"
+        + "    }\n"
+        + "  }\n"
+        + "}");
+
+    assertAbout(javaSources()).that(Arrays.asList(baseSource, testSource))
+        .processedWith(new ButterKnifeProcessor())
+        .compilesWithoutError()
+        .and()
+        .generatesSources(expectedBaseSource, expectedTestSource);
   }
 
   @Test public void bindingViewInnerClass() {
