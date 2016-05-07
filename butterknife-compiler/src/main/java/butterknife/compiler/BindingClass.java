@@ -130,28 +130,30 @@ final class BindingClass {
 
   JavaFile brewJava() {
     TypeSpec.Builder result = TypeSpec.classBuilder(className)
-        .addModifiers(PUBLIC)
-        .addTypeVariable(TypeVariableName.get("T", targetTypeName));
+        .addModifiers(PUBLIC);
     if (isFinal) {
       result.addModifiers(Modifier.FINAL);
+    } else {
+      result.addTypeVariable(TypeVariableName.get("T", targetTypeName));
     }
 
+    TypeName viewType = isFinal ? targetTypeName : TypeVariableName.get("T");
     if (hasParentBinding()) {
       result.superclass(ParameterizedTypeName.get(ClassName.bestGuess(parentBinding.classFqcn),
-          TypeVariableName.get("T")));
+          viewType));
     } else {
-      result.addSuperinterface(ParameterizedTypeName.get(VIEW_BINDER, TypeVariableName.get("T")));
+      result.addSuperinterface(ParameterizedTypeName.get(VIEW_BINDER, viewType));
     }
 
-    result.addMethod(createBindMethod());
+    result.addMethod(createBindMethod(viewType));
 
     if (hasUnbinder() && hasViewBindings()) {
       // Create unbinding class.
-      result.addType(createUnbinderClass());
+      result.addType(createUnbinderClass(viewType));
 
       if (!isFinal || hasParentBinding()) {
         // Now we need to provide child classes to access and override unbinder implementations.
-        createUnbinderCreateUnbinderMethod(result);
+        createUnbinderCreateUnbinderMethod(result, viewType);
       }
     }
 
@@ -160,30 +162,29 @@ final class BindingClass {
         .build();
   }
 
-  private TypeSpec createUnbinderClass() {
-    TypeName generic = TypeVariableName.get("T");
-    TypeSpec.Builder result =
-        TypeSpec.classBuilder(unbinderClassName.simpleName())
-            .addModifiers(PROTECTED, STATIC)
-            .addTypeVariable(TypeVariableName.get("T", targetTypeName));
+  private TypeSpec createUnbinderClass(TypeName viewType) {
+    TypeSpec.Builder result = TypeSpec.classBuilder(unbinderClassName.simpleName())
+            .addModifiers(PROTECTED, STATIC);
     if (isFinal) {
       result.addModifiers(Modifier.FINAL);
+    } else {
+      result.addTypeVariable(TypeVariableName.get("T", targetTypeName));
     }
 
     if (hasParentBinding() && parentBinding.hasUnbinder()) {
       result.superclass(ParameterizedTypeName.get(
-          parentBinding.getUnbinderClassName(), generic));
+          parentBinding.getUnbinderClassName(), viewType));
     } else {
       result.addSuperinterface(UNBINDER);
-      result.addField(generic, "target", PRIVATE);
+      result.addField(viewType, "target", PRIVATE);
     }
 
-    result.addMethod(createUnbinderConstructor(generic));
+    result.addMethod(createUnbinderConstructor(viewType));
     if (!hasParentBinding() || !parentBinding.hasUnbinder()) {
       result.addMethod(createUnbindInterfaceMethod(result));
     }
     if (!isFinal || hasParentBinding()) {
-      result.addMethod(createUnbindMethod(result, generic));
+      result.addMethod(createUnbindMethod(result, viewType));
     }
 
     return result.build();
@@ -302,15 +303,13 @@ final class BindingClass {
         : listenerClass.setter();
   }
 
-  private void createUnbinderCreateUnbinderMethod(TypeSpec.Builder viewBindingClass) {
-    // Create type variable InnerUnbinder<T>
-    TypeName returnType = ParameterizedTypeName.get(
-        unbinderClassName, TypeVariableName.get("T"));
-
+  private void createUnbinderCreateUnbinderMethod(TypeSpec.Builder viewBindingClass,
+      TypeName viewType) {
     MethodSpec.Builder createUnbinder = MethodSpec.methodBuilder("createUnbinder")
         .addModifiers(PROTECTED)
-        .returns(returnType)
-        .addParameter(TypeVariableName.get("T"), "target")
+        .returns(
+            isFinal ? unbinderClassName : ParameterizedTypeName.get(unbinderClassName, viewType))
+        .addParameter(viewType, "target")
         .addStatement("return new $T($L)", unbinderClassName, "target");
 
     if (hasParentBinding() && parentBinding.hasUnbinder()) {
@@ -319,13 +318,13 @@ final class BindingClass {
     viewBindingClass.addMethod(createUnbinder.build());
   }
 
-  private MethodSpec createBindMethod() {
+  private MethodSpec createBindMethod(TypeName viewType) {
     MethodSpec.Builder result = MethodSpec.methodBuilder("bind")
         .addAnnotation(Override.class)
         .addModifiers(PUBLIC)
         .returns(UNBINDER)
         .addParameter(FINDER, "finder", FINAL)
-        .addParameter(TypeVariableName.get("T"), "target", FINAL)
+        .addParameter(viewType, "target", FINAL)
         .addParameter(Object.class, "source");
 
     if (hasResourceBindings()) {
