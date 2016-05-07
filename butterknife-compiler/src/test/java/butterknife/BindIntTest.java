@@ -36,7 +36,7 @@ public class BindIntTest {
         + "    return Unbinder.EMPTY;\n"
         + "  }\n"
         + "  @SuppressWarnings(\"ResourceType\")\n"
-        + "  protected static void bindToTarget(final Test target, Resources res) {\n"
+        + "  protected static void bindToTarget(Test target, Resources res) {\n"
         + "    target.one = res.getInteger(1);\n"
         + "  }\n"
         + "}"
