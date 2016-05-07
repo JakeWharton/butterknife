@@ -50,7 +50,7 @@ public class SimpleAdapter extends BaseAdapter {
     return view;
   }
 
-  static class ViewHolder {
+  static final class ViewHolder {
     @BindView(R.id.word) TextView word;
     @BindView(R.id.length) TextView length;
     @BindView(R.id.position) TextView position;

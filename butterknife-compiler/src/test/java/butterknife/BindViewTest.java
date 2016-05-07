@@ -35,15 +35,14 @@ public class BindViewTest {
         + "import java.lang.Override;\n"
         + "public class Test$$ViewBinder<T extends Test> implements ViewBinder<T> {\n"
         + "  @Override\n"
-        + "  public Unbinder bind(final Finder finder, final T target, Object source) {\n"
-        + "    InnerUnbinder unbinder = createUnbinder(target);\n"
+        + "  public Unbinder bind(Finder finder, T target, Object source) {\n"
+        + "    bindToTarget(target, finder, source);\n"
+        + "    return new InnerUnbinder(target);\n"
+        + "  }\n"
+        + "  protected static void bindToTarget(final Test target, Finder finder, Object source) {\n"
         + "    View view;\n"
         + "    view = finder.findRequiredView(source, 1, \"field 'thing'\");\n"
         + "    target.thing = view;\n"
-        + "    return unbinder;\n"
-        + "  }\n"
-        + "  protected InnerUnbinder<T> createUnbinder(T target) {\n"
-        + "    return new InnerUnbinder(target);\n"
         + "  }\n"
         + "  protected static class InnerUnbinder<T extends Test> implements Unbinder {\n"
         + "    private T target;\n"
@@ -60,7 +59,8 @@ public class BindViewTest {
         + "      target.thing = null;\n"
         + "    }\n"
         + "  }\n"
-        + "}");
+        + "}"
+    );
 
     assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
@@ -92,12 +92,11 @@ public class BindViewTest {
         + "import java.lang.Override;\n"
         + "public final class Test$$ViewBinder implements ViewBinder<Test> {\n"
         + "  @Override\n"
-        + "  public Unbinder bind(final Finder finder, final Test target, Object source) {\n"
-        + "    InnerUnbinder unbinder = new InnerUnbinder(target);\n"
+        + "  public Unbinder bind(Finder finder, Test target, Object source) {\n"
         + "    View view;\n"
         + "    view = finder.findRequiredView(source, 1, \"field 'thing'\");\n"
         + "    target.thing = view;\n"
-        + "    return unbinder;\n"
+        + "    return new InnerUnbinder(target);\n"
         + "  }\n"
         + "  protected static final class InnerUnbinder implements Unbinder {\n"
         + "    private Test target;\n"
@@ -111,7 +110,8 @@ public class BindViewTest {
         + "      target = null;\n"
         + "    }\n"
         + "  }\n"
-        + "}");
+        + "}"
+    );
 
     assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
@@ -152,15 +152,14 @@ public class BindViewTest {
         + "import java.lang.Override;\n"
         + "public class Base$$ViewBinder<T extends Base> implements ViewBinder<T> {\n"
         + "  @Override\n"
-        + "  public Unbinder bind(final Finder finder, final T target, Object source) {\n"
-        + "    InnerUnbinder unbinder = createUnbinder(target);\n"
+        + "  public Unbinder bind(Finder finder, T target, Object source) {\n"
+        + "    bindToTarget(target, finder, source);\n"
+        + "    return new InnerUnbinder(target);\n"
+        + "  }\n"
+        + "  protected static void bindToTarget(final Base target, Finder finder, Object source) {\n"
         + "    View view;\n"
         + "    view = finder.findRequiredView(source, 1, \"field 'thing'\");\n"
         + "    target.thing = view;\n"
-        + "    return unbinder;\n"
-        + "  }\n"
-        + "  protected InnerUnbinder<T> createUnbinder(T target) {\n"
-        + "    return new InnerUnbinder(target);\n"
         + "  }\n"
         + "  protected static class InnerUnbinder<T extends Base> implements Unbinder {\n"
         + "    private T target;\n"
@@ -170,14 +169,15 @@ public class BindViewTest {
         + "    @Override\n"
         + "    public final void unbind() {\n"
         + "      if (target == null) throw new IllegalStateException(\"Bindings already cleared.\");\n"
-        + "      unbind(target)\n"
+        + "      unbind(target);\n"
         + "      target = null;\n"
         + "    }\n"
         + "    protected void unbind(T target) {\n"
         + "      target.thing = null;\n"
         + "    }\n"
         + "  }\n"
-        + "}");
+        + "}"
+    );
 
     JavaFileObject expectedTestSource = JavaFileObjects.forSourceString("test/Test$$ViewBinder", ""
         + "package test;\n"
@@ -188,15 +188,11 @@ public class BindViewTest {
         + "import java.lang.Override;\n"
         + "public final class Test$$ViewBinder extends Base$$ViewBinder<Test> {\n"
         + "  @Override\n"
-        + "  public Unbinder bind(final Finder finder, final Test target, Object source) {\n"
-        + "    InnerUnbinder unbinder = (InnerUnbinder) super.bind(finder, target, source);\n"
+        + "  public Unbinder bind(Finder finder, Test target, Object source) {\n"
+        + "    Base$$ViewBinder.bindToTarget(target, finder, source);\n"
         + "    View view;\n"
         + "    view = finder.findRequiredView(source, 1, \"field 'thing'\");\n"
         + "    target.thing = view;\n"
-        + "    return unbinder;\n"
-        + "  }\n"
-        + "  @Override\n"
-        + "  protected InnerUnbinder createUnbinder(Test target) {\n"
         + "    return new InnerUnbinder(target);\n"
         + "  }\n"
         + "  protected static final class InnerUnbinder extends Base$$ViewBinder.InnerUnbinder<Test> {\n"
@@ -209,7 +205,8 @@ public class BindViewTest {
         + "      target.thing = null;\n"
         + "    }\n"
         + "  }\n"
-        + "}");
+        + "}"
+    );
 
     assertAbout(javaSources()).that(Arrays.asList(baseSource, testSource))
         .processedWith(new ButterKnifeProcessor())
@@ -243,15 +240,14 @@ public class BindViewTest {
         + "import java.lang.Override;\n"
         + "public class Outer$Test$$ViewBinder<T extends Outer.Test> implements ViewBinder<T> {\n"
         + "  @Override\n"
-        + "  public Unbinder bind(final Finder finder, final T target, Object source) {\n"
-        + "    InnerUnbinder unbinder = createUnbinder(target);\n"
+        + "  public Unbinder bind(Finder finder, T target, Object source) {\n"
+        + "    bindToTarget(target, finder, source);\n"
+        + "    return new InnerUnbinder(target);\n"
+        + "  }\n"
+        + "  protected static void bindToTarget(final Outer.Test target, Finder finder, Object source) {\n"
         + "    View view;\n"
         + "    view = finder.findRequiredView(source, 1, \"field 'thing'\");\n"
         + "    target.thing = view;\n"
-        + "    return unbinder;\n"
-        + "  }\n"
-        + "  protected InnerUnbinder<T> createUnbinder(T target) {\n"
-        + "    return new InnerUnbinder(target);\n"
         + "  }\n"
         + "  protected static class InnerUnbinder<T extends Outer.Test> implements Unbinder {\n"
         + "    private T target;\n"
@@ -268,7 +264,8 @@ public class BindViewTest {
         + "      target.thing = null;\n"
         + "    }\n"
         + "  }\n"
-        + "}");
+        + "}"
+    );
 
     assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
@@ -300,15 +297,14 @@ public class BindViewTest {
         + "import java.lang.Override;\n"
         + "public class Test$$ViewBinder<T extends Test> implements ViewBinder<T> {\n"
         + "  @Override\n"
-        + "  public Unbinder bind(final Finder finder, final T target, Object source) {\n"
-        + "    InnerUnbinder unbinder = createUnbinder(target);\n"
+        + "  public Unbinder bind(Finder finder, T target, Object source) {\n"
+        + "    bindToTarget(target, finder, source);\n"
+        + "    return new InnerUnbinder(target);\n"
+        + "  }\n"
+        + "  protected static void bindToTarget(final Test target, Finder finder, Object source) {\n"
         + "    View view;\n"
         + "    view = finder.findRequiredView(source, 1, \"field 'thing'\");\n"
         + "    target.thing = view;\n"
-        + "    return unbinder;\n"
-        + "  }\n"
-        + "  protected InnerUnbinder<T> createUnbinder(T target) {\n"
-        + "    return new InnerUnbinder(target);\n"
         + "  }\n"
         + "  protected static class InnerUnbinder<T extends Test> implements Unbinder {\n"
         + "    private T target;\n"
@@ -325,7 +321,8 @@ public class BindViewTest {
         + "      target.thing = null;\n"
         + "    }\n"
         + "  }\n"
-        + "}");
+        + "}"
+    );
 
     assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
@@ -357,15 +354,14 @@ public class BindViewTest {
         + "import java.lang.Override;\n"
         + "public class Test$$ViewBinder<T extends Test> implements ViewBinder<T> {\n"
         + "  @Override\n"
-        + "  public Unbinder bind(final Finder finder, final T target, Object source) {\n"
-        + "    InnerUnbinder unbinder = createUnbinder(target);\n"
+        + "  public Unbinder bind(Finder finder, T target, Object source) {\n"
+        + "    bindToTarget(target, finder, source);\n"
+        + "    return new InnerUnbinder(target);\n"
+        + "  }\n"
+        + "  protected static void bindToTarget(final Test target, Finder finder, Object source) {\n"
         + "    View view;\n"
         + "    view = finder.findRequiredView(source, 1, \"field 'thing'\");\n"
         + "    target.thing = finder.castView(view, 1, \"field 'thing'\");\n"
-        + "    return unbinder;\n"
-        + "  }\n"
-        + "  protected InnerUnbinder<T> createUnbinder(T target) {\n"
-        + "    return new InnerUnbinder(target);\n"
         + "  }\n"
         + "  protected static class InnerUnbinder<T extends Test> implements Unbinder {\n"
         + "    private T target;\n"
@@ -382,7 +378,8 @@ public class BindViewTest {
         + "      target.thing = null;\n"
         + "    }\n"
         + "  }\n"
-        + "}");
+        + "}"
+    );
 
     assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
@@ -414,15 +411,14 @@ public class BindViewTest {
         + "import java.lang.Override;\n"
         + "public class Test$$ViewBinder<T extends Test> implements ViewBinder<T> {\n"
         + "  @Override\n"
-        + "  public Unbinder bind(final Finder finder, final T target, Object source) {\n"
-        + "    InnerUnbinder unbinder = createUnbinder(target);\n"
+        + "  public Unbinder bind(Finder finder, T target, Object source) {\n"
+        + "    bindToTarget(target, finder, source);\n"
+        + "    return new InnerUnbinder(target);\n"
+        + "  }\n"
+        + "  protected static void bindToTarget(final Test target, Finder finder, Object source) {\n"
         + "    View view;\n"
         + "    view = finder.findRequiredView(source, 1, \"field 'thing'\");\n"
         + "    target.thing = finder.castView(view, 1, \"field 'thing'\");\n"
-        + "    return unbinder;\n"
-        + "  }\n"
-        + "  protected InnerUnbinder<T> createUnbinder(T target) {\n"
-        + "    return new InnerUnbinder(target);\n"
         + "  }\n"
         + "  protected static class InnerUnbinder<T extends Test> implements Unbinder {\n"
         + "    private T target;\n"
@@ -439,7 +435,8 @@ public class BindViewTest {
         + "      target.thing = null;\n"
         + "    }\n"
         + "  }\n"
-        + "}");
+        + "}"
+    );
 
     assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
@@ -473,8 +470,12 @@ public class BindViewTest {
         + "import java.lang.Override;\n"
         + "public class Test$$ViewBinder<T extends Test> implements ViewBinder<T> {\n"
         + "  @Override\n"
-        + "  public Unbinder bind(final Finder finder, final T target, Object source) {\n"
-        + "    InnerUnbinder unbinder = createUnbinder(target);\n"
+        + "  public Unbinder bind(Finder finder, T target, Object source) {\n"
+        + "    InnerUnbinder unbinder = new InnerUnbinder(target);\n"
+        + "    bindToTarget(target, finder, source, unbinder);\n"
+        + "    return unbinder;\n"
+        + "  }\n"
+        + "  protected static void bindToTarget(final Test target, Finder finder, Object source, InnerUnbinder unbinder) {\n"
         + "    View view;\n"
         + "    view = finder.findRequiredView(source, 1, \"field 'thing1' and method 'doStuff'\");\n"
         + "    target.thing1 = view;\n"
@@ -485,10 +486,6 @@ public class BindViewTest {
         + "        target.doStuff();\n"
         + "      }\n"
         + "    });\n"
-        + "    return unbinder;\n"
-        + "  }\n"
-        + "  protected InnerUnbinder<T> createUnbinder(T target) {\n"
-        + "    return new InnerUnbinder(target);\n"
         + "  }\n"
         + "  protected static class InnerUnbinder<T extends Test> implements Unbinder {\n"
         + "    private T target;\n"
@@ -507,7 +504,8 @@ public class BindViewTest {
         + "      target.thing1 = null;\n"
         + "    }\n"
         + "  }\n"
-        + "}");
+        + "}"
+    );
 
     assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
@@ -557,15 +555,14 @@ public class BindViewTest {
         + "import java.lang.Override;\n"
         + "public class Test$$ViewBinder<T extends Test> implements ViewBinder<T> {\n"
         + "  @Override\n"
-        + "  public Unbinder bind(final Finder finder, final T target, Object source) {\n"
-        + "    InnerUnbinder unbinder = createUnbinder(target);\n"
+        + "  public Unbinder bind(Finder finder, T target, Object source) {\n"
+        + "    bindToTarget(target, finder, source);\n"
+        + "    return new InnerUnbinder(target);\n"
+        + "  }\n"
+        + "  protected static void bindToTarget(final Test target, Finder finder, Object source) {\n"
         + "    View view;\n"
         + "    view = finder.findOptionalView(source, 1, null);\n"
         + "    target.view = view;\n"
-        + "    return unbinder;\n"
-        + "  }\n"
-        + "  protected InnerUnbinder<T> createUnbinder(T target) {\n"
-        + "    return new InnerUnbinder(target);\n"
         + "  }\n"
         + "  protected static class InnerUnbinder<T extends Test> implements Unbinder {\n"
         + "    private T target;\n"
@@ -582,7 +579,8 @@ public class BindViewTest {
         + "      target.view = null;\n"
         + "    }\n"
         + "  }\n"
-        + "}");
+        + "}"
+    );
 
     assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
@@ -618,15 +616,14 @@ public class BindViewTest {
         + "import java.lang.Override;\n"
         + "public class Test$$ViewBinder<T extends Test> implements ViewBinder<T> {\n"
         + "  @Override\n"
-        + "  public Unbinder bind(final Finder finder, final T target, Object source) {\n"
-        + "    InnerUnbinder unbinder = createUnbinder(target);\n"
+        + "  public Unbinder bind(Finder finder, T target, Object source) {\n"
+        + "    bindToTarget(target, finder, source);\n"
+        + "    return new InnerUnbinder(target);\n"
+        + "  }\n"
+        + "  protected static void bindToTarget(final Test target, Finder finder, Object source) {\n"
         + "    View view;\n"
         + "    view = finder.findRequiredView(source, 1, \"field 'view'\");\n"
         + "    target.view = view;\n"
-        + "    return unbinder;\n"
-        + "  }\n"
-        + "  protected InnerUnbinder<T> createUnbinder(T target) {\n"
-        + "    return new InnerUnbinder(target);\n"
         + "  }\n"
         + "  protected static class InnerUnbinder<T extends Test> implements Unbinder {\n"
         + "    private T target;\n"
@@ -643,10 +640,10 @@ public class BindViewTest {
         + "      target.view = null;\n"
         + "    }\n"
         + "  }\n"
-        + "}");
+        + "}"
+    );
 
     JavaFileObject expectedSource2 = JavaFileObjects.forSourceString("test/TestOne$$ViewBinder", ""
-        + "// Generated code from Butter Knife. Do not modify!\n"
         + "package test;\n"
         + "import android.view.View;\n"
         + "import butterknife.Unbinder;\n"
@@ -655,16 +652,15 @@ public class BindViewTest {
         + "import java.lang.Override;\n"
         + "public class TestOne$$ViewBinder<T extends TestOne> extends Test$$ViewBinder<T> {\n"
         + "  @Override\n"
-        + "  public Unbinder bind(final Finder finder, final T target, Object source) {\n"
-        + "    InnerUnbinder unbinder = (InnerUnbinder) super.bind(finder, target, source);\n"
+        + "  public Unbinder bind(Finder finder, T target, Object source) {\n"
+        + "    bindToTarget(target, finder, source);\n"
+        + "    return new InnerUnbinder(target);\n"
+        + "  }\n"
+        + "  protected static void bindToTarget(final TestOne target, Finder finder, Object source) {\n"
+        + "    Test$$ViewBinder.bindToTarget(target, finder, source);\n"
         + "    View view;\n"
         + "    view = finder.findRequiredView(source, 1, \"field 'thing'\");\n"
         + "    target.thing = view;\n"
-        + "    return unbinder;\n"
-        + "  }\n"
-        + "  @Override\n"
-        + "  protected InnerUnbinder<T> createUnbinder(T target) {\n"
-        + "    return new InnerUnbinder(target);\n"
         + "  }\n"
         + "  protected static class InnerUnbinder<T extends TestOne> extends Test$$ViewBinder.InnerUnbinder<T> {\n"
         + "    protected InnerUnbinder(T target) {\n"
@@ -676,7 +672,8 @@ public class BindViewTest {
         + "      target.thing = null;\n"
         + "    }\n"
         + "  }\n"
-        + "}\n");
+        + "}"
+    );
 
     assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
@@ -712,15 +709,14 @@ public class BindViewTest {
         + "import java.lang.Override;\n"
         + "public class Test$$ViewBinder<T extends Test> implements ViewBinder<T> {\n"
         + "  @Override\n"
-        + "  public Unbinder bind(final Finder finder, final T target, Object source) {\n"
-        + "    InnerUnbinder unbinder = createUnbinder(target);\n"
+        + "  public Unbinder bind(Finder finder, T target, Object source) {\n"
+        + "    bindToTarget(target, finder, source);\n"
+        + "    return new InnerUnbinder(target);\n"
+        + "  }\n"
+        + "  protected static void bindToTarget(final Test target, Finder finder, Object source) {\n"
         + "    View view;\n"
         + "    view = finder.findRequiredView(source, 1, \"field 'view'\");\n"
         + "    target.view = view;\n"
-        + "    return unbinder;\n"
-        + "  }\n"
-        + "  protected InnerUnbinder<T> createUnbinder(T target) {\n"
-        + "    return new InnerUnbinder(target);\n"
         + "  }\n"
         + "  protected static class InnerUnbinder<T extends Test> implements Unbinder {\n"
         + "    private T target;\n"
@@ -737,7 +733,8 @@ public class BindViewTest {
         + "      target.view = null;\n"
         + "    }\n"
         + "  }\n"
-        + "}");
+        + "}"
+    );
 
     JavaFileObject expectedSource2 = JavaFileObjects.forSourceString("test/TestOne$$ViewBinder", ""
         + "package test;\n"
@@ -748,16 +745,15 @@ public class BindViewTest {
         + "import java.lang.Override;\n"
         + "public class TestOne$$ViewBinder<T extends TestOne> extends Test$$ViewBinder<T> {\n"
         + "  @Override\n"
-        + "  public Unbinder bind(final Finder finder, final T target, Object source) {\n"
-        + "    InnerUnbinder unbinder = (InnerUnbinder) super.bind(finder, target, source);\n"
+        + "  public Unbinder bind(Finder finder, T target, Object source) {\n"
+        + "    bindToTarget(target, finder, source);\n"
+        + "    return new InnerUnbinder(target);\n"
+        + "  }\n"
+        + "  protected static void bindToTarget(final TestOne target, Finder finder, Object source) {\n"
+        + "    Test$$ViewBinder.bindToTarget(target, finder, source);\n"
         + "    View view;\n"
         + "    view = finder.findRequiredView(source, 1, \"field 'thing'\");\n"
         + "    target.thing = view;\n"
-        + "    return unbinder;\n"
-        + "  }\n"
-        + "  @Override\n"
-        + "  protected InnerUnbinder<T> createUnbinder(T target) {\n"
-        + "    return new InnerUnbinder(target);\n"
         + "  }\n"
         + "  protected static class InnerUnbinder<T extends TestOne> extends Test$$ViewBinder.InnerUnbinder<T> {\n"
         + "    protected InnerUnbinder(T target) {\n"
@@ -769,7 +765,8 @@ public class BindViewTest {
         + "      target.thing = null;\n"
         + "    }\n"
         + "  }\n"
-        + "}\n");
+        + "}"
+    );
 
     assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())

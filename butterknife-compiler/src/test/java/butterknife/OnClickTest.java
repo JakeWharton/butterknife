@@ -14,13 +14,14 @@ import static com.google.testing.compile.JavaSourceSubjectFactory.javaSource;
 
 public class OnClickTest {
   @Test public void onClickBinding() {
-    JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
-        "package test;",
-        "import android.app.Activity;",
-        "import butterknife.OnClick;",
-        "public class Test extends Activity {",
-        "  @OnClick(1) void doStuff() {}",
-        "}"));
+    JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
+        + "package test;\n"
+        + "import android.app.Activity;\n"
+        + "import butterknife.OnClick;\n"
+        + "public class Test extends Activity {\n"
+        + "  @OnClick(1) void doStuff() {}\n"
+        + "}"
+    );
 
     JavaFileObject expectedSource = JavaFileObjects.forSourceString("test/Test$$ViewBinder", ""
         + "package test;\n"
@@ -34,8 +35,12 @@ public class OnClickTest {
         + "import java.lang.Override;\n"
         + "public class Test$$ViewBinder<T extends Test> implements ViewBinder<T> {\n"
         + "  @Override\n"
-        + "  public Unbinder bind(final Finder finder, final T target, Object source) {\n"
-        + "    InnerUnbinder unbinder = createUnbinder(target);\n"
+        + "  public Unbinder bind(Finder finder, T target, Object source) {\n"
+        + "    InnerUnbinder unbinder = new InnerUnbinder(target);\n"
+        + "    bindToTarget(target, finder, source, unbinder);\n"
+        + "    return unbinder;\n"
+        + "  }\n"
+        + "  protected static void bindToTarget(final Test target, Finder finder, Object source, InnerUnbinder unbinder) {\n"
         + "    View view;\n"
         + "    view = finder.findRequiredView(source, 1, \"method 'doStuff'\");\n"
         + "    unbinder.view1 = view;\n"
@@ -45,10 +50,6 @@ public class OnClickTest {
         + "        target.doStuff();\n"
         + "      }\n"
         + "    });\n"
-        + "    return unbinder;\n"
-        + "  }\n"
-        + "  protected InnerUnbinder<T> createUnbinder(T target) {\n"
-        + "    return new InnerUnbinder(target);\n"
         + "  }\n"
         + "  protected static class InnerUnbinder<T extends Test> implements Unbinder {\n"
         + "    private T target;\n"
@@ -66,7 +67,8 @@ public class OnClickTest {
         + "      view1.setOnClickListener(null);\n"
         + "    }\n"
         + "  }\n"
-        + "}");
+        + "}"
+    );
 
     assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
@@ -76,16 +78,17 @@ public class OnClickTest {
   }
 
   @Test public void onClickMultipleBindings() {
-    JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
-        "package test;",
-        "import android.view.View;",
-        "import android.app.Activity;",
-        "import butterknife.OnClick;",
-        "public class Test extends Activity {",
-        "  @OnClick(1) void doStuff1() {}",
-        "  @OnClick(1) void doStuff2() {}",
-        "  @OnClick({1, 2}) void doStuff3(View v) {}",
-        "}"));
+    JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
+        + "package test;\n"
+        + "import android.view.View;\n"
+        + "import android.app.Activity;\n"
+        + "import butterknife.OnClick;\n"
+        + "public class Test extends Activity {\n"
+        + "  @OnClick(1) void doStuff1() {}\n"
+        + "  @OnClick(1) void doStuff2() {}\n"
+        + "  @OnClick({1, 2}) void doStuff3(View v) {}\n"
+        + "}"
+    );
 
     JavaFileObject expectedSource = JavaFileObjects.forSourceString("test/Test$$ViewBinder", ""
         + "package test;\n"
@@ -99,8 +102,12 @@ public class OnClickTest {
         + "import java.lang.Override;\n"
         + "public class Test$$ViewBinder<T extends Test> implements ViewBinder<T> {\n"
         + "  @Override\n"
-        + "  public Unbinder bind(final Finder finder, final T target, Object source) {\n"
-        + "    InnerUnbinder unbinder = createUnbinder(target);\n"
+        + "  public Unbinder bind(Finder finder, T target, Object source) {\n"
+        + "    InnerUnbinder unbinder = new InnerUnbinder(target);\n"
+        + "    bindToTarget(target, finder, source, unbinder);\n"
+        + "    return unbinder;\n"
+        + "  }\n"
+        + "  protected static void bindToTarget(final Test target, Finder finder, Object source, InnerUnbinder unbinder) {\n"
         + "    View view;\n"
         + "    view = finder.findRequiredView(source, 1, \"method 'doStuff1', method 'doStuff2', and method 'doStuff3'\");\n"
         + "    unbinder.view1 = view;\n"
@@ -120,10 +127,6 @@ public class OnClickTest {
         + "        target.doStuff3(p0);\n"
         + "      }\n"
         + "    });\n"
-        + "    return unbinder;\n"
-        + "  }\n"
-        + "  protected InnerUnbinder<T> createUnbinder(T target) {\n"
-        + "    return new InnerUnbinder(target);\n"
         + "  }\n"
         + "  protected static class InnerUnbinder<T extends Test> implements Unbinder {\n"
         + "    private T target;\n"
@@ -143,7 +146,8 @@ public class OnClickTest {
         + "      view2.setOnClickListener(null);\n"
         + "    }\n"
         + "  }\n"
-        + "}");
+        + "}"
+    );
 
     assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
@@ -153,16 +157,17 @@ public class OnClickTest {
   }
 
   @Test public void findOnlyCalledOnce() {
-    JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
-        "package test;",
-        "import android.app.Activity;",
-        "import android.view.View;",
-        "import butterknife.BindView;",
-        "import butterknife.OnClick;",
-        "public class Test extends Activity {",
-        "  @BindView(1) View view;",
-        "  @OnClick(1) void doStuff() {}",
-        "}"));
+    JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
+        + "package test;\n"
+        + "import android.app.Activity;\n"
+        + "import android.view.View;\n"
+        + "import butterknife.BindView;\n"
+        + "import butterknife.OnClick;\n"
+        + "public class Test extends Activity {\n"
+        + "  @BindView(1) View view;\n"
+        + "  @OnClick(1) void doStuff() {}\n"
+        + "}"
+    );
 
     JavaFileObject expectedSource = JavaFileObjects.forSourceString("test/Test$$ViewBinder", ""
         + "package test;\n"
@@ -176,8 +181,12 @@ public class OnClickTest {
         + "import java.lang.Override;\n"
         + "public class Test$$ViewBinder<T extends Test> implements ViewBinder<T> {\n"
         + "  @Override\n"
-        + "  public Unbinder bind(final Finder finder, final T target, Object source) {\n"
-        + "    InnerUnbinder unbinder = createUnbinder(target);\n"
+        + "  public Unbinder bind(Finder finder, T target, Object source) {\n"
+        + "    InnerUnbinder unbinder = new InnerUnbinder(target);\n"
+        + "    bindToTarget(target, finder, source, unbinder);\n"
+        + "    return unbinder;\n"
+        + "  }\n"
+        + "  protected static void bindToTarget(final Test target, Finder finder, Object source, InnerUnbinder unbinder) {\n"
         + "    View view;\n"
         + "    view = finder.findRequiredView(source, 1, \"field 'view' and method 'doStuff'\");\n"
         + "    target.view = view;\n"
@@ -188,10 +197,6 @@ public class OnClickTest {
         + "        target.doStuff();\n"
         + "      }\n"
         + "    });\n"
-        + "    return unbinder;\n"
-        + "  }\n"
-        + "  protected InnerUnbinder<T> createUnbinder(T target) {\n"
-        + "    return new InnerUnbinder(target);\n"
         + "  }\n"
         + "  protected static class InnerUnbinder<T extends Test> implements Unbinder {\n"
         + "    private T target;\n"
@@ -210,7 +215,8 @@ public class OnClickTest {
         + "      target.view = null;\n"
         + "    }\n"
         + "  }\n"
-        + "}");
+        + "}"
+    );
 
     assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
@@ -238,22 +244,22 @@ public class OnClickTest {
   }
 
   @Test public void methodCastsArgument() {
-    JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
-        "package test;",
-        "import android.app.Activity;",
-        "import android.view.View;",
-        "import android.widget.Button;",
-        "import android.widget.TextView;",
-        "import butterknife.OnClick;",
-        "public class Test extends Activity {",
-        "  interface TestInterface {}",
-        "  @OnClick(0) void click0() {}",
-        "  @OnClick(1) void click1(View view) {}",
-        "  @OnClick(2) void click2(TextView view) {}",
-        "  @OnClick(3) void click3(Button button) {}",
-        "  @OnClick(4) void click4(TestInterface thing) {}",
-        "}"
-    ));
+    JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
+        + "package test;\n"
+        + "import android.app.Activity;\n"
+        + "import android.view.View;\n"
+        + "import android.widget.Button;\n"
+        + "import android.widget.TextView;\n"
+        + "import butterknife.OnClick;\n"
+        + "public class Test extends Activity {\n"
+        + "  interface TestInterface {}\n"
+        + "  @OnClick(0) void click0() {}\n"
+        + "  @OnClick(1) void click1(View view) {}\n"
+        + "  @OnClick(2) void click2(TextView view) {}\n"
+        + "  @OnClick(3) void click3(Button button) {}\n"
+        + "  @OnClick(4) void click4(TestInterface thing) {}\n"
+        + "}"
+    );
 
     JavaFileObject expectedSource = JavaFileObjects.forSourceString("test/Test$$ViewBinder", ""
         + "package test;\n"
@@ -269,8 +275,12 @@ public class OnClickTest {
         + "import java.lang.Override;\n"
         + "public class Test$$ViewBinder<T extends Test> implements ViewBinder<T> {\n"
         + "  @Override\n"
-        + "  public Unbinder bind(final Finder finder, final T target, Object source) {\n"
-        + "    InnerUnbinder unbinder = createUnbinder(target);\n"
+        + "  public Unbinder bind(Finder finder, T target, Object source) {\n"
+        + "    InnerUnbinder unbinder = new InnerUnbinder(target);\n"
+        + "    bindToTarget(target, finder, source, unbinder);\n"
+        + "    return unbinder;\n"
+        + "  }\n"
+        + "  protected static void bindToTarget(final Test target, Finder finder, Object source, InnerUnbinder unbinder) {\n"
         + "    View view;\n"
         + "    view = finder.findRequiredView(source, 0, \"method 'click0'\");\n"
         + "    unbinder.view0 = view;\n"
@@ -315,10 +325,6 @@ public class OnClickTest {
         + "        );\n"
         + "      }\n"
         + "    });\n"
-        + "    return unbinder;\n"
-        + "  }\n"
-        + "  protected InnerUnbinder<T> createUnbinder(T target) {\n"
-        + "    return new InnerUnbinder(target);\n"
         + "  }\n"
         + "  protected static class InnerUnbinder<T extends Test> implements Unbinder {\n"
         + "    private T target;\n"
@@ -344,7 +350,8 @@ public class OnClickTest {
         + "      view4.setOnClickListener(null);\n"
         + "    }\n"
         + "  }\n"
-        + "}");
+        + "}"
+    );
 
     assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
@@ -354,15 +361,15 @@ public class OnClickTest {
   }
 
   @Test public void methodWithMultipleIds() {
-    JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
-        "package test;",
-        "import android.app.Activity;",
-        "import android.view.View;",
-        "import butterknife.OnClick;",
-        "public class Test extends Activity {",
-        "  @OnClick({1, 2, 3}) void click() {}",
-        "}"
-    ));
+    JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
+        + "package test;\n"
+        + "import android.app.Activity;\n"
+        + "import android.view.View;\n"
+        + "import butterknife.OnClick;\n"
+        + "public class Test extends Activity {\n"
+        + "  @OnClick({1, 2, 3}) void click() {}\n"
+        + "}"
+    );
 
     JavaFileObject expectedSource = JavaFileObjects.forSourceString("test/Test$$ViewBinder", ""
         + "package test;\n"
@@ -376,8 +383,12 @@ public class OnClickTest {
         + "import java.lang.Override;\n"
         + "public class Test$$ViewBinder<T extends Test> implements ViewBinder<T> {\n"
         + "  @Override\n"
-        + "  public Unbinder bind(final Finder finder, final T target, Object source) {\n"
-        + "    InnerUnbinder unbinder = createUnbinder(target);\n"
+        + "  public Unbinder bind(Finder finder, T target, Object source) {\n"
+        + "    InnerUnbinder unbinder = new InnerUnbinder(target);\n"
+        + "    bindToTarget(target, finder, source, unbinder);\n"
+        + "    return unbinder;\n"
+        + "  }\n"
+        + "  protected static void bindToTarget(final Test target, Finder finder, Object source, InnerUnbinder unbinder) {\n"
         + "    View view;\n"
         + "    view = finder.findRequiredView(source, 1, \"method 'click'\");\n"
         + "    unbinder.view1 = view;\n"
@@ -403,10 +414,6 @@ public class OnClickTest {
         + "        target.click();\n"
         + "      }\n"
         + "    });\n"
-        + "    return unbinder;\n"
-        + "  }\n"
-        + "  protected InnerUnbinder<T> createUnbinder(T target) {\n"
-        + "    return new InnerUnbinder(target);\n"
         + "  }\n"
         + "  protected static class InnerUnbinder<T extends Test> implements Unbinder {\n"
         + "    private T target;\n"
@@ -428,7 +435,8 @@ public class OnClickTest {
         + "      view3.setOnClickListener(null);\n"
         + "    }\n"
         + "  }\n"
-        + "}");
+        + "}"
+    );
 
     assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
@@ -459,8 +467,12 @@ public class OnClickTest {
         + "import java.lang.Override;\n"
         + "public class Test$$ViewBinder<T extends Test> implements ViewBinder<T> {\n"
         + "  @Override\n"
-        + "  public Unbinder bind(final Finder finder, final T target, Object source) {\n"
-        + "    InnerUnbinder unbinder = createUnbinder(target);\n"
+        + "  public Unbinder bind(Finder finder, T target, Object source) {\n"
+        + "    InnerUnbinder unbinder = new InnerUnbinder(target);\n"
+        + "    bindToTarget(target, finder, source, unbinder);\n"
+        + "    return unbinder;\n"
+        + "  }\n"
+        + "  protected static void bindToTarget(final Test target, Finder finder, Object source, InnerUnbinder unbinder) {\n"
         + "    View view;\n"
         + "    view = finder.findOptionalView(source, 1, null);\n"
         + "    if (view != null) {\n"
@@ -472,10 +484,6 @@ public class OnClickTest {
         + "        }\n"
         + "      });\n"
         + "    }\n"
-        + "    return unbinder;\n"
-        + "  }\n"
-        + "  protected InnerUnbinder<T> createUnbinder(T target) {\n"
-        + "    return new InnerUnbinder(target);\n"
         + "  }\n"
         + "  protected static class InnerUnbinder<T extends Test> implements Unbinder {\n"
         + "    private T target;\n"
@@ -495,7 +503,8 @@ public class OnClickTest {
         + "      }\n"
         + "    }\n"
         + "  }\n"
-        + "}");
+        + "}"
+    );
 
     assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
@@ -529,8 +538,12 @@ public class OnClickTest {
         + "import java.lang.Override;\n"
         + "public class Test$$ViewBinder<T extends Test> implements ViewBinder<T> {\n"
         + "  @Override\n"
-        + "  public Unbinder bind(final Finder finder, final T target, Object source) {\n"
-        + "    InnerUnbinder unbinder = createUnbinder(target);\n"
+        + "  public Unbinder bind(Finder finder, T target, Object source) {\n"
+        + "    InnerUnbinder unbinder = new InnerUnbinder(target);\n"
+        + "    bindToTarget(target, finder, source, unbinder);\n"
+        + "    return unbinder;\n"
+        + "  }\n"
+        + "  protected static void bindToTarget(final Test target, Finder finder, Object source, InnerUnbinder unbinder) {\n"
         + "    View view;\n"
         + "    view = finder.findRequiredView(source, 1, \"field 'view'\");\n"
         + "    target.view = view;\n"
@@ -541,10 +554,6 @@ public class OnClickTest {
         + "        target.doStuff();\n"
         + "      }\n"
         + "    });\n"
-        + "    return unbinder;\n"
-        + "  }\n"
-        + "  protected InnerUnbinder<T> createUnbinder(T target) {\n"
-        + "    return new InnerUnbinder(target);\n"
         + "  }\n"
         + "  protected static class InnerUnbinder<T extends Test> implements Unbinder {\n"
         + "    private T target;\n"
@@ -563,7 +572,8 @@ public class OnClickTest {
         + "      target.view = null;\n"
         + "    }\n"
         + "  }\n"
-        + "}");
+        + "}"
+    );
 
     assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
