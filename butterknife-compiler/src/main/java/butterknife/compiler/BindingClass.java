@@ -130,12 +130,12 @@ final class BindingClass {
       result.addSuperinterface(ParameterizedTypeName.get(VIEW_BINDER, targetType));
     }
 
-    result.addMethod(createNewBindMethod(targetType));
+    result.addMethod(createBindMethod(targetType));
 
     if (isGeneratingUnbinder()) {
       result.addType(createUnbinderClass(targetType));
     } else if (!isFinal) {
-      result.addMethod(createNewBindToTargetMethod());
+      result.addMethod(createBindToTargetMethod());
     }
 
     return JavaFile.builder(generatedClassName.packageName(), result.build())
@@ -306,7 +306,7 @@ final class BindingClass {
         : listenerClass.setter();
   }
 
-  private MethodSpec createNewBindMethod(TypeName targetType) {
+  private MethodSpec createBindMethod(TypeName targetType) {
     MethodSpec.Builder result = MethodSpec.methodBuilder("bind")
         .addAnnotation(Override.class)
         .addModifiers(PUBLIC)
@@ -360,7 +360,7 @@ final class BindingClass {
     return result.build();
   }
 
-  private MethodSpec createNewBindToTargetMethod() {
+  private MethodSpec createBindToTargetMethod() {
     MethodSpec.Builder result = MethodSpec.methodBuilder(BIND_TO_TARGET)
         .addModifiers(PROTECTED, STATIC);
 
@@ -370,10 +370,6 @@ final class BindingClass {
       result.addParameter(targetTypeName, "target");
     }
 
-    if (bindNeedsFinder()) {
-      result.addParameter(FINDER, "finder")
-          .addParameter(Object.class, "source");
-    }
     if (bindNeedsResources()) {
       result.addParameter(RESOURCES, "res");
     }
@@ -404,7 +400,7 @@ final class BindingClass {
       result.addCode("\n");
     }
 
-    if (!viewIdMap.isEmpty() || !collectionBindings.isEmpty()) {
+    if (hasViewBindings()) {
       // Local variable in which all views will be temporarily stored.
       result.addStatement("$T view", VIEW);
 
