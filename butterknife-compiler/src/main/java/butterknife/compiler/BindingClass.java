@@ -301,9 +301,13 @@ final class BindingClass {
         .addAnnotation(Override.class)
         .addModifiers(PUBLIC)
         .returns(UNBINDER)
-        .addParameter(FINDER, "finder")
-        .addParameter(targetType, "target")
-        .addParameter(Object.class, "source");
+        .addParameter(FINDER, "finder");
+    if (isFinal && hasMethodBindings()) {
+      result.addParameter(targetType, "target", FINAL);
+    } else {
+      result.addParameter(targetType, "target");
+    }
+    result.addParameter(Object.class, "source");
 
     boolean needsFinder = bindNeedsFinder();
     boolean needsResources = bindNeedsResources();
@@ -352,8 +356,13 @@ final class BindingClass {
 
   private MethodSpec createNewBindToTargetMethod() {
     MethodSpec.Builder result = MethodSpec.methodBuilder(BIND_TO_TARGET)
-        .addModifiers(PROTECTED, STATIC)
-        .addParameter(targetTypeName, "target", FINAL);
+        .addModifiers(PROTECTED, STATIC);
+
+    if (hasMethodBindings()) {
+      result.addParameter(targetTypeName, "target", FINAL);
+    } else {
+      result.addParameter(targetTypeName, "target");
+    }
 
     if (bindNeedsFinder()) {
       result.addParameter(FINDER, "finder")
@@ -735,14 +744,17 @@ final class BindingClass {
   }
 
   private boolean bindNeedsUnbinder() {
-    if (hasUnbinder()) {
-      for (ViewBindings viewBindings : viewIdMap.values()) {
-        if (!viewBindings.getMethodBindings().isEmpty()) {
-          return true;
-        }
+    return hasUnbinder() && hasMethodBindings() //
+        || hasParentBinding() && parentBinding.bindNeedsUnbinder();
+  }
+
+  private boolean hasMethodBindings() {
+    for (ViewBindings viewBindings : viewIdMap.values()) {
+      if (!viewBindings.getMethodBindings().isEmpty()) {
+        return true;
       }
     }
-    return hasParentBinding() && parentBinding.bindNeedsUnbinder();
+    return false;
   }
 
   @Override public String toString() {

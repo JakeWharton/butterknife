@@ -77,6 +77,64 @@ public class OnClickTest {
         .generatesSources(expectedSource);
   }
 
+  @Test public void onClickBindingFinalType() {
+    JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
+        + "package test;\n"
+        + "import android.app.Activity;\n"
+        + "import butterknife.OnClick;\n"
+        + "public final class Test extends Activity {\n"
+        + "  @OnClick(1) void doStuff() {}\n"
+        + "}"
+    );
+
+    JavaFileObject expectedSource = JavaFileObjects.forSourceString("test/Test$$ViewBinder", ""
+        + "package test;\n"
+        + "import android.view.View;\n"
+        + "import butterknife.Unbinder;\n"
+        + "import butterknife.internal.DebouncingOnClickListener;\n"
+        + "import butterknife.internal.Finder;\n"
+        + "import butterknife.internal.ViewBinder;\n"
+        + "import java.lang.IllegalStateException;\n"
+        + "import java.lang.Object;\n"
+        + "import java.lang.Override;\n"
+        + "public final class Test$$ViewBinder implements ViewBinder<Test> {\n"
+        + "  @Override\n"
+        + "  public Unbinder bind(Finder finder, final Test target, Object source) {\n"
+        + "    InnerUnbinder unbinder = new InnerUnbinder(target);\n"
+        + "    View view;\n"
+        + "    view = finder.findRequiredView(source, 1, \"method 'doStuff'\");\n"
+        + "    unbinder.view1 = view;\n"
+        + "    view.setOnClickListener(new DebouncingOnClickListener() {\n"
+        + "      @Override\n"
+        + "      public void doClick(View p0) {\n"
+        + "        target.doStuff();\n"
+        + "      }\n"
+        + "    });\n"
+        + "    return unbinder;\n"
+        + "  }\n"
+        + "  protected static final class InnerUnbinder implements Unbinder {\n"
+        + "    private Test target;\n"
+        + "    View view1;\n"
+        + "    protected InnerUnbinder(Test target) {\n"
+        + "      this.target = target;\n"
+        + "    }\n"
+        + "    @Override\n"
+        + "    public final void unbind() {\n"
+        + "      if (target == null) throw new IllegalStateException(\"Bindings already cleared.\");\n"
+        + "      view1.setOnClickListener(null);\n"
+        + "      target = null;\n"
+        + "    }\n"
+        + "  }\n"
+        + "}"
+    );
+
+    assertAbout(javaSource()).that(source)
+        .processedWith(new ButterKnifeProcessor())
+        .compilesWithoutError()
+        .and()
+        .generatesSources(expectedSource);
+  }
+
   @Test public void onClickMultipleBindings() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
