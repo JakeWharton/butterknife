@@ -18,7 +18,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -51,26 +50,17 @@ final class BindingClass {
   private final List<FieldBitmapBinding> bitmapBindings = new ArrayList<>();
   private final List<FieldDrawableBinding> drawableBindings = new ArrayList<>();
   private final List<FieldResourceBinding> resourceBindings = new ArrayList<>();
-  private final Set<BindingClass> descendantBindingClasses = new LinkedHashSet<>();
   private final boolean isFinal;
   private final TypeName targetTypeName;
   private final ClassName generatedClassName;
+  private final ClassName unbinderClassName;
   private BindingClass parentBinding;
-  private ClassName unbinderClassName;  // If this is null'd out, it has no unbinder and uses NOP.
-  private ClassName highestUnbinderClassName; // If this is null'd out, there is no parent unbinder.
 
   BindingClass(TypeName targetTypeName, ClassName generatedClassName, boolean isFinal) {
     this.isFinal = isFinal;
     this.targetTypeName = targetTypeName;
     this.generatedClassName = generatedClassName;
-
-    // Default to this, but this can be null'd out by the processor before we brew if it's not
-    // necessary.
     this.unbinderClassName = generatedClassName.nestedClass(UNBINDER_SIMPLE_NAME);
-  }
-
-  void addDescendant(BindingClass bindingClass) {
-    descendantBindingClasses.add(bindingClass);
   }
 
   void addBitmap(FieldBitmapBinding binding) {
@@ -144,8 +134,7 @@ final class BindingClass {
       result.addMethod(createNewBindToTargetMethod());
     }
 
-    if (hasUnbinder() && hasViewBindings()) {
-      // Create unbinding class.
+    if (isGeneratingUnbinder()) {
       result.addType(createUnbinderClass(targetType));
     }
 
@@ -163,9 +152,8 @@ final class BindingClass {
       result.addTypeVariable(TypeVariableName.get("T", targetTypeName));
     }
 
-    if (hasParentUnbinder()) {
-      result.superclass(ParameterizedTypeName.get(
-          parentBinding.getUnbinderClassName(), targetType));
+    if (hasInheritedUnbinder()) {
+      result.superclass(ParameterizedTypeName.get(getInheritedUnbinder(), targetType));
     } else {
       result.addSuperinterface(UNBINDER);
       result.addField(targetType, "target", PROTECTED);
@@ -183,7 +171,7 @@ final class BindingClass {
     MethodSpec.Builder constructor = MethodSpec.constructorBuilder()
         .addModifiers(PROTECTED)
         .addParameter(targetType, "target");
-    if (hasParentUnbinder()) {
+    if (hasInheritedUnbinder()) {
       constructor.addStatement("super(target)");
     } else {
       constructor.addStatement("this.target = target");
@@ -196,11 +184,11 @@ final class BindingClass {
     MethodSpec.Builder result = MethodSpec.methodBuilder("unbind")
         .addAnnotation(Override.class)
         .addModifiers(PUBLIC);
-    boolean rootUnbinderWithFields = !hasParentUnbinder() && hasFieldBindings();
+    boolean rootUnbinderWithFields = !hasInheritedUnbinder() && hasFieldBindings();
     if (hasFieldBindings() || rootUnbinderWithFields) {
       result.addStatement("$T target = this.target", targetType);
     }
-    if (!hasParentUnbinder()) {
+    if (!hasInheritedUnbinder()) {
       String target = rootUnbinderWithFields ? "target" : "this.target";
       result.addStatement("if ($N == null) throw new $T($S)", target, IllegalStateException.class,
           "Bindings already cleared.");
@@ -227,7 +215,7 @@ final class BindingClass {
       }
     }
 
-    if (!hasParentUnbinder()) {
+    if (!hasInheritedUnbinder()) {
       result.addCode("\n");
       result.addStatement("this.target = null");
     }
@@ -322,7 +310,7 @@ final class BindingClass {
     }
 
     if (needsUnbinder) {
-      result.addStatement("$1T unbinder = new $1T(target)", unbinderClassName);
+      result.addStatement("$1T unbinder = new $1T(target)", getHierarchyUnbinder());
     }
 
     if (isFinal) {
@@ -342,8 +330,8 @@ final class BindingClass {
 
     if (needsUnbinder) {
       result.addStatement("return unbinder");
-    } else if (hasUnbinder()) {
-      result.addStatement("return new $T(target)", unbinderClassName);
+    } else if (hasHierarchyUnbinder()) {
+      result.addStatement("return new $T(target)", getHierarchyUnbinder());
     } else {
       result.addStatement("return $T.EMPTY", UNBINDER);
     }
@@ -372,7 +360,7 @@ final class BindingClass {
       result.addParameter(THEME, "theme");
     }
     if (bindNeedsUnbinder()) {
-      result.addParameter(unbinderClassName, "unbinder");
+      result.addParameter(getHierarchyUnbinder(), "unbinder");
     }
 
     generateBindViewBody(result);
@@ -521,7 +509,7 @@ final class BindingClass {
 
     // Add the view reference to the unbinder.
     String fieldName = "view" + bindings.getUniqueIdSuffix();
-    if (hasUnbinder()) {
+    if (isGeneratingUnbinder()) {
       result.addStatement("unbinder.$L = view", fieldName);
     }
 
@@ -578,7 +566,7 @@ final class BindingClass {
         callback.addMethod(callbackMethod.build());
       }
 
-      boolean requiresRemoval = hasUnbinder() && listener.remover().length() != 0;
+      boolean requiresRemoval = isGeneratingUnbinder() && listener.remover().length() != 0;
       String listenerField = null;
       if (requiresRemoval) {
         TypeName listenerClassName = bestGuess(listener.type());
@@ -673,50 +661,50 @@ final class BindingClass {
     }
   }
 
-  boolean hasUnbinder() {
-    return unbinderClassName != null;
-  }
-
-  void setHighestUnbinderClassName(ClassName className) {
-    this.highestUnbinderClassName = className;
-  }
-
-  ClassName getHighestUnbinderClassName() {
-    return this.highestUnbinderClassName;
-  }
-
-  void setUnbinderClassName(ClassName className) {
-    unbinderClassName = className;
-  }
-
-  ClassName getUnbinderClassName() {
-    return unbinderClassName;
-  }
-
-  BindingClass getParentBinding() {
-    return parentBinding;
-  }
-
-  boolean hasParentBinding() {
+  /** True when this type has a parent view binder type. */
+  private boolean hasParentBinding() {
     return parentBinding != null;
   }
 
-  private boolean hasParentUnbinder() {
-    return hasParentBinding() && parentBinding.hasUnbinder();
+  /** True when this type contains an unbinder subclass. */
+  private boolean isGeneratingUnbinder() {
+    return hasViewBindings();
   }
 
+  /** True when any of this type's parents contain an unbinder subclass. */
+  private boolean hasInheritedUnbinder() {
+    return hasParentBinding() && parentBinding.hasHierarchyUnbinder();
+  }
+
+  /** Return the nearest unbinder subclass from this type's parents. */
+  private ClassName getInheritedUnbinder() {
+    return parentBinding.getHierarchyUnbinder();
+  }
+
+  /** True when this type or any of its parents contain an unbinder subclass. */
+  private boolean hasHierarchyUnbinder() {
+    return isGeneratingUnbinder() || hasInheritedUnbinder();
+  }
+
+  /** Return this type's unbinder subclass or the nearest one from its parents. */
+  private ClassName getHierarchyUnbinder() {
+    if (isGeneratingUnbinder()) {
+      return unbinderClassName;
+    }
+    return parentBinding.getHierarchyUnbinder();
+  }
+
+  /** True when this type's bindings require a view hierarchy. */
+  private boolean hasViewBindings() {
+    return !viewIdMap.isEmpty() || !collectionBindings.isEmpty();
+  }
+
+  /** True when this type's bindings require Android's {@code Resources}. */
   private boolean hasResourceBindings() {
     return !(bitmapBindings.isEmpty() && drawableBindings.isEmpty() && resourceBindings.isEmpty());
   }
 
-  boolean hasViewBindings() {
-    return !viewIdMap.isEmpty() || !collectionBindings.isEmpty();
-  }
-
-  Iterable<BindingClass> getDescendants() {
-    return descendantBindingClasses;
-  }
-
+  /** True when this type's resource bindings require Android's {@code Theme}. */
   private boolean hasResourceBindingsNeedingTheme() {
     if (!drawableBindings.isEmpty()) {
       return true;
@@ -727,26 +715,6 @@ final class BindingClass {
       }
     }
     return false;
-  }
-
-  private boolean bindNeedsFinder() {
-    return hasViewBindings() //
-        || hasParentBinding() && parentBinding.bindNeedsFinder();
-  }
-
-  private boolean bindNeedsResources() {
-    return hasResourceBindings() //
-        || hasParentBinding() && parentBinding.bindNeedsResources();
-  }
-
-  private boolean bindNeedsTheme() {
-    return hasResourceBindings() && hasResourceBindingsNeedingTheme() //
-        || hasParentBinding() && parentBinding.bindNeedsTheme();
-  }
-
-  private boolean bindNeedsUnbinder() {
-    return hasUnbinder() && hasMethodBindings() //
-        || hasParentBinding() && parentBinding.bindNeedsUnbinder();
   }
 
   private boolean hasMethodBindings() {
@@ -765,6 +733,26 @@ final class BindingClass {
       }
     }
     return !collectionBindings.isEmpty();
+  }
+
+  private boolean bindNeedsFinder() {
+    return hasViewBindings() //
+        || hasParentBinding() && parentBinding.bindNeedsFinder();
+  }
+
+  private boolean bindNeedsResources() {
+    return hasResourceBindings() //
+        || hasParentBinding() && parentBinding.bindNeedsResources();
+  }
+
+  private boolean bindNeedsTheme() {
+    return hasResourceBindings() && hasResourceBindingsNeedingTheme() //
+        || hasParentBinding() && parentBinding.bindNeedsTheme();
+  }
+
+  private boolean bindNeedsUnbinder() {
+    return isGeneratingUnbinder() && hasMethodBindings() //
+        || hasParentBinding() && parentBinding.bindNeedsUnbinder();
   }
 
   @Override public String toString() {
