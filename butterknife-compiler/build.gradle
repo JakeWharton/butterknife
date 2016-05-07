@@ -21,6 +21,8 @@ dependencies {
   testCompile deps.junit
   testCompile deps.truth
   testCompile deps.robolectric
+  // TODO: Unfortunately we can't use deps.supportv4 here as the Java plugin does not support AAR dependencies
+  testCompile 'com.google.android:support-v4:r7'
   testCompile deps.compiletesting
   testCompile files(org.gradle.internal.jvm.Jvm.current().getToolsJar())
 }
