@@ -10,7 +10,7 @@ subprojects { project ->
 
   task checkstyle(type: Checkstyle) {
     configFile rootProject.file('checkstyle.xml')
-    source 'src/main/java'
+    source 'src/main/java', 'src/test/java', 'src/androidTest/java'
     ignoreFailures false
     showViolations true
     include '**/*.java'
