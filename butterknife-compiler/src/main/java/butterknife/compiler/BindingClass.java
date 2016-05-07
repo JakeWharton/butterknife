@@ -760,7 +760,7 @@ final class BindingClass {
         return true;
       }
     }
-    return false;
+    return !collectionBindings.isEmpty();
   }
 
   @Override public String toString() {
