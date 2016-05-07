@@ -327,7 +327,7 @@ public class OnClickTest {
         + "    private View view2;\n"
         + "    private View view3;\n"
         + "    private View view4;\n"
-        + "    protected InnerUnbinder(final T target, Finder finder, Object source) {\n"
+        + "    protected InnerUnbinder(final T target, final Finder finder, Object source) {\n"
         + "      this.target = target;\n"
         + "      View view;\n"
         + "      view = finder.findRequiredView(source, 0, \"method 'click0'\");\n"

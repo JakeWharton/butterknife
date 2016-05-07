@@ -179,7 +179,11 @@ final class BindingClass {
     }
 
     if (bindNeedsFinder()) {
-      constructor.addParameter(FINDER, "finder");
+      if (methodBindingsNeedFinder()) {
+        constructor.addParameter(FINDER, "finder", FINAL);
+      } else {
+        constructor.addParameter(FINDER, "finder");
+      }
       constructor.addParameter(Object.class, "source");
     }
     if (bindNeedsResources()) {
@@ -725,6 +729,28 @@ final class BindingClass {
     for (ViewBindings viewBindings : viewIdMap.values()) {
       if (!viewBindings.getMethodBindings().isEmpty()) {
         return true;
+      }
+    }
+    return false;
+  }
+
+  private boolean methodBindingsNeedFinder() {
+    for (ViewBindings viewBindings : viewIdMap.values()) {
+      for (Map.Entry<ListenerClass, Map<ListenerMethod, Set<MethodViewBinding>>> entry
+          : viewBindings.getMethodBindings().entrySet()) {
+        Map<ListenerMethod, Set<MethodViewBinding>> methodBindings = entry.getValue();
+        for (ListenerMethod method : getListenerMethods(entry.getKey())) {
+          if (methodBindings.containsKey(method)) {
+            String[] parameterTypes = method.parameters();
+            for (MethodViewBinding methodViewBinding : methodBindings.get(method)) {
+              for (Parameter parameter : methodViewBinding.getParameters()) {
+                if (parameter.requiresCast(parameterTypes[parameter.getListenerPosition()])) {
+                  return true;
+                }
+              }
+            }
+          }
+        }
       }
     }
     return false;
