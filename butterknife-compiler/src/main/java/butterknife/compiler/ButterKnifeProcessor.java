@@ -37,7 +37,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.BitSet;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -360,15 +359,12 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     BindingClass bindingClass = targetClassMap.get(enclosingElement);
     if (bindingClass != null) {
       ViewBindings viewBindings = bindingClass.getViewBinding(id);
-      if (viewBindings != null) {
-        Iterator<FieldViewBinding> iterator = viewBindings.getFieldBindings().iterator();
-        if (iterator.hasNext()) {
-          FieldViewBinding existingBinding = iterator.next();
-          error(element, "Attempt to use @%s for an already bound ID %d on '%s'. (%s.%s)",
-              BindView.class.getSimpleName(), id, existingBinding.getName(),
-              enclosingElement.getQualifiedName(), element.getSimpleName());
-          return;
-        }
+      if (viewBindings != null && viewBindings.getFieldBinding() != null) {
+        FieldViewBinding existingBinding = viewBindings.getFieldBinding();
+        error(element, "Attempt to use @%s for an already bound ID %d on '%s'. (%s.%s)",
+            BindView.class.getSimpleName(), id, existingBinding.getName(),
+            enclosingElement.getQualifiedName(), element.getSimpleName());
+        return;
       }
     } else {
       bindingClass = getOrCreateTargetClass(targetClassMap, enclosingElement);

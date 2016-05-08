@@ -1,21 +1,19 @@
 package butterknife.compiler;
 
+import butterknife.internal.ListenerClass;
+import butterknife.internal.ListenerMethod;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import butterknife.internal.ListenerClass;
-import butterknife.internal.ListenerMethod;
-
 final class ViewBindings {
   private final int id;
-  private final Set<FieldViewBinding> fieldBindings = new LinkedHashSet<>();
   private final LinkedHashMap<ListenerClass, Map<ListenerMethod, Set<MethodViewBinding>>>
       methodBindings = new LinkedHashMap<>();
+  private FieldViewBinding fieldBinding;
 
   ViewBindings(int id) {
     this.id = id;
@@ -25,8 +23,8 @@ final class ViewBindings {
     return id;
   }
 
-  public Collection<FieldViewBinding> getFieldBindings() {
-    return fieldBindings;
+  public FieldViewBinding getFieldBinding() {
+    return fieldBinding;
   }
 
   public Map<ListenerClass, Map<ListenerMethod, Set<MethodViewBinding>>> getMethodBindings() {
@@ -55,16 +53,17 @@ final class ViewBindings {
     set.add(binding);
   }
 
-  public void addFieldBinding(FieldViewBinding fieldBinding) {
-    fieldBindings.add(fieldBinding);
+  public void setFieldBinding(FieldViewBinding fieldBinding) {
+    if (this.fieldBinding != null) {
+      throw new AssertionError();
+    }
+    this.fieldBinding = fieldBinding;
   }
 
   public List<ViewBinding> getRequiredBindings() {
     List<ViewBinding> requiredViewBindings = new ArrayList<>();
-    for (FieldViewBinding fieldBinding : fieldBindings) {
-      if (fieldBinding.isRequired()) {
-        requiredViewBindings.add(fieldBinding);
-      }
+    if (fieldBinding != null && fieldBinding.isRequired()) {
+      requiredViewBindings.add(fieldBinding);
     }
     for (Map<ListenerMethod, Set<MethodViewBinding>> methodBinding : methodBindings.values()) {
       for (Set<MethodViewBinding> set : methodBinding.values()) {
@@ -79,7 +78,7 @@ final class ViewBindings {
   }
 
   public boolean isSingleFieldBinding() {
-    return methodBindings.isEmpty() && fieldBindings.size() == 1;
+    return methodBindings.isEmpty() && fieldBinding != null;
   }
 
   public boolean requiresLocal() {
