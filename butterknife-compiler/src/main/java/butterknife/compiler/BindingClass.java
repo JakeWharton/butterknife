@@ -23,7 +23,6 @@ import java.util.Map;
 import java.util.Set;
 import javax.lang.model.element.Modifier;
 
-import static butterknife.compiler.ButterKnifeProcessor.NO_ID;
 import static butterknife.compiler.ButterKnifeProcessor.VIEW_TYPE;
 import static java.util.Collections.singletonList;
 import static javax.lang.model.element.Modifier.FINAL;
@@ -263,9 +262,11 @@ final class BindingClass {
       return;
     }
 
-    // Using unique view id for name uniqueness.
-    String fieldName = "view" + bindings.getUniqueIdSuffix();
-    result.addField(VIEW, fieldName, PRIVATE);
+    String fieldName = "target";
+    if (!bindings.isBoundToRoot()) {
+      fieldName = "view" + bindings.getId();
+      result.addField(VIEW, fieldName, PRIVATE);
+    }
 
     // We only need to emit the null check if there are zero required bindings.
     boolean needsNullChecked = bindings.getRequiredBindings().isEmpty();
@@ -297,7 +298,9 @@ final class BindingClass {
       }
     }
 
-    unbindMethod.addStatement("$N = null", fieldName);
+    if (!bindings.isBoundToRoot()) {
+      unbindMethod.addStatement("$N = null", fieldName);
+    }
 
     if (needsNullChecked) {
       unbindMethod.endControlFlow();
@@ -494,7 +497,7 @@ final class BindingClass {
   }
 
   private void addViewBindings(MethodSpec.Builder result, ViewBindings bindings) {
-    if (!bindings.requiresLocal()) {
+    if (bindings.isSingleFieldBinding()) {
       // Optimize the common case where there's a single binding directly to a field.
       Collection<FieldViewBinding> fieldBindings = bindings.getFieldBindings();
       for (FieldViewBinding fieldBinding : fieldBindings) {
@@ -519,13 +522,9 @@ final class BindingClass {
     List<ViewBinding> requiredViewBindings = bindings.getRequiredBindings();
     if (requiredViewBindings.isEmpty()) {
       result.addStatement("view = finder.findOptionalView(source, $L)", bindings.getId());
-    } else {
-      if (bindings.getId() == NO_ID) {
-        result.addStatement("view = target");
-      } else {
-        result.addStatement("view = finder.findRequiredView(source, $L, $S)", bindings.getId(),
-            asHumanDescription(requiredViewBindings));
-      }
+    } else if (!bindings.isBoundToRoot()) {
+      result.addStatement("view = finder.findRequiredView(source, $L, $S)", bindings.getId(),
+          asHumanDescription(requiredViewBindings));
     }
 
     addFieldBindings(result, bindings);
@@ -558,9 +557,15 @@ final class BindingClass {
     }
 
     // Add the view reference to the unbinder.
-    String fieldName = "view" + bindings.getUniqueIdSuffix();
-    if (isGeneratingUnbinder()) {
-      result.addStatement("$L = view", fieldName);
+    String fieldName = "target";
+    String bindName = "target";
+    if (!bindings.isBoundToRoot()) {
+      fieldName = "view" + bindings.getId();
+      bindName = "view";
+
+      if (isGeneratingUnbinder()) {
+        result.addStatement("$L = view", fieldName);
+      }
     }
 
     for (Map.Entry<ListenerClass, Map<ListenerMethod, Set<MethodViewBinding>>> e
@@ -625,10 +630,10 @@ final class BindingClass {
       }
 
       if (!VIEW_TYPE.equals(listener.targetType())) {
-        result.addStatement("(($T) view).$L($L)", bestGuess(listener.targetType()),
+        result.addStatement("(($T) $N).$L($L)", bestGuess(listener.targetType()), bindName,
             listener.setter(), requiresRemoval ? listenerField : callback.build());
       } else {
-        result.addStatement("view.$L($L)", listener.setter(),
+        result.addStatement("$N.$L($L)", bindName, listener.setter(),
             requiresRemoval ? listenerField : callback.build());
       }
     }
