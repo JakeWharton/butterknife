@@ -72,7 +72,7 @@ final class BindingClass {
   }
 
   void addField(int id, FieldViewBinding binding) {
-    getOrCreateViewBindings(id).addFieldBinding(binding);
+    getOrCreateViewBindings(id).setFieldBinding(binding);
   }
 
   void addFieldCollection(int[] ids, FieldCollectionViewBinding binding) {
@@ -229,8 +229,8 @@ final class BindingClass {
     if (hasFieldBindings()) {
       result.addCode("\n");
       for (ViewBindings bindings : viewIdMap.values()) {
-        for (FieldViewBinding fieldBinding : bindings.getFieldBindings()) {
-          result.addStatement("target.$L = null", fieldBinding.getName());
+        if (bindings.getFieldBinding() != null) {
+          result.addStatement("target.$L = null", bindings.getFieldBinding().getName());
         }
       }
       for (FieldCollectionViewBinding fieldCollectionBinding : collectionBindings.keySet()) {
@@ -499,23 +499,21 @@ final class BindingClass {
   private void addViewBindings(MethodSpec.Builder result, ViewBindings bindings) {
     if (bindings.isSingleFieldBinding()) {
       // Optimize the common case where there's a single binding directly to a field.
-      Collection<FieldViewBinding> fieldBindings = bindings.getFieldBindings();
-      for (FieldViewBinding fieldBinding : fieldBindings) {
-        CodeBlock.Builder invoke = CodeBlock.builder()
-            .add("target.$L = finder.find", fieldBinding.getName());
-        invoke.add(fieldBinding.isRequired() ? "RequiredView" : "OptionalView");
-        if (requiresCast(fieldBinding.getType())) {
-          invoke.add("AsType");
-        }
-        invoke.add("(source, $L", bindings.getId());
-        if (fieldBinding.isRequired() || requiresCast(fieldBinding.getType())) {
-          invoke.add(", $S", asHumanDescription(fieldBindings));
-        }
-        if (requiresCast(fieldBinding.getType())) {
-          invoke.add(", $T.class", fieldBinding.getRawType());
-        }
-        result.addStatement("$L)", invoke.build());
+      FieldViewBinding fieldBinding = bindings.getFieldBinding();
+      CodeBlock.Builder invoke = CodeBlock.builder()
+          .add("target.$L = finder.find", fieldBinding.getName());
+      invoke.add(fieldBinding.isRequired() ? "RequiredView" : "OptionalView");
+      if (requiresCast(fieldBinding.getType())) {
+        invoke.add("AsType");
       }
+      invoke.add("(source, $L", bindings.getId());
+      if (fieldBinding.isRequired() || requiresCast(fieldBinding.getType())) {
+        invoke.add(", $S", asHumanDescription(singletonList(fieldBinding)));
+      }
+      if (requiresCast(fieldBinding.getType())) {
+        invoke.add(", $T.class", fieldBinding.getRawType());
+      }
+      result.addStatement("$L)", invoke.build());
       return;
     }
 
@@ -532,11 +530,11 @@ final class BindingClass {
   }
 
   private void addFieldBindings(MethodSpec.Builder result, ViewBindings bindings) {
-    Collection<FieldViewBinding> fieldBindings = bindings.getFieldBindings();
-    for (FieldViewBinding fieldBinding : fieldBindings) {
+    FieldViewBinding fieldBinding = bindings.getFieldBinding();
+    if (fieldBinding != null) {
       if (requiresCast(fieldBinding.getType())) {
         result.addStatement("target.$L = finder.castView(view, $L, $S)", fieldBinding.getName(),
-            bindings.getId(), asHumanDescription(fieldBindings));
+            bindings.getId(), asHumanDescription(singletonList(fieldBinding)));
       } else {
         result.addStatement("target.$L = view", fieldBinding.getName());
       }
@@ -792,7 +790,7 @@ final class BindingClass {
 
   private boolean hasFieldBindings() {
     for (ViewBindings viewBindings : viewIdMap.values()) {
-      if (!viewBindings.getFieldBindings().isEmpty()) {
+      if (viewBindings.getFieldBinding() != null) {
         return true;
       }
     }
