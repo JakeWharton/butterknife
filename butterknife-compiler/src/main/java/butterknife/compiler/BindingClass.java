@@ -604,7 +604,7 @@ final class BindingClass {
               int listenerPosition = parameter.getListenerPosition();
 
               if (parameter.requiresCast(listenerParameters[listenerPosition])) {
-                builder.add("finder.<$T>castParam(p$L, $S, $L, $S, $L)\n", parameter.getType(),
+                builder.add("finder.<$T>castParam(p$L, $S, $L, $S, $L)", parameter.getType(),
                     listenerPosition, method.name(), listenerPosition, binding.getName(), i);
               } else {
                 builder.add("p$L", listenerPosition);
