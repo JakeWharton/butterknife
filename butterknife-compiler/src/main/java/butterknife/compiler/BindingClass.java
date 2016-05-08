@@ -348,14 +348,16 @@ final class BindingClass {
     CodeBlock.Builder invoke = CodeBlock.builder();
     if (isGeneratingUnbinder()) {
       invoke.add("return new $T", unbinderClassName);
-    } else {
+    } else if (!isFinal) {
       invoke.add("$N", BIND_TO_TARGET);
     }
-    invoke.add("(target");
-    if (needsFinder) invoke.add(", finder, source");
-    if (needsResources) invoke.add(", res");
-    if (needsTheme) invoke.add(", theme");
-    result.addStatement("$L", invoke.add(")").build());
+    if (isGeneratingUnbinder() || !isFinal) {
+      invoke.add("(target");
+      if (needsFinder) invoke.add(", finder, source");
+      if (needsResources) invoke.add(", res");
+      if (needsTheme) invoke.add(", theme");
+      result.addStatement("$L", invoke.add(")").build());
+    }
 
     if (!isGeneratingUnbinder()) {
       result.addStatement("return $T.EMPTY", UNBINDER);
