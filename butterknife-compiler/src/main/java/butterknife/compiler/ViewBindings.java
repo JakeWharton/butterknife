@@ -78,19 +78,21 @@ final class ViewBindings {
     return requiredViewBindings;
   }
 
-  public boolean requiresLocal() {
-    return !methodBindings.isEmpty() || fieldBindings.size() != 1;
+  public boolean isSingleFieldBinding() {
+    return methodBindings.isEmpty() && fieldBindings.size() == 1;
   }
 
-  /**
-   * ViewBindings with no IDs are tricky, because they're used in unbinder field names to
-   * distinguish them. {@link ButterKnifeProcessor#NO_ID} is equal to -1, and '-' isn't a valid
-   * field name character. Since these are only going to happen for views where the target
-   * <em>is</em> the view we're applying the binding on, we'll just append {@code "Original"}.
-   */
-  public String getUniqueIdSuffix() {
-    return getId() == ButterKnifeProcessor.NO_ID
-        ? "Original"
-        : Integer.toString(getId());
+  public boolean requiresLocal() {
+    if (isBoundToRoot()) {
+      return false;
+    }
+    if (isSingleFieldBinding()) {
+      return false;
+    }
+    return true;
+  }
+
+  public boolean isBoundToRoot() {
+    return id == ButterKnifeProcessor.NO_ID;
   }
 }
