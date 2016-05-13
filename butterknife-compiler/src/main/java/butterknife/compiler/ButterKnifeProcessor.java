@@ -48,6 +48,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.ServiceLoader;
 import java.util.Set;
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.Filer;
@@ -88,31 +89,42 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
   private static final String NULLABLE_ANNOTATION_NAME = "Nullable";
   private static final String STRING_TYPE = "java.lang.String";
   private static final String LIST_TYPE = List.class.getCanonicalName();
-  private static final String R = "R";
-  private static final List<Class<? extends Annotation>> LISTENERS = Arrays.asList(//
-      OnCheckedChanged.class, //
-      OnClick.class, //
-      OnEditorAction.class, //
-      OnFocusChange.class, //
-      OnItemClick.class, //
-      OnItemLongClick.class, //
-      OnItemSelected.class, //
-      OnLongClick.class, //
-      OnPageChange.class, //
-      OnTextChanged.class, //
-      OnTouch.class //
-  );
-
   private static final List<String> SUPPORTED_TYPES = Arrays.asList(
-      "array", "attr", "bool", "color", "dimen", "drawable", "id", "integer", "string"
+          "array", "attr", "bool", "color", "dimen", "drawable", "id", "integer", "string"
   );
 
   private Elements elementUtils;
   private Types typeUtils;
   private Filer filer;
   private Trees trees;
+  private List<Class<? extends Annotation>> listeners;
 
   private final Map<Integer, Id> symbols = new LinkedHashMap<>();
+
+  public ButterKnifeProcessor() {
+    this(ServiceLoader.load(ButterKnifeExtension.class,
+            ButterKnifeProcessor.class.getClassLoader()));
+    listeners.addAll(0, Arrays.asList(//
+        OnCheckedChanged.class, //
+        OnClick.class, //
+        OnEditorAction.class, //
+        OnFocusChange.class, //
+        OnItemClick.class, //
+        OnItemLongClick.class, //
+        OnItemSelected.class, //
+        OnLongClick.class, //
+        OnPageChange.class, //
+        OnTextChanged.class, //
+        OnTouch.class //
+    ));
+  }
+
+  /* testing */ ButterKnifeProcessor(Iterable<? extends ButterKnifeExtension> extensions) {
+    listeners = new ArrayList<>();
+    for (ButterKnifeExtension extension : extensions) {
+      listeners.addAll(extension.listenerClasses());
+    }
+  }
 
   @Override public synchronized void init(ProcessingEnvironment env) {
     super.init(env);
@@ -138,7 +150,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     types.add(BindView.class.getCanonicalName());
     types.add(BindViews.class.getCanonicalName());
 
-    for (Class<? extends Annotation> listener : LISTENERS) {
+    for (Class<? extends Annotation> listener : listeners) {
       types.add(listener.getCanonicalName());
     }
 
@@ -272,7 +284,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     }
 
     // Process each annotation that corresponds to a listener.
-    for (Class<? extends Annotation> listener : LISTENERS) {
+    for (Class<? extends Annotation> listener : listeners) {
       findAndParseListener(env, listener, targetClassMap, erasedTargetNames);
     }
 
