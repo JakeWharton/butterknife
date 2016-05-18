@@ -144,7 +144,7 @@ final class BindingClass {
 
   private TypeSpec createUnbinderClass(TypeName targetType) {
     TypeSpec.Builder result = TypeSpec.classBuilder(unbinderClassName.simpleName())
-            .addModifiers(isFinal ? PRIVATE : PROTECTED, STATIC);
+        .addModifiers(isFinal ? PRIVATE : PROTECTED, STATIC);
     if (isFinal) {
       result.addModifiers(Modifier.FINAL);
     } else {
@@ -350,7 +350,11 @@ final class BindingClass {
 
     CodeBlock.Builder invoke = CodeBlock.builder();
     if (isGeneratingUnbinder()) {
-      invoke.add("return new $T", unbinderClassName);
+      if (isFinal) {
+        invoke.add("return new $T", unbinderClassName);
+      } else {
+        invoke.add("return new $T<>", unbinderClassName);
+      }
     } else if (!isFinal) {
       invoke.add("$N", BIND_TO_TARGET);
     }

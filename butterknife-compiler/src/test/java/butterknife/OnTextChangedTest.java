@@ -35,7 +35,7 @@ public class OnTextChangedTest {
         + "public class Test$$ViewBinder<T extends Test> implements ViewBinder<T> {\n"
         + "  @Override\n"
         + "  public Unbinder bind(Finder finder, T target, Object source) {\n"
-        + "    return new InnerUnbinder(target, finder, source);\n"
+        + "    return new InnerUnbinder<>(target, finder, source);\n"
         + "  }\n"
         + "  protected static class InnerUnbinder<T extends Test> implements Unbinder {\n"
         + "    protected T target;\n"
