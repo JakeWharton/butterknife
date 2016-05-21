@@ -1,13 +1,11 @@
 package butterknife;
 
+import butterknife.compiler.ButterKnifeProcessor;
 import com.google.common.base.Joiner;
 import com.google.testing.compile.JavaFileObjects;
-
 import org.junit.Test;
 
 import javax.tools.JavaFileObject;
-
-import butterknife.compiler.ButterKnifeProcessor;
 
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.testing.compile.JavaSourceSubjectFactory.javaSource;
