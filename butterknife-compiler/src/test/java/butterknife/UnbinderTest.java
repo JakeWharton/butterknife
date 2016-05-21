@@ -1,13 +1,11 @@
 package butterknife;
 
+import butterknife.compiler.ButterKnifeProcessor;
 import com.google.common.base.Joiner;
 import com.google.testing.compile.JavaFileObjects;
-
 import org.junit.Test;
 
 import javax.tools.JavaFileObject;
-
-import butterknife.compiler.ButterKnifeProcessor;
 
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.testing.compile.JavaSourceSubjectFactory.javaSource;
@@ -717,7 +715,11 @@ public class UnbinderTest {
         + "    bindToTarget(target, res, theme);\n"
         + "    return Unbinder.EMPTY;\n"
         + "  }\n"
-        + "  @SuppressWarnings(\"ResourceType\")\n"
+        + "  @SuppressWarnings({ "
+        + "          \"ResourceType\",\n"
+        + "          \"rawtypes\",\n"
+        + "          \"unchecked\"\n"
+        + "      })\n"
         + "  protected static void bindToTarget(A target, Resources res, Resources.Theme theme) {\n"
         + "    target.blackColor = Utils.getColor(res, theme, 17170444);\n"
         + "  }\n"
@@ -743,7 +745,11 @@ public class UnbinderTest {
         + "    bindToTarget(target, res, theme);\n"
         + "    return Unbinder.EMPTY;\n"
         + "  }\n"
-        + "  @SuppressWarnings(\"ResourceType\")\n"
+        + "  @SuppressWarnings({ "
+        + "          \"ResourceType\",\n"
+        + "          \"rawtypes\",\n"
+        + "          \"unchecked\"\n"
+        + "      })\n"
         + "  protected static void bindToTarget(B target, Resources res, Resources.Theme theme) {\n"
         + "    A$$ViewBinder.bindToTarget(target, res, theme);\n"
         + "    target.whiteColor = Utils.getColor(res, theme, 17170443);\n"
@@ -772,7 +778,11 @@ public class UnbinderTest {
         + "  }\n"
         + "  protected static class InnerUnbinder<T extends C> implements Unbinder {\n"
         + "    protected T target;\n"
-        + "    @SuppressWarnings(\"ResourceType\")\n"
+        + "  @SuppressWarnings({ "
+        + "          \"ResourceType\",\n"
+        + "          \"rawtypes\",\n"
+        + "          \"unchecked\"\n"
+        + "      })\n"
         + "    protected InnerUnbinder(T target, Finder finder, Object source, Resources res, Resources.Theme theme) {\n"
         + "      this.target = target;\n"
         + "      B$$ViewBinder.bindToTarget(target, res, theme);\n"
@@ -809,7 +819,11 @@ public class UnbinderTest {
         + "    return new InnerUnbinder(target, finder, source, res, theme);\n"
         + "  }\n"
         + "  protected static class InnerUnbinder<T extends D> extends C$$ViewBinder.InnerUnbinder<T> {\n"
-        + "    @SuppressWarnings(\"ResourceType\")\n"
+        + "  @SuppressWarnings({ "
+        + "          \"ResourceType\",\n"
+        + "          \"rawtypes\",\n"
+        + "          \"unchecked\"\n"
+        + "      })\n"
         + "    protected InnerUnbinder(T target, Finder finder, Object source, Resources res, Resources.Theme theme) {\n"
         + "      super(target, finder, source, res, theme);\n"
         + "      target.grayColor = Utils.getColor(res, theme, 17170432);\n"
@@ -837,7 +851,11 @@ public class UnbinderTest {
         + "    return new InnerUnbinder(target, finder, source, res, theme);\n"
         + "  }\n"
         + "  protected static class InnerUnbinder<T extends E> extends C$$ViewBinder.InnerUnbinder<T> {\n"
-        + "    @SuppressWarnings(\"ResourceType\")\n"
+        + "  @SuppressWarnings({ "
+        + "          \"ResourceType\",\n"
+        + "          \"rawtypes\",\n"
+        + "          \"unchecked\"\n"
+        + "      })\n"
         + "    protected InnerUnbinder(T target, Finder finder, Object source, Resources res, Resources.Theme theme) {\n"
         + "      super(target, finder, source, res, theme);\n"
         + "      target.backgroundDarkColor = Utils.getColor(res, theme, 17170446);\n"
@@ -865,7 +883,11 @@ public class UnbinderTest {
         + "    return new InnerUnbinder(target, finder, source, res, theme);\n"
         + "  }\n"
         + "  protected static class InnerUnbinder<T extends F> extends D$$ViewBinder.InnerUnbinder<T> {\n"
-        + "    @SuppressWarnings(\"ResourceType\")\n"
+        + "  @SuppressWarnings({ "
+        + "          \"ResourceType\",\n"
+        + "          \"rawtypes\",\n"
+        + "          \"unchecked\"\n"
+        + "      })\n"
         + "    protected InnerUnbinder(T target, Finder finder, Object source, Resources res, Resources.Theme theme) {\n"
         + "      super(target, finder, source, res, theme);\n"
         + "      target.backgroundLightColor = Utils.getColor(res, theme, 17170447);\n"
@@ -896,7 +918,11 @@ public class UnbinderTest {
         + "  }\n"
         + "  protected static class InnerUnbinder<T extends G> extends E$$ViewBinder.InnerUnbinder<T> {\n"
         + "    private View view16908290;\n"
-        + "    @SuppressWarnings(\"ResourceType\")\n"
+        + "  @SuppressWarnings({ "
+        + "          \"ResourceType\",\n"
+        + "          \"rawtypes\",\n"
+        + "          \"unchecked\"\n"
+        + "      })\n"
         + "    protected InnerUnbinder(final T target, Finder finder, Object source, Resources res, Resources.Theme theme) {\n"
         + "      super(target, finder, source, res, theme);\n"
         + "      View view;\n"
@@ -942,7 +968,11 @@ public class UnbinderTest {
         + "    return new InnerUnbinder(target, finder, source, res, theme);\n"
         + "  }\n"
         + "  protected static class InnerUnbinder<T extends H> extends G$$ViewBinder.InnerUnbinder<T> {\n"
-        + "    @SuppressWarnings(\"ResourceType\")\n"
+        + "  @SuppressWarnings({ "
+        + "          \"ResourceType\",\n"
+        + "          \"rawtypes\",\n"
+        + "          \"unchecked\"\n"
+        + "      })\n"
         + "    protected InnerUnbinder(T target, Finder finder, Object source, Resources res, Resources.Theme theme) {\n"
         + "      super(target, finder, source, res, theme);\n"
         + "      target.button3 = finder.findRequiredView(source, 16908315, \"field 'button3'\");\n"
