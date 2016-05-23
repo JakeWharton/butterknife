@@ -1,8 +1,8 @@
 apply plugin: 'java'
 apply plugin: 'checkstyle'
 
-sourceCompatibility = 1.7
-targetCompatibility = 1.7
+sourceCompatibility = rootProject.ext.sourceCompatibilityVersion
+targetCompatibility = rootProject.ext.targetCompatibilityVersion
 
 def logger = new com.android.build.gradle.internal.LoggerWrapper(project.logger)
 def sdkHandler = new com.android.build.gradle.internal.SdkHandler(project, logger)

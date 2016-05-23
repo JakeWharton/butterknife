@@ -9,8 +9,8 @@ for (File file : sdkHandler.sdkLoader.repositories) {
   }
 }
 
-targetCompatibility = JavaVersion.VERSION_1_7
-sourceCompatibility = JavaVersion.VERSION_1_7
+sourceCompatibility = rootProject.ext.sourceCompatibilityVersion
+targetCompatibility = rootProject.ext.targetCompatibilityVersion
 
 checkstyle {
   configFile rootProject.file('checkstyle.xml')
