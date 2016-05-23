@@ -2,8 +2,9 @@ package butterknife;
 
 import butterknife.compiler.ButterKnifeProcessor;
 import com.google.testing.compile.JavaFileObjects;
-import javax.tools.JavaFileObject;
 import org.junit.Test;
+
+import javax.tools.JavaFileObject;
 
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.testing.compile.JavaSourceSubjectFactory.javaSource;
@@ -40,7 +41,11 @@ public class BindDrawableTest {
         + "    bindToTarget(target, res, theme);\n"
         + "    return Unbinder.EMPTY;\n"
         + "  }\n"
-        + "  @SuppressWarnings(\"ResourceType\")\n"
+        + "  @SuppressWarnings({ "
+        + "          \"ResourceType\",\n"
+        + "          \"rawtypes\",\n"
+        + "          \"unchecked\"\n"
+        + "      })\n"
         + "  protected static void bindToTarget(Test target, Resources res, Resources.Theme theme) {\n"
         + "    target.one = Utils.getDrawable(res, theme, 1);\n"
         + "  }\n"
@@ -85,7 +90,11 @@ public class BindDrawableTest {
         + "    bindToTarget(target, res, theme);\n"
         + "    return Unbinder.EMPTY;\n"
         + "  }\n"
-        + "  @SuppressWarnings(\"ResourceType\")\n"
+        + "  @SuppressWarnings({ "
+        + "          \"ResourceType\",\n"
+        + "          \"rawtypes\",\n"
+        + "          \"unchecked\"\n"
+        + "      })\n"
         + "  protected static void bindToTarget(Test target, Resources res, Resources.Theme theme) {\n"
         + "    target.one = Utils.getTintedDrawable(res, theme, 1, 2);\n"
         + "  }\n"

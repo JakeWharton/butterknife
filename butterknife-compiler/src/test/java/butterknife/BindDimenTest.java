@@ -2,8 +2,9 @@ package butterknife;
 
 import butterknife.compiler.ButterKnifeProcessor;
 import com.google.testing.compile.JavaFileObjects;
-import javax.tools.JavaFileObject;
 import org.junit.Test;
+
+import javax.tools.JavaFileObject;
 
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.testing.compile.JavaSourceSubjectFactory.javaSource;
@@ -35,7 +36,11 @@ public class BindDimenTest {
         + "    bindToTarget(target, res);\n"
         + "    return Unbinder.EMPTY;\n"
         + "  }\n"
-        + "  @SuppressWarnings(\"ResourceType\")\n"
+        + "  @SuppressWarnings({ "
+        + "          \"ResourceType\",\n"
+        + "          \"rawtypes\",\n"
+        + "          \"unchecked\"\n"
+        + "      })\n"
         + "  protected static void bindToTarget(Test target, Resources res) {\n"
         + "    target.one = res.getDimension(1);\n"
         + "  }\n"
@@ -75,7 +80,11 @@ public class BindDimenTest {
         + "    bindToTarget(target, res);\n"
         + "    return Unbinder.EMPTY;\n"
         + "  }\n"
-        + "  @SuppressWarnings(\"ResourceType\")\n"
+        + "  @SuppressWarnings({ "
+        + "          \"ResourceType\",\n"
+        + "          \"rawtypes\",\n"
+        + "          \"unchecked\"\n"
+        + "      })\n"
         + "  protected static void bindToTarget(Test target, Resources res) {\n"
         + "    target.one = res.getDimensionPixelSize(1);\n"
         + "  }\n"
