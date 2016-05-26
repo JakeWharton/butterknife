@@ -152,7 +152,7 @@ public final class ButterKnife {
    * @param source Activity on which IDs will be looked up.
    */
   public static Unbinder bind(@NonNull Object target, @NonNull Activity source) {
-    return getViewBinder(target).bind(Finder.VIEW, target, source);
+    return getViewBinder(target).bind(Finder.ACTIVITY, target, source);
   }
 
   /**
