@@ -3,47 +3,47 @@ package butterknife;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.Dialog;
-import android.content.Context;
 import android.os.Build;
+import android.support.annotation.CheckResult;
+import android.support.annotation.IdRes;
+import android.support.annotation.NonNull;
 import android.util.Log;
 import android.util.Property;
 import android.view.View;
-import butterknife.internal.ButterKnifeProcessor;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
+
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import static butterknife.internal.ButterKnifeProcessor.ANDROID_PREFIX;
-import static butterknife.internal.ButterKnifeProcessor.JAVA_PREFIX;
+import butterknife.internal.Finder;
+import butterknife.internal.ViewBinder;
 
 /**
- * View "injection" utilities. Use this class to simplify finding views and attaching listeners by
- * injecting them.
+ * Field and method binding for Android views. Use this class to simplify finding views and
+ * attaching listeners by binding them with annotations.
  * <p>
- * Injecting views from your activity is as easy as:
+ * Finding views from your activity is as easy as:
  * <pre><code>
  * public class ExampleActivity extends Activity {
- *   {@literal @}InjectView(R.id.title) EditText titleView;
- *   {@literal @}InjectView(R.id.subtitle) EditText subtitleView;
+ *   {@literal @}BindView(R.id.title) EditText titleView;
+ *   {@literal @}BindView(R.id.subtitle) EditText subtitleView;
  *
  *   {@literal @}Override protected void onCreate(Bundle savedInstanceState) {
  *     super.onCreate(savedInstanceState);
  *     setContentView(R.layout.example_activity);
- *     ButterKnife.inject(this);
+ *     ButterKnife.bind(this);
  *   }
  * }
  * </code></pre>
- * Injection can be performed directly on an {@linkplain #inject(Activity) activity}, a
- * {@linkplain #inject(View) view}, or a {@linkplain #inject(Dialog) dialog}. Alternate objects to
- * inject can be specified along with an {@linkplain #inject(Object, Activity) activity},
- * {@linkplain #inject(Object, View) view}, or
- * {@linkplain #inject(Object, android.app.Dialog) dialog}.
+ * Binding can be performed directly on an {@linkplain #bind(Activity) activity}, a
+ * {@linkplain #bind(View) view}, or a {@linkplain #bind(Dialog) dialog}. Alternate objects to
+ * bind can be specified along with an {@linkplain #bind(Object, Activity) activity},
+ * {@linkplain #bind(Object, View) view}, or
+ * {@linkplain #bind(Object, android.app.Dialog) dialog}.
  * <p>
  * Group multiple views together into a {@link List} or array.
  * <pre><code>
- * {@literal @}InjectViews({R.id.first_name, R.id.middle_name, R.id.last_name})
+ * {@literal @}BindView({R.id.first_name, R.id.middle_name, R.id.last_name})
  * List<EditText> nameViews;
  * </code></pre>
  * There are three convenience methods for working with view collections:
@@ -53,7 +53,7 @@ import static butterknife.internal.ButterKnifeProcessor.JAVA_PREFIX;
  * <li>{@link #apply(List, Property, Object)} &ndash; Applies a property value to each view.</li>
  * </ul>
  * <p>
- * To inject listeners to your views you can annotate your methods:
+ * To bind listeners to your views you can annotate your methods:
  * <pre><code>
  * {@literal @}OnClick(R.id.submit) void onSubmit() {
  *   // React to button click.
@@ -66,108 +66,46 @@ import static butterknife.internal.ButterKnifeProcessor.JAVA_PREFIX;
  * }
  * </code></pre>
  * <p>
- * Be default, views are required to be present in the layout for both field and method injections.
- * If a view is optional add the {@link Optional @Optional} annotation.
+ * Be default, views are required to be present in the layout for both field and method bindings.
+ * If a view is optional add a {@code @Nullable} annotation for fields (such as the one in the
+ * <a href="http://tools.android.com/tech-docs/support-annotations">support-annotations</a> library)
+ * or the {@code @Optional} annotation for methods.
  * <pre><code>
- * {@literal @}Optional @InjectView(R.id.title) TextView subtitleView;
+ * {@literal @}Nullable @BindView(R.id.title) TextView subtitleView;
  * </code></pre>
- *
- * @see InjectView
- * @see InjectViews
- * @see OnCheckedChanged
- * @see OnClick
- * @see OnEditorAction
- * @see OnFocusChange
- * @see OnItemClick
- * @see OnItemLongClick
- * @see OnItemSelected
- * @see OnLongClick
- * @see OnPageChange
- * @see OnTextChanged
- * @see OnTouch
+ * Resources can also be bound to fields to simplify programmatically working with views:
+ * <pre><code>
+ * {@literal @}BindBool(R.bool.is_tablet) boolean isTablet;
+ * {@literal @}BindInt(R.integer.columns) int columns;
+ * {@literal @}BindColor(R.color.error_red) int errorRed;
+ * </code></pre>
  */
 public final class ButterKnife {
   private ButterKnife() {
     throw new AssertionError("No instances.");
   }
 
-  /** DO NOT USE: Exposed for generated code. */
-  @SuppressWarnings("UnusedDeclaration") // Used by generated code.
-  public enum Finder {
-    VIEW {
-      @Override public View findOptionalView(Object source, int id) {
-        return ((View) source).findViewById(id);
-      }
-
-      @Override protected Context getContext(Object source) {
-        return ((View) source).getContext();
-      }
-    },
-    ACTIVITY {
-      @Override public View findOptionalView(Object source, int id) {
-        return ((Activity) source).findViewById(id);
-      }
-
-      @Override protected Context getContext(Object source) {
-        return (Activity) source;
-      }
-    },
-    DIALOG {
-      @Override public View findOptionalView(Object source, int id) {
-        return ((Dialog) source).findViewById(id);
-      }
-
-      @Override protected Context getContext(Object source) {
-        return ((Dialog) source).getContext();
-      }
-    };
-
-    public static <T extends View> T[] arrayOf(T... views) {
-      return views;
-    }
-
-    public static <T extends View> List<T> listOf(T... views) {
-      return new ImmutableViewList<T>(views);
-    }
-
-    public View findRequiredView(Object source, int id, String who) {
-      View view = findOptionalView(source, id);
-      if (view == null) {
-        String name = getContext(source).getResources().getResourceEntryName(id);
-        throw new IllegalStateException("Required view '"
-            + name
-            + "' with ID "
-            + id
-            + " for "
-            + who
-            + " was not found. If this view is optional add '@Optional' annotation.");
-      }
-      return view;
-    }
-
-    public abstract View findOptionalView(Object source, int id);
-
-    protected abstract Context getContext(Object source);
-  }
-
   /** An action that can be applied to a list of views. */
   public interface Action<T extends View> {
     /** Apply the action on the {@code view} which is at {@code index} in the list. */
-    void apply(T view, int index);
+    void apply(@NonNull T view, int index);
   }
 
   /** A setter that can apply a value to a list of views. */
   public interface Setter<T extends View, V> {
     /** Set the {@code value} on the {@code view} which is at {@code index} in the list. */
-    void set(T view, V value, int index);
+    void set(@NonNull T view, V value, int index);
   }
 
   private static final String TAG = "ButterKnife";
   private static boolean debug = false;
 
-  static final Map<Class<?>, Method> INJECTORS = new LinkedHashMap<Class<?>, Method>();
-  static final Map<Class<?>, Method> RESETTERS = new LinkedHashMap<Class<?>, Method>();
-  static final Method NO_OP = null;
+  static final Map<Class<?>, ViewBinder<Object>> BINDERS = new LinkedHashMap<>();
+  static final ViewBinder<Object> NOP_VIEW_BINDER = new ViewBinder<Object>() {
+    @Override public Unbinder bind(Finder finder, Object target, Object source) {
+      return Unbinder.EMPTY;
+    }
+  };
 
   /** Control whether debug logging is enabled. */
   public static void setDebug(boolean debug) {
@@ -175,201 +113,227 @@ public final class ButterKnife {
   }
 
   /**
-   * Inject annotated fields and methods in the specified {@link Activity}. The current content
+   * BindView annotated fields and methods in the specified {@link Activity}. The current content
    * view is used as the view root.
    *
-   * @param target Target activity for field injection.
+   * @param target Target activity for view binding.
    */
-  public static void inject(Activity target) {
-    inject(target, target, Finder.ACTIVITY);
+  public static Unbinder bind(@NonNull Activity target) {
+    return getViewBinder(target).bind(Finder.ACTIVITY, target, target);
   }
 
   /**
-   * Inject annotated fields and methods in the specified {@link View}. The view and its children
+   * BindView annotated fields and methods in the specified {@link View}. The view and its children
    * are used as the view root.
    *
-   * @param target Target view for field injection.
+   * @param target Target view for view binding.
    */
-  public static void inject(View target) {
-    inject(target, target, Finder.VIEW);
+  @NonNull
+  public static Unbinder bind(@NonNull View target) {
+    return getViewBinder(target).bind(Finder.VIEW, target, target);
   }
 
   /**
-   * Inject annotated fields and methods in the specified {@link Dialog}. The current content
+   * BindView annotated fields and methods in the specified {@link Dialog}. The current content
    * view is used as the view root.
    *
-   * @param target Target dialog for field injection.
+   * @param target Target dialog for view binding.
    */
-  public static void inject(Dialog target) {
-    inject(target, target, Finder.DIALOG);
+  @SuppressWarnings("unused") // Public api.
+  public static Unbinder bind(@NonNull Dialog target) {
+    return getViewBinder(target).bind(Finder.DIALOG, target, target);
   }
 
   /**
-   * Inject annotated fields and methods in the specified {@code target} using the {@code source}
+   * BindView annotated fields and methods in the specified {@code target} using the {@code source}
    * {@link Activity} as the view root.
    *
-   * @param target Target class for field injection.
+   * @param target Target class for view binding.
    * @param source Activity on which IDs will be looked up.
    */
-  public static void inject(Object target, Activity source) {
-    inject(target, source, Finder.ACTIVITY);
+  public static Unbinder bind(@NonNull Object target, @NonNull Activity source) {
+    return getViewBinder(target).bind(Finder.ACTIVITY, target, source);
   }
 
   /**
-   * Inject annotated fields and methods in the specified {@code target} using the {@code source}
+   * BindView annotated fields and methods in the specified {@code target} using the {@code source}
    * {@link View} as the view root.
    *
-   * @param target Target class for field injection.
+   * @param target Target class for view binding.
    * @param source View root on which IDs will be looked up.
    */
-  public static void inject(Object target, View source) {
-    inject(target, source, Finder.VIEW);
+  @NonNull
+  public static Unbinder bind(@NonNull Object target, @NonNull View source) {
+    return getViewBinder(target).bind(Finder.VIEW, target, source);
   }
 
   /**
-   * Inject annotated fields and methods in the specified {@code target} using the {@code source}
+   * BindView annotated fields and methods in the specified {@code target} using the {@code source}
    * {@link Dialog} as the view root.
    *
-   * @param target Target class for field injection.
+   * @param target Target class for view binding.
    * @param source Dialog on which IDs will be looked up.
    */
-  public static void inject(Object target, Dialog source) {
-    inject(target, source, Finder.DIALOG);
+  @SuppressWarnings("unused") // Public api.
+  public static Unbinder bind(@NonNull Object target, @NonNull Dialog source) {
+    return getViewBinder(target).bind(Finder.DIALOG, target, source);
   }
 
-  /**
-   * Reset fields annotated with {@link InjectView @InjectView} and {@link InjectViews @InjectViews}
-   * to {@code null}.
-   * <p>
-   * This should only be used in the {@code onDestroyView} method of a fragment.
-   *
-   * @param target Target class for field reset.
-   */
-  public static void reset(Object target) {
+  static ViewBinder<Object> getViewBinder(@NonNull Object target) {
     Class<?> targetClass = target.getClass();
-    try {
-      if (debug) Log.d(TAG, "Looking up view injector for " + targetClass.getName());
-      Method reset = findResettersForClass(targetClass);
-      if (reset != null) {
-        reset.invoke(null, target);
-      }
-    } catch (RuntimeException e) {
-      throw e;
-    } catch (Exception e) {
-      Throwable t = e;
-      if (t instanceof InvocationTargetException) {
-        t = t.getCause();
-      }
-      throw new RuntimeException("Unable to reset views for " + target, t);
-    }
+    if (debug) Log.d(TAG, "Looking up view binder for " + targetClass.getName());
+    return findViewBinderForClass(targetClass);
   }
 
-  static void inject(Object target, Object source, Finder finder) {
-    Class<?> targetClass = target.getClass();
-    try {
-      if (debug) Log.d(TAG, "Looking up view injector for " + targetClass.getName());
-      Method inject = findInjectorForClass(targetClass);
-      if (inject != null) {
-        inject.invoke(null, finder, target, source);
-      }
-    } catch (RuntimeException e) {
-      throw e;
-    } catch (Exception e) {
-      Throwable t = e;
-      if (t instanceof InvocationTargetException) {
-        t = t.getCause();
-      }
-      throw new RuntimeException("Unable to inject views for " + target, t);
-    }
-  }
-
-  private static Method findInjectorForClass(Class<?> cls) throws NoSuchMethodException {
-    Method inject = INJECTORS.get(cls);
-    if (inject != null) {
-      if (debug) Log.d(TAG, "HIT: Cached in injector map.");
-      return inject;
+  @NonNull
+  private static ViewBinder<Object> findViewBinderForClass(Class<?> cls) {
+    ViewBinder<Object> viewBinder = BINDERS.get(cls);
+    if (viewBinder != null) {
+      if (debug) Log.d(TAG, "HIT: Cached in view binder map.");
+      return viewBinder;
     }
     String clsName = cls.getName();
-    if (clsName.startsWith(ANDROID_PREFIX) || clsName.startsWith(JAVA_PREFIX)) {
+    if (clsName.startsWith("android.") || clsName.startsWith("java.")) {
       if (debug) Log.d(TAG, "MISS: Reached framework class. Abandoning search.");
-      return NO_OP;
+      return NOP_VIEW_BINDER;
     }
+    //noinspection TryWithIdenticalCatches Resolves to API 19+ only type.
     try {
-      Class<?> injector = Class.forName(clsName + ButterKnifeProcessor.SUFFIX);
-      inject = injector.getMethod("inject", Finder.class, cls, Object.class);
-      if (debug) Log.d(TAG, "HIT: Class loaded injection class.");
+      Class<?> viewBindingClass = Class.forName(clsName + "$$ViewBinder");
+      //noinspection unchecked
+      viewBinder = (ViewBinder<Object>) viewBindingClass.newInstance();
+      if (debug) Log.d(TAG, "HIT: Loaded view binder class.");
     } catch (ClassNotFoundException e) {
       if (debug) Log.d(TAG, "Not found. Trying superclass " + cls.getSuperclass().getName());
-      inject = findInjectorForClass(cls.getSuperclass());
+      viewBinder = findViewBinderForClass(cls.getSuperclass());
+    } catch (InstantiationException e) {
+      throw new RuntimeException("Unable to create view binder for " + clsName, e);
+    } catch (IllegalAccessException e) {
+      throw new RuntimeException("Unable to create view binder for " + clsName, e);
     }
-    INJECTORS.put(cls, inject);
-    return inject;
+    BINDERS.put(cls, viewBinder);
+    return viewBinder;
   }
 
-  private static Method findResettersForClass(Class<?> cls) throws NoSuchMethodException {
-    Method inject = RESETTERS.get(cls);
-    if (inject != null) {
-      if (debug) Log.d(TAG, "HIT: Cached in injector map.");
-      return inject;
+  /** Apply the specified {@code actions} across the {@code list} of views. */
+  @SafeVarargs public static <T extends View> void apply(@NonNull List<T> list,
+      @NonNull Action<? super T>... actions) {
+    for (int i = 0, count = list.size(); i < count; i++) {
+      for (Action<? super T> action : actions) {
+        action.apply(list.get(i), i);
+      }
     }
-    String clsName = cls.getName();
-    if (clsName.startsWith(ANDROID_PREFIX) || clsName.startsWith(JAVA_PREFIX)) {
-      if (debug) Log.d(TAG, "MISS: Reached framework class. Abandoning search.");
-      return NO_OP;
+  }
+
+  /** Apply the specified {@code actions} across the {@code array} of views. */
+  @SafeVarargs public static <T extends View> void apply(@NonNull T[] array,
+      @NonNull Action<? super T>... actions) {
+    for (int i = 0, count = array.length; i < count; i++) {
+      for (Action<? super T> action : actions) {
+        action.apply(array[i], i);
+      }
     }
-    try {
-      Class<?> injector = Class.forName(clsName + ButterKnifeProcessor.SUFFIX);
-      inject = injector.getMethod("reset", cls);
-      if (debug) Log.d(TAG, "HIT: Class loaded injection class.");
-    } catch (ClassNotFoundException e) {
-      if (debug) Log.d(TAG, "Not found. Trying superclass " + cls.getSuperclass().getName());
-      inject = findResettersForClass(cls.getSuperclass());
-    }
-    RESETTERS.put(cls, inject);
-    return inject;
   }
 
   /** Apply the specified {@code action} across the {@code list} of views. */
-  public static <T extends View> void apply(List<T> list, Action<? super T> action) {
+  public static <T extends View> void apply(@NonNull List<T> list,
+      @NonNull Action<? super T> action) {
     for (int i = 0, count = list.size(); i < count; i++) {
       action.apply(list.get(i), i);
     }
   }
 
+  /** Apply the specified {@code action} across the {@code array} of views. */
+  public static <T extends View> void apply(@NonNull T[] array, @NonNull Action<? super T> action) {
+    for (int i = 0, count = array.length; i < count; i++) {
+      action.apply(array[i], i);
+    }
+  }
+
+  /** Apply {@code actions} to {@code view}. */
+  @SafeVarargs public static <T extends View> void apply(@NonNull T view,
+      @NonNull Action<? super T>... actions) {
+    for (Action<? super T> action : actions) {
+      action.apply(view, 0);
+    }
+  }
+
+  /** Apply {@code action} to {@code view}. */
+  public static <T extends View> void apply(@NonNull T view, @NonNull Action<? super T> action) {
+    action.apply(view, 0);
+  }
+
   /** Set the {@code value} using the specified {@code setter} across the {@code list} of views. */
-  public static <T extends View, V> void apply(List<T> list, Setter<? super T, V> setter, V value) {
+  public static <T extends View, V> void apply(@NonNull List<T> list,
+      @NonNull Setter<? super T, V> setter, V value) {
     for (int i = 0, count = list.size(); i < count; i++) {
       setter.set(list.get(i), value, i);
     }
+  }
+
+  /** Set the {@code value} using the specified {@code setter} across the {@code array} of views. */
+  public static <T extends View, V> void apply(@NonNull T[] array,
+      @NonNull Setter<? super T, V> setter, V value) {
+    for (int i = 0, count = array.length; i < count; i++) {
+      setter.set(array[i], value, i);
+    }
+  }
+
+  /** Set {@code value} on {@code view} using {@code setter}. */
+  public static <T extends View, V> void apply(@NonNull T view,
+      @NonNull Setter<? super T, V> setter, V value) {
+    setter.set(view, value, 0);
   }
 
   /**
    * Apply the specified {@code value} across the {@code list} of views using the {@code property}.
    */
   @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
-  public static <T extends View, V> void apply(List<T> list, Property<? super T, V> setter,
-      V value) {
+  public static <T extends View, V> void apply(@NonNull List<T> list,
+      @NonNull Property<? super T, V> setter, V value) {
     //noinspection ForLoopReplaceableByForEach
     for (int i = 0, count = list.size(); i < count; i++) {
       setter.set(list.get(i), value);
     }
   }
 
+  /**
+   * Apply the specified {@code value} across the {@code array} of views using the {@code property}.
+   */
+  @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
+  public static <T extends View, V> void apply(@NonNull T[] array,
+      @NonNull Property<? super T, V> setter, V value) {
+    //noinspection ForLoopReplaceableByForEach
+    for (int i = 0, count = array.length; i < count; i++) {
+      setter.set(array[i], value);
+    }
+  }
+
+  /** Apply {@code value} to {@code view} using {@code property}. */
+  @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
+  public static <T extends View, V> void apply(@NonNull T view,
+      @NonNull Property<? super T, V> setter, V value) {
+    setter.set(view, value);
+  }
+
   /** Simpler version of {@link View#findViewById(int)} which infers the target type. */
   @SuppressWarnings({ "unchecked", "UnusedDeclaration" }) // Checked by runtime cast. Public API.
-  public static <T extends View> T findById(View view, int id) {
+  @CheckResult
+  public static <T extends View> T findById(@NonNull View view, @IdRes int id) {
     return (T) view.findViewById(id);
   }
 
   /** Simpler version of {@link Activity#findViewById(int)} which infers the target type. */
   @SuppressWarnings({ "unchecked", "UnusedDeclaration" }) // Checked by runtime cast. Public API.
-  public static <T extends View> T findById(Activity activity, int id) {
+  @CheckResult
+  public static <T extends View> T findById(@NonNull Activity activity, @IdRes int id) {
     return (T) activity.findViewById(id);
   }
 
   /** Simpler version of {@link Dialog#findViewById(int)} which infers the target type. */
   @SuppressWarnings({ "unchecked", "UnusedDeclaration" }) // Checked by runtime cast. Public API.
-  public static <T extends View> T findById(Dialog dialog, int id) {
+  @CheckResult
+  public static <T extends View> T findById(@NonNull Dialog dialog, @IdRes int id) {
     return (T) dialog.findViewById(id);
   }
 }

@@ -1,0 +1,51 @@
+apply plugin: 'com.android.application'
+apply plugin: 'com.neenbedankt.android-apt'
+
+android {
+  compileSdkVersion rootProject.ext.compileSdkVersion
+  buildToolsVersion rootProject.ext.buildToolsVersion
+
+  compileOptions {
+    sourceCompatibility = rootProject.ext.sourceCompatibilityVersion
+    targetCompatibility = rootProject.ext.targetCompatibilityVersion
+  }
+
+  defaultConfig {
+    applicationId 'com.example.butterknife'
+    minSdkVersion rootProject.ext.minSdkVersion
+    targetSdkVersion rootProject.ext.targetSdkVersion
+    versionCode 1
+    versionName '1.0.0'
+  }
+
+  lintOptions {
+    textReport true
+    textOutput 'stdout'
+  }
+
+  buildTypes {
+    debug {
+      minifyEnabled true
+    }
+  }
+}
+
+dependencies {
+  compile project(':butterknife')
+  apt project(':butterknife-compiler')
+
+  testCompile deps.junit
+  testCompile deps.truth
+  testCompile deps.robolectric
+}
+
+afterEvaluate {
+  tasks.withType(com.android.build.gradle.internal.tasks.AndroidTestTask) { task ->
+    task.doFirst {
+      logging.level = LogLevel.INFO
+    }
+    task.doLast {
+      logging.level = LogLevel.LIFECYCLE
+    }
+  }
+}

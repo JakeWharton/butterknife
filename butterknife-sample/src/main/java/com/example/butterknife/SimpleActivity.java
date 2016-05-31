@@ -2,15 +2,16 @@ package com.example.butterknife;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.view.View;
 import android.view.animation.AlphaAnimation;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
+import butterknife.BindView;
+import butterknife.BindViews;
 import butterknife.ButterKnife;
-import butterknife.InjectView;
-import butterknife.InjectViews;
 import butterknife.OnClick;
 import butterknife.OnItemClick;
 import butterknife.OnLongClick;
@@ -20,7 +21,7 @@ import static android.widget.Toast.LENGTH_SHORT;
 
 public class SimpleActivity extends Activity {
   private static final ButterKnife.Action<View> ALPHA_FADE = new ButterKnife.Action<View>() {
-    @Override public void apply(View view, int index) {
+    @Override public void apply(@NonNull View view, int index) {
       AlphaAnimation alphaAnimation = new AlphaAnimation(0, 1);
       alphaAnimation.setFillBefore(true);
       alphaAnimation.setDuration(500);
@@ -29,14 +30,13 @@ public class SimpleActivity extends Activity {
     }
   };
 
-  @InjectView(R.id.title) TextView title;
-  @InjectView(R.id.subtitle) TextView subtitle;
-  @InjectView(R.id.hello) Button hello;
-  @InjectView(R.id.list_of_things) ListView listOfThings;
-  @InjectView(R.id.footer) TextView footer;
+  @BindView(R.id.title) TextView title;
+  @BindView(R.id.subtitle) TextView subtitle;
+  @BindView(R.id.hello) Button hello;
+  @BindView(R.id.list_of_things) ListView listOfThings;
+  @BindView(R.id.footer) TextView footer;
 
-  @InjectViews({ R.id.title, R.id.subtitle, R.id.hello })
-  List<View> headerViews;
+  @BindViews({ R.id.title, R.id.subtitle, R.id.hello }) List<View> headerViews;
 
   private SimpleAdapter adapter;
 
@@ -57,11 +57,11 @@ public class SimpleActivity extends Activity {
   @Override protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.simple_activity);
-    ButterKnife.inject(this);
+    ButterKnife.bind(this);
 
-    // Contrived code to use the "injected" views.
+    // Contrived code to use the bound fields.
     title.setText("Butter Knife");
-    subtitle.setText("View \"injection\" for Android.");
+    subtitle.setText("Field and method binding for Android views.");
     footer.setText("by Jake Wharton");
     hello.setText("Say Hello");
 

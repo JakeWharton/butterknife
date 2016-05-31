@@ -1,0 +1,30 @@
+apply plugin: 'java'
+apply plugin: 'checkstyle'
+
+def logger = new com.android.build.gradle.internal.LoggerWrapper(project.logger)
+def sdkHandler = new com.android.build.gradle.internal.SdkHandler(project, logger)
+for (File file : sdkHandler.sdkLoader.repositories) {
+  repositories.maven {
+    url = file.toURI()
+  }
+}
+
+sourceCompatibility = rootProject.ext.sourceCompatibilityVersion
+targetCompatibility = rootProject.ext.targetCompatibilityVersion
+
+checkstyle {
+  configFile rootProject.file('checkstyle.xml')
+  showViolations true
+}
+
+configurations {
+  provided
+  compile.extendsFrom provided
+}
+
+dependencies {
+  provided deps.android
+  compile deps.supportAnnotations
+}
+
+apply from: rootProject.file('gradle/gradle-mvn-push.gradle')

@@ -1,0 +1,29 @@
+apply plugin: 'com.android.library'
+
+android {
+  compileSdkVersion rootProject.ext.compileSdkVersion
+  buildToolsVersion rootProject.ext.buildToolsVersion
+
+  defaultConfig {
+    minSdkVersion rootProject.ext.minSdkVersion
+
+    consumerProguardFiles 'proguard-rules.txt'
+  }
+
+  lintOptions {
+    textReport true
+    textOutput 'stdout'
+  }
+}
+
+dependencies {
+  compile project(':butterknife-annotations')
+  compile deps.supportAnnotations
+  provided deps.supportv4
+
+  testCompile deps.junit
+  testCompile deps.truth
+  testCompile deps.robolectric
+}
+
+apply from: rootProject.file('gradle/gradle-mvn-push.gradle')

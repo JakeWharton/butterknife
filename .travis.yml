@@ -1,15 +1,32 @@
 language: android
 
-jdk:
- - oraclejdk7
- - oraclejdk8
-
 android:
   components:
-    - build-tools-20.0.0
-    - android-16
-  licenses:
-    - android-sdk-license-5be876d5
+    - tools
+    - platform-tools
+    - build-tools-23.0.3
+    - android-23
+    - extra-android-m2repository
+    - sys-img-armeabi-v7a-android-18
+
+jdk:
+  - oraclejdk8
+
+
+before_script:
+  # Create and start an emulator for instrumentation tests.
+  - echo no | android create avd --force -n test -t android-18 --abi armeabi-v7a
+  - emulator -avd test -no-audio -no-window &
+  - android-wait-for-emulator
+  - adb shell input keyevent 82
+
+after_success:
+  - .buildscript/deploy_snapshot.sh
+
+env:
+  global:
+    - secure: "ESbreW4FNMPQhV1zbFb9iBvhFWFbVHecaig3Si3+4nrJCMn9x4nqB18ZcU+Aviw67WQNcuSH4I0Hl08uknl+kzE/xKEfPLmu28bptXRCSued49aL11i2aQmRj5nqP2yxkinhtRGOQxzIo56NmFt7sIcEXODM3D5a6q7s9tlvPfw="
+    - secure: "JWEeqx0CWBqAkjcREHUg3Ei8wxqp59HZag8EidSLwmekgPJQwipwuEeXMZyPCGJCP+4ijUirtS/hRApi37BW0LYdt+XR7dI1TSZ0HFLTLqSPfWfsUcjmGpmoqVUv8FLVhC+KA42YeEhqkEaCUW92gJeAyK8swxDqGHAPT/sfKRA="
 
 branches:
   except:
@@ -17,3 +34,9 @@ branches:
 
 notifications:
   email: false
+
+sudo: false
+
+cache:
+  directories:
+    - $HOME/.m2

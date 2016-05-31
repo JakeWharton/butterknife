@@ -1,6 +1,67 @@
 Change Log
 ==========
 
+Version 8.0.1 *(2016-04-27)*
+----------------------------
+
+ * Fix: ProGuard rules now prevent obfuscation of only types which reference ButterKnife annotations.
+ * Eliminate some of the generated machinery when referenced from `final` types.
+
+
+Version 8.0.0 *(2016-04-25)*
+----------------------------
+
+ *  `@Bind` becomes `@BindView` and `@BindViews` (one view and multiple views, respectively).
+ *  Calls to `bind` now return an `Unbinder` instance which can be used to `null` references. This replaces
+    the `unbind` API and adds support for being able to clear listeners.
+ *  New: `@BindArray` binds `String`, `CharSequence`, and `int` arrays and `TypeArray` to fields.
+ *  New: `@BindBitmap` binds `Bitmap` instances from resources to fields.
+ *  `@BindDrawable` now supports a `tint` field which accepts a theme attribute.
+ *  The runtime and compiler are now split into two artifacts.
+
+    ```groovy
+    compile 'com.jakewharton:butterknife:8.0.0'
+    apt 'com.jakewharton:butterknife-compiler:8.0.0'
+    ```
+ *  New: `apply` overloads which accept a single view and arrays of views.
+ *  ProGuard rules now ship inside of the library and are included automatically.
+ *  `@Optional` annotation is back to mark methods as being optional.
+
+
+Version 7.0.1 *(2015-06-30)*
+----------------------------
+
+ * Fix: Correct `ClassCastException` which occurred when `@Nullable` array bindings had missing views.
+
+
+Version 7.0.0 *(2015-06-27)*
+----------------------------
+
+ * `@Bind` replaces `@InjectView` and `@InjectViews`.
+ * `ButterKnife.bind` and `ButterKnife.unbind` replaces `ButterKnife.inject` and `ButterKnife.reset`, respectively.
+ * `@Optional` has been removed. Use `@Nullable` from the 'support-annotations' library, or any other annotation
+   named "Nullable".
+ * New: Resource binding annotations!
+   * `@BindBool` binds an `R.bool` ID to a `boolean` field.
+   * `@BindColor` binds an `R.color` ID to an `int` or `ColorStateList` field.
+   * `@BindDimen` binds an `R.dimen` ID to an `int` (for pixel size) or `float` (for exact value) field.
+   * `@BindDrawable` binds an `R.drawable` ID to a `Drawable` field.
+   * `@BindInt` binds an `R.int` ID to an `int` field.
+   * `@BindString` binds an `R.string` ID to a `String` field.
+ * Fix: Missing views will be filtered out from list and array bindings.
+ * Note: If you are using Proguard, the generated class name has changed from being suffixed with `$$ViewInjector`
+   to `$$ViewBinder`.
+
+
+Version 6.1.0 *(2015-01-29)*
+----------------------------
+
+ * New: Support for injecting interface types everywhere that views were previously supported (e.g., `Checkable`).
+ * Eliminate reflection-based method invocation for injection and resetting. This makes performance slightly faster
+   (although if you are worried about the performance of Butter Knife you have other problems). The only reflection
+   in the library is a single `Class.forName` lookup for each type.
+
+
 Version 6.0.0 *(2014-10-27)*
 ----------------------------
 

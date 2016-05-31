@@ -5,7 +5,7 @@
     <meta charset="utf-8">
     <title>Butter Knife</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="View &quot;injection&quot; library for Android.">
+    <meta name="description" content="Field and method binding for Android views.">
     <link href="http://fonts.googleapis.com/css?family=Roboto:regular,medium,thin,italic,mediumitalic,bold" rel="stylesheet" title="roboto">
     <link href="static/bootstrap.min.css" rel="stylesheet">
     <link href="static/bootstrap-responsive.min.css" rel="stylesheet">
@@ -18,43 +18,53 @@
         <div class="span4 side">
           <img src="static/logo.png">
           <h1>Butter Knife</h1>
-          <h2>View &quot;injection&quot; library for Android</h2>
+          <h2>Field and method binding for Android views</h2>
           <p><a href="javadoc/">Javadoc</a> &middot; <a href="http://stackoverflow.com/questions/ask?tags=butterknife">StackOverflow</a></p>
         </div>
         <div class="offset4 span8 main">
           <div class="main-inner">
             <h3 id="introduction">Introduction</h3>
-            <p>Annotate fields with <code>@InjectView</code> and a view ID for Butter Knife to find and automatically cast the corresponding view in your layout.</p>
+            <p>Annotate fields with <code>@BindView</code> and a view ID for Butter Knife to find and automatically cast the corresponding view in your layout.</p>
             <pre class="prettyprint">class ExampleActivity extends Activity {
-  @InjectView(R.id.title) TextView title;
-  @InjectView(R.id.subtitle) TextView subtitle;
-  @InjectView(R.id.footer) TextView footer;
+  @BindView(R.id.title) TextView title;
+  @BindView(R.id.subtitle) TextView subtitle;
+  @BindView(R.id.footer) TextView footer;
 
   @Override public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.simple_activity);
-    ButterKnife.inject(this);
-    // TODO Use "injected" views...
+    ButterKnife.bind(this);
+    // TODO Use fields...
   }
 }</pre>
-            <p>Instead of slow reflection, code is generated to perform the view look-ups. Calling <code>inject</code> delegates to this generated code that you can see and debug.</p>
+            <p>Instead of slow reflection, code is generated to perform the view look-ups. Calling <code>bind</code> delegates to this generated code that you can see and debug.</p>
             <p>The generated code for the above example is roughly equivalent to the following:</p>
-            <pre class="prettyprint">public void inject(ExampleActivity activity) {
+            <pre class="prettyprint">public void bind(ExampleActivity activity) {
   activity.subtitle = (android.widget.TextView) activity.findViewById(2130968578);
   activity.footer = (android.widget.TextView) activity.findViewById(2130968579);
   activity.title = (android.widget.TextView) activity.findViewById(2130968577);
 }</pre>
 
-            <h4 id="non-activity">Non-Activity Injection</h4>
-            <p>You can also perform injection on arbitrary objects by supplying your own view root.</p>
-            <pre class="prettyprint">public class FancyFragment extends Fragment {
-  @InjectView(R.id.button1) Button button1;
-  @InjectView(R.id.button2) Button button2;
+            <h4 id="resource">Resource Binding</h4>
+            <p>Bind pre-defined resources with <code>@BindBool</code>, <code>@BindColor</code>, <code>@BindDimen</code>, <code>@BindDrawable</code>, <code>@BindInt</code>, <code>@BindString</code>, which binds an <code>R.bool</code> ID (or your specified type) to its corresponding field.</p>
+            <pre class="prettyprint">class ExampleActivity extends Activity {
+  @BindString(R.string.title) String title;
+  @BindDrawable(R.drawable.graphic) Drawable graphic;
+  @BindColor(R.color.red) int red; // int or ColorStateList field
+  @BindDimen(R.dimen.spacer) Float spacer; // int (for pixel size) or float (for exact value) field
+  // ...
+}</pre>
 
-  @Override View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+            <h4 id="non-activity">Non-Activity Binding</h4>
+            <p>You can also perform binding on arbitrary objects by supplying your own view root.</p>
+            <pre class="prettyprint">public class FancyFragment extends Fragment {
+  @BindView(R.id.button1) Button button1;
+  @BindView(R.id.button2) Button button2;
+
+  @Override public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
     View view = inflater.inflate(R.layout.fancy_fragment, container, false);
-    ButterKnife.inject(this, view);
-    // TODO Use "injected" views...
+    ButterKnife.bind(this, view);
+    // TODO Use fields...
     return view;
   }
 }</pre>
@@ -77,46 +87,46 @@
   }
 
   static class ViewHolder {
-    @InjectView(R.id.title) TextView name;
-    @InjectView(R.id.job_title) TextView jobTitle;
+    @BindView(R.id.title) TextView name;
+    @BindView(R.id.job_title) TextView jobTitle;
 
     public ViewHolder(View view) {
-      ButterKnife.inject(this, view);
+      ButterKnife.bind(this, view);
     }
   }
 }</pre>
             <p>You can see this implementation in action in the provided sample.</p>
-            <p>Calls to <code>ButterKnife.inject</code> can be made anywhere you would otherwise put <code>findViewById</code> calls.</p>
-            <p>Other provided injection APIs:</p>
+            <p>Calls to <code>ButterKnife.bind</code> can be made anywhere you would otherwise put <code>findViewById</code> calls.</p>
+            <p>Other provided binding APIs:</p>
             <ul>
-              <li>Inject arbitrary objects using an activity as the view root. If you use a pattern like MVC you can inject the controller using its activity with <code>ButterKnife.inject(this, activity)</code>.</li>
-              <li>Inject a view's children into fields using <code>ButterKnife.inject(this)</code>. If you use <code>&lt;merge></code> tags in a layout and inflate in a custom view constructor you can
+              <li>Bind arbitrary objects using an activity as the view root. If you use a pattern like MVC you can bind the controller using its activity with <code>ButterKnife.bind(this, activity)</code>.</li>
+              <li>Bind a view's children into fields using <code>ButterKnife.bind(this)</code>. If you use <code>&lt;merge></code> tags in a layout and inflate in a custom view constructor you can
    call this immediately after. Alternatively, custom view types inflated from
    XML can use it in the <code>onFinishInflate()</code> callback.</li>
             </ul>
 
             <h4 id="view-lists">View Lists</h4>
             <p>You can group multiple views into a <code>List</code> or array.</p>
-            <pre class="prettyprint">@InjectViews({ R.id.first_name, R.id.middle_name, R.id.last_name })
+            <pre class="prettyprint">@BindViews({ R.id.first_name, R.id.middle_name, R.id.last_name })
 List&lt;EditText> nameViews;</pre>
             <p>The <code>apply</code> method allows you to act on all the views in a list at once.</p>
             <pre class="prettyprint">ButterKnife.apply(nameViews, DISABLE);
 ButterKnife.apply(nameViews, ENABLED, false);</pre>
             <p><code>Action</code> and <code>Setter</code> interfaces allow specifying simple behavior.</p>
-            <pre class="prettyprint">static final Action&lt;View> DISABLE = new Action&lt;>() {
+            <pre class="prettyprint">static final ButterKnife.Action&lt;View> DISABLE = new ButterKnife.Action&lt;View>() {
   @Override public void apply(View view, int index) {
     view.setEnabled(false);
   }
-}
-static final Setter&lt;View, Boolean> ENABLED = new Setter&lt;>() {
+};
+static final ButterKnife.Setter&lt;View, Boolean> ENABLED = new ButterKnife.Setter&lt;View, Boolean>() {
   @Override public void set(View view, Boolean value, int index) {
     view.setEnabled(value);
   }
-}</pre>
+};</pre>
             <p>An Android <a href="https://developer.android.com/reference/android/util/Property.html"><code>Property</code></a> can also be used with the <code>apply</code> method.</p>
-            <pre class="prettyprint">ButterKnife.apply(nameViews, View.ALPHA, 0);</pre>
+            <pre class="prettyprint">ButterKnife.apply(nameViews, View.ALPHA, 0.0f);</pre>
 
-            <h4 id="click-injection">Listener Injection</h4>
+            <h4 id="listener-binding">Listener Binding</h4>
             <p>Listeners can also automatically be configured onto methods.</p>
             <pre class="prettyprint">@OnClick(R.id.submit)
 public void submit(View view) {
@@ -150,29 +160,31 @@ public void pickDoor(DoorView door) {
 }
 </pre>
 
-            <h4 id="reset">Injection Reset</h4>
-            <p>Fragments have a different view lifecycle than activities. When injecting a fragment in <code>onCreateView</code>, set the views to <code>null</code> in <code>onDestroyView</code>. Butter Knife has a <code>reset</code> method to do this automatically.</p>
+            <h4 id="reset">Binding Reset</h4>
+            <p>Fragments have a different view lifecycle than activities. When binding a fragment in <code>onCreateView</code>, set the views to <code>null</code> in <code>onDestroyView</code>. Butter Knife returns an <code>Unbinder</code> instance when you call <code>bind</code> to do this for you. Call its <code>unbind</code> method in the appropriate lifecycle callback.</p>
             <pre class="prettyprint">public class FancyFragment extends Fragment {
-  @InjectView(R.id.button1) Button button1;
-  @InjectView(R.id.button2) Button button2;
+  @BindView(R.id.button1) Button button1;
+  @BindView(R.id.button2) Button button2;
+  private Unbinder unbinder;
 
-  @Override View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+  @Override public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
     View view = inflater.inflate(R.layout.fancy_fragment, container, false);
-    ButterKnife.inject(this, view);
-    // TODO Use "injected" views...
+    unbinder = ButterKnife.bind(this, view);
+    // TODO Use fields...
     return view;
   }
 
-  @Override void onDestroyView() {
+  @Override public void onDestroyView() {
     super.onDestroyView();
-    ButterKnife.reset(this);
+    unbinder.unbind();
   }
 }</pre>
 
-            <h4 id="optional">Optional Injections</h4>
-            <p>By default, both <code>@InjectView</code> and listener injections are required. An exception will be thrown if the target view cannot be found.</p>
-            <p>To suppress this behavior and create an optional injection, add the <code>@Optional</code> annotation to the field or method.</p>
-            <pre class="prettyprint">@Optional @InjectView(R.id.might_not_be_there) TextView mightNotBeThere;
+            <h4 id="optional">Optional Bindings</h4>
+            <p>By default, both <code>@Bind</code> and listener bindings are required. An exception will be thrown if the target view cannot be found.</p>
+            <p>To suppress this behavior and create an optional binding, add a <code>@Nullable</code> annotation to fields or the <code>@Optional</code> annotation to methods.</p>
+            <p>Note: Any annotation named <code>@Nullable</code> can be used for fields. It is encouraged to use the <code>@Nullable</code> annotation from <a href="http://tools.android.com/tech-docs/support-annotations">Android's "support-annotations" library</a>.</p>
+            <pre class="prettyprint">@Nullable @BindView(R.id.might_not_be_there) TextView mightNotBeThere;
 
 @Optional @OnClick(R.id.maybe_missing) void onMaybeMissingClicked() {
   // TODO ...
@@ -199,43 +211,9 @@ ImageView photo = ButterKnife.findById(view, R.id.photo);</pre>
             <p>Add a static import for <code>ButterKnife.findById</code> and enjoy even more fun.</p>
 
             <h3 id="download">Download</h3>
-            <p class="downloads">
-              <a href="http://repository.sonatype.org/service/local/artifact/maven/redirect?r=central-proxy&g=com.jakewharton&a=butterknife&v=LATEST" class="btn btn-large btn-inverse" id="download-btn">Butter Knife JAR <span class="runner-version"></span></a>
-            </p>
-            <p>The source code to the library and sample application as well as this website is <a href="http://github.com/JakeWharton/butterknife">available on GitHub</a>. The Javadoc is also <a href="javadoc/index.html">available to browse</a>.</p>
-
-            <h4>Maven</h4>
-            <p>If you are using Maven for compilation you can declare the library as a dependency.</p>
-            <pre class="prettyprint">&lt;dependency>
-  &lt;groupId>com.jakewharton&lt;/groupId>
-  &lt;artifactId>butterknife&lt;/artifactId>
-  &lt;version><span class="version"><em>(insert latest version)</em></span>&lt;/version>
-&lt;/dependency></pre>
-
             <h4>Gradle</h4>
-            <pre class="prettyprint">compile 'com.jakewharton:butterknife:<span class="version"><em>(insert latest version)</em></span>'</pre>
-            <p>Be sure to supress this lint warning in your <code>build.gradle</code>.</p>
-            <pre class="prettyprint">lintOptions {
-  disable 'InvalidPackage'
-}</pre>
-            <p>Some configurations may also require additional exclusions.</p>
-            <pre class="prettyprint">packagingOptions {
-  exclude 'META-INF/services/javax.annotation.processing.Processor'
-}</pre>
-
-            <h4 id="ide">IDE Configuration</h4>
-            <p>Some IDEs require additional configuration in order to enable annotation processing.</p>
-            <ul>
-              <li><em>IntelliJ IDEA</em> &mdash; If your project uses an external configuration (like a Maven <code>pom.xml</code>) then annotation processing should just work. If not, try <a href="ide-idea.html">manual configuration</a>.</li>
-              <li><em>Eclipse</em> &mdash; Set up <a href="ide-eclipse.html">manual configuration</a>.</li>
-            </ul>
-
-            <h4 id="proguard">ProGuard</h4>
-            <p>Butter Knife generates and uses classes dynamically which means that static analysis tools like ProGuard may think they are unused. In order to prevent them from being removed, explicitly mark them to be kept.
-                To prevent ProGuard renaming classes that use @InjectView on a member field the <code>keepnames</code> option is used.</p>
-            <pre>-dontwarn butterknife.internal.**
--keep class **$$ViewInjector { *; }
--keepnames class * { @butterknife.InjectView *;}</pre>
+            <pre class="prettyprint">compile 'com.jakewharton:butterknife:<span class="version"><em>(insert latest version)</em></span>'
+apt 'com.jakewharton:butterknife-compiler:<span class="version"><em>(insert latest version)</em></span>'</pre>
 
             <h3 id="license">License</h3>
             <pre class="license">Copyright 2013 Jake Wharton
@@ -264,7 +242,6 @@ limitations under the License.</pre>
       prettyPrint();
       $.fn.artifactVersion('com.jakewharton', 'butterknife', function(version, url) {
         $('.version').text(version);
-        $('#download-btn').text('Butter Knife v' + version + ' JAR').attr('href', url);
       });
     </script>
   </body>
