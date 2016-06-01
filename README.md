@@ -41,6 +41,8 @@ __Remember: A butter knife is like [a dagger][1] only infinitely less sharp.__
 Download
 --------
 
+Add this to you project-level `build.gradle`:
+
 ```groovy
 buildscript {
   repositories {
@@ -50,14 +52,24 @@ buildscript {
     classpath 'com.neenbedankt.gradle.plugins:android-apt:1.8'
   }
 }
+```
 
-apply plugin: 'com.neenbedankt.android-apt'
+Add this to your module-level `build.gradle`:
+
+```groovy
+apply plugin: 'android-apt'
+
+android {
+  ...
+}
 
 dependencies {
   compile 'com.jakewharton:butterknife:8.0.1'
   apt 'com.jakewharton:butterknife-compiler:8.0.1'
 }
 ```
+
+Make sure the line `apply plugin ...` is placed somewhere at the top of the file.
 
 Snapshots of the development version are available in [Sonatype's `snapshots` repository][snap].
 
