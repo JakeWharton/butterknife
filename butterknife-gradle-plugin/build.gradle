@@ -1,0 +1,27 @@
+apply plugin: 'groovy'
+
+def logger = new com.android.build.gradle.internal.LoggerWrapper(project.logger)
+def sdkHandler = new com.android.build.gradle.internal.SdkHandler(project, logger)
+for (File file : sdkHandler.sdkLoader.repositories) {
+  repositories.maven {
+    url = file.toURI()
+  }
+}
+
+sourceCompatibility = rootProject.ext.sourceCompatibilityVersion
+targetCompatibility = rootProject.ext.targetCompatibilityVersion
+
+dependencies {
+  compile gradleApi()
+
+  compile deps.androidGradle
+  compile deps.javaparser
+  compile deps.javapoet
+
+  testCompile deps.junit
+  testCompile deps.truth
+  testCompile deps.supportAnnotations
+  testCompile deps.compiletesting
+}
+
+apply from: rootProject.file('gradle/gradle-mvn-push.gradle')

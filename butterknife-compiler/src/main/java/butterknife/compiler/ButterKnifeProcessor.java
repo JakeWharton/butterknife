@@ -22,6 +22,7 @@ import butterknife.OnPageChange;
 import butterknife.OnTextChanged;
 import butterknife.OnTouch;
 import butterknife.Optional;
+import butterknife.RClass;
 import butterknife.internal.ListenerClass;
 import butterknife.internal.ListenerMethod;
 import com.google.auto.common.SuperficialValidation;
@@ -29,12 +30,17 @@ import com.google.auto.service.AutoService;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
+import com.sun.source.tree.ClassTree;
+import com.sun.source.util.Trees;
+import com.sun.tools.javac.tree.JCTree;
+import com.sun.tools.javac.tree.TreeScanner;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.LinkedHashMap;
@@ -56,6 +62,7 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.ArrayType;
 import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.MirroredTypeException;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.type.TypeVariable;
@@ -71,7 +78,7 @@ import static javax.tools.Diagnostic.Kind.ERROR;
 
 @AutoService(Processor.class)
 public final class ButterKnifeProcessor extends AbstractProcessor {
-  static final int NO_ID = -1;
+  static final Id NO_ID = new Id(-1);
   static final String VIEW_TYPE = "android.view.View";
   private static final String BINDING_CLASS_SUFFIX = "$$ViewBinder";
   private static final String COLOR_STATE_LIST_TYPE = "android.content.res.ColorStateList";
@@ -81,6 +88,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
   private static final String NULLABLE_ANNOTATION_NAME = "Nullable";
   private static final String STRING_TYPE = "java.lang.String";
   private static final String LIST_TYPE = List.class.getCanonicalName();
+  private static final String R = "R";
   private static final List<Class<? extends Annotation>> LISTENERS = Arrays.asList(//
       OnCheckedChanged.class, //
       OnClick.class, //
@@ -95,9 +103,16 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
       OnTouch.class //
   );
 
+  private static final List<String> SUPPORTED_TYPES = Arrays.asList(
+      "array", "attr", "bool", "color", "dimen", "drawable", "id", "integer", "string"
+  );
+
   private Elements elementUtils;
   private Types typeUtils;
   private Filer filer;
+  private Trees trees;
+
+  private final Map<Integer, Id> symbols = new LinkedHashMap<>();
 
   @Override public synchronized void init(ProcessingEnvironment env) {
     super.init(env);
@@ -105,11 +120,13 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     elementUtils = env.getElementUtils();
     typeUtils = env.getTypeUtils();
     filer = env.getFiler();
+    trees = Trees.instance(processingEnv);
   }
 
   @Override public Set<String> getSupportedAnnotationTypes() {
     Set<String> types = new LinkedHashSet<>();
 
+    types.add(RClass.class.getCanonicalName());
     types.add(BindArray.class.getCanonicalName());
     types.add(BindBitmap.class.getCanonicalName());
     types.add(BindBool.class.getCanonicalName());
@@ -129,6 +146,8 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
   }
 
   @Override public boolean process(Set<? extends TypeElement> elements, RoundEnvironment env) {
+    parseRClass(env);
+
     Map<TypeElement, BindingClass> targetClassMap = findAndParseTargets(env);
 
     for (Map.Entry<TypeElement, BindingClass> entry : targetClassMap.entrySet()) {
@@ -357,7 +376,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
     BindingClass bindingClass = targetClassMap.get(enclosingElement);
     if (bindingClass != null) {
-      ViewBindings viewBindings = bindingClass.getViewBinding(id);
+      ViewBindings viewBindings = bindingClass.getViewBinding(getId(id));
       if (viewBindings != null && viewBindings.getFieldBinding() != null) {
         FieldViewBinding existingBinding = viewBindings.getFieldBinding();
         error(element, "Attempt to use @%s for an already bound ID %d on '%s'. (%s.%s)",
@@ -374,7 +393,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     boolean required = isFieldRequired(element);
 
     FieldViewBinding binding = new FieldViewBinding(name, type, required);
-    bindingClass.addField(id, binding);
+    bindingClass.addField(getId(id), binding);
 
     // Add the type-erased version to the valid binding targets set.
     erasedTargetNames.add(enclosingElement);
@@ -452,9 +471,14 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     TypeName type = TypeName.get(viewType);
     boolean required = isFieldRequired(element);
 
+    List<Id> idVars = new ArrayList<>();
+    for (int id : ids) {
+      idVars.add(getId(id));
+    }
+
     BindingClass bindingClass = getOrCreateTargetClass(targetClassMap, enclosingElement);
     FieldCollectionViewBinding binding = new FieldCollectionViewBinding(name, type, kind, required);
-    bindingClass.addFieldCollection(ids, binding);
+    bindingClass.addFieldCollection(idVars, binding);
 
     erasedTargetNames.add(enclosingElement);
   }
@@ -485,7 +509,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     int id = element.getAnnotation(BindBool.class).value();
 
     BindingClass bindingClass = getOrCreateTargetClass(targetClassMap, enclosingElement);
-    FieldResourceBinding binding = new FieldResourceBinding(id, name, "getBoolean", false);
+    FieldResourceBinding binding = new FieldResourceBinding(getId(id), name, "getBoolean", false);
     bindingClass.addResource(binding);
 
     erasedTargetNames.add(enclosingElement);
@@ -521,7 +545,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     int id = element.getAnnotation(BindColor.class).value();
 
     BindingClass bindingClass = getOrCreateTargetClass(targetClassMap, enclosingElement);
-    FieldResourceBinding binding = new FieldResourceBinding(id, name,
+    FieldResourceBinding binding = new FieldResourceBinding(getId(id), name,
         isColorStateList ? "getColorStateList" : "getColor", true);
     bindingClass.addResource(binding);
 
@@ -558,7 +582,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     int id = element.getAnnotation(BindDimen.class).value();
 
     BindingClass bindingClass = getOrCreateTargetClass(targetClassMap, enclosingElement);
-    FieldResourceBinding binding = new FieldResourceBinding(id, name,
+    FieldResourceBinding binding = new FieldResourceBinding(getId(id), name,
         isInt ? "getDimensionPixelSize" : "getDimension", false);
     bindingClass.addResource(binding);
 
@@ -591,7 +615,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     int id = element.getAnnotation(BindBitmap.class).value();
 
     BindingClass bindingClass = getOrCreateTargetClass(targetClassMap, enclosingElement);
-    FieldBitmapBinding binding = new FieldBitmapBinding(id, name);
+    FieldBitmapBinding binding = new FieldBitmapBinding(getId(id), name);
     bindingClass.addBitmap(binding);
 
     erasedTargetNames.add(enclosingElement);
@@ -624,7 +648,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     int tint = element.getAnnotation(BindDrawable.class).tint();
 
     BindingClass bindingClass = getOrCreateTargetClass(targetClassMap, enclosingElement);
-    FieldDrawableBinding binding = new FieldDrawableBinding(id, name, tint);
+    FieldDrawableBinding binding = new FieldDrawableBinding(getId(id), name, getId(tint));
     bindingClass.addDrawable(binding);
 
     erasedTargetNames.add(enclosingElement);
@@ -655,7 +679,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     int id = element.getAnnotation(BindInt.class).value();
 
     BindingClass bindingClass = getOrCreateTargetClass(targetClassMap, enclosingElement);
-    FieldResourceBinding binding = new FieldResourceBinding(id, name, "getInteger", false);
+    FieldResourceBinding binding = new FieldResourceBinding(getId(id), name, "getInteger", false);
     bindingClass.addResource(binding);
 
     erasedTargetNames.add(enclosingElement);
@@ -687,7 +711,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     int id = element.getAnnotation(BindString.class).value();
 
     BindingClass bindingClass = getOrCreateTargetClass(targetClassMap, enclosingElement);
-    FieldResourceBinding binding = new FieldResourceBinding(id, name, "getString", false);
+    FieldResourceBinding binding = new FieldResourceBinding(getId(id), name, "getString", false);
     bindingClass.addResource(binding);
 
     erasedTargetNames.add(enclosingElement);
@@ -721,7 +745,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     int id = element.getAnnotation(BindArray.class).value();
 
     BindingClass bindingClass = getOrCreateTargetClass(targetClassMap, enclosingElement);
-    FieldResourceBinding binding = new FieldResourceBinding(id, name, methodName, false);
+    FieldResourceBinding binding = new FieldResourceBinding(getId(id), name, methodName, false);
     bindingClass.addResource(binding);
 
     erasedTargetNames.add(enclosingElement);
@@ -834,7 +858,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     }
 
     for (int id : ids) {
-      if (id == NO_ID) {
+      if (id == NO_ID.getIntId()) {
         if (ids.length == 1) {
           if (!required) {
             error(element, "ID-free binding must not be annotated with @Optional. (%s.%s)",
@@ -978,7 +1002,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     MethodViewBinding binding = new MethodViewBinding(name, Arrays.asList(parameters), required);
     BindingClass bindingClass = getOrCreateTargetClass(targetClassMap, enclosingElement);
     for (int id : ids) {
-      if (!bindingClass.addMethod(id, listener, method, binding)) {
+      if (!bindingClass.addMethod(getId(id), listener, method, binding)) {
         error(element, "Multiple listener methods with return value specified for ID %d. (%s.%s)",
             id, enclosingElement.getQualifiedName(), element.getSimpleName());
         return;
@@ -1106,5 +1130,78 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
   private static boolean isListenerRequired(ExecutableElement element) {
     return element.getAnnotation(Optional.class) == null;
+  }
+
+  private void parseRClass(RoundEnvironment env) {
+    Set<? extends Element> rClasses = env.getElementsAnnotatedWith(RClass.class);
+    if (rClasses.size() > 1) {
+      for (Element e : rClasses) {
+        error(e, "Can define @%s only once", RClass.class.getSimpleName());
+      }
+    } else if (rClasses.size() == 1) {
+      Element rClassElement = rClasses.iterator().next();
+      RClass rClass = rClassElement.getAnnotation(RClass.class);
+      Element element;
+
+      try {
+        element = elementUtils.getTypeElement(rClass.value().getCanonicalName());
+      } catch (MirroredTypeException mte) {
+        element = typeUtils.asElement(mte.getTypeMirror());
+      }
+
+      IdScanner idScanner =
+          new IdScanner(symbols, elementUtils.getPackageOf(element).getQualifiedName().toString());
+      JCTree tree = (JCTree) trees.getTree(element);
+      tree.accept(idScanner);
+    }
+  }
+
+  private Id getId(int id) {
+    if (symbols.get(id) == null) {
+      symbols.put(id, new Id(id));
+    }
+    return symbols.get(id);
+  }
+
+  private static class IdScanner extends TreeScanner {
+    private final Map<Integer, Id> ids;
+    private final String packageName;
+
+    IdScanner(Map<Integer, Id> ids, String packageName) {
+      this.ids = ids;
+      this.packageName = packageName;
+    }
+
+    @Override public void visitClassDef(JCTree.JCClassDecl jcClassDecl) {
+      for (JCTree tree : jcClassDecl.defs) {
+        if (tree instanceof ClassTree) {
+          ClassTree classTree = (ClassTree) tree;
+          String className = classTree.getSimpleName().toString();
+          if (SUPPORTED_TYPES.contains(className)) {
+            VarScanner scanner =
+                new VarScanner(ids, packageName + ".R." + classTree.getSimpleName().toString());
+            ((JCTree) classTree).accept(scanner);
+          }
+        }
+      }
+    }
+  }
+
+  private static class VarScanner extends TreeScanner {
+    private final Map<Integer, Id> ids;
+    private final String className;
+
+    private VarScanner(Map<Integer, Id> ids, String className) {
+      this.ids = ids;
+      this.className = className;
+    }
+
+    @Override public void visitVarDef(JCTree.JCVariableDecl jcVariableDecl) {
+      if ("int".equals(jcVariableDecl.getType().toString())) {
+        int id = Integer.valueOf(jcVariableDecl.getInitializer().toString());
+        String resource = className + "." + jcVariableDecl.getName().toString();
+        ids.put(id, new Id(id, resource));
+      }
+    }
   }
 }

@@ -1,4 +1,4 @@
-package com.example.butterknife;
+package com.example.butterknife.library;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -10,8 +10,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 
 public class SimpleAdapter extends BaseAdapter {
-  private static final String[] CONTENTS =
-      "The quick brown fox jumps over the lazy dog".split(" ");
+  private static final String[] CONTENTS = "The quick brown fox jumps over the lazy dog".split(" ");
 
   private final LayoutInflater inflater;
 
@@ -51,9 +50,9 @@ public class SimpleAdapter extends BaseAdapter {
   }
 
   static final class ViewHolder {
-    @BindView(R.id.word) TextView word;
-    @BindView(R.id.length) TextView length;
-    @BindView(R.id.position) TextView position;
+    @BindView(R2.id.word) TextView word;
+    @BindView(R2.id.length) TextView length;
+    @BindView(R2.id.position) TextView position;
 
     ViewHolder(View view) {
       ButterKnife.bind(this, view);
