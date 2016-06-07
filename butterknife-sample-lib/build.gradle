@@ -1,0 +1,31 @@
+buildscript {
+  repositories {
+    mavenLocal()
+    mavenCentral()
+  }
+  dependencies {
+    classpath "${GROUP}:butterknife-gradle-plugin:${VERSION_NAME}"
+  }
+}
+
+apply plugin: 'com.android.library'
+apply plugin: 'com.neenbedankt.android-apt'
+apply plugin: 'butterknife'
+
+android {
+  compileSdkVersion rootProject.ext.compileSdkVersion
+  buildToolsVersion rootProject.ext.buildToolsVersion
+
+  defaultConfig {
+    minSdkVersion rootProject.ext.minSdkVersion
+  }
+}
+
+dependencies {
+  compile project(':butterknife')
+  apt project(':butterknife-compiler')
+
+  testCompile deps.junit
+  testCompile deps.truth
+  testCompile deps.robolectric
+}

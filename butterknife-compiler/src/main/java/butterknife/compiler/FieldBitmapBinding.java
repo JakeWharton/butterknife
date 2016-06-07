@@ -1,15 +1,15 @@
 package butterknife.compiler;
 
 final class FieldBitmapBinding {
-  private final int id;
+  private final Id id;
   private final String name;
 
-  FieldBitmapBinding(int id, String name) {
+  FieldBitmapBinding(Id id, String name) {
     this.id = id;
     this.name = name;
   }
 
-  public int getId() {
+  public Id getId() {
     return id;
   }
 

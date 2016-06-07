@@ -17,13 +17,8 @@ checkstyle {
   showViolations true
 }
 
-configurations {
-  provided
-  compile.extendsFrom provided
-}
-
 dependencies {
-  provided deps.android
+  compileOnly deps.android
   compile deps.supportAnnotations
 }
 

@@ -17,7 +17,9 @@ dependencies {
   compile deps.autoservice
   compile deps.autocommon
   compile deps.javapoet
+  compileOnly files(org.gradle.internal.jvm.Jvm.current().getToolsJar())
 
+  testCompile deps.android
   testCompile deps.junit
   testCompile deps.truth
   testCompile deps.robolectric

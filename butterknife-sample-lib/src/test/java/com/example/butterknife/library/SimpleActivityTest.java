@@ -1,12 +1,11 @@
-package com.example.butterknife;
+package com.example.butterknife.library;
 
+import butterknife.ButterKnife;
+import butterknife.Unbinder;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricGradleTestRunner;
-
-import butterknife.ButterKnife;
-import butterknife.Unbinder;
 
 import static com.google.common.truth.Truth.assertThat;
 
