@@ -111,7 +111,7 @@ public class RClassTest {
         + "  }\n"
         + "  @SuppressWarnings(\"ResourceType\")\n"
         + "  protected static void bindToTarget(Test target, Resources res) {\n"
-        + "    target.one = res.getInteger(test.R.integer.res);\n"
+        + "    target.one = res.getInteger(R.integer.res);\n"
         + "  }\n"
         + "}"
     );
@@ -153,7 +153,7 @@ public class RClassTest {
         + "  }\n"
         + "  @SuppressWarnings(\"ResourceType\")\n"
         + "  protected static void bindToTarget(Test target, Resources res) {\n"
-        + "    target.bool = res.getBoolean(test.R.bool.res);\n"
+        + "    target.bool = res.getBoolean(R.bool.res);\n"
         + "  }\n"
         + "}"
     );

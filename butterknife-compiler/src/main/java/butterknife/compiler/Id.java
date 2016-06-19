@@ -1,40 +1,34 @@
 package butterknife.compiler;
 
+import com.squareup.javapoet.ClassName;
+import com.squareup.javapoet.CodeBlock;
+
 /**
  * Represents an ID of an Android resource.
  */
 final class Id {
+  final int value;
+  final CodeBlock code;
 
-  private final int intId;
-  private final String var;
-
-  Id(int intId) {
-    this(intId, String.valueOf(intId));
+  Id(int value) {
+    this.value = value;
+    this.code = CodeBlock.of("$L", value);
   }
 
-  Id(int intId, String var) {
-    this.intId = intId;
-    this.var = var;
+  Id(int value, ClassName className, String resourceName) {
+    this.value = value;
+    this.code = CodeBlock.of("$T.$N", className, resourceName);
   }
 
   @Override public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
-
-    Id id = (Id) o;
-
-    return intId == id.intId;
+    return o instanceof Id && value == ((Id) o).value;
   }
 
   @Override public int hashCode() {
-    return intId;
+    return value;
   }
 
   @Override public String toString() {
-    return var;
-  }
-
-  int getIntId() {
-    return intId;
+    return String.valueOf(value);
   }
 }
