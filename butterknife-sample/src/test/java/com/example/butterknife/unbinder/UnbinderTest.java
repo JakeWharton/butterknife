@@ -3,14 +3,12 @@ package com.example.butterknife.unbinder;
 import android.view.View;
 import android.widget.Button;
 import android.widget.FrameLayout;
-
+import butterknife.ButterKnife;
+import butterknife.Unbinder;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricGradleTestRunner;
 import org.robolectric.RuntimeEnvironment;
-
-import butterknife.ButterKnife;
-import butterknife.Unbinder;
 
 import static com.google.common.truth.Truth.assertThat;
 

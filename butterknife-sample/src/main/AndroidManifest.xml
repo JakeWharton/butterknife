@@ -12,7 +12,7 @@
 
     <activity
         android:label="@string/app_name"
-        android:name=".SimpleActivity">
+        android:name=".library.SimpleActivity">
       <intent-filter>
         <action android:name="android.intent.action.MAIN"/>
 

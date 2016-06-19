@@ -45,8 +45,9 @@ final class BindingClass {
   private static final String UNBINDER_SIMPLE_NAME = "InnerUnbinder";
   private static final String BIND_TO_TARGET = "bindToTarget";
 
-  private final Map<Integer, ViewBindings> viewIdMap = new LinkedHashMap<>();
-  private final Map<FieldCollectionViewBinding, int[]> collectionBindings = new LinkedHashMap<>();
+  private final Map<Id, ViewBindings> viewIdMap = new LinkedHashMap<>();
+  private final Map<FieldCollectionViewBinding, List<Id>> collectionBindings =
+      new LinkedHashMap<>();
   private final List<FieldBitmapBinding> bitmapBindings = new ArrayList<>();
   private final List<FieldDrawableBinding> drawableBindings = new ArrayList<>();
   private final List<FieldResourceBinding> resourceBindings = new ArrayList<>();
@@ -71,16 +72,16 @@ final class BindingClass {
     drawableBindings.add(binding);
   }
 
-  void addField(int id, FieldViewBinding binding) {
+  void addField(Id id, FieldViewBinding binding) {
     getOrCreateViewBindings(id).setFieldBinding(binding);
   }
 
-  void addFieldCollection(int[] ids, FieldCollectionViewBinding binding) {
+  void addFieldCollection(List<Id> ids, FieldCollectionViewBinding binding) {
     collectionBindings.put(binding, ids);
   }
 
   boolean addMethod(
-      int id,
+      Id id,
       ListenerClass listener,
       ListenerMethod method,
       MethodViewBinding binding) {
@@ -100,11 +101,11 @@ final class BindingClass {
     this.parentBinding = parent;
   }
 
-  ViewBindings getViewBinding(int id) {
+  ViewBindings getViewBinding(Id id) {
     return viewIdMap.get(id);
   }
 
-  private ViewBindings getOrCreateViewBindings(int id) {
+  private ViewBindings getOrCreateViewBindings(Id id) {
     ViewBindings viewId = viewIdMap.get(id);
     if (viewId == null) {
       viewId = new ViewBindings(id);
@@ -264,7 +265,7 @@ final class BindingClass {
 
     String fieldName = "target";
     if (!bindings.isBoundToRoot()) {
-      fieldName = "view" + bindings.getId();
+      fieldName = "view" + bindings.getId().getIntId();
       result.addField(VIEW, fieldName, PRIVATE);
     }
 
@@ -425,7 +426,7 @@ final class BindingClass {
       }
 
       // Loop over each collection binding and emit it.
-      for (Map.Entry<FieldCollectionViewBinding, int[]> entry : collectionBindings.entrySet()) {
+      for (Map.Entry<FieldCollectionViewBinding, List<Id>> entry : collectionBindings.entrySet()) {
         emitCollectionBinding(result, entry.getKey(), entry.getValue());
       }
 
@@ -441,7 +442,7 @@ final class BindingClass {
       }
 
       for (FieldDrawableBinding binding : drawableBindings) {
-        int tintAttributeId = binding.getTintAttributeId();
+        int tintAttributeId = binding.getTintAttributeId().getIntId();
         if (tintAttributeId != 0) {
           result.addStatement("target.$L = $T.getTintedDrawable(res, theme, $L, $L)",
               binding.getName(), UTILS, binding.getId(), tintAttributeId);
@@ -467,7 +468,7 @@ final class BindingClass {
   private void emitCollectionBinding(
       MethodSpec.Builder result,
       FieldCollectionViewBinding binding,
-      int[] ids) {
+      List<Id> ids) {
     String ofName;
     switch (binding.getKind()) {
       case ARRAY:
@@ -481,7 +482,7 @@ final class BindingClass {
     }
 
     CodeBlock.Builder builder = CodeBlock.builder();
-    for (int i = 0; i < ids.length; i++) {
+    for (int i = 0; i < ids.size(); i++) {
       if (i > 0) {
         builder.add(", ");
       }
@@ -490,10 +491,10 @@ final class BindingClass {
         builder.add("($T) ", binding.getType());
       }
       if (binding.isRequired()) {
-        builder.add("finder.findRequiredView(source, $L, $S)", ids[i],
+        builder.add("finder.findRequiredView(source, $L, $S)", ids.get(i),
             asHumanDescription(singletonList(binding)));
       } else {
-        builder.add("finder.findOptionalView(source, $L)", ids[i]);
+        builder.add("finder.findOptionalView(source, $L)", ids.get(i));
       }
     }
 
@@ -562,7 +563,7 @@ final class BindingClass {
     String fieldName = "target";
     String bindName = "target";
     if (!bindings.isBoundToRoot()) {
-      fieldName = "view" + bindings.getId();
+      fieldName = "view" + bindings.getId().getIntId();
       bindName = "view";
 
       if (isGeneratingUnbinder()) {

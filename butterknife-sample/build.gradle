@@ -31,8 +31,8 @@ android {
 }
 
 dependencies {
-  compile project(':butterknife')
   apt project(':butterknife-compiler')
+  compile project(':butterknife-sample-lib')
 
   testCompile deps.junit
   testCompile deps.truth

@@ -6,31 +6,37 @@ subprojects { project ->
     mavenCentral()
   }
 
-  apply plugin: 'checkstyle'
+  if (!project.name.equals('butterknife-gradle-plugin')) {
+    apply plugin: 'checkstyle'
 
-  task checkstyle(type: Checkstyle) {
-    configFile rootProject.file('checkstyle.xml')
-    source 'src/main/java'
-    ignoreFailures false
-    showViolations true
-    include '**/*.java'
+    task checkstyle(type: Checkstyle) {
+      configFile rootProject.file('checkstyle.xml')
+      source 'src/main/java'
+      ignoreFailures false
+      showViolations true
+      include '**/*.java'
 
-    classpath = files()
-  }
+      classpath = files()
+    }
 
-  afterEvaluate {
-    if (project.tasks.findByName('check')) {
-      check.dependsOn('checkstyle')
+    afterEvaluate {
+      if (project.tasks.findByName('check')) {
+        check.dependsOn('checkstyle')
+      }
     }
   }
 
   buildscript {
     repositories {
       mavenCentral()
+      maven {
+        url "https://plugins.gradle.org/m2/"
+      }
     }
     dependencies {
-      classpath 'com.android.tools.build:gradle:2.1.0'
+      classpath 'com.android.tools.build:gradle:2.1.2'
       classpath 'com.neenbedankt.gradle.plugins:android-apt:1.8'
+      classpath 'gradle.plugin.com.kageiit:lintrules:1.1.2'
     }
   }
 }
@@ -44,14 +50,24 @@ ext {
   targetCompatibilityVersion = JavaVersion.VERSION_1_7
 }
 
+def androidToolsVersion = '25.1.2'
+
 ext.deps = [
     // Android
     android: 'com.google.android:android:2.1.2',
     supportv4: 'com.android.support:support-v4:24.0.0',
     supportAnnotations: 'com.android.support:support-annotations:24.0.0',
+    androidGradle: 'com.android.tools.build:gradle:2.1.2',
+    lint: "com.android.tools.lint:lint:$androidToolsVersion",
+    lintApi: "com.android.tools.lint:lint-api:$androidToolsVersion",
+    lintChecks: "com.android.tools.lint:lint-checks:$androidToolsVersion",
+    lintTests: "com.android.tools.lint:lint-tests:$androidToolsVersion",
 
     // Square
     javapoet: 'com.squareup:javapoet:1.7.0',
+
+    // Third Party
+    javaparser: 'com.github.javaparser:javaparser-core:2.4.0',
 
     // Test dependencies
     junit: 'junit:junit:4.12',

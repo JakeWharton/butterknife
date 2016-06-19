@@ -1,4 +1,4 @@
-package com.example.butterknife;
+package com.example.butterknife.library;
 
 import android.app.Activity;
 import android.os.Bundle;
@@ -15,10 +15,12 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 import butterknife.OnItemClick;
 import butterknife.OnLongClick;
+import butterknife.RClass;
 import java.util.List;
 
 import static android.widget.Toast.LENGTH_SHORT;
 
+@RClass(R2.class)
 public class SimpleActivity extends Activity {
   private static final ButterKnife.Action<View> ALPHA_FADE = new ButterKnife.Action<View>() {
     @Override public void apply(@NonNull View view, int index) {
@@ -30,27 +32,27 @@ public class SimpleActivity extends Activity {
     }
   };
 
-  @BindView(R.id.title) TextView title;
-  @BindView(R.id.subtitle) TextView subtitle;
-  @BindView(R.id.hello) Button hello;
-  @BindView(R.id.list_of_things) ListView listOfThings;
-  @BindView(R.id.footer) TextView footer;
+  @BindView(R2.id.title) TextView title;
+  @BindView(R2.id.subtitle) TextView subtitle;
+  @BindView(R2.id.hello) Button hello;
+  @BindView(R2.id.list_of_things) ListView listOfThings;
+  @BindView(R2.id.footer) TextView footer;
 
-  @BindViews({ R.id.title, R.id.subtitle, R.id.hello }) List<View> headerViews;
+  @BindViews({ R2.id.title, R2.id.subtitle, R2.id.hello }) List<View> headerViews;
 
   private SimpleAdapter adapter;
 
-  @OnClick(R.id.hello) void sayHello() {
+  @OnClick(R2.id.hello) void sayHello() {
     Toast.makeText(this, "Hello, views!", LENGTH_SHORT).show();
     ButterKnife.apply(headerViews, ALPHA_FADE);
   }
 
-  @OnLongClick(R.id.hello) boolean sayGetOffMe() {
+  @OnLongClick(R2.id.hello) boolean sayGetOffMe() {
     Toast.makeText(this, "Let go of me!", LENGTH_SHORT).show();
     return true;
   }
 
-  @OnItemClick(R.id.list_of_things) void onItemClick(int position) {
+  @OnItemClick(R2.id.list_of_things) void onItemClick(int position) {
     Toast.makeText(this, "You clicked: " + adapter.getItem(position), LENGTH_SHORT).show();
   }
 
