@@ -61,6 +61,104 @@ public class BindViewTest {
         .generatesSources(expectedSource);
   }
 
+  @Test public void bindingViewIdName() {
+    JavaFileObject source = JavaFileObjects.forSourceString("test.Test",
+        Joiner.on('\n').join(
+            "package butterknife;",
+            "import android.app.Activity;",
+            "import android.view.View;",
+            "import butterknife.BindView;",
+            "public class Test extends Activity {",
+            "    @BindView(idName = \"my_view\") View thing;",
+            "}"
+        ));
+
+    JavaFileObject expectedSource = JavaFileObjects.forSourceString("test/Test$$ViewBinder", ""
+        + "package butterknife;\n"
+        + "import butterknife.internal.Finder;\n"
+        + "import butterknife.internal.ViewBinder;\n"
+        + "import java.lang.IllegalStateException;\n"
+        + "import java.lang.Object;\n"
+        + "import java.lang.Override;\n"
+        + "public class Test$$ViewBinder<T extends Test> implements ViewBinder<T> {\n"
+        + "  @Override\n"
+        + "  public Unbinder bind(Finder finder, T target, Object source) {\n"
+        + "    return new InnerUnbinder<>(target, finder, source);\n"
+        + "  }\n"
+        + "  protected static class InnerUnbinder<T extends Test> implements Unbinder {\n"
+        + "    protected T target;\n"
+        + "    protected InnerUnbinder(T target, Finder finder, Object source) {\n"
+        + "      this.target = target;\n"
+        + "      target.thing = finder.findRequiredView(source, butterknife.R.id.my_view, \"field 'thing'\");\n"
+        + "    }\n"
+        + "    @Override\n"
+        + "    public void unbind() {\n"
+        + "      T target = this.target;\n"
+        + "      if (target == null) throw new IllegalStateException(\"Bindings already cleared.\");\n"
+        + "      target.thing = null;\n"
+        + "      this.target = null;\n"
+        + "    }\n"
+        + "  }\n"
+        + "}"
+    );
+
+    assertAbout(javaSource()).that(source)
+        .processedWith(new ButterKnifeProcessor())
+        .compilesWithoutError()
+        .and()
+        .generatesSources(expectedSource);
+  }
+
+  @Test public void bindingViewIdNameAndClass() {
+    JavaFileObject source = JavaFileObjects.forSourceString("test.Test",
+        Joiner.on('\n').join(
+            "package test;",
+            "import android.app.Activity;",
+            "import android.view.View;",
+            "import butterknife.BindView;",
+            "import butterknife.R;",
+            "public class Test extends Activity {",
+            "    @BindView(idClass = R.id.class, idName = \"my_view\") View thing;",
+            "}"
+        ));
+
+    JavaFileObject expectedSource = JavaFileObjects.forSourceString("test/Test$$ViewBinder", ""
+        + "package test;\n"
+        + "import butterknife.Unbinder;\n"
+        + "import butterknife.internal.Finder;\n"
+        + "import butterknife.internal.ViewBinder;\n"
+        + "import java.lang.IllegalStateException;\n"
+        + "import java.lang.Object;\n"
+        + "import java.lang.Override;\n"
+        + "public class Test$$ViewBinder<T extends Test> implements ViewBinder<T> {\n"
+        + "  @Override\n"
+        + "  public Unbinder bind(Finder finder, T target, Object source) {\n"
+        + "    return new InnerUnbinder<>(target, finder, source);\n"
+        + "  }\n"
+        + "  protected static class InnerUnbinder<T extends Test> implements Unbinder {\n"
+        + "    protected T target;\n"
+        + "    protected InnerUnbinder(T target, Finder finder, Object source) {\n"
+        + "      this.target = target;\n"
+        + "      target.thing = finder.findRequiredView(source, butterknife.R.id.my_view, \"field 'thing'\");\n"
+        + "    }\n"
+        + "    @Override\n"
+        + "    public void unbind() {\n"
+        + "      T target = this.target;\n"
+        + "      if (target == null) throw new IllegalStateException(\"Bindings already cleared.\");\n"
+        + "      target.thing = null;\n"
+        + "      this.target = null;\n"
+        + "    }\n"
+        + "  }\n"
+        + "}"
+    );
+
+    assertAbout(javaSource()).that(source)
+        .processedWith(new ButterKnifeProcessor())
+        .compilesWithoutError()
+        .and()
+        .generatesSources(expectedSource);
+  }
+
   @Test public void bindingViewFinalClass() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test",
         Joiner.on('\n').join(

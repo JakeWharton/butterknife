@@ -10,16 +10,16 @@ import java.util.Map;
 import java.util.Set;
 
 final class ViewBindings {
-  private final int id;
+  private final Id id;
   private final LinkedHashMap<ListenerClass, Map<ListenerMethod, Set<MethodViewBinding>>>
       methodBindings = new LinkedHashMap<>();
   private FieldViewBinding fieldBinding;
 
-  ViewBindings(int id) {
+  ViewBindings(Id id) {
     this.id = id;
   }
 
-  public int getId() {
+  public Id getId() {
     return id;
   }
 
@@ -92,6 +92,6 @@ final class ViewBindings {
   }
 
   public boolean isBoundToRoot() {
-    return id == ButterKnifeProcessor.NO_ID;
+    return id instanceof Id.Constant && ((Id.Constant) id).getId() == ButterKnifeProcessor.NO_ID;
   }
 }

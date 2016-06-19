@@ -24,8 +24,10 @@ import butterknife.OnTouch;
 import butterknife.Optional;
 import butterknife.internal.ListenerClass;
 import butterknife.internal.ListenerMethod;
+import com.google.auto.common.AnnotationMirrors;
 import com.google.auto.common.SuperficialValidation;
 import com.google.auto.service.AutoService;
+import com.google.common.base.Strings;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
@@ -353,14 +355,70 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     }
 
     // Assemble information on the field.
-    int id = element.getAnnotation(BindView.class).value();
+    BindView annotation = element.getAnnotation(BindView.class);
+    AnnotationMirror annotationMirror = null;
+    for (AnnotationMirror mirror : element.getAnnotationMirrors()) {
+      if (mirror.getAnnotationType().toString().equals(BindView.class.getName())) {
+        annotationMirror = mirror;
+        break;
+      }
+    }
+
+    if (annotationMirror == null) {
+      error(element, "Failed to get @%s %s",
+          BindView.class.getSimpleName(), AnnotationMirror.class.getSimpleName());
+      return;
+    }
+
+    int idValue = annotation.value();
+    TypeMirror idClass =
+        (TypeMirror) AnnotationMirrors.getAnnotationValue(annotationMirror, "idClass").getValue();
+    String idName = annotation.idName();
+
+    Id id;
+    if (idValue != NO_ID) {
+      if (!annotation.idName().isEmpty()) {
+        error(element, "Only specify one of @%s.value and @%s.idName",
+            BindView.class.getSimpleName(), BindView.class.getSimpleName());
+        hasError = true;
+      }
+      if (idClass.getKind() != TypeKind.VOID) {
+        error(element, "@%s.idClass is not used with @%s.value",
+            BindView.class.getSimpleName(), BindView.class.getSimpleName());
+        hasError = true;
+      }
+      if (hasError) {
+        return;
+      }
+      id = new Id.Constant(idValue);
+    } else {
+      ClassName idClassName;
+      if (idClass.getKind() == TypeKind.VOID) {
+        idClassName = ClassName.get(getPackageName(enclosingElement), "R", "id");
+      } else {
+        if (idClass.getKind() != TypeKind.DECLARED) {
+          error(element, "@%s.idClass must be a class or interface",
+              BindView.class.getSimpleName());
+          return;
+        }
+        TypeElement idClassElement = (TypeElement) ((DeclaredType) idClass).asElement();
+        idClassName = ClassName.get(idClassElement);
+      }
+
+      if (Strings.isNullOrEmpty(idName)) {
+        error(element, "Must specify one of @%s.value or @%s.idName",
+            BindView.class.getSimpleName(), BindView.class.getSimpleName());
+        return;
+      }
+      id = new Id.Reference(idClassName, idName);
+    }
 
     BindingClass bindingClass = targetClassMap.get(enclosingElement);
     if (bindingClass != null) {
       ViewBindings viewBindings = bindingClass.getViewBinding(id);
       if (viewBindings != null && viewBindings.getFieldBinding() != null) {
         FieldViewBinding existingBinding = viewBindings.getFieldBinding();
-        error(element, "Attempt to use @%s for an already bound ID %d on '%s'. (%s.%s)",
+        error(element, "Attempt to use @%s for an already bound ID %s on '%s'. (%s.%s)",
             BindView.class.getSimpleName(), id, existingBinding.getName(),
             enclosingElement.getQualifiedName(), element.getSimpleName());
         return;
@@ -978,7 +1036,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     MethodViewBinding binding = new MethodViewBinding(name, Arrays.asList(parameters), required);
     BindingClass bindingClass = getOrCreateTargetClass(targetClassMap, enclosingElement);
     for (int id : ids) {
-      if (!bindingClass.addMethod(id, listener, method, binding)) {
+      if (!bindingClass.addMethod(new Id.Constant(id), listener, method, binding)) {
         error(element, "Multiple listener methods with return value specified for ID %d. (%s.%s)",
             id, enclosingElement.getQualifiedName(), element.getSimpleName());
         return;

@@ -45,7 +45,7 @@ final class BindingClass {
   private static final String UNBINDER_SIMPLE_NAME = "InnerUnbinder";
   private static final String BIND_TO_TARGET = "bindToTarget";
 
-  private final Map<Integer, ViewBindings> viewIdMap = new LinkedHashMap<>();
+  private final Map<Id, ViewBindings> viewIdMap = new LinkedHashMap<>();
   private final Map<FieldCollectionViewBinding, int[]> collectionBindings = new LinkedHashMap<>();
   private final List<FieldBitmapBinding> bitmapBindings = new ArrayList<>();
   private final List<FieldDrawableBinding> drawableBindings = new ArrayList<>();
@@ -71,7 +71,7 @@ final class BindingClass {
     drawableBindings.add(binding);
   }
 
-  void addField(int id, FieldViewBinding binding) {
+  void addField(Id id, FieldViewBinding binding) {
     getOrCreateViewBindings(id).setFieldBinding(binding);
   }
 
@@ -80,7 +80,7 @@ final class BindingClass {
   }
 
   boolean addMethod(
-      int id,
+      Id id,
       ListenerClass listener,
       ListenerMethod method,
       MethodViewBinding binding) {
@@ -100,11 +100,11 @@ final class BindingClass {
     this.parentBinding = parent;
   }
 
-  ViewBindings getViewBinding(int id) {
+  ViewBindings getViewBinding(Id id) {
     return viewIdMap.get(id);
   }
 
-  private ViewBindings getOrCreateViewBindings(int id) {
+  private ViewBindings getOrCreateViewBindings(Id id) {
     ViewBindings viewId = viewIdMap.get(id);
     if (viewId == null) {
       viewId = new ViewBindings(id);
