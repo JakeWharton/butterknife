@@ -265,7 +265,7 @@ final class BindingClass {
 
     String fieldName = "target";
     if (!bindings.isBoundToRoot()) {
-      fieldName = "view" + bindings.getId().getIntId();
+      fieldName = "view" + bindings.getId();
       result.addField(VIEW, fieldName, PRIVATE);
     }
 
@@ -442,13 +442,13 @@ final class BindingClass {
       }
 
       for (FieldDrawableBinding binding : drawableBindings) {
-        int tintAttributeId = binding.getTintAttributeId().getIntId();
+        int tintAttributeId = binding.getTintAttributeId().value;
         if (tintAttributeId != 0) {
           result.addStatement("target.$L = $T.getTintedDrawable(res, theme, $L, $L)",
-              binding.getName(), UTILS, binding.getId(), tintAttributeId);
+              binding.getName(), UTILS, binding.getId().code, tintAttributeId);
         } else {
           result.addStatement("target.$L = $T.getDrawable(res, theme, $L)", binding.getName(),
-              UTILS, binding.getId());
+              UTILS, binding.getId().code);
         }
       }
 
@@ -456,10 +456,10 @@ final class BindingClass {
         // TODO being themeable is poor correlation to the need to use Utils.
         if (binding.isThemeable()) {
           result.addStatement("target.$L = $T.$L(res, theme, $L)", binding.getName(),
-              UTILS, binding.getMethod(), binding.getId());
+              UTILS, binding.getMethod(), binding.getId().code);
         } else {
           result.addStatement("target.$L = res.$L($L)", binding.getName(), binding.getMethod(),
-              binding.getId());
+              binding.getId().code);
         }
       }
     }
@@ -563,7 +563,7 @@ final class BindingClass {
     String fieldName = "target";
     String bindName = "target";
     if (!bindings.isBoundToRoot()) {
-      fieldName = "view" + bindings.getId().getIntId();
+      fieldName = "view" + bindings.getId();
       bindName = "view";
 
       if (isGeneratingUnbinder()) {

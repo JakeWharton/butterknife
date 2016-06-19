@@ -858,7 +858,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     }
 
     for (int id : ids) {
-      if (id == NO_ID.getIntId()) {
+      if (id == NO_ID.value) {
         if (ids.length == 1) {
           if (!required) {
             error(element, "ID-free binding must not be annotated with @Optional. (%s.%s)",
@@ -1178,8 +1178,8 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
           ClassTree classTree = (ClassTree) tree;
           String className = classTree.getSimpleName().toString();
           if (SUPPORTED_TYPES.contains(className)) {
-            VarScanner scanner =
-                new VarScanner(ids, packageName + ".R." + classTree.getSimpleName().toString());
+            ClassName rClassName = ClassName.get(packageName, "R", className);
+            VarScanner scanner = new VarScanner(ids, rClassName);
             ((JCTree) classTree).accept(scanner);
           }
         }
@@ -1189,9 +1189,9 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
   private static class VarScanner extends TreeScanner {
     private final Map<Integer, Id> ids;
-    private final String className;
+    private final ClassName className;
 
-    private VarScanner(Map<Integer, Id> ids, String className) {
+    private VarScanner(Map<Integer, Id> ids, ClassName className) {
       this.ids = ids;
       this.className = className;
     }
@@ -1199,8 +1199,8 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     @Override public void visitVarDef(JCTree.JCVariableDecl jcVariableDecl) {
       if ("int".equals(jcVariableDecl.getType().toString())) {
         int id = Integer.valueOf(jcVariableDecl.getInitializer().toString());
-        String resource = className + "." + jcVariableDecl.getName().toString();
-        ids.put(id, new Id(id, resource));
+        String resourceName = jcVariableDecl.getName().toString();
+        ids.put(id, new Id(id, className, resourceName));
       }
     }
   }
