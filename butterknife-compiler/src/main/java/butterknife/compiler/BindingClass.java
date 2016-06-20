@@ -406,7 +406,7 @@ final class BindingClass {
   }
 
   private void generateBindViewBody(MethodSpec.Builder result) {
-    if (hasResourceBindings()) {
+    if (hasUnqualifiedResourceBindings()) {
       // Aapt can change IDs out from underneath us, just suppress since all will work at runtime.
       result.addAnnotation(AnnotationSpec.builder(SuppressWarnings.class)
           .addMember("value", "$S", "ResourceType")
@@ -756,6 +756,26 @@ final class BindingClass {
   /** True when this type's bindings require Android's {@code Resources}. */
   private boolean hasResourceBindings() {
     return !(bitmapBindings.isEmpty() && drawableBindings.isEmpty() && resourceBindings.isEmpty());
+  }
+
+  /** True when this type's bindings use raw integer values instead of {@code R} references. */
+  private boolean hasUnqualifiedResourceBindings() {
+    for (FieldBitmapBinding binding : bitmapBindings) {
+      if (!binding.getId().qualifed) {
+        return true;
+      }
+    }
+    for (FieldDrawableBinding binding : drawableBindings) {
+      if (!binding.getId().qualifed) {
+        return true;
+      }
+    }
+    for (FieldResourceBinding binding : resourceBindings) {
+      if (!binding.getId().qualifed) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /** True when this type's resource bindings require Android's {@code Theme}. */
