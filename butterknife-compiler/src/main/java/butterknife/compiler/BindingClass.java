@@ -45,7 +45,6 @@ final class BindingClass {
   private static final ClassName UNBINDER = ClassName.get("butterknife", "Unbinder");
   private static final ClassName BITMAP_FACTORY =
       ClassName.get("android.graphics", "BitmapFactory");
-  private static final String UNBINDER_SIMPLE_NAME = "InnerUnbinder";
   private static final String BIND_TO_TARGET = "bindToTarget";
 
   private final Map<Id, ViewBindings> viewIdMap = new LinkedHashMap<>();
