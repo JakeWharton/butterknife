@@ -9,15 +9,18 @@ import com.squareup.javapoet.CodeBlock;
 final class Id {
   final int value;
   final CodeBlock code;
+  final boolean qualifed;
 
   Id(int value) {
     this.value = value;
     this.code = CodeBlock.of("$L", value);
+    this.qualifed = false;
   }
 
   Id(int value, ClassName className, String resourceName) {
     this.value = value;
     this.code = CodeBlock.of("$T.$N", className, resourceName);
+    this.qualifed = true;
   }
 
   @Override public boolean equals(Object o) {
