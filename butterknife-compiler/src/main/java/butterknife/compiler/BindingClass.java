@@ -56,15 +56,16 @@ final class BindingClass {
   private final List<FieldResourceBinding> resourceBindings = new ArrayList<>();
   private final boolean isFinal;
   private final TypeName targetTypeName;
-  private final ClassName generatedClassName;
+  private final ClassName binderClassName;
   private final ClassName unbinderClassName;
   private BindingClass parentBinding;
 
-  BindingClass(TypeName targetTypeName, ClassName generatedClassName, boolean isFinal) {
+  BindingClass(TypeName targetTypeName, ClassName binderClassName, ClassName unbinderClassName,
+      boolean isFinal) {
     this.isFinal = isFinal;
     this.targetTypeName = targetTypeName;
-    this.generatedClassName = generatedClassName;
-    this.unbinderClassName = generatedClassName.nestedClass(UNBINDER_SIMPLE_NAME);
+    this.binderClassName = binderClassName;
+    this.unbinderClassName = unbinderClassName;
   }
 
   void addBitmap(FieldBitmapBinding binding) {
@@ -117,8 +118,8 @@ final class BindingClass {
     return viewId;
   }
 
-  JavaFile brewJava() {
-    TypeSpec.Builder result = TypeSpec.classBuilder(generatedClassName)
+  Collection<JavaFile> brewJava() {
+    TypeSpec.Builder result = TypeSpec.classBuilder(binderClassName)
         .addModifiers(PUBLIC);
     if (isFinal) {
       result.addModifiers(Modifier.FINAL);
@@ -128,27 +129,34 @@ final class BindingClass {
 
     TypeName targetType = isFinal ? targetTypeName : TypeVariableName.get("T");
     if (hasParentBinding()) {
-      result.superclass(ParameterizedTypeName.get(parentBinding.generatedClassName, targetType));
+      result.superclass(ParameterizedTypeName.get(parentBinding.binderClassName, targetType));
     } else {
       result.addSuperinterface(ParameterizedTypeName.get(VIEW_BINDER, targetType));
     }
 
     result.addMethod(createBindMethod(targetType));
 
+    List<JavaFile> files = new ArrayList<>();
     if (isGeneratingUnbinder()) {
-      result.addType(createUnbinderClass(targetType));
+      TypeSpec unbinder = createUnbinderClass(targetType);
+      files.add(JavaFile.builder(unbinderClassName.packageName(), unbinder)
+          .addFileComment("Generated code from Butter Knife. Do not modify!")
+          .build()
+      );
     } else if (!isFinal) {
       result.addMethod(createBindToTargetMethod());
     }
 
-    return JavaFile.builder(generatedClassName.packageName(), result.build())
+    files.add(JavaFile.builder(binderClassName.packageName(), result.build())
         .addFileComment("Generated code from Butter Knife. Do not modify!")
-        .build();
+        .build());
+
+    return files;
   }
 
   private TypeSpec createUnbinderClass(TypeName targetType) {
     TypeSpec.Builder result = TypeSpec.classBuilder(unbinderClassName.simpleName())
-        .addModifiers(isFinal ? PRIVATE : PROTECTED, STATIC);
+        .addModifiers(PUBLIC);
     if (isFinal) {
       result.addModifiers(Modifier.FINAL);
     } else {
@@ -171,10 +179,9 @@ final class BindingClass {
   }
 
   private MethodSpec createUnbinderConstructor(TypeName targetType) {
-    MethodSpec.Builder constructor = MethodSpec.constructorBuilder();
-    if (!isFinal) {
-      constructor.addModifiers(PROTECTED);
-    }
+    MethodSpec.Builder constructor = MethodSpec.constructorBuilder()
+        .addModifiers(PUBLIC);
+
     if (hasMethodBindings()) {
       constructor.addParameter(targetType, "target", FINAL);
     } else {
@@ -379,7 +386,7 @@ final class BindingClass {
 
   private MethodSpec createBindToTargetMethod() {
     MethodSpec.Builder result = MethodSpec.methodBuilder(BIND_TO_TARGET)
-        .addModifiers(PROTECTED, STATIC);
+        .addModifiers(PUBLIC, STATIC);
 
     if (hasMethodBindings()) {
       result.addParameter(targetTypeName, "target", FINAL);
@@ -409,7 +416,7 @@ final class BindingClass {
 
     if (!hasInheritedUnbinder() && hasParentBinding()) {
       CodeBlock.Builder invoke = CodeBlock.builder() //
-          .add("$T.$N(target", parentBinding.generatedClassName, BIND_TO_TARGET);
+          .add("$T.$N(target", parentBinding.binderClassName, BIND_TO_TARGET);
       if (parentBinding.bindNeedsFinder()) invoke.add(", finder, source");
       if (parentBinding.bindNeedsResources()) invoke.add(", res");
       if (parentBinding.bindNeedsTheme()) invoke.add(", theme");
@@ -834,6 +841,6 @@ final class BindingClass {
   }
 
   @Override public String toString() {
-    return generatedClassName.toString();
+    return binderClassName.toString();
   }
 }

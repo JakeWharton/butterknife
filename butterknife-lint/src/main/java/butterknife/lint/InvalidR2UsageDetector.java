@@ -41,7 +41,8 @@ public class InvalidR2UsageDetector extends Detector implements Detector.JavaSca
 
   @Override public boolean appliesTo(@NonNull Context context, @NonNull File file) {
     // skip generated files
-    return !file.getName().contains("$$");
+    String name = file.getName();
+    return !name.contains("_ViewBinder") && !name.contains("_ViewBinding");
   }
 
   @Override public AstVisitor createJavaVisitor(@NonNull JavaContext javaContext) {
