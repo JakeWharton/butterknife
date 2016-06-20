@@ -28,6 +28,7 @@ import butterknife.internal.ListenerMethod;
 import com.google.auto.common.SuperficialValidation;
 import com.google.auto.service.AutoService;
 import com.squareup.javapoet.ClassName;
+import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.sun.source.tree.ClassTree;
@@ -80,7 +81,6 @@ import static javax.tools.Diagnostic.Kind.ERROR;
 public final class ButterKnifeProcessor extends AbstractProcessor {
   static final Id NO_ID = new Id(-1);
   static final String VIEW_TYPE = "android.view.View";
-  private static final String BINDING_CLASS_SUFFIX = "$$ViewBinder";
   private static final String COLOR_STATE_LIST_TYPE = "android.content.res.ColorStateList";
   private static final String BITMAP_TYPE = "android.graphics.Bitmap";
   private static final String DRAWABLE_TYPE = "android.graphics.drawable.Drawable";
@@ -154,11 +154,13 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
       TypeElement typeElement = entry.getKey();
       BindingClass bindingClass = entry.getValue();
 
-      try {
-        bindingClass.brewJava().writeTo(filer);
-      } catch (IOException e) {
-        error(typeElement, "Unable to write view binder for type %s: %s", typeElement,
-            e.getMessage());
+      for (JavaFile javaFile : bindingClass.brewJava()) {
+        try {
+          javaFile.writeTo(filer);
+        } catch (IOException e) {
+          error(typeElement, "Unable to write view binder for type %s: %s", typeElement,
+              e.getMessage());
+        }
       }
     }
 
@@ -1068,12 +1070,13 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
       }
 
       String packageName = getPackageName(enclosingElement);
-      ClassName classFqcn = ClassName.get(packageName,
-          getClassName(enclosingElement, packageName) + BINDING_CLASS_SUFFIX);
+      String className = getClassName(enclosingElement, packageName);
+      ClassName binderClassName = ClassName.get(packageName, className + "_ViewBinder");
+      ClassName unbinderClassName = ClassName.get(packageName, className + "_ViewBinding");
 
       boolean isFinal = enclosingElement.getModifiers().contains(Modifier.FINAL);
 
-      bindingClass = new BindingClass(targetType, classFqcn, isFinal);
+      bindingClass = new BindingClass(targetType, binderClassName, unbinderClassName, isFinal);
       targetClassMap.put(enclosingElement, bindingClass);
     }
     return bindingClass;

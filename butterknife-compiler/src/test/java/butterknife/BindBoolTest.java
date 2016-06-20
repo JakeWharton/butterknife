@@ -19,7 +19,7 @@ public class BindBoolTest {
         + "}"
     );
 
-    JavaFileObject expectedSource = JavaFileObjects.forSourceString("test/Test$$ViewBinder", ""
+    JavaFileObject expectedSource = JavaFileObjects.forSourceString("test/Test_ViewBinder", ""
         + "package test;\n"
         + "import android.content.res.Resources;\n"
         + "import butterknife.Unbinder;\n"
@@ -28,7 +28,7 @@ public class BindBoolTest {
         + "import java.lang.Object;\n"
         + "import java.lang.Override;\n"
         + "import java.lang.SuppressWarnings;\n"
-        + "public class Test$$ViewBinder<T extends Test> implements ViewBinder<T> {\n"
+        + "public class Test_ViewBinder<T extends Test> implements ViewBinder<T> {\n"
         + "  @Override\n"
         + "  public Unbinder bind(Finder finder, T target, Object source) {\n"
         + "    Resources res = finder.getContext(source).getResources();\n"
@@ -36,7 +36,7 @@ public class BindBoolTest {
         + "    return Unbinder.EMPTY;\n"
         + "  }\n"
         + "  @SuppressWarnings(\"ResourceType\")\n"
-        + "  protected static void bindToTarget(Test target, Resources res) {\n"
+        + "  public static void bindToTarget(Test target, Resources res) {\n"
         + "    target.one = res.getBoolean(1);\n"
         + "  }\n"
         + "}"
