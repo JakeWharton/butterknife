@@ -1,5 +1,7 @@
 package butterknife.compiler;
 
+import butterknife.internal.ListenerClass;
+import butterknife.internal.ListenerMethod;
 import com.squareup.javapoet.AnnotationSpec;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
@@ -10,7 +12,6 @@ import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.TypeVariableName;
 import com.squareup.javapoet.WildcardTypeName;
-
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -20,11 +21,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import javax.lang.model.element.Modifier;
-
-import butterknife.internal.ListenerClass;
-import butterknife.internal.ListenerMethod;
 
 import static butterknife.compiler.ButterKnifeProcessor.VIEW_TYPE;
 import static java.util.Collections.singletonList;
@@ -119,26 +115,14 @@ final class BindingClass {
 
   Collection<JavaFile> brewJava() {
     TypeSpec.Builder result = TypeSpec.classBuilder(binderClassName)
-        .addModifiers(PUBLIC);
-    if (isFinal) {
-      result.addModifiers(Modifier.FINAL);
-    } else {
-      result.addTypeVariable(TypeVariableName.get("T", targetTypeName));
-    }
+        .addModifiers(PUBLIC, FINAL)
+        .addSuperinterface(ParameterizedTypeName.get(VIEW_BINDER, targetTypeName));
 
-    TypeName targetType = isFinal ? targetTypeName : TypeVariableName.get("T");
-    if (hasParentBinding()) {
-      result.superclass(ParameterizedTypeName.get(parentBinding.binderClassName, targetType));
-    } else {
-      result.addSuperinterface(ParameterizedTypeName.get(VIEW_BINDER, targetType));
-    }
-
-    result.addMethod(createBindMethod(targetType));
+    result.addMethod(createBindMethod(targetTypeName));
 
     List<JavaFile> files = new ArrayList<>();
     if (isGeneratingUnbinder()) {
-      TypeSpec unbinder = createUnbinderClass(targetType);
-      files.add(JavaFile.builder(unbinderClassName.packageName(), unbinder)
+      files.add(JavaFile.builder(unbinderClassName.packageName(), createUnbinderClass())
           .addFileComment("Generated code from Butter Knife. Do not modify!")
           .build()
       );
@@ -153,12 +137,16 @@ final class BindingClass {
     return files;
   }
 
-  private TypeSpec createUnbinderClass(TypeName targetType) {
+  private TypeSpec createUnbinderClass() {
     TypeSpec.Builder result = TypeSpec.classBuilder(unbinderClassName.simpleName())
         .addModifiers(PUBLIC);
+
+    TypeName targetType;
     if (isFinal) {
-      result.addModifiers(Modifier.FINAL);
+      result.addModifiers(FINAL);
+      targetType = targetTypeName;
     } else {
+      targetType = TypeVariableName.get("T");
       result.addTypeVariable(TypeVariableName.get("T", targetTypeName));
     }
 
