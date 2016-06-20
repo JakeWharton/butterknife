@@ -1,7 +1,5 @@
 package butterknife.compiler;
 
-import butterknife.internal.ListenerClass;
-import butterknife.internal.ListenerMethod;
 import com.squareup.javapoet.AnnotationSpec;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
@@ -12,6 +10,7 @@ import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.TypeVariableName;
 import com.squareup.javapoet.WildcardTypeName;
+
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -21,7 +20,11 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import javax.lang.model.element.Modifier;
+
+import butterknife.internal.ListenerClass;
+import butterknife.internal.ListenerMethod;
 
 import static butterknife.compiler.ButterKnifeProcessor.VIEW_TYPE;
 import static java.util.Collections.singletonList;
@@ -438,7 +441,7 @@ final class BindingClass {
     if (hasResourceBindings()) {
       for (FieldBitmapBinding binding : bitmapBindings) {
         result.addStatement("target.$L = $T.decodeResource(res, $L)", binding.getName(),
-            BITMAP_FACTORY, binding.getId());
+            BITMAP_FACTORY, binding.getId().code);
       }
 
       for (FieldDrawableBinding binding : drawableBindings) {
@@ -491,10 +494,10 @@ final class BindingClass {
         builder.add("($T) ", binding.getType());
       }
       if (binding.isRequired()) {
-        builder.add("finder.findRequiredView(source, $L, $S)", ids.get(i),
+        builder.add("finder.findRequiredView(source, $L, $S)", ids.get(i).code,
             asHumanDescription(singletonList(binding)));
       } else {
-        builder.add("finder.findOptionalView(source, $L)", ids.get(i));
+        builder.add("finder.findOptionalView(source, $L)", ids.get(i).code);
       }
     }
 
@@ -511,7 +514,7 @@ final class BindingClass {
       if (requiresCast(fieldBinding.getType())) {
         invoke.add("AsType");
       }
-      invoke.add("(source, $L", bindings.getId());
+      invoke.add("(source, $L", bindings.getId().code);
       if (fieldBinding.isRequired() || requiresCast(fieldBinding.getType())) {
         invoke.add(", $S", asHumanDescription(singletonList(fieldBinding)));
       }
@@ -524,9 +527,9 @@ final class BindingClass {
 
     List<ViewBinding> requiredViewBindings = bindings.getRequiredBindings();
     if (requiredViewBindings.isEmpty()) {
-      result.addStatement("view = finder.findOptionalView(source, $L)", bindings.getId());
+      result.addStatement("view = finder.findOptionalView(source, $L)", bindings.getId().code);
     } else if (!bindings.isBoundToRoot()) {
-      result.addStatement("view = finder.findRequiredView(source, $L, $S)", bindings.getId(),
+      result.addStatement("view = finder.findRequiredView(source, $L, $S)", bindings.getId().code,
           asHumanDescription(requiredViewBindings));
     }
 
@@ -539,7 +542,7 @@ final class BindingClass {
     if (fieldBinding != null) {
       if (requiresCast(fieldBinding.getType())) {
         result.addStatement("target.$L = finder.castView(view, $L, $S)", fieldBinding.getName(),
-            bindings.getId(), asHumanDescription(singletonList(fieldBinding)));
+            bindings.getId().code, asHumanDescription(singletonList(fieldBinding)));
       } else {
         result.addStatement("target.$L = view", fieldBinding.getName());
       }
