@@ -262,7 +262,7 @@ final class BindingClass {
 
     String fieldName = "target";
     if (!bindings.isBoundToRoot()) {
-      fieldName = "view" + bindings.getId();
+      fieldName = "view" + bindings.getId().value;
       result.addField(VIEW, fieldName, PRIVATE);
     }
 
@@ -560,7 +560,7 @@ final class BindingClass {
     String fieldName = "target";
     String bindName = "target";
     if (!bindings.isBoundToRoot()) {
-      fieldName = "view" + bindings.getId();
+      fieldName = "view" + bindings.getId().value;
       bindName = "view";
 
       if (isGeneratingUnbinder()) {
