@@ -25,7 +25,7 @@ public class BindViewsTest {
 
     assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
-        .compilesWithoutError();
+        .compilesWithoutWarnings();
   }
 
   @Test public void bindingArray() {
@@ -83,7 +83,7 @@ public class BindViewsTest {
 
     assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
-        .compilesWithoutError()
+        .compilesWithoutWarnings()
         .and()
         .generatesSources(binderSource, bindingSource);
   }
@@ -204,7 +204,7 @@ public class BindViewsTest {
 
     assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
-        .compilesWithoutError()
+        .compilesWithoutWarnings()
         .and()
         .generatesSources(binderSource, bindingSource);
   }
@@ -265,7 +265,7 @@ public class BindViewsTest {
 
     assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
-        .compilesWithoutError()
+        .compilesWithoutWarnings()
         .and()
         .generatesSources(binderSource, bindingSource);
   }
@@ -326,7 +326,7 @@ public class BindViewsTest {
 
     assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
-        .compilesWithoutError()
+        .compilesWithoutWarnings()
         .and()
         .generatesSources(binderSource, bindingSource);
   }

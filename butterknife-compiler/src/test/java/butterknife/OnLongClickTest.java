@@ -72,7 +72,7 @@ public class OnLongClickTest {
 
     assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
-        .compilesWithoutError()
+        .compilesWithoutWarnings()
         .and()
         .generatesSources(binderSource, bindingSource);
   }

@@ -17,6 +17,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static com.google.common.truth.Truth.assertThat;
+import static java.util.Arrays.asList;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(manifest = Config.NONE)
@@ -69,7 +70,7 @@ public class ButterKnifeTest {
     assertThat(view2.isEnabled()).isTrue();
     assertThat(view3.isEnabled()).isTrue();
 
-    List<View> views = Arrays.asList(view1, view2, view3);
+    List<View> views = asList(view1, view2, view3);
     ButterKnife.apply(views, PROPERTY_ENABLED, false);
 
     assertThat(view1.isEnabled()).isFalse();
@@ -120,7 +121,7 @@ public class ButterKnifeTest {
     assertThat(view2.isEnabled()).isTrue();
     assertThat(view3.isEnabled()).isTrue();
 
-    List<View> views = Arrays.asList(view1, view2, view3);
+    List<View> views = asList(view1, view2, view3);
     ButterKnife.apply(views, ACTION_DISABLE);
 
     assertThat(view1.isEnabled()).isFalse();
@@ -155,7 +156,7 @@ public class ButterKnifeTest {
     assertThat(view2.getAlpha()).isEqualTo(1f);
     assertThat(view3.getAlpha()).isEqualTo(1f);
 
-    List<View> views = Arrays.asList(view1, view2, view3);
+    List<View> views = asList(view1, view2, view3);
     ButterKnife.apply(views, ACTION_DISABLE, ACTION_ZERO_ALPHA);
 
     assertThat(view1.isEnabled()).isFalse();
@@ -205,7 +206,7 @@ public class ButterKnifeTest {
     assertThat(view2.isEnabled()).isTrue();
     assertThat(view3.isEnabled()).isTrue();
 
-    List<View> views = Arrays.asList(view1, view2, view3);
+    List<View> views = asList(view1, view2, view3);
     ButterKnife.apply(views, SETTER_ENABLED, false);
 
     assertThat(view1.isEnabled()).isFalse();

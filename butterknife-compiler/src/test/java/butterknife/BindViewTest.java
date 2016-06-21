@@ -2,13 +2,13 @@ package butterknife;
 
 import butterknife.compiler.ButterKnifeProcessor;
 import com.google.testing.compile.JavaFileObjects;
-import java.util.Arrays;
 import javax.tools.JavaFileObject;
 import org.junit.Test;
 
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.testing.compile.JavaSourceSubjectFactory.javaSource;
 import static com.google.testing.compile.JavaSourcesSubjectFactory.javaSources;
+import static java.util.Arrays.asList;
 
 public class BindViewTest {
   @Test public void bindingView() {
@@ -62,7 +62,7 @@ public class BindViewTest {
 
     assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
-        .compilesWithoutError()
+        .compilesWithoutWarnings()
         .and()
         .generatesSources(binderSource, bindingSource);
   }
@@ -118,7 +118,7 @@ public class BindViewTest {
 
     assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
-        .compilesWithoutError()
+        .compilesWithoutWarnings()
         .and()
         .generatesSources(binderSource, bindingSource);
   }
@@ -214,9 +214,9 @@ public class BindViewTest {
         + "}"
     );
 
-    assertAbout(javaSources()).that(Arrays.asList(baseSource, testSource))
+    assertAbout(javaSources()).that(asList(baseSource, testSource))
         .processedWith(new ButterKnifeProcessor())
-        .compilesWithoutError()
+        .compilesWithoutWarnings()
         .and()
         .generatesSources(binderBaseSource, bindingBaseSource, binderTestSource, bindingTestSource);
   }
@@ -274,7 +274,7 @@ public class BindViewTest {
 
     assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
-        .compilesWithoutError()
+        .compilesWithoutWarnings()
         .and()
         .generatesSources(binderSource, bindingSource);
   }
@@ -330,7 +330,7 @@ public class BindViewTest {
 
     assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
-        .compilesWithoutError()
+        .compilesWithoutWarnings()
         .and()
         .generatesSources(binderSource, bindingSource);
   }
@@ -387,7 +387,7 @@ public class BindViewTest {
 
     assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
-        .compilesWithoutError()
+        .compilesWithoutWarnings()
         .and()
         .generatesSources(binderSource, bindingSource);
   }
@@ -517,7 +517,7 @@ public class BindViewTest {
 
     assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
-        .compilesWithoutError()
+        .compilesWithoutWarnings()
         .and()
         .generatesSources(binderSource, bindingSource);
   }
@@ -537,7 +537,7 @@ public class BindViewTest {
 
     assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
-        .compilesWithoutError();
+        .compilesWithoutWarnings();
   }
 
   @Test public void nullable() {
@@ -598,18 +598,28 @@ public class BindViewTest {
   }
 
   @Test public void superclass() {
-    JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
+    JavaFileObject source1 = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
         + "import android.app.Activity;\n"
         + "import android.view.View;\n"
         + "import butterknife.BindView;\n"
         + "public class Test extends Activity {\n"
         + "  @BindView(1) View view;\n"
-        + "}\n"
-        + "class TestOne extends Test {\n"
+        + "}"
+    );
+
+    JavaFileObject source2 = JavaFileObjects.forSourceString("test.TestOne", ""
+        + "package test;\n"
+        + "import android.view.View;\n"
+        + "import butterknife.BindView;\n"
+        + "public class TestOne extends Test {\n"
         + "  @BindView(1) View thing;\n"
-        + "}\n"
-        + "class TestTwo extends Test {\n"
+        + "}"
+    );
+
+    JavaFileObject source3 = JavaFileObjects.forSourceString("test.TestTwo", ""
+        + "package test;\n"
+        + "public class TestTwo extends Test {\n"
         + "}"
     );
 
@@ -685,29 +695,38 @@ public class BindViewTest {
         + "}"
     );
 
-    assertAbout(javaSource()).that(source)
+    assertAbout(javaSources()).that(asList(source1, source2, source3))
         .processedWith(new ButterKnifeProcessor())
-        .compilesWithoutError()
+        .compilesWithoutWarnings()
         .and()
         .generatesSources(binder1Source, binding1Source, binder2Source, binding2Source);
   }
 
   @Test public void genericSuperclass() {
-    JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
+    JavaFileObject source1 = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
         + "import android.app.Activity;\n"
         + "import android.view.View;\n"
         + "import butterknife.BindView;\n"
         + "public class Test<T> extends Activity {\n"
         + "  @BindView(1) View view;\n"
-        + "}\n"
-        + "class TestOne extends Test<String> {\n"
-        + "  @BindView(1) View thing;\n"
-        + "}\n"
-        + "class TestTwo extends Test<Object> {\n"
         + "}"
     );
 
+    JavaFileObject source2 = JavaFileObjects.forSourceString("test.TestOne", ""
+        + "package test;\n"
+        + "import android.view.View;\n"
+        + "import butterknife.BindView;\n"
+        + "public class TestOne extends Test<String> {\n"
+        + "  @BindView(1) View thing;\n"
+        + "}"
+    );
+
+    JavaFileObject source3 = JavaFileObjects.forSourceString("test.TestTwo", ""
+        + "package test;\n"
+        + "public class TestTwo extends Test<Object> {\n"
+        + "}"
+    );
     JavaFileObject binder1Source = JavaFileObjects.forSourceString("test/Test_ViewBinder", ""
         + "package test;\n"
         + "import butterknife.Unbinder;\n"
@@ -780,7 +799,7 @@ public class BindViewTest {
         + "}"
     );
 
-    assertAbout(javaSource()).that(source)
+    assertAbout(javaSources()).that(asList(source1, source2, source3))
         .processedWith(new ButterKnifeProcessor())
         .compilesWithoutError()
         .and()
@@ -874,7 +893,8 @@ public class BindViewTest {
     assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
         .failsToCompile()
-        .withErrorContaining("@BindView fields may only be contained in classes. (test.Test.thing)")
+        .withErrorContaining(
+            "@BindView fields may only be contained in classes. (test.Test.thing)")
         .in(source).onLine(4);
   }
 
@@ -979,7 +999,7 @@ public class BindViewTest {
         .processedWith(new ButterKnifeProcessor())
         .failsToCompile()
         .withErrorContaining(
-            ("ID-free binding must not be annotated with @Optional. (test.Test.doStuff)"))
+            "ID-free binding must not be annotated with @Optional. (test.Test.doStuff)")
         .in(source)
         .onLine(7);
   }

@@ -90,7 +90,7 @@ public class UnbinderTest {
 
     assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
-        .compilesWithoutError()
+        .compilesWithoutWarnings()
         .and()
         .generatesSources(binderSource, bindingSource);
   }
@@ -167,16 +167,25 @@ public class UnbinderTest {
   }
 
   @Test public void childBindsSecondUnbinder() {
-    JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
+    JavaFileObject source1 = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
         + "import android.app.Activity;\n"
         + "import butterknife.OnClick;\n"
         + "public class Test extends Activity {\n"
         + "  @OnClick(1) void doStuff1() {}\n"
-        + "}\n"
-        + "class TestOne extends Test {\n"
+        + "}"
+    );
+
+    JavaFileObject source2 = JavaFileObjects.forSourceString("test.TestOne", ""
+        + "package test;\n"
+        + "import butterknife.OnClick;\n"
+        + "public class TestOne extends Test {\n"
         + "  @OnClick(1) void doStuff2() {}\n"
-        + "}\n"
+        + "}"
+    );
+
+    JavaFileObject source3 = JavaFileObjects.forSourceString("test.TestTwo", ""
+        + "package test;\n"
         + "class TestTwo extends Test {}"
     );
 
@@ -274,22 +283,27 @@ public class UnbinderTest {
         + "}"
     );
 
-    assertAbout(javaSource()).that(source)
+    assertAbout(javaSources()).that(asList(source1, source2, source3))
         .processedWith(new ButterKnifeProcessor())
-        .compilesWithoutError()
+        .compilesWithoutWarnings()
         .and()
         .generatesSources(binder1Source, binding1Source, binder2Source, binding2Source);
   }
 
   @Test public void childUsesOwnUnbinder() {
-    JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
+    JavaFileObject source1 = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
         + "import android.app.Activity;\n"
         + "import butterknife.OnClick;\n"
         + "public class Test extends Activity {\n"
         + "  @OnClick(1) void doStuff1() { }\n"
-        + "}\n"
-        + "class TestOne extends Test {\n"
+        + "}"
+    );
+
+    JavaFileObject source2 = JavaFileObjects.forSourceString("test.TestOne", ""
+        + "package test;\n"
+        + "import butterknife.OnClick;\n"
+        + "public class TestOne extends Test {\n"
         + "  @OnClick(1) void doStuff2() { }\n"
         + "}"
     );
@@ -388,9 +402,9 @@ public class UnbinderTest {
         + "}"
     );
 
-    assertAbout(javaSource()).that(source)
+    assertAbout(javaSources()).that(asList(source1, source2))
         .processedWith(new ButterKnifeProcessor())
-        .compilesWithoutError()
+        .compilesWithoutWarnings()
         .and()
         .generatesSources(binder1Source, binding1Source, binder2Source, binding2Source);
   }
@@ -512,21 +526,30 @@ public class UnbinderTest {
 
     assertAbout(javaSources()).that(asList(source1, source2))
         .processedWith(new ButterKnifeProcessor())
-        .compilesWithoutError()
+        .compilesWithoutWarnings()
         .and()
         .generatesSources(binder1Source, binding1Source, binder2Source, binding2Source);
   }
 
   @Test public void unbindingThroughAbstractChild() {
-    JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
+    JavaFileObject source1 = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
         + "import android.app.Activity;\n"
         + "import butterknife.OnClick;\n"
         + "public class Test extends Activity {\n"
         + "  @OnClick(1) void doStuff1() { }\n"
-        + "}\n"
-        + "class TestOne extends Test {\n"
-        + "}\n"
+        + "}"
+    );
+
+    JavaFileObject source2 = JavaFileObjects.forSourceString("test.TestOne", ""
+        + "package test;\n"
+        + "public class TestOne extends Test {\n"
+        + "}"
+    );
+
+    JavaFileObject source3 = JavaFileObjects.forSourceString("test.TestTwo", ""
+        + "package test;\n"
+        + "import butterknife.OnClick;\n"
         + "class TestTwo extends TestOne {\n"
         + "  @OnClick(1) void doStuff2() { }\n"
         + "}"
@@ -626,9 +649,9 @@ public class UnbinderTest {
         + "}"
     );
 
-    assertAbout(javaSource()).that(source)
+    assertAbout(javaSources()).that(asList(source1, source2, source3))
         .processedWith(new ButterKnifeProcessor())
-        .compilesWithoutError()
+        .compilesWithoutWarnings()
         .and()
         .generatesSources(binder1Source, binding1Source, binder2Source, binding2Source);
   }
