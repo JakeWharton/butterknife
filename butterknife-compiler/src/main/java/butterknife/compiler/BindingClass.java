@@ -626,7 +626,7 @@ final class BindingClass {
       if (requiresRemoval) {
         TypeName listenerClassName = bestGuess(listener.type());
         listenerField = fieldName + ((ClassName) listenerClassName).simpleName();
-        result.addStatement("this.$L = $L", listenerField, callback.build());
+        result.addStatement("$L = $L", listenerField, callback.build());
       }
 
       if (!VIEW_TYPE.equals(listener.targetType())) {
