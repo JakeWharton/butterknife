@@ -55,7 +55,7 @@ public class OnTextChangedTest {
         + "    View view;\n"
         + "    view = finder.findRequiredView(source, 1, \"method 'doStuff'\");\n"
         + "    view1 = view;\n"
-        + "    this.view1TextWatcher = new TextWatcher() {\n"
+        + "    view1TextWatcher = new TextWatcher() {\n"
         + "      @Override\n"
         + "      public void onTextChanged(CharSequence p0, int p1, int p2, int p3) {\n"
         + "        target.doStuff();\n"
