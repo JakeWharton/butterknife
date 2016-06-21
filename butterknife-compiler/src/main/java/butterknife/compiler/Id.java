@@ -32,6 +32,6 @@ final class Id {
   }
 
   @Override public String toString() {
-    return String.valueOf(value);
+    throw new UnsupportedOperationException("Please use value or code explicitly");
   }
 }
