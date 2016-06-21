@@ -68,7 +68,6 @@ public class OnTouchTest {
         + "}"
     );
 
-
     assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
         .compilesWithoutError()
