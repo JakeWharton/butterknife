@@ -1,13 +1,9 @@
 package butterknife;
 
-import com.google.common.base.Joiner;
-import com.google.testing.compile.JavaFileObjects;
-
-import org.junit.Test;
-
-import javax.tools.JavaFileObject;
-
 import butterknife.compiler.ButterKnifeProcessor;
+import com.google.testing.compile.JavaFileObjects;
+import javax.tools.JavaFileObject;
+import org.junit.Test;
 
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.testing.compile.JavaSourceSubjectFactory.javaSource;
@@ -364,14 +360,15 @@ public class OnItemClickTest {
   }
 
   @Test public void failsWithInvalidId() {
-    JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
-        "package test;",
-        "import android.content.Context;",
-        "import android.app.Activity;",
-        "import butterknife.OnItemClick;",
-        "public class Test extends Activity {",
-        "  @OnItemClick({1, -1}) void doStuff() {}",
-        "}"));
+    JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
+        + "package test;\n"
+        + "import android.content.Context;\n"
+        + "import android.app.Activity;\n"
+        + "import butterknife.OnItemClick;\n"
+        + "public class Test extends Activity {\n"
+        + "  @OnItemClick({1, -1}) void doStuff() {}\n"
+        + "}"
+    );
 
     assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
@@ -381,43 +378,44 @@ public class OnItemClickTest {
   }
 
   @Test public void failsWithInvalidParameterConfiguration() {
-    JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
-        "package test;",
-        "import android.app.Activity;",
-        "import android.view.View;",
-        "import android.widget.AdapterView;",
-        "import butterknife.OnItemClick;",
-        "public class Test extends Activity {",
-        "  @OnItemClick(1) void doStuff(",
-        "    AdapterView<?> parent,",
-        "    View view,",
-        "    View whatIsThis",
-        "  ) {}",
-        "}"));
+    JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
+        + "package test;\n"
+        + "import android.app.Activity;\n"
+        + "import android.view.View;\n"
+        + "import android.widget.AdapterView;\n"
+        + "import butterknife.OnItemClick;\n"
+        + "public class Test extends Activity {\n"
+        + "  @OnItemClick(1) void doStuff(\n"
+        + "    AdapterView<?> parent,\n"
+        + "    View view,\n"
+        + "    View whatIsThis\n"
+        + "  ) {}\n"
+        + "}"
+    );
 
     assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
         .failsToCompile()
-        .withErrorContaining(Joiner.on('\n').join(
-            "Unable to match @OnItemClick method arguments. (test.Test.doStuff)",
-            "  ",
-            "    Parameter #1: android.widget.AdapterView<?>",
-            "      matched listener parameter #1: android.widget.AdapterView<?>",
-            "  ",
-            "    Parameter #2: android.view.View",
-            "      matched listener parameter #2: android.view.View",
-            "  ",
-            "    Parameter #3: android.view.View",
-            "      did not match any listener parameters",
-            "  ",
-            "  Methods may have up to 4 parameter(s):",
-            "  ",
-            "    android.widget.AdapterView<?>",
-            "    android.view.View",
-            "    int",
-            "    long",
-            "  ",
-            "  These may be listed in any order but will be searched for from top to bottom."))
+        .withErrorContaining(""
+            + "Unable to match @OnItemClick method arguments. (test.Test.doStuff)\n"
+            + "  \n"
+            + "    Parameter #1: android.widget.AdapterView<?>\n"
+            + "      matched listener parameter #1: android.widget.AdapterView<?>\n"
+            + "  \n"
+            + "    Parameter #2: android.view.View\n"
+            + "      matched listener parameter #2: android.view.View\n"
+            + "  \n"
+            + "    Parameter #3: android.view.View\n"
+            + "      did not match any listener parameters\n"
+            + "  \n"
+            + "  Methods may have up to 4 parameter(s):\n"
+            + "  \n"
+            + "    android.widget.AdapterView<?>\n"
+            + "    android.view.View\n"
+            + "    int\n"
+            + "    long\n"
+            + "  \n"
+            + "  These may be listed in any order but will be searched for from top to bottom.")
         .in(source).onLine(7);
   }
 }

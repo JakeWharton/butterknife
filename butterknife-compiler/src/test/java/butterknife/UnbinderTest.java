@@ -1,11 +1,9 @@
 package butterknife;
 
 import butterknife.compiler.ButterKnifeProcessor;
-import com.google.common.base.Joiner;
 import com.google.testing.compile.JavaFileObjects;
-import org.junit.Test;
-
 import javax.tools.JavaFileObject;
+import org.junit.Test;
 
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.testing.compile.JavaSourceSubjectFactory.javaSource;
@@ -19,10 +17,8 @@ public class UnbinderTest {
         + "import android.support.v4.app.Fragment;\n"
         + "import android.view.View;\n"
         + "import butterknife.BindView;\n"
-        + "import butterknife.ButterKnife;\n"
         + "import butterknife.OnClick;\n"
         + "import butterknife.OnLongClick;\n"
-        + "import butterknife.Unbinder;\n"
         + "public class Test extends Fragment {\n"
         + "  @BindView(1) View view;\n"
         + "  @BindView(2) View view2;\n"
@@ -103,10 +99,8 @@ public class UnbinderTest {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
         + "import android.support.v4.app.Fragment;\n"
-        + "import butterknife.ButterKnife;\n"
         + "import butterknife.OnClick;\n"
         + "import butterknife.Optional;\n"
-        + "import butterknife.Unbinder;\n"
         + "public class Test extends Fragment {\n"
         + "  @Optional @OnClick(1) void doStuff() {}\n"
         + "}"
@@ -176,9 +170,7 @@ public class UnbinderTest {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
         + "import android.support.v4.app.Fragment;\n"
-        + "import butterknife.ButterKnife;\n"
         + "import butterknife.OnClick;\n"
-        + "import butterknife.Unbinder;\n"
         + "public class Test extends Fragment {\n"
         + "  @OnClick(1) void doStuff1() {}\n"
         + "}\n"
@@ -290,21 +282,17 @@ public class UnbinderTest {
   }
 
   @Test public void childUsesOwnUnbinder() {
-    JavaFileObject source = JavaFileObjects.forSourceString("test.Test",
-        Joiner.on('\n')
-            .join(
-                "package test;",
-                "import android.support.v4.app.Fragment;",
-                "import butterknife.ButterKnife;",
-                "import butterknife.OnClick;",
-                "import butterknife.Unbinder;",
-                "public class Test extends Fragment {",
-                "  @OnClick(1) void doStuff1() { }",
-                "}",
-                "class TestOne extends Test {",
-                "  @OnClick(1) void doStuff2() { }",
-                "}"
-            ));
+    JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
+        + "package test;\n"
+        + "import android.support.v4.app.Fragment;\n"
+        + "import butterknife.OnClick;\n"
+        + "public class Test extends Fragment {\n"
+        + "  @OnClick(1) void doStuff1() { }\n"
+        + "}\n"
+        + "class TestOne extends Test {\n"
+        + "  @OnClick(1) void doStuff2() { }\n"
+        + "}"
+    );
 
     JavaFileObject binder1Source = JavaFileObjects.forSourceString("test/Test_ViewBinder", ""
         + "package test;\n"
@@ -408,29 +396,23 @@ public class UnbinderTest {
   }
 
   @Test public void childInDifferentPackage() {
-    JavaFileObject source1 = JavaFileObjects.forSourceString("test.Test",
-        Joiner.on('\n')
-            .join(
-                "package test;",
-                "import android.support.v4.app.Fragment;",
-                "import butterknife.ButterKnife;",
-                "import butterknife.OnClick;",
-                "import butterknife.Unbinder;",
-                "public class Test extends Fragment {",
-                "  @OnClick(1) void doStuff1() { }",
-                "}"
-            ));
+    JavaFileObject source1 = JavaFileObjects.forSourceString("test.Test", ""
+        + "package test;\n"
+        + "import android.support.v4.app.Fragment;\n"
+        + "import butterknife.OnClick;\n"
+        + "public class Test extends Fragment {\n"
+        + "  @OnClick(1) void doStuff1() { }\n"
+        + "}"
+    );
 
-    JavaFileObject source2 = JavaFileObjects.forSourceString("test.one.TestOne",
-        Joiner.on('\n')
-            .join(
-                "package test.one;",
-                "import test.Test;",
-                "import butterknife.OnClick;",
-                "class TestOne extends Test {",
-                "  @OnClick(2) void doStuff2() { }",
-                "}"
-            ));
+    JavaFileObject source2 = JavaFileObjects.forSourceString("test.one.TestOne", ""
+        + "package test.one;\n"
+        + "import test.Test;\n"
+        + "import butterknife.OnClick;\n"
+        + "class TestOne extends Test {\n"
+        + "  @OnClick(2) void doStuff2() { }\n"
+        + "}"
+    );
 
     JavaFileObject binder1Source = JavaFileObjects.forSourceString("test/Test_ViewBinder", ""
         + "package test;\n"
@@ -496,36 +478,37 @@ public class UnbinderTest {
         + "}"
     );
 
-    JavaFileObject binding2Source = JavaFileObjects.forSourceString("test/one/TestOne_ViewBinding", ""
-        + "package test.one;\n"
-        + "import android.view.View;\n"
-        + "import butterknife.internal.DebouncingOnClickListener;\n"
-        + "import butterknife.internal.Finder;\n"
-        + "import java.lang.Object;\n"
-        + "import java.lang.Override;\n"
-        + "import test.Test_ViewBinding;\n"
-        + "public class TestOne_ViewBinding<T extends TestOne> extends Test_ViewBinding<T> {\n"
-        + "  private View view2;\n"
-        + "  public TestOne_ViewBinding(final T target, Finder finder, Object source) {\n"
-        + "    super(target, finder, source);\n"
-        + "    View view;\n"
-        + "    view = finder.findRequiredView(source, 2, \"method 'doStuff2'\");\n"
-        + "    view2 = view;\n"
-        + "    view.setOnClickListener(new DebouncingOnClickListener() {\n"
-        + "      @Override\n"
-        + "      public void doClick(View p0) {\n"
-        + "        target.doStuff2();\n"
-        + "      }\n"
-        + "    });\n"
-        + "  }\n"
-        + "  @Override\n"
-        + "  public void unbind() {\n"
-        + "    super.unbind();\n"
-        + "    view2.setOnClickListener(null);\n"
-        + "    view2 = null;\n"
-        + "  }\n"
-        + "}"
-    );
+    JavaFileObject binding2Source =
+        JavaFileObjects.forSourceString("test/one/TestOne_ViewBinding", ""
+            + "package test.one;\n"
+            + "import android.view.View;\n"
+            + "import butterknife.internal.DebouncingOnClickListener;\n"
+            + "import butterknife.internal.Finder;\n"
+            + "import java.lang.Object;\n"
+            + "import java.lang.Override;\n"
+            + "import test.Test_ViewBinding;\n"
+            + "public class TestOne_ViewBinding<T extends TestOne> extends Test_ViewBinding<T> {\n"
+            + "  private View view2;\n"
+            + "  public TestOne_ViewBinding(final T target, Finder finder, Object source) {\n"
+            + "    super(target, finder, source);\n"
+            + "    View view;\n"
+            + "    view = finder.findRequiredView(source, 2, \"method 'doStuff2'\");\n"
+            + "    view2 = view;\n"
+            + "    view.setOnClickListener(new DebouncingOnClickListener() {\n"
+            + "      @Override\n"
+            + "      public void doClick(View p0) {\n"
+            + "        target.doStuff2();\n"
+            + "      }\n"
+            + "    });\n"
+            + "  }\n"
+            + "  @Override\n"
+            + "  public void unbind() {\n"
+            + "    super.unbind();\n"
+            + "    view2.setOnClickListener(null);\n"
+            + "    view2 = null;\n"
+            + "  }\n"
+            + "}"
+        );
 
     assertAbout(javaSources()).that(asList(source1, source2))
         .processedWith(new ButterKnifeProcessor())
@@ -535,23 +518,19 @@ public class UnbinderTest {
   }
 
   @Test public void unbindingThroughAbstractChild() {
-    JavaFileObject source = JavaFileObjects.forSourceString("test.Test",
-        Joiner.on('\n')
-            .join(
-                "package test;",
-                "import android.support.v4.app.Fragment;",
-                "import butterknife.ButterKnife;",
-                "import butterknife.OnClick;",
-                "import butterknife.Unbinder;",
-                "public class Test extends Fragment {",
-                "  @OnClick(1) void doStuff1() { }",
-                "}",
-                "class TestOne extends Test {",
-                "}",
-                "class TestTwo extends TestOne {",
-                "  @OnClick(1) void doStuff2() { }",
-                "}"
-            ));
+    JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
+        + "package test;\n"
+        + "import android.support.v4.app.Fragment;\n"
+        + "import butterknife.OnClick;\n"
+        + "public class Test extends Fragment {\n"
+        + "  @OnClick(1) void doStuff1() { }\n"
+        + "}\n"
+        + "class TestOne extends Test {\n"
+        + "}\n"
+        + "class TestTwo extends TestOne {\n"
+        + "  @OnClick(1) void doStuff2() { }\n"
+        + "}"
+    );
 
     JavaFileObject binder1Source = JavaFileObjects.forSourceString("test/Test_ViewBinder", ""
         + "package test;\n"

@@ -1,13 +1,9 @@
 package butterknife;
 
-import com.google.common.base.Joiner;
-import com.google.testing.compile.JavaFileObjects;
-
-import org.junit.Test;
-
-import javax.tools.JavaFileObject;
-
 import butterknife.compiler.ButterKnifeProcessor;
+import com.google.testing.compile.JavaFileObjects;
+import javax.tools.JavaFileObject;
+import org.junit.Test;
 
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.testing.compile.JavaSourceSubjectFactory.javaSource;
@@ -300,17 +296,17 @@ public class OnClickTest {
   }
 
   @Test public void methodVisibility() {
-    JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
-        "package test;",
-        "import android.app.Activity;",
-        "import android.view.View;",
-        "import butterknife.OnClick;",
-        "public class Test extends Activity {",
-        "  @OnClick(1) public void thing1() {}",
-        "  @OnClick(2) void thing2() {}",
-        "  @OnClick(3) protected void thing3() {}",
-        "}"
-    ));
+    JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
+        + "package test;\n"
+        + "import android.app.Activity;\n"
+        + "import android.view.View;\n"
+        + "import butterknife.OnClick;\n"
+        + "public class Test extends Activity {\n"
+        + "  @OnClick(1) public void thing1() {}\n"
+        + "  @OnClick(2) void thing2() {}\n"
+        + "  @OnClick(3) protected void thing3() {}\n"
+        + "}"
+    );
 
     assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
@@ -527,14 +523,14 @@ public class OnClickTest {
   }
 
   @Test public void nullable() {
-    JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
-        "package test;",
-        "import android.app.Activity;",
-        "import butterknife.OnClick;",
-        "import butterknife.Optional;",
-        "public class Test extends Activity {",
-        "  @Optional @OnClick(1) void doStuff() {}",
-        "}"));
+    JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
+        + "package test;\n"
+        + "import android.app.Activity;\n"
+        + "import butterknife.OnClick;\n"
+        + "import butterknife.Optional;\n"
+        + "public class Test extends Activity {\n"
+        + "  @Optional @OnClick(1) void doStuff() {}\n"
+        + "}");
 
     JavaFileObject binderSource = JavaFileObjects.forSourceString("test/Test_ViewBinder", ""
         + "package test;\n"
@@ -597,17 +593,18 @@ public class OnClickTest {
   }
 
   @Test public void optionalAndRequiredSkipsNullCheck() {
-    JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
-        "package test;",
-        "import android.app.Activity;",
-        "import android.view.View;",
-        "import butterknife.BindView;",
-        "import butterknife.OnClick;",
-        "import butterknife.Optional;",
-        "public class Test extends Activity {",
-        "  @BindView(1) View view;",
-        "  @Optional @OnClick(1) void doStuff() {}",
-        "}"));
+    JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
+        + "package test;\n"
+        + "import android.app.Activity;\n"
+        + "import android.view.View;\n"
+        + "import butterknife.BindView;\n"
+        + "import butterknife.OnClick;\n"
+        + "import butterknife.Optional;\n"
+        + "public class Test extends Activity {\n"
+        + "  @BindView(1) View view;\n"
+        + "  @Optional @OnClick(1) void doStuff() {}\n"
+        + "}"
+    );
 
     JavaFileObject binderSource = JavaFileObjects.forSourceString("test/Test_ViewBinder", ""
         + "package test;\n"
@@ -669,13 +666,13 @@ public class OnClickTest {
   }
 
   @Test public void failsInJavaPackage() {
-    JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
-        "package java.test;",
-        "import butterknife.OnClick;",
-        "public class Test {",
-        "  @OnClick(1) void doStuff() {}",
-        "}"
-    ));
+    JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
+        + "package java.test;\n"
+        + "import butterknife.OnClick;\n"
+        + "public class Test {\n"
+        + "  @OnClick(1) void doStuff() {}\n"
+        + "}"
+    );
 
     assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
@@ -686,13 +683,13 @@ public class OnClickTest {
   }
 
   @Test public void failsInAndroidPackage() {
-    JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
-        "package android.test;",
-        "import butterknife.OnClick;",
-        "public class Test {",
-        "  @OnClick(1) void doStuff() {}",
-        "}"
-    ));
+    JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
+        + "package android.test;\n"
+        + "import butterknife.OnClick;\n"
+        + "public class Test {\n"
+        + "  @OnClick(1) void doStuff() {}\n"
+        + "}"
+    );
 
     assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
@@ -703,15 +700,16 @@ public class OnClickTest {
   }
 
   @Test public void failsIfHasReturnType() {
-    JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
-        "package test;",
-        "import android.app.Activity;",
-        "import butterknife.OnClick;",
-        "public class Test extends Activity {",
-        "  @OnClick(1)",
-        "  public String doStuff() {",
-        "  }",
-        "}"));
+    JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
+        + "package test;\n"
+        + "import android.app.Activity;\n"
+        + "import butterknife.OnClick;\n"
+        + "public class Test extends Activity {\n"
+        + "  @OnClick(1)\n"
+        + "  public String doStuff() {\n"
+        + "  }\n"
+        + "}"
+    );
 
     assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
@@ -721,15 +719,16 @@ public class OnClickTest {
   }
 
   @Test public void failsIfPrivateMethod() {
-    JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
-        "package test;",
-        "import android.app.Activity;",
-        "import butterknife.OnClick;",
-        "public class Test extends Activity {",
-        "  @OnClick(1)",
-        "  private void doStuff() {",
-        "  }",
-        "}"));
+    JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
+        + "package test;\n"
+        + "import android.app.Activity;\n"
+        + "import butterknife.OnClick;\n"
+        + "public class Test extends Activity {\n"
+        + "  @OnClick(1)\n"
+        + "  private void doStuff() {\n"
+        + "  }\n"
+        + "}"
+    );
 
     assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
@@ -739,15 +738,16 @@ public class OnClickTest {
   }
 
   @Test public void failsIfStatic() {
-    JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
-        "package test;",
-        "import android.app.Activity;",
-        "import butterknife.OnClick;",
-        "public class Test extends Activity {",
-        "  @OnClick(1)",
-        "  public static void doStuff() {",
-        "  }",
-        "}"));
+    JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
+        + "package test;\n"
+        + "import android.app.Activity;\n"
+        + "import butterknife.OnClick;\n"
+        + "public class Test extends Activity {\n"
+        + "  @OnClick(1)\n"
+        + "  public static void doStuff() {\n"
+        + "  }\n"
+        + "}"
+    );
 
     assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
@@ -757,44 +757,46 @@ public class OnClickTest {
   }
 
   @Test public void failsIfParameterNotView() {
-    JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
-        "package test;",
-        "import android.app.Activity;",
-        "import butterknife.OnClick;",
-        "public class Test extends Activity {",
-        "  @OnClick(1)",
-        "  public void doStuff(String thing) {",
-        "  }",
-        "}"));
+    JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
+        + "package test;\n"
+        + "import android.app.Activity;\n"
+        + "import butterknife.OnClick;\n"
+        + "public class Test extends Activity {\n"
+        + "  @OnClick(1)\n"
+        + "  public void doStuff(String thing) {\n"
+        + "  }\n"
+        + "}"
+    );
 
     assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
         .failsToCompile()
-        .withErrorContaining(Joiner.on('\n').join(
-            "Unable to match @OnClick method arguments. (test.Test.doStuff)",
-            "  ",
-            "    Parameter #1: java.lang.String",
-            "      did not match any listener parameters",
-            "  ",
-            "  Methods may have up to 1 parameter(s):",
-            "  ",
-            "    android.view.View",
-            "  ",
-            "  These may be listed in any order but will be searched for from top to bottom."))
+        .withErrorContaining(""
+            + "Unable to match @OnClick method arguments. (test.Test.doStuff)\n"
+            + "  \n"
+            + "    Parameter #1: java.lang.String\n"
+            + "      did not match any listener parameters\n"
+            + "  \n"
+            + "  Methods may have up to 1 parameter(s):\n"
+            + "  \n"
+            + "    android.view.View\n"
+            + "  \n"
+            + "  These may be listed in any order but will be searched for from top to bottom.")
         .in(source).onLine(6);
   }
 
   @Test public void failsIfMoreThanOneParameter() {
-    JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
-        "package test;",
-        "import android.app.Activity;",
-        "import android.view.View;",
-        "import butterknife.OnClick;",
-        "public class Test extends Activity {",
-        "  @OnClick(1)",
-        "  public void doStuff(View thing, View otherThing) {",
-        "  }",
-        "}"));
+    JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
+        + "package test;\n"
+        + "import android.app.Activity;\n"
+        + "import android.view.View;\n"
+        + "import butterknife.OnClick;\n"
+        + "public class Test extends Activity {\n"
+        + "  @OnClick(1)\n"
+        + "  public void doStuff(View thing, View otherThing) {\n"
+        + "  }\n"
+        + "}"
+    );
 
     assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
@@ -805,13 +807,14 @@ public class OnClickTest {
   }
 
   @Test public void failsIfInInterface() {
-    JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
-        "package test;",
-        "import butterknife.OnClick;",
-        "public interface Test {",
-        "  @OnClick(1)",
-        "  void doStuff();",
-        "}"));
+    JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
+        + "package test;\n"
+        + "import butterknife.OnClick;\n"
+        + "public interface Test {\n"
+        + "  @OnClick(1)\n"
+        + "  void doStuff();\n"
+        + "}"
+    );
 
     assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
@@ -822,15 +825,16 @@ public class OnClickTest {
   }
 
   @Test public void failsIfHasDuplicateIds() {
-    JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
-        "package test;",
-        "import android.app.Activity;",
-        "import butterknife.OnClick;",
-        "public class Test extends Activity {",
-        "  @OnClick({1, 2, 3, 1})",
-        "  void doStuff() {",
-        "  }",
-        "}"));
+    JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
+        + "package test;\n"
+        + "import android.app.Activity;\n"
+        + "import butterknife.OnClick;\n"
+        + "public class Test extends Activity {\n"
+        + "  @OnClick({1, 2, 3, 1})\n"
+        + "  void doStuff() {\n"
+        + "  }\n"
+        + "}"
+    );
 
     assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
