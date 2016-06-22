@@ -86,8 +86,6 @@ public class RClassTest {
         + "package test;\n"
         + "import android.app.Activity;\n"
         + "import butterknife.BindInt;\n"
-        + "import butterknife.RClass;\n"
-        + "@RClass(R.class)\n"
         + "public class Test extends Activity {\n"
         + "  @BindInt(R2.integer.res) int one;\n"
         + "}"
@@ -126,8 +124,6 @@ public class RClassTest {
         + "package test;\n"
         + "import android.app.Activity;\n"
         + "import butterknife.BindBool;\n"
-        + "import butterknife.RClass;\n"
-        + "@RClass(R.class)\n"
         + "public class Test extends Activity {\n"
         + "  @BindBool(R.bool.res) boolean bool;\n"
         + "}"
@@ -161,41 +157,21 @@ public class RClassTest {
         .generatesSources(expectedSource);
   }
 
-  @Test public void defineRMoreThanOnce(){
-    JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
-        + "package test;\n"
-        + "import butterknife.RClass;\n"
-        + "@RClass(R.class)\n"
-        + "public class Test {}\n"
-    );
-
-    JavaFileObject source2 = JavaFileObjects.forSourceString("test.Test2", ""
-        + "package test;\n"
-        + "import butterknife.RClass;\n"
-        + "@RClass(R.class)\n"
-        + "public class Test2 {}\n"
-    );
-
-    assertAbout(javaSources()).that(Arrays.asList(source, source2, NON_FINAL_R))
-        .processedWith(new ButterKnifeProcessor())
-        .failsToCompile()
-        .withErrorContaining("Can define @RClass only once");
-  }
-
-  @Test public void unknownResource() {
+  @Test public void compiledRClass() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
         + "import android.app.Activity;\n"
         + "import butterknife.BindColor;\n"
-        + "import butterknife.RClass;\n"
-        + "@RClass(R.class)\n"
         + "public class Test extends Activity {\n"
         + "  @BindColor(android.R.color.black) int black;\n"
         + "}"
     );
 
     JavaFileObject expectedSource = JavaFileObjects.forSourceString("test/Test_ViewBinder", ""
+        + "// Generated code from Butter Knife. Do not modify!\n"
         + "package test;\n"
+        + "\n"
+        + "import android.R;\n"
         + "import android.content.Context;\n"
         + "import android.content.res.Resources;\n"
         + "import butterknife.Unbinder;\n"
@@ -204,7 +180,7 @@ public class RClassTest {
         + "import butterknife.internal.ViewBinder;\n"
         + "import java.lang.Object;\n"
         + "import java.lang.Override;\n"
-        + "import java.lang.SuppressWarnings;\n"
+        + "\n"
         + "public final class Test_ViewBinder implements ViewBinder<Test> {\n"
         + "  @Override\n"
         + "  public Unbinder bind(Finder finder, Test target, Object source) {\n"
@@ -214,9 +190,9 @@ public class RClassTest {
         + "    bindToTarget(target, res, theme);\n"
         + "    return Unbinder.EMPTY;\n"
         + "  }\n"
-        + "  @SuppressWarnings(\"ResourceType\")\n"
+        + "\n"
         + "  public static void bindToTarget(Test target, Resources res, Resources.Theme theme) {\n"
-        + "    target.black = Utils.getColor(res, theme, 17170444);\n"
+        + "    target.black = Utils.getColor(res, theme, R.color.black);\n"
         + "  }\n"
         + "}"
     );

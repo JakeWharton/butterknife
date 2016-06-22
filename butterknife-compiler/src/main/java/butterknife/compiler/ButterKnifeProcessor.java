@@ -22,7 +22,6 @@ import butterknife.OnPageChange;
 import butterknife.OnTextChanged;
 import butterknife.OnTouch;
 import butterknife.Optional;
-import butterknife.RClass;
 import butterknife.internal.ListenerClass;
 import butterknife.internal.ListenerMethod;
 import com.google.auto.common.SuperficialValidation;
@@ -33,6 +32,7 @@ import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.sun.source.tree.ClassTree;
 import com.sun.source.util.Trees;
+import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.TreeScanner;
 import java.io.IOException;
@@ -125,29 +125,31 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
   @Override public Set<String> getSupportedAnnotationTypes() {
     Set<String> types = new LinkedHashSet<>();
-
-    types.add(RClass.class.getCanonicalName());
-    types.add(BindArray.class.getCanonicalName());
-    types.add(BindBitmap.class.getCanonicalName());
-    types.add(BindBool.class.getCanonicalName());
-    types.add(BindColor.class.getCanonicalName());
-    types.add(BindDimen.class.getCanonicalName());
-    types.add(BindDrawable.class.getCanonicalName());
-    types.add(BindInt.class.getCanonicalName());
-    types.add(BindString.class.getCanonicalName());
-    types.add(BindView.class.getCanonicalName());
-    types.add(BindViews.class.getCanonicalName());
-
-    for (Class<? extends Annotation> listener : LISTENERS) {
-      types.add(listener.getCanonicalName());
+    for (Class<? extends Annotation> annotation : getSupportedAnnotations()) {
+      types.add(annotation.getCanonicalName());
     }
-
     return types;
   }
 
-  @Override public boolean process(Set<? extends TypeElement> elements, RoundEnvironment env) {
-    parseRClass(env);
+  private Set<Class<? extends Annotation>> getSupportedAnnotations() {
+    Set<Class<? extends Annotation>> annotations = new LinkedHashSet<>();
 
+    annotations.add(BindArray.class);
+    annotations.add(BindBitmap.class);
+    annotations.add(BindBool.class);
+    annotations.add(BindColor.class);
+    annotations.add(BindDimen.class);
+    annotations.add(BindDrawable.class);
+    annotations.add(BindInt.class);
+    annotations.add(BindString.class);
+    annotations.add(BindView.class);
+    annotations.add(BindViews.class);
+    annotations.addAll(LISTENERS);
+
+    return annotations;
+  }
+
+  @Override public boolean process(Set<? extends TypeElement> elements, RoundEnvironment env) {
     Map<TypeElement, BindingClass> targetClassMap = findAndParseTargets(env);
 
     for (Map.Entry<TypeElement, BindingClass> entry : targetClassMap.entrySet()) {
@@ -170,6 +172,8 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
   private Map<TypeElement, BindingClass> findAndParseTargets(RoundEnvironment env) {
     Map<TypeElement, BindingClass> targetClassMap = new LinkedHashMap<>();
     Set<TypeElement> erasedTargetNames = new LinkedHashSet<>();
+
+    scanForRClasses(env);
 
     // Process each @BindArray element.
     for (Element element : env.getElementsAnnotatedWith(BindArray.class)) {
@@ -1135,28 +1139,14 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     return element.getAnnotation(Optional.class) == null;
   }
 
-  private void parseRClass(RoundEnvironment env) {
-    Set<? extends Element> rClasses = env.getElementsAnnotatedWith(RClass.class);
-    if (rClasses.size() > 1) {
-      for (Element e : rClasses) {
-        error(e, "Can define @%s only once", RClass.class.getSimpleName());
+  private static AnnotationMirror getMirror(Element element,
+      Class<? extends Annotation> annotation) {
+    for (AnnotationMirror annotationMirror : element.getAnnotationMirrors()) {
+      if (annotationMirror.getAnnotationType().toString().equals(annotation.getCanonicalName())) {
+        return annotationMirror;
       }
-    } else if (rClasses.size() == 1) {
-      Element rClassElement = rClasses.iterator().next();
-      RClass rClass = rClassElement.getAnnotation(RClass.class);
-      Element element;
-
-      try {
-        element = elementUtils.getTypeElement(rClass.value().getCanonicalName());
-      } catch (MirroredTypeException mte) {
-        element = typeUtils.asElement(mte.getTypeMirror());
-      }
-
-      IdScanner idScanner =
-          new IdScanner(symbols, elementUtils.getPackageOf(element).getQualifiedName().toString());
-      JCTree tree = (JCTree) trees.getTree(element);
-      tree.accept(idScanner);
     }
+    return null;
   }
 
   private Id getId(int id) {
@@ -1164,6 +1154,81 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
       symbols.put(id, new Id(id));
     }
     return symbols.get(id);
+  }
+
+  private void scanForRClasses(RoundEnvironment env) {
+    RClassScanner scanner = new RClassScanner();
+
+    for (Class<? extends Annotation> annotation : getSupportedAnnotations()) {
+      for (Element element : env.getElementsAnnotatedWith(annotation)) {
+        JCTree tree = (JCTree) trees.getTree(element, getMirror(element, annotation));
+        tree.accept(scanner);
+      }
+    }
+
+    for (String rClass : scanner.getRClasses()) {
+      parseRClass(rClass);
+    }
+  }
+
+  private void parseRClass(String rClass) {
+    Element element;
+
+    try {
+      element = elementUtils.getTypeElement(rClass);
+    } catch (MirroredTypeException mte) {
+      element = typeUtils.asElement(mte.getTypeMirror());
+    }
+
+    JCTree tree = (JCTree) trees.getTree(element);
+    if (tree != null) { // tree can be null if the references are compiled types and not source
+      IdScanner idScanner =
+          new IdScanner(symbols, elementUtils.getPackageOf(element).getQualifiedName().toString());
+      tree.accept(idScanner);
+    } else {
+      parseCompiledR((TypeElement) element);
+    }
+  }
+
+  private void parseCompiledR(TypeElement rClass) {
+    for (Element element : rClass.getEnclosedElements()) {
+      String innerClassName = element.getSimpleName().toString();
+      if (SUPPORTED_TYPES.contains(innerClassName)) {
+        for (Element enclosedElement : element.getEnclosedElements()) {
+          if (enclosedElement instanceof VariableElement) {
+            VariableElement variableElement = (VariableElement) enclosedElement;
+            Object value = variableElement.getConstantValue();
+
+            if (value instanceof Integer) {
+              int id = (Integer) value;
+              ClassName rClassName =
+                  ClassName.get(elementUtils.getPackageOf(variableElement).toString(), "R",
+                      innerClassName);
+              String resourceName = variableElement.getSimpleName().toString();
+              symbols.put(id, new Id(id, rClassName, resourceName));
+            }
+          }
+        }
+      }
+    }
+  }
+
+  private static class RClassScanner extends TreeScanner {
+    private final Set<String> rClasses = new LinkedHashSet<>();
+
+    @Override public void visitSelect(JCTree.JCFieldAccess jcFieldAccess) {
+      Symbol symbol = jcFieldAccess.sym;
+      if (symbol != null
+          && symbol.getEnclosingElement() != null
+          && symbol.getEnclosingElement().getEnclosingElement() != null
+          && symbol.getEnclosingElement().getEnclosingElement().enclClass() != null) {
+        rClasses.add(symbol.getEnclosingElement().getEnclosingElement().enclClass().className());
+      }
+    }
+
+    Set<String> getRClasses() {
+      return rClasses;
+    }
   }
 
   private static class IdScanner extends TreeScanner {
