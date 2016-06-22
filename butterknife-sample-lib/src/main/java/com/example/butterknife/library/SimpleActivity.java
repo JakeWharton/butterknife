@@ -15,12 +15,10 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 import butterknife.OnItemClick;
 import butterknife.OnLongClick;
-import butterknife.RClass;
 import java.util.List;
 
 import static android.widget.Toast.LENGTH_SHORT;
 
-@RClass(R2.class)
 public class SimpleActivity extends Activity {
   private static final ButterKnife.Action<View> ALPHA_FADE = new ButterKnife.Action<View>() {
     @Override public void apply(@NonNull View view, int index) {

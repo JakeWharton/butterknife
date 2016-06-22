@@ -86,8 +86,6 @@ public class RClassTest {
         + "package test;\n"
         + "import android.app.Activity;\n"
         + "import butterknife.BindInt;\n"
-        + "import butterknife.RClass;\n"
-        + "@RClass(R.class)\n"
         + "public class Test extends Activity {\n"
         + "  @BindInt(R2.integer.res) int one;\n"
         + "}"
@@ -126,8 +124,6 @@ public class RClassTest {
         + "package test;\n"
         + "import android.app.Activity;\n"
         + "import butterknife.BindBool;\n"
-        + "import butterknife.RClass;\n"
-        + "@RClass(R.class)\n"
         + "public class Test extends Activity {\n"
         + "  @BindBool(R.bool.res) boolean bool;\n"
         + "}"
@@ -161,34 +157,11 @@ public class RClassTest {
         .generatesSources(expectedSource);
   }
 
-  @Test public void defineRMoreThanOnce(){
-    JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
-        + "package test;\n"
-        + "import butterknife.RClass;\n"
-        + "@RClass(R.class)\n"
-        + "public class Test {}\n"
-    );
-
-    JavaFileObject source2 = JavaFileObjects.forSourceString("test.Test2", ""
-        + "package test;\n"
-        + "import butterknife.RClass;\n"
-        + "@RClass(R.class)\n"
-        + "public class Test2 {}\n"
-    );
-
-    assertAbout(javaSources()).that(Arrays.asList(source, source2, NON_FINAL_R))
-        .processedWith(new ButterKnifeProcessor())
-        .failsToCompile()
-        .withErrorContaining("Can define @RClass only once");
-  }
-
   @Test public void unknownResource() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
         + "import android.app.Activity;\n"
         + "import butterknife.BindColor;\n"
-        + "import butterknife.RClass;\n"
-        + "@RClass(R.class)\n"
         + "public class Test extends Activity {\n"
         + "  @BindColor(android.R.color.black) int black;\n"
         + "}"
