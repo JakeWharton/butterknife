@@ -1162,9 +1162,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     for (Class<? extends Annotation> annotation : getSupportedAnnotations()) {
       for (Element element : env.getElementsAnnotatedWith(annotation)) {
         JCTree tree = (JCTree) trees.getTree(element, getMirror(element, annotation));
-        if (tree != null) { // tree can be null if the references are compiled types and not source
-          tree.accept(scanner);
-        }
+        tree.accept(scanner);
       }
     }
 
@@ -1183,10 +1181,35 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     }
 
     JCTree tree = (JCTree) trees.getTree(element);
-    if (tree != null) {
+    if (tree != null) { // tree can be null if the references are compiled types and not source
       IdScanner idScanner =
           new IdScanner(symbols, elementUtils.getPackageOf(element).getQualifiedName().toString());
       tree.accept(idScanner);
+    } else {
+      parseCompiledR((TypeElement) element);
+    }
+  }
+
+  private void parseCompiledR(TypeElement rClass) {
+    for (Element element : rClass.getEnclosedElements()) {
+      String innerClassName = element.getSimpleName().toString();
+      if (SUPPORTED_TYPES.contains(innerClassName)) {
+        for (Element enclosedElement : element.getEnclosedElements()) {
+          if (enclosedElement instanceof VariableElement) {
+            VariableElement variableElement = (VariableElement) enclosedElement;
+            Object value = variableElement.getConstantValue();
+
+            if (value instanceof Integer) {
+              int id = (Integer) value;
+              ClassName rClassName =
+                  ClassName.get(elementUtils.getPackageOf(variableElement).toString(), "R",
+                      innerClassName);
+              String resourceName = variableElement.getSimpleName().toString();
+              symbols.put(id, new Id(id, rClassName, resourceName));
+            }
+          }
+        }
+      }
     }
   }
 
