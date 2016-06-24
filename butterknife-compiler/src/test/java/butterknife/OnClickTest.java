@@ -586,8 +586,9 @@ public class OnClickTest {
     );
 
     assertAbout(javaSource()).that(source)
+        .withCompilerOptions("-Xlint:-processing")
         .processedWith(new ButterKnifeProcessor())
-        .compilesWithoutError()
+        .compilesWithoutWarnings()
         .and()
         .generatesSources(binderSource, bindingSource);
   }
@@ -659,8 +660,9 @@ public class OnClickTest {
     );
 
     assertAbout(javaSource()).that(source)
+        .withCompilerOptions("-Xlint:-processing")
         .processedWith(new ButterKnifeProcessor())
-        .compilesWithoutError()
+        .compilesWithoutWarnings()
         .and()
         .generatesSources(binderSource, bindingSource);
   }

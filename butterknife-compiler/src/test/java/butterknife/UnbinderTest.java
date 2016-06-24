@@ -160,8 +160,9 @@ public class UnbinderTest {
     );
 
     assertAbout(javaSource()).that(source)
+        .withCompilerOptions("-Xlint:-processing")
         .processedWith(new ButterKnifeProcessor())
-        .compilesWithoutError()
+        .compilesWithoutWarnings()
         .and()
         .generatesSources(binderSource, bindingSource);
   }
@@ -1092,8 +1093,9 @@ public class UnbinderTest {
             sourceF,
             sourceG,
             sourceH))
+        .withCompilerOptions("-Xlint:-processing")
         .processedWith(new ButterKnifeProcessor())
-        .compilesWithoutError()
+        .compilesWithoutWarnings()
         .and()
         .generatesSources(binderASource,
             binderBSource,
