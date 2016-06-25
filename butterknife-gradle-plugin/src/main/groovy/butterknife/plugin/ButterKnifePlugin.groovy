@@ -5,6 +5,7 @@ import com.android.build.gradle.LibraryPlugin
 import com.android.build.gradle.TestPlugin
 import com.android.build.gradle.api.BaseVariant
 import com.android.build.gradle.api.BaseVariantOutput
+import groovy.json.StringEscapeUtils
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 
@@ -27,7 +28,8 @@ public class ButterKnifePlugin implements Plugin<Project> {
       variants.all { BaseVariant variant ->
         variant.outputs.each { BaseVariantOutput output ->
           output.processResources.doLast {
-            File rDir = new File(sourceOutputDir, packageForR.replaceAll('\\.', File.separator))
+            File rDir = new File(sourceOutputDir, packageForR.replaceAll('\\.',
+                    StringEscapeUtils.escapeJava(File.separator)))
             File R = new File(rDir, 'R.java')
             FinalRClassBuilder.brewJava(R, sourceOutputDir, packageForR, 'R2')
           }
