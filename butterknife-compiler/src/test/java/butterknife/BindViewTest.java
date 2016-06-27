@@ -445,6 +445,8 @@ public class BindViewTest {
 
     assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
+        // found raw type: test.Test
+        //   missing type arguments for generic class test.Test<T>
         .compilesWithoutError()
         .and()
         .generatesSources(binderSource, bindingSource);
@@ -802,6 +804,8 @@ public class BindViewTest {
 
     assertAbout(javaSources()).that(asList(source1, source2, source3))
         .processedWith(new ButterKnifeProcessor())
+        // found raw type: test.Test
+        //   missing type arguments for generic class test.Test<T>
         .compilesWithoutError()
         .and()
         .generatesSources(binder1Source, binding1Source, binder2Source, binding2Source);
