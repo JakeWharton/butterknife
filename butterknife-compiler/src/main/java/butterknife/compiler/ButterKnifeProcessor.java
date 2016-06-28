@@ -1,5 +1,53 @@
 package butterknife.compiler;
 
+import com.google.auto.common.SuperficialValidation;
+import com.google.auto.service.AutoService;
+import com.squareup.javapoet.ClassName;
+import com.squareup.javapoet.JavaFile;
+import com.squareup.javapoet.ParameterizedTypeName;
+import com.squareup.javapoet.TypeName;
+import com.sun.source.tree.ClassTree;
+import com.sun.source.util.Trees;
+import com.sun.tools.javac.code.Symbol;
+import com.sun.tools.javac.tree.JCTree;
+import com.sun.tools.javac.tree.TreeScanner;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.BitSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.annotation.processing.AbstractProcessor;
+import javax.annotation.processing.Filer;
+import javax.annotation.processing.ProcessingEnvironment;
+import javax.annotation.processing.Processor;
+import javax.annotation.processing.RoundEnvironment;
+import javax.lang.model.SourceVersion;
+import javax.lang.model.element.AnnotationMirror;
+import javax.lang.model.element.Element;
+import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.Modifier;
+import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.VariableElement;
+import javax.lang.model.type.ArrayType;
+import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.MirroredTypeException;
+import javax.lang.model.type.TypeKind;
+import javax.lang.model.type.TypeMirror;
+import javax.lang.model.type.TypeVariable;
+import javax.lang.model.util.Elements;
+import javax.lang.model.util.Types;
+
 import butterknife.BindArray;
 import butterknife.BindBitmap;
 import butterknife.BindBool;
@@ -25,51 +73,6 @@ import butterknife.OnTouch;
 import butterknife.Optional;
 import butterknife.internal.ListenerClass;
 import butterknife.internal.ListenerMethod;
-import com.google.auto.common.SuperficialValidation;
-import com.google.auto.service.AutoService;
-import com.squareup.javapoet.ClassName;
-import com.squareup.javapoet.JavaFile;
-import com.squareup.javapoet.ParameterizedTypeName;
-import com.squareup.javapoet.TypeName;
-import com.sun.source.tree.ClassTree;
-import com.sun.source.util.Trees;
-import com.sun.tools.javac.code.Symbol;
-import com.sun.tools.javac.tree.JCTree;
-import com.sun.tools.javac.tree.TreeScanner;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.BitSet;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import javax.annotation.processing.AbstractProcessor;
-import javax.annotation.processing.Filer;
-import javax.annotation.processing.ProcessingEnvironment;
-import javax.annotation.processing.Processor;
-import javax.annotation.processing.RoundEnvironment;
-import javax.lang.model.SourceVersion;
-import javax.lang.model.element.AnnotationMirror;
-import javax.lang.model.element.Element;
-import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.element.Modifier;
-import javax.lang.model.element.TypeElement;
-import javax.lang.model.element.VariableElement;
-import javax.lang.model.type.ArrayType;
-import javax.lang.model.type.DeclaredType;
-import javax.lang.model.type.MirroredTypeException;
-import javax.lang.model.type.TypeKind;
-import javax.lang.model.type.TypeMirror;
-import javax.lang.model.type.TypeVariable;
-import javax.lang.model.util.Elements;
-import javax.lang.model.util.Types;
 
 import static javax.lang.model.element.ElementKind.CLASS;
 import static javax.lang.model.element.ElementKind.INTERFACE;
@@ -573,61 +576,57 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
   private void parseResourceColors(Element element, Map<TypeElement, BindingClass> targetClassMap,
                               Set<TypeElement> erasedTargetNames) {
+    parseResourceCollection(element,
+            targetClassMap,
+            erasedTargetNames,
+            element.getAnnotation(BindColors.class).value(),
+            BindColors.class,
+            new Strategy() {
+              @Override
+              String getMethod(TypeMirror variableType) {
+                return COLOR_STATE_LIST_TYPE.equals(variableType.toString()) ? "getColorStateList" : "getColor";
+              }
+
+              @Override
+              boolean isValidType(TypeMirror variableType) {
+                return variableType != null
+                        && !isSubtypeOfType(variableType, COLOR_STATE_LIST_TYPE)
+                        && !isSubtypeOfType(variableType, INTEGER_TYPE)
+                        && variableType.getKind() != TypeKind.INT;
+              }
+
+              @Override
+              String getErrorMessageForInvalidType(Element element, Class<? extends Annotation> annotationClass, TypeElement enclosingElement) {
+                return String.format("@%s List or array type must be int or ColorStateList. (%s.%s)",
+                        annotationClass.getSimpleName(), enclosingElement.getQualifiedName(),
+                        element.getSimpleName());
+              }
+            });
+  }
+
+
+
+
+
+  private void parseResourceCollection(Element element, Map<TypeElement, BindingClass> targetClassMap,
+                                       Set<TypeElement> erasedTargetNames, int[] ids, Class<? extends Annotation> annotationClass, Strategy strategy) {
+
     TypeElement enclosingElement = (TypeElement) element.getEnclosingElement();
 
     // Start by verifying common generated code restrictions.
-    boolean hasError = isInaccessibleViaGeneratedCode(BindColors.class, "fields", element)
-            || isBindingInWrongPackage(BindColors.class, element);
+    boolean hasError = verifyCommonGeneratedCodeRestrictions(element, annotationClass);
 
     // Verify that the type is a List or an array.
-    TypeMirror elementType = element.asType();
-    String erasedType = doubleErasure(elementType);
-    TypeMirror variableType = null;
-    FieldCollectionBinding.Kind kind = null;
-    if (elementType.getKind() == TypeKind.ARRAY) {
-      ArrayType arrayType = (ArrayType) elementType;
-      variableType = arrayType.getComponentType();
-      kind = FieldCollectionBinding.Kind.ARRAY;
-    } else if (LIST_TYPE.equals(erasedType)) {
-      DeclaredType declaredType = (DeclaredType) elementType;
-      List<? extends TypeMirror> typeArguments = declaredType.getTypeArguments();
-      if (typeArguments.size() != 1) {
-        error(element, "@%s List must have a generic component. (%s.%s)",
-                BindColors.class.getSimpleName(), enclosingElement.getQualifiedName(),
-                element.getSimpleName());
-        hasError = true;
-      } else {
-        variableType = typeArguments.get(0);
-      }
-      kind = FieldCollectionBinding.Kind.LIST;
-    } else {
-      error(element, "@%s must be a List or array. (%s.%s)", BindColors.class.getSimpleName(),
-              enclosingElement.getQualifiedName(), element.getSimpleName());
-      hasError = true;
-    }
-    if (variableType != null && variableType.getKind() == TypeKind.TYPEVAR) {
-      TypeVariable typeVariable = (TypeVariable) variableType;
-      variableType = typeVariable.getUpperBound();
-    }
+    TargetTypeData targetTypeData = getTargetTypeData(element, enclosingElement, annotationClass);
+    hasError |= targetTypeData.hasError();
 
     // Verify the target type
-    if (variableType != null && (!isSubtypeOfType(variableType, COLOR_STATE_LIST_TYPE) && !isSubtypeOfType(variableType, INTEGER_TYPE) && variableType.getKind() != TypeKind.INT)) {
-      error(element, "@%s List or array type must be int or ColorStateList. (%s.%s)",
-              BindColors.class.getSimpleName(), enclosingElement.getQualifiedName(),
-              element.getSimpleName());
-      hasError = true;
-    }
-
-    boolean isColorStateList = false;
-    if (COLOR_STATE_LIST_TYPE.equals(variableType.toString())) {
-      isColorStateList = true;
-    }
+    TypeMirror variableType = targetTypeData.getVariableType();
+    hasError |= verifyTargetType(element, strategy.isValidType(variableType), strategy.getErrorMessageForInvalidType(element, annotationClass, enclosingElement));
 
     // Assemble information on the field.
-    String name = element.getSimpleName().toString();
-    int[] ids = element.getAnnotation(BindColors.class).value();
     if (ids.length == 0) {
-      error(element, "@%s must specify at least one ID. (%s.%s)", BindColors.class.getSimpleName(),
+      error(element, "@%s must specify at least one ID. (%s.%s)", annotationClass.getSimpleName(),
               enclosingElement.getQualifiedName(), element.getSimpleName());
       hasError = true;
     }
@@ -635,7 +634,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     Integer duplicateId = findDuplicate(ids);
     if (duplicateId != null) {
       error(element, "@%s annotation contains duplicate ID %d. (%s.%s)",
-              BindColors.class.getSimpleName(), duplicateId, enclosingElement.getQualifiedName(),
+              annotationClass, duplicateId, enclosingElement.getQualifiedName(),
               element.getSimpleName());
       hasError = true;
     }
@@ -652,19 +651,74 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     }
 
     BindingClass bindingClass = getOrCreateTargetClass(targetClassMap, enclosingElement);
-    String method = isColorStateList ? "getColorStateList" : "getColor";
-    FieldCollectionResourceBinding binding = new FieldCollectionResourceBinding(name, kind, type, method, true);
+
+    String method = strategy.getMethod(variableType);
+    String name = element.getSimpleName().toString();
+    FieldCollectionResourceBinding binding = new FieldCollectionResourceBinding(name, targetTypeData.getKind(), type, method, true);
     bindingClass.addResourceCollection(idVars, binding);
 
     erasedTargetNames.add(enclosingElement);
   }
+
+  private boolean verifyTargetType(Element element, boolean isValidType, String message) {
+    if (isValidType) {
+      error(element, message);
+      return true;
+    }
+    return false;
+  }
+
+  private TargetTypeData getTargetTypeData(Element element, TypeElement enclosingElement, Class<? extends Annotation> annotation)
+  {
+    boolean hasError = false;
+
+    // Verify that the type is a List or an array.
+    TypeMirror elementType = element.asType();
+    String erasedType = doubleErasure(elementType);
+    TypeMirror variableType = null;
+    FieldCollectionBinding.Kind kind = null;
+    if (elementType.getKind() == TypeKind.ARRAY) {
+      ArrayType arrayType = (ArrayType) elementType;
+      variableType = arrayType.getComponentType();
+      kind = FieldCollectionBinding.Kind.ARRAY;
+    } else if (LIST_TYPE.equals(erasedType)) {
+      DeclaredType declaredType = (DeclaredType) elementType;
+      List<? extends TypeMirror> typeArguments = declaredType.getTypeArguments();
+      if (typeArguments.size() != 1) {
+        error(element, "@%s List must have a generic component. (%s.%s)",
+                annotation.getSimpleName(), enclosingElement.getQualifiedName(),
+                element.getSimpleName());
+        hasError = true;
+      } else {
+        variableType = typeArguments.get(0);
+      }
+      kind = FieldCollectionBinding.Kind.LIST;
+    } else {
+      error(element, "@%s must be a List or array. (%s.%s)", annotation.getSimpleName(),
+              enclosingElement.getQualifiedName(), element.getSimpleName());
+      hasError = true;
+    }
+    if (variableType != null && variableType.getKind() == TypeKind.TYPEVAR) {
+      TypeVariable typeVariable = (TypeVariable) variableType;
+      variableType = typeVariable.getUpperBound();
+    }
+
+    return new TargetTypeData(variableType, kind, hasError);
+  }
+
+  private boolean verifyCommonGeneratedCodeRestrictions(Element element, Class<? extends Annotation> annotation) {
+    boolean hasError = isInaccessibleViaGeneratedCode(annotation, "fields", element);
+    hasError |= isBindingInWrongPackage(annotation, element);
+    return hasError;
+  }
+
 
   private void parseResourceDimen(Element element, Map<TypeElement, BindingClass> targetClassMap,
       Set<TypeElement> erasedTargetNames) {
     boolean hasError = false;
     TypeElement enclosingElement = (TypeElement) element.getEnclosingElement();
 
-    // Verify that the target type is int or ColorStateList.
+    // Verify that the target type is int or float.
     boolean isInt = false;
     TypeMirror elementType = element.asType();
     if (elementType.getKind() == TypeKind.INT) {
@@ -1372,5 +1426,11 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
         ids.put(id, new Id(id, className, resourceName));
       }
     }
+  }
+
+  private abstract static class Strategy {
+    abstract String getMethod(TypeMirror variableType);
+    abstract boolean isValidType(TypeMirror variableType);
+    abstract String getErrorMessageForInvalidType(Element element, Class<? extends Annotation> annotationClass, TypeElement enclosingElement);
   }
 }
