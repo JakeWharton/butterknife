@@ -54,6 +54,7 @@ import butterknife.BindBool;
 import butterknife.BindColor;
 import butterknife.BindColors;
 import butterknife.BindDimen;
+import butterknife.BindDimens;
 import butterknife.BindDrawable;
 import butterknife.BindInt;
 import butterknife.BindString;
@@ -92,6 +93,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
   private static final String NULLABLE_ANNOTATION_NAME = "Nullable";
   private static final String STRING_TYPE = "java.lang.String";
   private static final String INTEGER_TYPE = "java.lang.Integer";
+  private static final String FLOAT_TYPE = "java.lang.float";
   private static final String LIST_TYPE = List.class.getCanonicalName();
   private static final String R = "R";
   private static final List<Class<? extends Annotation>> LISTENERS = Arrays.asList(//
@@ -145,6 +147,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     annotations.add(BindColor.class);
     annotations.add(BindColors.class);
     annotations.add(BindDimen.class);
+    annotations.add(BindDimens.class);
     annotations.add(BindDrawable.class);
     annotations.add(BindInt.class);
     annotations.add(BindString.class);
@@ -238,6 +241,16 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
         parseResourceDimen(element, targetClassMap, erasedTargetNames);
       } catch (Exception e) {
         logParsingError(element, BindDimen.class, e);
+      }
+    }
+
+    // Process each @BindDimens element.
+    for (Element element : env.getElementsAnnotatedWith(BindDimens.class)) {
+      if (!SuperficialValidation.validateElement(element)) continue;
+      try {
+        parseResourceDimens(element, targetClassMap, erasedTargetNames);
+      } catch (Exception e) {
+        logParsingError(element, BindDimens.class, e);
       }
     }
 
@@ -601,12 +614,51 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
                         annotationClass.getSimpleName(), enclosingElement.getQualifiedName(),
                         element.getSimpleName());
               }
+
+              @Override
+              boolean requiresTheme() {
+                return true;
+              }
             });
   }
 
+  private void parseResourceDimens(Element element, Map<TypeElement, BindingClass> targetClassMap,
+                                   Set<TypeElement> erasedTargetNames) {
+    parseResourceCollection(element,
+            targetClassMap,
+            erasedTargetNames,
+            element.getAnnotation(BindDimens.class).value(),
+            BindDimens.class,
+            new Strategy() {
+              @Override
+              String getMethod(TypeMirror variableType) {
+                if (variableType.getKind() == TypeKind.INT || isSubtypeOfType(variableType, INTEGER_TYPE)) {
+                  return "getDimensionPixelSize";
+                }
+                return "getDimension";
+              }
 
+              @Override
+              boolean isValidType(TypeMirror variableType) {
+                return variableType != null
+                        && !isSubtypeOfType(variableType, INTEGER_TYPE)
+                        && variableType.getKind() != TypeKind.INT
+                        && variableType.getKind() != TypeKind.FLOAT;
+              }
 
+              @Override
+              String getErrorMessageForInvalidType(Element element, Class<? extends Annotation> annotationClass, TypeElement enclosingElement) {
+                return String.format("@%s field type must be 'int' or 'float'. (%s.%s)",
+                        annotationClass.getSimpleName(), enclosingElement.getQualifiedName(),
+                        element.getSimpleName());
+              }
 
+              @Override
+              boolean requiresTheme() {
+                return false;
+              }
+            });
+  }
 
   private void parseResourceCollection(Element element, Map<TypeElement, BindingClass> targetClassMap,
                                        Set<TypeElement> erasedTargetNames, int[] ids, Class<? extends Annotation> annotationClass, Strategy strategy) {
@@ -654,7 +706,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
     String method = strategy.getMethod(variableType);
     String name = element.getSimpleName().toString();
-    FieldCollectionResourceBinding binding = new FieldCollectionResourceBinding(name, targetTypeData.getKind(), type, method, true);
+    FieldCollectionResourceBinding binding = new FieldCollectionResourceBinding(name, targetTypeData.getKind(), type, method, strategy.requiresTheme());
     bindingClass.addResourceCollection(idVars, binding);
 
     erasedTargetNames.add(enclosingElement);
@@ -1432,5 +1484,6 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     abstract String getMethod(TypeMirror variableType);
     abstract boolean isValidType(TypeMirror variableType);
     abstract String getErrorMessageForInvalidType(Element element, Class<? extends Annotation> annotationClass, TypeElement enclosingElement);
+    abstract boolean requiresTheme();
   }
 }
