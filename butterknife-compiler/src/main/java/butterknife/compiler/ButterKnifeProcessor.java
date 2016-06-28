@@ -58,6 +58,7 @@ import butterknife.BindDimens;
 import butterknife.BindDrawable;
 import butterknife.BindInt;
 import butterknife.BindString;
+import butterknife.BindStrings;
 import butterknife.BindView;
 import butterknife.BindViews;
 import butterknife.OnCheckedChanged;
@@ -151,6 +152,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     annotations.add(BindDrawable.class);
     annotations.add(BindInt.class);
     annotations.add(BindString.class);
+    annotations.add(BindStrings.class);
     annotations.add(BindView.class);
     annotations.add(BindViews.class);
     annotations.addAll(LISTENERS);
@@ -281,6 +283,16 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
         parseResourceString(element, targetClassMap, erasedTargetNames);
       } catch (Exception e) {
         logParsingError(element, BindString.class, e);
+      }
+    }
+
+    // Process each @BindStrings element.
+    for (Element element : env.getElementsAnnotatedWith(BindStrings.class)) {
+      if (!SuperficialValidation.validateElement(element)) continue;
+      try {
+        parseResourceStrings(element, targetClassMap, erasedTargetNames);
+      } catch (Exception e) {
+        logParsingError(element, BindStrings.class, e);
       }
     }
 
@@ -594,14 +606,14 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
             erasedTargetNames,
             element.getAnnotation(BindColors.class).value(),
             BindColors.class,
-            new Strategy() {
+            new ParseResourceStrategy() {
               @Override
               String getMethod(TypeMirror variableType) {
                 return COLOR_STATE_LIST_TYPE.equals(variableType.toString()) ? "getColorStateList" : "getColor";
               }
 
               @Override
-              boolean isValidType(TypeMirror variableType) {
+              boolean isInvalidType(TypeMirror variableType) {
                 return variableType != null
                         && !isSubtypeOfType(variableType, COLOR_STATE_LIST_TYPE)
                         && !isSubtypeOfType(variableType, INTEGER_TYPE)
@@ -629,7 +641,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
             erasedTargetNames,
             element.getAnnotation(BindDimens.class).value(),
             BindDimens.class,
-            new Strategy() {
+            new ParseResourceStrategy() {
               @Override
               String getMethod(TypeMirror variableType) {
                 if (variableType.getKind() == TypeKind.INT || isSubtypeOfType(variableType, INTEGER_TYPE)) {
@@ -639,7 +651,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
               }
 
               @Override
-              boolean isValidType(TypeMirror variableType) {
+              boolean isInvalidType(TypeMirror variableType) {
                 return variableType != null
                         && !isSubtypeOfType(variableType, INTEGER_TYPE)
                         && variableType.getKind() != TypeKind.INT
@@ -661,7 +673,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
   }
 
   private void parseResourceCollection(Element element, Map<TypeElement, BindingClass> targetClassMap,
-                                       Set<TypeElement> erasedTargetNames, int[] ids, Class<? extends Annotation> annotationClass, Strategy strategy) {
+                                       Set<TypeElement> erasedTargetNames, int[] ids, Class<? extends Annotation> annotationClass, ParseResourceStrategy parseResourceStrategy) {
 
     TypeElement enclosingElement = (TypeElement) element.getEnclosingElement();
 
@@ -674,7 +686,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
     // Verify the target type
     TypeMirror variableType = targetTypeData.getVariableType();
-    hasError |= verifyTargetType(element, strategy.isValidType(variableType), strategy.getErrorMessageForInvalidType(element, annotationClass, enclosingElement));
+    hasError |= verifyTargetType(element, parseResourceStrategy.isInvalidType(variableType), parseResourceStrategy.getErrorMessageForInvalidType(element, annotationClass, enclosingElement));
 
     // Assemble information on the field.
     if (ids.length == 0) {
@@ -704,16 +716,16 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
     BindingClass bindingClass = getOrCreateTargetClass(targetClassMap, enclosingElement);
 
-    String method = strategy.getMethod(variableType);
+    String method = parseResourceStrategy.getMethod(variableType);
     String name = element.getSimpleName().toString();
-    FieldCollectionResourceBinding binding = new FieldCollectionResourceBinding(name, targetTypeData.getKind(), type, method, strategy.requiresTheme());
+    FieldCollectionResourceBinding binding = new FieldCollectionResourceBinding(name, targetTypeData.getKind(), type, method, parseResourceStrategy.requiresTheme());
     bindingClass.addResourceCollection(idVars, binding);
 
     erasedTargetNames.add(enclosingElement);
   }
 
-  private boolean verifyTargetType(Element element, boolean isValidType, String message) {
-    if (isValidType) {
+  private boolean verifyTargetType(Element element, boolean isInvalid, String message) {
+    if (isInvalid) {
       error(element, message);
       return true;
     }
@@ -928,6 +940,38 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     bindingClass.addResource(binding);
 
     erasedTargetNames.add(enclosingElement);
+  }
+
+  private void parseResourceStrings(Element element, Map<TypeElement, BindingClass> targetClassMap,
+                                   Set<TypeElement> erasedTargetNames) {
+    parseResourceCollection(element,
+            targetClassMap,
+            erasedTargetNames,
+            element.getAnnotation(BindStrings.class).value(),
+            BindStrings.class,
+            new ParseResourceStrategy() {
+              @Override
+              String getMethod(TypeMirror variableType) {
+                return "getString";
+              }
+
+              @Override
+              boolean isInvalidType(TypeMirror variableType) {
+                return !STRING_TYPE.equals(variableType.toString());
+              }
+
+              @Override
+              String getErrorMessageForInvalidType(Element element, Class<? extends Annotation> annotationClass, TypeElement enclosingElement) {
+                return String.format("@%s field type must be String. (%s.%s)",
+                        annotationClass.getSimpleName(), enclosingElement.getQualifiedName(),
+                        element.getSimpleName());
+              }
+
+              @Override
+              boolean requiresTheme() {
+                return false;
+              }
+            });
   }
 
   private void parseResourceArray(Element element, Map<TypeElement, BindingClass> targetClassMap,
@@ -1480,9 +1524,9 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     }
   }
 
-  private abstract static class Strategy {
+  private abstract static class ParseResourceStrategy {
     abstract String getMethod(TypeMirror variableType);
-    abstract boolean isValidType(TypeMirror variableType);
+    abstract boolean isInvalidType(TypeMirror variableType);
     abstract String getErrorMessageForInvalidType(Element element, Class<? extends Annotation> annotationClass, TypeElement enclosingElement);
     abstract boolean requiresTheme();
   }
