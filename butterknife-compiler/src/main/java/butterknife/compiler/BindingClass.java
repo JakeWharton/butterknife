@@ -1,5 +1,7 @@
 package butterknife.compiler;
 
+import android.support.annotation.NonNull;
+
 import butterknife.internal.ListenerClass;
 import butterknife.internal.ListenerMethod;
 import com.squareup.javapoet.AnnotationSpec;
@@ -44,11 +46,13 @@ final class BindingClass {
   private static final String BIND_TO_TARGET = "bindToTarget";
 
   private final Map<Id, ViewBindings> viewIdMap = new LinkedHashMap<>();
-  private final Map<FieldCollectionViewBinding, List<Id>> collectionBindings =
+  private final Map<FieldCollectionViewBinding, List<Id>> viewCollectionBindings =
       new LinkedHashMap<>();
   private final List<FieldBitmapBinding> bitmapBindings = new ArrayList<>();
   private final List<FieldDrawableBinding> drawableBindings = new ArrayList<>();
   private final List<FieldResourceBinding> resourceBindings = new ArrayList<>();
+  private final Map<FieldCollectionResourceBinding, List<Id>> resourceCollectionBindings =
+          new LinkedHashMap<>();
   private final boolean isFinal;
   private final TypeName targetTypeName;
   private final ClassName binderClassName;
@@ -76,7 +80,7 @@ final class BindingClass {
   }
 
   void addFieldCollection(List<Id> ids, FieldCollectionViewBinding binding) {
-    collectionBindings.put(binding, ids);
+    viewCollectionBindings.put(binding, ids);
   }
 
   boolean addMethod(
@@ -94,6 +98,10 @@ final class BindingClass {
 
   void addResource(FieldResourceBinding binding) {
     resourceBindings.add(binding);
+  }
+
+  void addResourceCollection(List<Id> ids, FieldCollectionResourceBinding binding) {
+    resourceCollectionBindings.put(binding, ids);
   }
 
   void setParent(BindingClass parent) {
@@ -231,7 +239,7 @@ final class BindingClass {
           result.addStatement("target.$L = null", bindings.getFieldBinding().getName());
         }
       }
-      for (FieldCollectionViewBinding fieldCollectionBinding : collectionBindings.keySet()) {
+      for (FieldCollectionViewBinding fieldCollectionBinding : viewCollectionBindings.keySet()) {
         result.addStatement("target.$L = null", fieldCollectionBinding.getName());
       }
     }
@@ -423,8 +431,8 @@ final class BindingClass {
       }
 
       // Loop over each collection binding and emit it.
-      for (Map.Entry<FieldCollectionViewBinding, List<Id>> entry : collectionBindings.entrySet()) {
-        emitCollectionBinding(result, entry.getKey(), entry.getValue());
+      for (Map.Entry<FieldCollectionViewBinding, List<Id>> entry : viewCollectionBindings.entrySet()) {
+        emitViewCollectionBinding(result, entry.getKey(), entry.getValue());
       }
 
       if (hasResourceBindings()) {
@@ -459,24 +467,19 @@ final class BindingClass {
               binding.getId().code);
         }
       }
+
+      for (Map.Entry<FieldCollectionResourceBinding, List<Id>> entry : resourceCollectionBindings.entrySet()) {
+        emitResourceCollectionBinding(result, entry.getKey(), entry.getValue());
+      }
     }
   }
 
-  private void emitCollectionBinding(
+  private void emitViewCollectionBinding(
       MethodSpec.Builder result,
       FieldCollectionViewBinding binding,
       List<Id> ids) {
-    String ofName;
-    switch (binding.getKind()) {
-      case ARRAY:
-        ofName = "arrayOf";
-        break;
-      case LIST:
-        ofName = "listOf";
-        break;
-      default:
-        throw new IllegalStateException("Unknown kind: " + binding.getKind());
-    }
+
+    String ofName = getKind(binding);
 
     CodeBlock.Builder builder = CodeBlock.builder();
     for (int i = 0; i < ids.size(); i++) {
@@ -497,6 +500,49 @@ final class BindingClass {
 
     result.addStatement("target.$L = $T.$L($L)", binding.getName(), UTILS, ofName, builder.build());
   }
+
+  @NonNull
+  private String getKind(FieldCollectionBinding binding) {
+    String ofName;
+    switch (binding.getKind()) {
+      case ARRAY:
+        ofName = "arrayOf";
+        break;
+      case LIST:
+        ofName = "listOf";
+        break;
+      default:
+        throw new IllegalStateException("Unknown kind: " + binding.getKind());
+    }
+    return ofName;
+  }
+
+  private void emitResourceCollectionBinding(
+          MethodSpec.Builder result,
+          FieldCollectionResourceBinding binding,
+          List<Id> ids) {
+    String ofName = getKind(binding);
+    CodeBlock.Builder builder = CodeBlock.builder();
+    for (int i = 0; i < ids.size(); i++) {
+      if (i > 0) {
+        builder.add(", ");
+      }
+      builder.add("\n");
+
+      if (requiresCast(binding.getType())) {
+        builder.add("($T) ", binding.getType());
+      }
+
+      if (binding.isThemeable()) {
+        builder.add("$T.$L(res, theme, $L)", UTILS, binding.getMethod(), ids.get(i).code);
+      } else {
+        builder.add("res.$L($L)", binding.getMethod(), ids.get(i).code);
+      }
+    }
+
+    result.addStatement("target.$L = $T.$L($L)", binding.getName(), UTILS, ofName, builder.build());
+  }
+
 
   private void addViewBindings(MethodSpec.Builder result, ViewBindings bindings) {
     if (bindings.isSingleFieldBinding()) {
@@ -738,12 +784,12 @@ final class BindingClass {
 
   /** True when this type's bindings require a view hierarchy. */
   private boolean hasViewBindings() {
-    return !viewIdMap.isEmpty() || !collectionBindings.isEmpty();
+    return !viewIdMap.isEmpty() || !viewCollectionBindings.isEmpty();
   }
 
   /** True when this type's bindings require Android's {@code Resources}. */
   private boolean hasResourceBindings() {
-    return !(bitmapBindings.isEmpty() && drawableBindings.isEmpty() && resourceBindings.isEmpty());
+    return !(bitmapBindings.isEmpty() && drawableBindings.isEmpty() && resourceBindings.isEmpty() && resourceCollectionBindings.isEmpty());
   }
 
   /** True when this type's bindings use raw integer values instead of {@code R} references. */
@@ -773,6 +819,11 @@ final class BindingClass {
     }
     for (FieldResourceBinding resourceBinding : resourceBindings) {
       if (resourceBinding.isThemeable()) {
+        return true;
+      }
+    }
+    for (Map.Entry<FieldCollectionResourceBinding, List<Id>> entry : resourceCollectionBindings.entrySet()) {
+      if (entry.getKey().isThemeable()) {
         return true;
       }
     }
@@ -816,7 +867,7 @@ final class BindingClass {
         return true;
       }
     }
-    return !collectionBindings.isEmpty();
+    return !viewCollectionBindings.isEmpty();
   }
 
   private boolean bindNeedsFinder() {

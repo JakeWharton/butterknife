@@ -2,34 +2,13 @@ package butterknife.compiler;
 
 import com.squareup.javapoet.TypeName;
 
-final class FieldCollectionViewBinding implements ViewBinding {
-  enum Kind {
-    ARRAY,
-    LIST
-  }
+final class FieldCollectionViewBinding extends FieldCollectionBinding implements ViewBinding {
 
-  private final String name;
-  private final TypeName type;
-  private final Kind kind;
   private final boolean required;
 
   FieldCollectionViewBinding(String name, TypeName type, Kind kind, boolean required) {
-    this.name = name;
-    this.type = type;
-    this.kind = kind;
+    super(name, kind, type);
     this.required = required;
-  }
-
-  public String getName() {
-    return name;
-  }
-
-  public TypeName getType() {
-    return type;
-  }
-
-  public Kind getKind() {
-    return kind;
   }
 
   public boolean isRequired() {
@@ -37,6 +16,6 @@ final class FieldCollectionViewBinding implements ViewBinding {
   }
 
   @Override public String getDescription() {
-    return "field '" + name + "'";
+    return "field '" + getName() + "'";
   }
 }

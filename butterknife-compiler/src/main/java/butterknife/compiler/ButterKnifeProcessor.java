@@ -4,6 +4,7 @@ import butterknife.BindArray;
 import butterknife.BindBitmap;
 import butterknife.BindBool;
 import butterknife.BindColor;
+import butterknife.BindColors;
 import butterknife.BindDimen;
 import butterknife.BindDrawable;
 import butterknife.BindInt;
@@ -87,6 +88,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
   private static final String TYPED_ARRAY_TYPE = "android.content.res.TypedArray";
   private static final String NULLABLE_ANNOTATION_NAME = "Nullable";
   private static final String STRING_TYPE = "java.lang.String";
+  private static final String INTEGER_TYPE = "java.lang.Integer";
   private static final String LIST_TYPE = List.class.getCanonicalName();
   private static final String R = "R";
   private static final List<Class<? extends Annotation>> LISTENERS = Arrays.asList(//
@@ -138,6 +140,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     annotations.add(BindBitmap.class);
     annotations.add(BindBool.class);
     annotations.add(BindColor.class);
+    annotations.add(BindColors.class);
     annotations.add(BindDimen.class);
     annotations.add(BindDrawable.class);
     annotations.add(BindInt.class);
@@ -212,6 +215,16 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
         parseResourceColor(element, targetClassMap, erasedTargetNames);
       } catch (Exception e) {
         logParsingError(element, BindColor.class, e);
+      }
+    }
+
+    // Process each @BindColors element.
+    for (Element element : env.getElementsAnnotatedWith(BindColors.class)) {
+      if (!SuperficialValidation.validateElement(element)) continue;
+      try {
+        parseResourceColors(element, targetClassMap, erasedTargetNames);
+      } catch (Exception e) {
+        logParsingError(element, BindColors.class, e);
       }
     }
 
@@ -417,11 +430,11 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     TypeMirror elementType = element.asType();
     String erasedType = doubleErasure(elementType);
     TypeMirror viewType = null;
-    FieldCollectionViewBinding.Kind kind = null;
+    FieldCollectionBinding.Kind kind = null;
     if (elementType.getKind() == TypeKind.ARRAY) {
       ArrayType arrayType = (ArrayType) elementType;
       viewType = arrayType.getComponentType();
-      kind = FieldCollectionViewBinding.Kind.ARRAY;
+      kind = FieldCollectionBinding.Kind.ARRAY;
     } else if (LIST_TYPE.equals(erasedType)) {
       DeclaredType declaredType = (DeclaredType) elementType;
       List<? extends TypeMirror> typeArguments = declaredType.getTypeArguments();
@@ -433,7 +446,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
       } else {
         viewType = typeArguments.get(0);
       }
-      kind = FieldCollectionViewBinding.Kind.LIST;
+      kind = FieldCollectionBinding.Kind.LIST;
     } else {
       error(element, "@%s must be a List or array. (%s.%s)", BindViews.class.getSimpleName(),
           enclosingElement.getQualifiedName(), element.getSimpleName());
@@ -551,9 +564,97 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     int id = element.getAnnotation(BindColor.class).value();
 
     BindingClass bindingClass = getOrCreateTargetClass(targetClassMap, enclosingElement);
-    FieldResourceBinding binding = new FieldResourceBinding(getId(id), name,
-        isColorStateList ? "getColorStateList" : "getColor", true);
+    String method = isColorStateList ? "getColorStateList" : "getColor";
+    FieldResourceBinding binding = new FieldResourceBinding(getId(id), name, method, true);
     bindingClass.addResource(binding);
+
+    erasedTargetNames.add(enclosingElement);
+  }
+
+  private void parseResourceColors(Element element, Map<TypeElement, BindingClass> targetClassMap,
+                              Set<TypeElement> erasedTargetNames) {
+    TypeElement enclosingElement = (TypeElement) element.getEnclosingElement();
+
+    // Start by verifying common generated code restrictions.
+    boolean hasError = isInaccessibleViaGeneratedCode(BindColors.class, "fields", element)
+            || isBindingInWrongPackage(BindColors.class, element);
+
+    // Verify that the type is a List or an array.
+    TypeMirror elementType = element.asType();
+    String erasedType = doubleErasure(elementType);
+    TypeMirror variableType = null;
+    FieldCollectionBinding.Kind kind = null;
+    if (elementType.getKind() == TypeKind.ARRAY) {
+      ArrayType arrayType = (ArrayType) elementType;
+      variableType = arrayType.getComponentType();
+      kind = FieldCollectionBinding.Kind.ARRAY;
+    } else if (LIST_TYPE.equals(erasedType)) {
+      DeclaredType declaredType = (DeclaredType) elementType;
+      List<? extends TypeMirror> typeArguments = declaredType.getTypeArguments();
+      if (typeArguments.size() != 1) {
+        error(element, "@%s List must have a generic component. (%s.%s)",
+                BindColors.class.getSimpleName(), enclosingElement.getQualifiedName(),
+                element.getSimpleName());
+        hasError = true;
+      } else {
+        variableType = typeArguments.get(0);
+      }
+      kind = FieldCollectionBinding.Kind.LIST;
+    } else {
+      error(element, "@%s must be a List or array. (%s.%s)", BindColors.class.getSimpleName(),
+              enclosingElement.getQualifiedName(), element.getSimpleName());
+      hasError = true;
+    }
+    if (variableType != null && variableType.getKind() == TypeKind.TYPEVAR) {
+      TypeVariable typeVariable = (TypeVariable) variableType;
+      variableType = typeVariable.getUpperBound();
+    }
+
+    // Verify the target type
+    if (variableType != null && (!isSubtypeOfType(variableType, COLOR_STATE_LIST_TYPE) && !isSubtypeOfType(variableType, INTEGER_TYPE) && variableType.getKind() != TypeKind.INT)) {
+      error(element, "@%s List or array type must be int or ColorStateList. (%s.%s)",
+              BindColors.class.getSimpleName(), enclosingElement.getQualifiedName(),
+              element.getSimpleName());
+      hasError = true;
+    }
+
+    boolean isColorStateList = false;
+    if (COLOR_STATE_LIST_TYPE.equals(variableType.toString())) {
+      isColorStateList = true;
+    }
+
+    // Assemble information on the field.
+    String name = element.getSimpleName().toString();
+    int[] ids = element.getAnnotation(BindColors.class).value();
+    if (ids.length == 0) {
+      error(element, "@%s must specify at least one ID. (%s.%s)", BindColors.class.getSimpleName(),
+              enclosingElement.getQualifiedName(), element.getSimpleName());
+      hasError = true;
+    }
+
+    Integer duplicateId = findDuplicate(ids);
+    if (duplicateId != null) {
+      error(element, "@%s annotation contains duplicate ID %d. (%s.%s)",
+              BindColors.class.getSimpleName(), duplicateId, enclosingElement.getQualifiedName(),
+              element.getSimpleName());
+      hasError = true;
+    }
+
+    if (hasError) {
+      return;
+    }
+
+    assert variableType != null; // Always false as hasError would have been true.
+    TypeName type = TypeName.get(variableType);
+    List<Id> idVars = new ArrayList<>();
+    for (int id : ids) {
+      idVars.add(getId(id));
+    }
+
+    BindingClass bindingClass = getOrCreateTargetClass(targetClassMap, enclosingElement);
+    String method = isColorStateList ? "getColorStateList" : "getColor";
+    FieldCollectionResourceBinding binding = new FieldCollectionResourceBinding(name, kind, type, method, true);
+    bindingClass.addResourceCollection(idVars, binding);
 
     erasedTargetNames.add(enclosingElement);
   }

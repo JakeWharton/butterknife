@@ -59,31 +59,31 @@ public final class Utils {
   }
 
   @SafeVarargs
-  public static <T> T[] arrayOf(T... views) {
-    return filterNull(views);
+  public static <T> T[] arrayOf(T... items) {
+    return filterNull(items);
   }
 
   @SafeVarargs
-  public static <T> List<T> listOf(T... views) {
-    return new ImmutableList<>(filterNull(views));
+  public static <T> List<T> listOf(T... items) {
+    return new ImmutableList<>(filterNull(items));
   }
 
-  private static <T> T[] filterNull(T[] views) {
+  private static <T> T[] filterNull(T[] items) {
     int end = 0;
-    int length = views.length;
+    int length = items.length;
     for (int i = 0; i < length; i++) {
-      T view = views[i];
-      if (view != null) {
-        views[end++] = view;
+      T item = items[i];
+      if (item != null) {
+        items[end++] = item;
       }
     }
     if (end == length) {
-      return views;
+      return items;
     }
     //noinspection unchecked
-    T[] newViews = (T[]) Array.newInstance(views.getClass().getComponentType(), end);
-    System.arraycopy(views, 0, newViews, 0, end);
-    return newViews;
+    T[] newItems = (T[]) Array.newInstance(items.getClass().getComponentType(), end);
+    System.arraycopy(items, 0, newItems, 0, end);
+    return newItems;
   }
 
   static class SupportV4 {
