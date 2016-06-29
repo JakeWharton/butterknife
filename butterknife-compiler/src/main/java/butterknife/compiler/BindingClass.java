@@ -535,8 +535,9 @@ final class BindingClass {
     FieldViewBinding fieldBinding = bindings.getFieldBinding();
     if (fieldBinding != null) {
       if (requiresCast(fieldBinding.getType())) {
-        result.addStatement("target.$L = finder.castView(view, $L, $S)", fieldBinding.getName(),
-            bindings.getId().code, asHumanDescription(singletonList(fieldBinding)));
+        result.addStatement("target.$L = finder.castView(view, $L, $S, $T.class)",
+            fieldBinding.getName(), bindings.getId().code,
+            asHumanDescription(singletonList(fieldBinding)), fieldBinding.getRawType());
       } else {
         result.addStatement("target.$L = view", fieldBinding.getName());
       }

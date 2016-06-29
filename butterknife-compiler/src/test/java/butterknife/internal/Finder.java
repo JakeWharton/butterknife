@@ -21,7 +21,7 @@ public class Finder {
     throw new RuntimeException("Stub!");
   }
 
-  public <T> T castView(View view, int id, String who) {
+  public <T> T castView(View view, int id, String who, Class<T> cls) {
     throw new RuntimeException("Stub!");
   }
 
