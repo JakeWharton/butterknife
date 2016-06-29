@@ -12,8 +12,10 @@ import static java.lang.annotation.RetentionPolicy.CLASS;
  * Bind a field to the specified list color resource IDs. Type can be {@code java.lang.Integer} or
  * {@link android.content.res.ColorStateList}.
  * <pre><code>
- * {@literal @}BindColors({R.color.background_green, R.color.background_blue}) List&lt;Integer&gt; colors;
- * {@literal @}BindColors({R.color.background_green_selector, R.color.background_blue_selector}) ColorStateList[] greenSelector;
+ * {@literal @}BindColors({R.color.background_green, R.color.background_blue})
+ * List&lt;Integer&gt; colors;
+ * {@literal @}BindColors({R.color.background_green_selector, R.color.background_blue_selector})
+ * ColorStateList[] greenSelector;
  * </code></pre>
  */
 @Retention(CLASS) @Target(FIELD)

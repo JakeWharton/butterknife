@@ -7,7 +7,8 @@ public class TargetTypeData {
   private final FieldCollectionBinding.Kind kind;
   private final boolean hasError;
 
-  public TargetTypeData(TypeMirror variableType, FieldCollectionBinding.Kind kind, boolean hasError) {
+  public TargetTypeData(TypeMirror variableType, FieldCollectionBinding.Kind kind,
+                        boolean hasError) {
     this.variableType = variableType;
     this.kind = kind;
     this.hasError = hasError;

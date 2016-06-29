@@ -609,7 +609,8 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
             new ParseResourceStrategy() {
               @Override
               String getMethod(TypeMirror variableType) {
-                return COLOR_STATE_LIST_TYPE.equals(variableType.toString()) ? "getColorStateList" : "getColor";
+                boolean isColorStateList = COLOR_STATE_LIST_TYPE.equals(variableType.toString());
+                return isColorStateList ? "getColorStateList" : "getColor";
               }
 
               @Override
@@ -621,8 +622,11 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
               }
 
               @Override
-              String getErrorMessageForInvalidType(Element element, Class<? extends Annotation> annotationClass, TypeElement enclosingElement) {
-                return String.format("@%s List or array type must be Integer or ColorStateList. (%s.%s)",
+              String getErrorMessageForInvalidType(Element element,
+                                                   Class<? extends Annotation> annotationClass,
+                                                   TypeElement enclosingElement) {
+                return String.format(
+                        "@%s List or array type must be Integer or ColorStateList. (%s.%s)",
                         annotationClass.getSimpleName(), enclosingElement.getQualifiedName(),
                         element.getSimpleName());
               }
@@ -644,7 +648,8 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
             new ParseResourceStrategy() {
               @Override
               String getMethod(TypeMirror variableType) {
-                if (variableType.getKind() == TypeKind.INT || isSubtypeOfType(variableType, INTEGER_TYPE)) {
+                if (variableType.getKind() == TypeKind.INT
+                        || isSubtypeOfType(variableType, INTEGER_TYPE)) {
                   return "getDimensionPixelSize";
                 }
                 return "getDimension";
@@ -660,7 +665,9 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
               }
 
               @Override
-              String getErrorMessageForInvalidType(Element element, Class<? extends Annotation> annotationClass, TypeElement enclosingElement) {
+              String getErrorMessageForInvalidType(Element element,
+                                                   Class<? extends Annotation> annotationClass,
+                                                   TypeElement enclosingElement) {
                 return String.format("@%s List or array type must be Integer or Float. (%s.%s)",
                         annotationClass.getSimpleName(), enclosingElement.getQualifiedName(),
                         element.getSimpleName());
@@ -673,8 +680,10 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
             });
   }
 
-  private void parseResourceCollection(Element element, Map<TypeElement, BindingClass> targetClassMap,
-                                       Set<TypeElement> erasedTargetNames, int[] ids, Class<? extends Annotation> annotationClass, ParseResourceStrategy parseResourceStrategy) {
+  private void parseResourceCollection(Element element, Map<TypeElement,
+          BindingClass> targetClassMap, Set<TypeElement> erasedTargetNames, int[] ids,
+                                       Class<? extends Annotation> annotationClass,
+                                       ParseResourceStrategy parseResourceStrategy) {
 
     TypeElement enclosingElement = (TypeElement) element.getEnclosingElement();
 
@@ -687,7 +696,10 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
     // Verify the target type
     TypeMirror variableType = targetTypeData.getVariableType();
-    hasError |= verifyTargetType(element, parseResourceStrategy.isInvalidType(variableType), parseResourceStrategy.getErrorMessageForInvalidType(element, annotationClass, enclosingElement));
+    boolean isInvalidType = parseResourceStrategy.isInvalidType(variableType);
+    String errorMessage = parseResourceStrategy.getErrorMessageForInvalidType(element,
+            annotationClass, enclosingElement);
+    hasError |= verifyTargetType(element, isInvalidType, errorMessage);
 
     // Assemble information on the field.
     if (ids.length == 0) {
@@ -719,7 +731,8 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
     String method = parseResourceStrategy.getMethod(variableType);
     String name = element.getSimpleName().toString();
-    FieldCollectionResourceBinding binding = new FieldCollectionResourceBinding(name, targetTypeData.getKind(), type, method, parseResourceStrategy.requiresTheme());
+    FieldCollectionResourceBinding binding = new FieldCollectionResourceBinding(name,
+            targetTypeData.getKind(), type, method, parseResourceStrategy.requiresTheme());
     bindingClass.addResourceCollection(idVars, binding);
 
     erasedTargetNames.add(enclosingElement);
@@ -733,7 +746,8 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     return false;
   }
 
-  private TargetTypeData getTargetTypeData(Element element, TypeElement enclosingElement, Class<? extends Annotation> annotation)
+  private TargetTypeData getTargetTypeData(Element element, TypeElement enclosingElement,
+                                           Class<? extends Annotation> annotation)
   {
     boolean hasError = false;
 
@@ -759,7 +773,8 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
       }
       kind = FieldCollectionBinding.Kind.LIST;
     } else {
-      error(element, "@%s must be used with a List or an array. (%s.%s)", annotation.getSimpleName(),
+      error(element, "@%s must be used with a List or an array. (%s.%s)",
+              annotation.getSimpleName(),
               enclosingElement.getQualifiedName(), element.getSimpleName());
       hasError = true;
     }
@@ -771,7 +786,8 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     return new TargetTypeData(variableType, kind, hasError);
   }
 
-  private boolean verifyCommonGeneratedCodeRestrictions(Element element, Class<? extends Annotation> annotation) {
+  private boolean verifyCommonGeneratedCodeRestrictions(Element element,
+                                                        Class<? extends Annotation> annotation) {
     boolean hasError = isInaccessibleViaGeneratedCode(annotation, "fields", element);
     hasError |= isBindingInWrongPackage(annotation, element);
     return hasError;
@@ -962,7 +978,9 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
               }
 
               @Override
-              String getErrorMessageForInvalidType(Element element, Class<? extends Annotation> annotationClass, TypeElement enclosingElement) {
+              String getErrorMessageForInvalidType(Element element,
+                                                   Class<? extends Annotation> annotationClass,
+                                                   TypeElement enclosingElement) {
                 return String.format("@%s List or array type must be String. (%s.%s)",
                         annotationClass.getSimpleName(), enclosingElement.getQualifiedName(),
                         element.getSimpleName());
@@ -1528,7 +1546,9 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
   private abstract static class ParseResourceStrategy {
     abstract String getMethod(TypeMirror variableType);
     abstract boolean isInvalidType(TypeMirror variableType);
-    abstract String getErrorMessageForInvalidType(Element element, Class<? extends Annotation> annotationClass, TypeElement enclosingElement);
+    abstract String getErrorMessageForInvalidType(Element element,
+                                                  Class<? extends Annotation> annotationClass,
+                                                  TypeElement enclosingElement);
     abstract boolean requiresTheme();
   }
 }

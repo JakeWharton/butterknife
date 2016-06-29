@@ -431,7 +431,8 @@ final class BindingClass {
       }
 
       // Loop over each collection binding and emit it.
-      for (Map.Entry<FieldCollectionViewBinding, List<Id>> entry : viewCollectionBindings.entrySet()) {
+      for (Map.Entry<FieldCollectionViewBinding, List<Id>> entry
+              : viewCollectionBindings.entrySet()) {
         emitViewCollectionBinding(result, entry.getKey(), entry.getValue());
       }
 
@@ -468,7 +469,8 @@ final class BindingClass {
         }
       }
 
-      for (Map.Entry<FieldCollectionResourceBinding, List<Id>> entry : resourceCollectionBindings.entrySet()) {
+      for (Map.Entry<FieldCollectionResourceBinding, List<Id>> entry
+              : resourceCollectionBindings.entrySet()) {
         emitResourceCollectionBinding(result, entry.getKey(), entry.getValue());
       }
     }
@@ -785,7 +787,8 @@ final class BindingClass {
 
   /** True when this type's bindings require Android's {@code Resources}. */
   private boolean hasResourceBindings() {
-    return !(bitmapBindings.isEmpty() && drawableBindings.isEmpty() && resourceBindings.isEmpty() && resourceCollectionBindings.isEmpty());
+    boolean thereAreResources = resourceBindings.isEmpty() && resourceCollectionBindings.isEmpty();
+    return !(bitmapBindings.isEmpty() && drawableBindings.isEmpty() && thereAreResources);
   }
 
   /** True when this type's bindings use raw integer values instead of {@code R} references. */
@@ -818,7 +821,8 @@ final class BindingClass {
         return true;
       }
     }
-    for (Map.Entry<FieldCollectionResourceBinding, List<Id>> entry : resourceCollectionBindings.entrySet()) {
+    for (Map.Entry<FieldCollectionResourceBinding, List<Id>> entry
+            : resourceCollectionBindings.entrySet()) {
       if (entry.getKey().isThemeable()) {
         return true;
       }
