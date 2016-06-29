@@ -522,6 +522,79 @@ public class BindViewTest {
         .generatesSources(binderSource, bindingSource);
   }
 
+  @Test public void oneFindPerIdWithCast() {
+    JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
+        + "package test;\n"
+        + "import android.app.Activity;\n"
+        + "import android.widget.Button;\n"
+        + "import butterknife.BindView;\n"
+        + "import butterknife.OnClick;\n"
+        + "public class Test extends Activity {\n"
+        + "  @BindView(1) Button thing1;\n"
+        + "  @OnClick(1) void doStuff() {}\n"
+        + "}"
+    );
+
+    JavaFileObject binderSource = JavaFileObjects.forSourceString("test/Test_ViewBinder", ""
+        + "package test;\n"
+        + "import butterknife.Unbinder;\n"
+        + "import butterknife.internal.Finder;\n"
+        + "import butterknife.internal.ViewBinder;\n"
+        + "import java.lang.Object;\n"
+        + "import java.lang.Override;\n"
+        + "public final class Test_ViewBinder implements ViewBinder<Test> {\n"
+        + "  @Override\n"
+        + "  public Unbinder bind(Finder finder, Test target, Object source) {\n"
+        + "    return new Test_ViewBinding<>(target, finder, source);\n"
+        + "  }\n"
+        + "}"
+    );
+
+    JavaFileObject bindingSource = JavaFileObjects.forSourceString("test/Test_ViewBinding", ""
+        + "package test;\n"
+        + "import android.view.View;\n"
+        + "import android.widget.Button;\n"
+        + "import butterknife.Unbinder;\n"
+        + "import butterknife.internal.DebouncingOnClickListener;\n"
+        + "import butterknife.internal.Finder;\n"
+        + "import java.lang.IllegalStateException;\n"
+        + "import java.lang.Object;\n"
+        + "import java.lang.Override;\n"
+        + "public class Test_ViewBinding<T extends Test> implements Unbinder {\n"
+        + "  protected T target;\n"
+        + "  private View view1;\n"
+        + "  public Test_ViewBinding(final T target, Finder finder, Object source) {\n"
+        + "    this.target = target;\n"
+        + "    View view;\n"
+        + "    view = finder.findRequiredView(source, 1, \"field 'thing1' and method 'doStuff'\");\n"
+        + "    target.thing1 = finder.castView(view, 1, \"field 'thing1'\", Button.class);\n"
+        + "    view1 = view;\n"
+        + "    view.setOnClickListener(new DebouncingOnClickListener() {\n"
+        + "      @Override\n"
+        + "      public void doClick(View p0) {\n"
+        + "        target.doStuff();\n"
+        + "      }\n"
+        + "    });\n"
+        + "  }\n"
+        + "  @Override\n"
+        + "  public void unbind() {\n"
+        + "    T target = this.target;\n"
+        + "    if (target == null) throw new IllegalStateException(\"Bindings already cleared.\");\n"
+        + "    target.thing1 = null;\n"
+        + "    view1.setOnClickListener(null);\n"
+        + "    view1 = null;\n"
+        + "    this.target = null;\n"
+        + "  }\n"
+        + "}"
+    );
+
+    assertAbout(javaSource()).that(source)
+        .processedWith(new ButterKnifeProcessor())
+        .compilesWithoutError()
+        .and()
+        .generatesSources(binderSource, bindingSource);
+  }
+
   @Test public void fieldVisibility() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
