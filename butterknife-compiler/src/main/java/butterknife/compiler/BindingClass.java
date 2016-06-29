@@ -529,10 +529,6 @@ final class BindingClass {
       }
       builder.add("\n");
 
-      if (requiresCast(binding.getType())) {
-        builder.add("($T) ", binding.getType());
-      }
-
       if (binding.isThemeable()) {
         builder.add("$T.$L(res, theme, $L)", UTILS, binding.getMethod(), ids.get(i).code);
       } else {

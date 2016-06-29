@@ -94,7 +94,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
   private static final String NULLABLE_ANNOTATION_NAME = "Nullable";
   private static final String STRING_TYPE = "java.lang.String";
   private static final String INTEGER_TYPE = "java.lang.Integer";
-  private static final String FLOAT_TYPE = "java.lang.float";
+  private static final String FLOAT_TYPE = "java.lang.Float";
   private static final String LIST_TYPE = List.class.getCanonicalName();
   private static final String R = "R";
   private static final List<Class<? extends Annotation>> LISTENERS = Arrays.asList(//
@@ -622,7 +622,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
               @Override
               String getErrorMessageForInvalidType(Element element, Class<? extends Annotation> annotationClass, TypeElement enclosingElement) {
-                return String.format("@%s List or array type must be int or ColorStateList. (%s.%s)",
+                return String.format("@%s List or array type must be Integer or ColorStateList. (%s.%s)",
                         annotationClass.getSimpleName(), enclosingElement.getQualifiedName(),
                         element.getSimpleName());
               }
@@ -652,15 +652,16 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
               @Override
               boolean isInvalidType(TypeMirror variableType) {
-                return variableType != null
-                        && !isSubtypeOfType(variableType, INTEGER_TYPE)
+                return variableType == null
+                        || (!isSubtypeOfType(variableType, INTEGER_TYPE)
                         && variableType.getKind() != TypeKind.INT
-                        && variableType.getKind() != TypeKind.FLOAT;
+                        && !isSubtypeOfType(variableType, FLOAT_TYPE)
+                        && variableType.getKind() != TypeKind.FLOAT);
               }
 
               @Override
               String getErrorMessageForInvalidType(Element element, Class<? extends Annotation> annotationClass, TypeElement enclosingElement) {
-                return String.format("@%s field type must be 'int' or 'float'. (%s.%s)",
+                return String.format("@%s List or array type must be Integer or Float. (%s.%s)",
                         annotationClass.getSimpleName(), enclosingElement.getQualifiedName(),
                         element.getSimpleName());
               }
@@ -758,7 +759,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
       }
       kind = FieldCollectionBinding.Kind.LIST;
     } else {
-      error(element, "@%s must be a List or array. (%s.%s)", annotation.getSimpleName(),
+      error(element, "@%s must be used with a List or an array. (%s.%s)", annotation.getSimpleName(),
               enclosingElement.getQualifiedName(), element.getSimpleName());
       hasError = true;
     }
@@ -962,7 +963,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
               @Override
               String getErrorMessageForInvalidType(Element element, Class<? extends Annotation> annotationClass, TypeElement enclosingElement) {
-                return String.format("@%s field type must be String. (%s.%s)",
+                return String.format("@%s List or array type must be String. (%s.%s)",
                         annotationClass.getSimpleName(), enclosingElement.getQualifiedName(),
                         element.getSimpleName());
               }
