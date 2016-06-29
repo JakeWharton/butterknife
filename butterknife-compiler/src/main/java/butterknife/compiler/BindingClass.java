@@ -21,7 +21,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import javax.lang.model.element.Modifier;
 
 import static butterknife.compiler.ButterKnifeProcessor.VIEW_TYPE;
 import static java.util.Collections.singletonList;
@@ -42,25 +41,26 @@ final class BindingClass {
   private static final ClassName UNBINDER = ClassName.get("butterknife", "Unbinder");
   private static final ClassName BITMAP_FACTORY =
       ClassName.get("android.graphics", "BitmapFactory");
-  private static final String UNBINDER_SIMPLE_NAME = "InnerUnbinder";
   private static final String BIND_TO_TARGET = "bindToTarget";
 
-  private final Map<Integer, ViewBindings> viewIdMap = new LinkedHashMap<>();
-  private final Map<FieldCollectionViewBinding, int[]> collectionBindings = new LinkedHashMap<>();
+  private final Map<Id, ViewBindings> viewIdMap = new LinkedHashMap<>();
+  private final Map<FieldCollectionViewBinding, List<Id>> collectionBindings =
+      new LinkedHashMap<>();
   private final List<FieldBitmapBinding> bitmapBindings = new ArrayList<>();
   private final List<FieldDrawableBinding> drawableBindings = new ArrayList<>();
   private final List<FieldResourceBinding> resourceBindings = new ArrayList<>();
   private final boolean isFinal;
   private final TypeName targetTypeName;
-  private final ClassName generatedClassName;
+  private final ClassName binderClassName;
   private final ClassName unbinderClassName;
   private BindingClass parentBinding;
 
-  BindingClass(TypeName targetTypeName, ClassName generatedClassName, boolean isFinal) {
+  BindingClass(TypeName targetTypeName, ClassName binderClassName, ClassName unbinderClassName,
+      boolean isFinal) {
     this.isFinal = isFinal;
     this.targetTypeName = targetTypeName;
-    this.generatedClassName = generatedClassName;
-    this.unbinderClassName = generatedClassName.nestedClass(UNBINDER_SIMPLE_NAME);
+    this.binderClassName = binderClassName;
+    this.unbinderClassName = unbinderClassName;
   }
 
   void addBitmap(FieldBitmapBinding binding) {
@@ -71,16 +71,16 @@ final class BindingClass {
     drawableBindings.add(binding);
   }
 
-  void addField(int id, FieldViewBinding binding) {
+  void addField(Id id, FieldViewBinding binding) {
     getOrCreateViewBindings(id).setFieldBinding(binding);
   }
 
-  void addFieldCollection(int[] ids, FieldCollectionViewBinding binding) {
+  void addFieldCollection(List<Id> ids, FieldCollectionViewBinding binding) {
     collectionBindings.put(binding, ids);
   }
 
   boolean addMethod(
-      int id,
+      Id id,
       ListenerClass listener,
       ListenerMethod method,
       MethodViewBinding binding) {
@@ -100,11 +100,11 @@ final class BindingClass {
     this.parentBinding = parent;
   }
 
-  ViewBindings getViewBinding(int id) {
+  ViewBindings getViewBinding(Id id) {
     return viewIdMap.get(id);
   }
 
-  private ViewBindings getOrCreateViewBindings(int id) {
+  private ViewBindings getOrCreateViewBindings(Id id) {
     ViewBindings viewId = viewIdMap.get(id);
     if (viewId == null) {
       viewId = new ViewBindings(id);
@@ -113,41 +113,40 @@ final class BindingClass {
     return viewId;
   }
 
-  JavaFile brewJava() {
-    TypeSpec.Builder result = TypeSpec.classBuilder(generatedClassName)
-        .addModifiers(PUBLIC);
-    if (isFinal) {
-      result.addModifiers(Modifier.FINAL);
-    } else {
-      result.addTypeVariable(TypeVariableName.get("T", targetTypeName));
-    }
+  Collection<JavaFile> brewJava() {
+    TypeSpec.Builder result = TypeSpec.classBuilder(binderClassName)
+        .addModifiers(PUBLIC, FINAL)
+        .addSuperinterface(ParameterizedTypeName.get(VIEW_BINDER, targetTypeName));
 
-    TypeName targetType = isFinal ? targetTypeName : TypeVariableName.get("T");
-    if (hasParentBinding()) {
-      result.superclass(ParameterizedTypeName.get(parentBinding.generatedClassName, targetType));
-    } else {
-      result.addSuperinterface(ParameterizedTypeName.get(VIEW_BINDER, targetType));
-    }
+    result.addMethod(createBindMethod(targetTypeName));
 
-    result.addMethod(createBindMethod(targetType));
-
+    List<JavaFile> files = new ArrayList<>();
     if (isGeneratingUnbinder()) {
-      result.addType(createUnbinderClass(targetType));
+      files.add(JavaFile.builder(unbinderClassName.packageName(), createUnbinderClass())
+          .addFileComment("Generated code from Butter Knife. Do not modify!")
+          .build()
+      );
     } else if (!isFinal) {
       result.addMethod(createBindToTargetMethod());
     }
 
-    return JavaFile.builder(generatedClassName.packageName(), result.build())
+    files.add(JavaFile.builder(binderClassName.packageName(), result.build())
         .addFileComment("Generated code from Butter Knife. Do not modify!")
-        .build();
+        .build());
+
+    return files;
   }
 
-  private TypeSpec createUnbinderClass(TypeName targetType) {
+  private TypeSpec createUnbinderClass() {
     TypeSpec.Builder result = TypeSpec.classBuilder(unbinderClassName.simpleName())
-        .addModifiers(isFinal ? PRIVATE : PROTECTED, STATIC);
+        .addModifiers(PUBLIC);
+
+    TypeName targetType;
     if (isFinal) {
-      result.addModifiers(Modifier.FINAL);
+      result.addModifiers(FINAL);
+      targetType = targetTypeName;
     } else {
+      targetType = TypeVariableName.get("T");
       result.addTypeVariable(TypeVariableName.get("T", targetTypeName));
     }
 
@@ -167,10 +166,9 @@ final class BindingClass {
   }
 
   private MethodSpec createUnbinderConstructor(TypeName targetType) {
-    MethodSpec.Builder constructor = MethodSpec.constructorBuilder();
-    if (!isFinal) {
-      constructor.addModifiers(PROTECTED);
-    }
+    MethodSpec.Builder constructor = MethodSpec.constructorBuilder()
+        .addModifiers(PUBLIC);
+
     if (hasMethodBindings()) {
       constructor.addParameter(targetType, "target", FINAL);
     } else {
@@ -264,7 +262,7 @@ final class BindingClass {
 
     String fieldName = "target";
     if (!bindings.isBoundToRoot()) {
-      fieldName = "view" + bindings.getId();
+      fieldName = "view" + bindings.getId().value;
       result.addField(VIEW, fieldName, PRIVATE);
     }
 
@@ -375,7 +373,7 @@ final class BindingClass {
 
   private MethodSpec createBindToTargetMethod() {
     MethodSpec.Builder result = MethodSpec.methodBuilder(BIND_TO_TARGET)
-        .addModifiers(PROTECTED, STATIC);
+        .addModifiers(PUBLIC, STATIC);
 
     if (hasMethodBindings()) {
       result.addParameter(targetTypeName, "target", FINAL);
@@ -396,7 +394,7 @@ final class BindingClass {
   }
 
   private void generateBindViewBody(MethodSpec.Builder result) {
-    if (hasResourceBindings()) {
+    if (hasUnqualifiedResourceBindings()) {
       // Aapt can change IDs out from underneath us, just suppress since all will work at runtime.
       result.addAnnotation(AnnotationSpec.builder(SuppressWarnings.class)
           .addMember("value", "$S", "ResourceType")
@@ -405,7 +403,7 @@ final class BindingClass {
 
     if (!hasInheritedUnbinder() && hasParentBinding()) {
       CodeBlock.Builder invoke = CodeBlock.builder() //
-          .add("$T.$N(target", parentBinding.generatedClassName, BIND_TO_TARGET);
+          .add("$T.$N(target", parentBinding.binderClassName, BIND_TO_TARGET);
       if (parentBinding.bindNeedsFinder()) invoke.add(", finder, source");
       if (parentBinding.bindNeedsResources()) invoke.add(", res");
       if (parentBinding.bindNeedsTheme()) invoke.add(", theme");
@@ -425,7 +423,7 @@ final class BindingClass {
       }
 
       // Loop over each collection binding and emit it.
-      for (Map.Entry<FieldCollectionViewBinding, int[]> entry : collectionBindings.entrySet()) {
+      for (Map.Entry<FieldCollectionViewBinding, List<Id>> entry : collectionBindings.entrySet()) {
         emitCollectionBinding(result, entry.getKey(), entry.getValue());
       }
 
@@ -437,17 +435,17 @@ final class BindingClass {
     if (hasResourceBindings()) {
       for (FieldBitmapBinding binding : bitmapBindings) {
         result.addStatement("target.$L = $T.decodeResource(res, $L)", binding.getName(),
-            BITMAP_FACTORY, binding.getId());
+            BITMAP_FACTORY, binding.getId().code);
       }
 
       for (FieldDrawableBinding binding : drawableBindings) {
-        int tintAttributeId = binding.getTintAttributeId();
-        if (tintAttributeId != 0) {
+        Id tintAttributeId = binding.getTintAttributeId();
+        if (tintAttributeId.value != 0) {
           result.addStatement("target.$L = $T.getTintedDrawable(res, theme, $L, $L)",
-              binding.getName(), UTILS, binding.getId(), tintAttributeId);
+              binding.getName(), UTILS, binding.getId().code, tintAttributeId.code);
         } else {
           result.addStatement("target.$L = $T.getDrawable(res, theme, $L)", binding.getName(),
-              UTILS, binding.getId());
+              UTILS, binding.getId().code);
         }
       }
 
@@ -455,10 +453,10 @@ final class BindingClass {
         // TODO being themeable is poor correlation to the need to use Utils.
         if (binding.isThemeable()) {
           result.addStatement("target.$L = $T.$L(res, theme, $L)", binding.getName(),
-              UTILS, binding.getMethod(), binding.getId());
+              UTILS, binding.getMethod(), binding.getId().code);
         } else {
           result.addStatement("target.$L = res.$L($L)", binding.getName(), binding.getMethod(),
-              binding.getId());
+              binding.getId().code);
         }
       }
     }
@@ -467,7 +465,7 @@ final class BindingClass {
   private void emitCollectionBinding(
       MethodSpec.Builder result,
       FieldCollectionViewBinding binding,
-      int[] ids) {
+      List<Id> ids) {
     String ofName;
     switch (binding.getKind()) {
       case ARRAY:
@@ -481,7 +479,7 @@ final class BindingClass {
     }
 
     CodeBlock.Builder builder = CodeBlock.builder();
-    for (int i = 0; i < ids.length; i++) {
+    for (int i = 0; i < ids.size(); i++) {
       if (i > 0) {
         builder.add(", ");
       }
@@ -490,10 +488,10 @@ final class BindingClass {
         builder.add("($T) ", binding.getType());
       }
       if (binding.isRequired()) {
-        builder.add("finder.findRequiredView(source, $L, $S)", ids[i],
+        builder.add("finder.findRequiredView(source, $L, $S)", ids.get(i).code,
             asHumanDescription(singletonList(binding)));
       } else {
-        builder.add("finder.findOptionalView(source, $L)", ids[i]);
+        builder.add("finder.findOptionalView(source, $L)", ids.get(i).code);
       }
     }
 
@@ -510,7 +508,7 @@ final class BindingClass {
       if (requiresCast(fieldBinding.getType())) {
         invoke.add("AsType");
       }
-      invoke.add("(source, $L", bindings.getId());
+      invoke.add("(source, $L", bindings.getId().code);
       if (fieldBinding.isRequired() || requiresCast(fieldBinding.getType())) {
         invoke.add(", $S", asHumanDescription(singletonList(fieldBinding)));
       }
@@ -523,9 +521,9 @@ final class BindingClass {
 
     List<ViewBinding> requiredViewBindings = bindings.getRequiredBindings();
     if (requiredViewBindings.isEmpty()) {
-      result.addStatement("view = finder.findOptionalView(source, $L)", bindings.getId());
+      result.addStatement("view = finder.findOptionalView(source, $L)", bindings.getId().code);
     } else if (!bindings.isBoundToRoot()) {
-      result.addStatement("view = finder.findRequiredView(source, $L, $S)", bindings.getId(),
+      result.addStatement("view = finder.findRequiredView(source, $L, $S)", bindings.getId().code,
           asHumanDescription(requiredViewBindings));
     }
 
@@ -538,7 +536,7 @@ final class BindingClass {
     if (fieldBinding != null) {
       if (requiresCast(fieldBinding.getType())) {
         result.addStatement("target.$L = finder.castView(view, $L, $S)", fieldBinding.getName(),
-            bindings.getId(), asHumanDescription(singletonList(fieldBinding)));
+            bindings.getId().code, asHumanDescription(singletonList(fieldBinding)));
       } else {
         result.addStatement("target.$L = view", fieldBinding.getName());
       }
@@ -562,7 +560,7 @@ final class BindingClass {
     String fieldName = "target";
     String bindName = "target";
     if (!bindings.isBoundToRoot()) {
-      fieldName = "view" + bindings.getId();
+      fieldName = "view" + bindings.getId().value;
       bindName = "view";
 
       if (isGeneratingUnbinder()) {
@@ -628,7 +626,7 @@ final class BindingClass {
       if (requiresRemoval) {
         TypeName listenerClassName = bestGuess(listener.type());
         listenerField = fieldName + ((ClassName) listenerClassName).simpleName();
-        result.addStatement("this.$L = $L", listenerField, callback.build());
+        result.addStatement("$L = $L", listenerField, callback.build());
       }
 
       if (!VIEW_TYPE.equals(listener.targetType())) {
@@ -748,6 +746,26 @@ final class BindingClass {
     return !(bitmapBindings.isEmpty() && drawableBindings.isEmpty() && resourceBindings.isEmpty());
   }
 
+  /** True when this type's bindings use raw integer values instead of {@code R} references. */
+  private boolean hasUnqualifiedResourceBindings() {
+    for (FieldBitmapBinding binding : bitmapBindings) {
+      if (!binding.getId().qualifed) {
+        return true;
+      }
+    }
+    for (FieldDrawableBinding binding : drawableBindings) {
+      if (!binding.getId().qualifed) {
+        return true;
+      }
+    }
+    for (FieldResourceBinding binding : resourceBindings) {
+      if (!binding.getId().qualifed) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   /** True when this type's resource bindings require Android's {@code Theme}. */
   private boolean hasResourceBindingsNeedingTheme() {
     if (!drawableBindings.isEmpty()) {
@@ -830,6 +848,6 @@ final class BindingClass {
   }
 
   @Override public String toString() {
-    return generatedClassName.toString();
+    return binderClassName.toString();
   }
 }

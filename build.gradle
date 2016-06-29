@@ -6,57 +6,73 @@ subprojects { project ->
     mavenCentral()
   }
 
-  apply plugin: 'checkstyle'
+  if (!project.name.equals('butterknife-gradle-plugin')) {
+    apply plugin: 'checkstyle'
 
-  task checkstyle(type: Checkstyle) {
-    configFile rootProject.file('checkstyle.xml')
-    source 'src/main/java'
-    ignoreFailures false
-    showViolations true
-    include '**/*.java'
+    task checkstyle(type: Checkstyle) {
+      configFile rootProject.file('checkstyle.xml')
+      source 'src/main/java'
+      ignoreFailures false
+      showViolations true
+      include '**/*.java'
 
-    classpath = files()
-  }
+      classpath = files()
+    }
 
-  afterEvaluate {
-    if (project.tasks.findByName('check')) {
-      check.dependsOn('checkstyle')
+    afterEvaluate {
+      if (project.tasks.findByName('check')) {
+        check.dependsOn('checkstyle')
+      }
     }
   }
 
   buildscript {
     repositories {
       mavenCentral()
+      maven {
+        url "https://plugins.gradle.org/m2/"
+      }
     }
     dependencies {
-      classpath 'com.android.tools.build:gradle:2.1.0'
+      classpath 'com.android.tools.build:gradle:2.1.2'
       classpath 'com.neenbedankt.gradle.plugins:android-apt:1.8'
+      classpath 'gradle.plugin.com.kageiit:lintrules:1.1.2'
     }
   }
 }
 
 ext {
   minSdkVersion = 8
-  targetSdkVersion = 23
-  compileSdkVersion = 23
-  buildToolsVersion = '23.0.3'
+  targetSdkVersion = 24
+  compileSdkVersion = 24
+  buildToolsVersion = '24.0.0'
   sourceCompatibilityVersion = JavaVersion.VERSION_1_7
   targetCompatibilityVersion = JavaVersion.VERSION_1_7
 }
 
+def androidToolsVersion = '25.1.2'
+
 ext.deps = [
     // Android
     android: 'com.google.android:android:2.1.2',
-    supportv4: 'com.android.support:support-v4:23.3.0',
-    supportAnnotations: 'com.android.support:support-annotations:23.3.0',
+    supportv4: 'com.android.support:support-v4:24.0.0',
+    supportAnnotations: 'com.android.support:support-annotations:24.0.0',
+    androidGradle: 'com.android.tools.build:gradle:2.1.2',
+    lint: "com.android.tools.lint:lint:$androidToolsVersion",
+    lintApi: "com.android.tools.lint:lint-api:$androidToolsVersion",
+    lintChecks: "com.android.tools.lint:lint-checks:$androidToolsVersion",
+    lintTests: "com.android.tools.lint:lint-tests:$androidToolsVersion",
 
     // Square
     javapoet: 'com.squareup:javapoet:1.7.0',
 
+    // Third Party
+    javaparser: 'com.github.javaparser:javaparser-core:2.4.0',
+
     // Test dependencies
     junit: 'junit:junit:4.12',
     truth: 'com.google.truth:truth:0.28',
-    robolectric: 'org.robolectric:robolectric:2.2',
+    robolectric: 'org.robolectric:robolectric:3.1',
     compiletesting: 'com.google.testing.compile:compile-testing:0.9',
     autoservice: 'com.google.auto.service:auto-service:1.0-rc2',
     autocommon: 'com.google.auto:auto-common:0.6'

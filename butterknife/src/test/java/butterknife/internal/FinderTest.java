@@ -4,8 +4,8 @@ import android.view.View;
 import butterknife.shadow.EditModeShadowView;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 
 import static com.google.common.truth.Truth.assertThat;
@@ -15,7 +15,7 @@ import static org.junit.Assert.fail;
 @Config(manifest = Config.NONE)
 public final class FinderTest {
   @Test public void finderThrowsNiceError() {
-    View view = new View(Robolectric.application);
+    View view = new View(RuntimeEnvironment.application);
     try {
       Finder.VIEW.findRequiredView(view, android.R.id.button1, "yo mama");
       fail();
@@ -28,7 +28,7 @@ public final class FinderTest {
 
   @Config(shadows = EditModeShadowView.class)
   @Test public void finderThrowsLessNiceErrorInEditMode() {
-    View view = new View(Robolectric.application);
+    View view = new View(RuntimeEnvironment.application);
     try {
       Finder.VIEW.findRequiredView(view, android.R.id.button1, "yo mama");
       fail();

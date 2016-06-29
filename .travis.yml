@@ -4,14 +4,13 @@ android:
   components:
     - tools
     - platform-tools
-    - build-tools-23.0.3
-    - android-23
+    - build-tools-24.0.0
+    - android-24
     - extra-android-m2repository
     - sys-img-armeabi-v7a-android-18
 
 jdk:
   - oraclejdk8
-
 
 before_script:
   # Create and start an emulator for instrumentation tests.
@@ -19,6 +18,10 @@ before_script:
   - emulator -avd test -no-audio -no-window &
   - android-wait-for-emulator
   - adb shell input keyevent 82
+
+script:
+  - ./gradlew butterknife-gradle-plugin:install -Dorg.gradle.configureondemand=true &&
+    ./gradlew build connectedCheck
 
 after_success:
   - .buildscript/deploy_snapshot.sh

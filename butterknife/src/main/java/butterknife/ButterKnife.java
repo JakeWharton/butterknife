@@ -7,16 +7,16 @@ import android.os.Build;
 import android.support.annotation.CheckResult;
 import android.support.annotation.IdRes;
 import android.support.annotation.NonNull;
+import android.support.annotation.RequiresApi;
+import android.support.annotation.UiThread;
 import android.util.Log;
 import android.util.Property;
 import android.view.View;
-
+import butterknife.internal.Finder;
+import butterknife.internal.ViewBinder;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-
-import butterknife.internal.Finder;
-import butterknife.internal.ViewBinder;
 
 /**
  * Field and method binding for Android views. Use this class to simplify finding views and
@@ -88,12 +88,14 @@ public final class ButterKnife {
   /** An action that can be applied to a list of views. */
   public interface Action<T extends View> {
     /** Apply the action on the {@code view} which is at {@code index} in the list. */
+    @UiThread
     void apply(@NonNull T view, int index);
   }
 
   /** A setter that can apply a value to a list of views. */
   public interface Setter<T extends View, V> {
     /** Set the {@code value} on the {@code view} which is at {@code index} in the list. */
+    @UiThread
     void set(@NonNull T view, V value, int index);
   }
 
@@ -118,6 +120,7 @@ public final class ButterKnife {
    *
    * @param target Target activity for view binding.
    */
+  @NonNull @UiThread
   public static Unbinder bind(@NonNull Activity target) {
     return getViewBinder(target).bind(Finder.ACTIVITY, target, target);
   }
@@ -128,7 +131,7 @@ public final class ButterKnife {
    *
    * @param target Target view for view binding.
    */
-  @NonNull
+  @NonNull @UiThread
   public static Unbinder bind(@NonNull View target) {
     return getViewBinder(target).bind(Finder.VIEW, target, target);
   }
@@ -139,7 +142,7 @@ public final class ButterKnife {
    *
    * @param target Target dialog for view binding.
    */
-  @SuppressWarnings("unused") // Public api.
+  @NonNull @UiThread
   public static Unbinder bind(@NonNull Dialog target) {
     return getViewBinder(target).bind(Finder.DIALOG, target, target);
   }
@@ -151,6 +154,7 @@ public final class ButterKnife {
    * @param target Target class for view binding.
    * @param source Activity on which IDs will be looked up.
    */
+  @NonNull @UiThread
   public static Unbinder bind(@NonNull Object target, @NonNull Activity source) {
     return getViewBinder(target).bind(Finder.ACTIVITY, target, source);
   }
@@ -162,7 +166,7 @@ public final class ButterKnife {
    * @param target Target class for view binding.
    * @param source View root on which IDs will be looked up.
    */
-  @NonNull
+  @NonNull @UiThread
   public static Unbinder bind(@NonNull Object target, @NonNull View source) {
     return getViewBinder(target).bind(Finder.VIEW, target, source);
   }
@@ -174,18 +178,19 @@ public final class ButterKnife {
    * @param target Target class for view binding.
    * @param source Dialog on which IDs will be looked up.
    */
-  @SuppressWarnings("unused") // Public api.
+  @NonNull @UiThread
   public static Unbinder bind(@NonNull Object target, @NonNull Dialog source) {
     return getViewBinder(target).bind(Finder.DIALOG, target, source);
   }
 
+  @NonNull @CheckResult @UiThread
   static ViewBinder<Object> getViewBinder(@NonNull Object target) {
     Class<?> targetClass = target.getClass();
     if (debug) Log.d(TAG, "Looking up view binder for " + targetClass.getName());
     return findViewBinderForClass(targetClass);
   }
 
-  @NonNull
+  @NonNull @CheckResult @UiThread
   private static ViewBinder<Object> findViewBinderForClass(Class<?> cls) {
     ViewBinder<Object> viewBinder = BINDERS.get(cls);
     if (viewBinder != null) {
@@ -199,7 +204,7 @@ public final class ButterKnife {
     }
     //noinspection TryWithIdenticalCatches Resolves to API 19+ only type.
     try {
-      Class<?> viewBindingClass = Class.forName(clsName + "$$ViewBinder");
+      Class<?> viewBindingClass = Class.forName(clsName + "_ViewBinder");
       //noinspection unchecked
       viewBinder = (ViewBinder<Object>) viewBindingClass.newInstance();
       if (debug) Log.d(TAG, "HIT: Loaded view binder class.");
@@ -216,6 +221,7 @@ public final class ButterKnife {
   }
 
   /** Apply the specified {@code actions} across the {@code list} of views. */
+  @UiThread
   @SafeVarargs public static <T extends View> void apply(@NonNull List<T> list,
       @NonNull Action<? super T>... actions) {
     for (int i = 0, count = list.size(); i < count; i++) {
@@ -226,6 +232,7 @@ public final class ButterKnife {
   }
 
   /** Apply the specified {@code actions} across the {@code array} of views. */
+  @UiThread
   @SafeVarargs public static <T extends View> void apply(@NonNull T[] array,
       @NonNull Action<? super T>... actions) {
     for (int i = 0, count = array.length; i < count; i++) {
@@ -236,6 +243,7 @@ public final class ButterKnife {
   }
 
   /** Apply the specified {@code action} across the {@code list} of views. */
+  @UiThread
   public static <T extends View> void apply(@NonNull List<T> list,
       @NonNull Action<? super T> action) {
     for (int i = 0, count = list.size(); i < count; i++) {
@@ -244,6 +252,7 @@ public final class ButterKnife {
   }
 
   /** Apply the specified {@code action} across the {@code array} of views. */
+  @UiThread
   public static <T extends View> void apply(@NonNull T[] array, @NonNull Action<? super T> action) {
     for (int i = 0, count = array.length; i < count; i++) {
       action.apply(array[i], i);
@@ -251,6 +260,7 @@ public final class ButterKnife {
   }
 
   /** Apply {@code actions} to {@code view}. */
+  @UiThread
   @SafeVarargs public static <T extends View> void apply(@NonNull T view,
       @NonNull Action<? super T>... actions) {
     for (Action<? super T> action : actions) {
@@ -259,11 +269,13 @@ public final class ButterKnife {
   }
 
   /** Apply {@code action} to {@code view}. */
+  @UiThread
   public static <T extends View> void apply(@NonNull T view, @NonNull Action<? super T> action) {
     action.apply(view, 0);
   }
 
   /** Set the {@code value} using the specified {@code setter} across the {@code list} of views. */
+  @UiThread
   public static <T extends View, V> void apply(@NonNull List<T> list,
       @NonNull Setter<? super T, V> setter, V value) {
     for (int i = 0, count = list.size(); i < count; i++) {
@@ -272,6 +284,7 @@ public final class ButterKnife {
   }
 
   /** Set the {@code value} using the specified {@code setter} across the {@code array} of views. */
+  @UiThread
   public static <T extends View, V> void apply(@NonNull T[] array,
       @NonNull Setter<? super T, V> setter, V value) {
     for (int i = 0, count = array.length; i < count; i++) {
@@ -280,6 +293,7 @@ public final class ButterKnife {
   }
 
   /** Set {@code value} on {@code view} using {@code setter}. */
+  @UiThread
   public static <T extends View, V> void apply(@NonNull T view,
       @NonNull Setter<? super T, V> setter, V value) {
     setter.set(view, value, 0);
@@ -288,7 +302,9 @@ public final class ButterKnife {
   /**
    * Apply the specified {@code value} across the {@code list} of views using the {@code property}.
    */
-  @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
+  @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH) // http://b.android.com/213630
+  @RequiresApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
+  @UiThread
   public static <T extends View, V> void apply(@NonNull List<T> list,
       @NonNull Property<? super T, V> setter, V value) {
     //noinspection ForLoopReplaceableByForEach
@@ -300,7 +316,9 @@ public final class ButterKnife {
   /**
    * Apply the specified {@code value} across the {@code array} of views using the {@code property}.
    */
-  @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
+  @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH) // http://b.android.com/213630
+  @RequiresApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
+  @UiThread
   public static <T extends View, V> void apply(@NonNull T[] array,
       @NonNull Property<? super T, V> setter, V value) {
     //noinspection ForLoopReplaceableByForEach
@@ -310,7 +328,9 @@ public final class ButterKnife {
   }
 
   /** Apply {@code value} to {@code view} using {@code property}. */
-  @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
+  @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH) // http://b.android.com/213630
+  @RequiresApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
+  @UiThread
   public static <T extends View, V> void apply(@NonNull T view,
       @NonNull Property<? super T, V> setter, V value) {
     setter.set(view, value);

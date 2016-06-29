@@ -1,22 +1,20 @@
-package com.example.butterknife;
+package com.example.butterknife.library;
 
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.robolectric.Robolectric;
-import org.robolectric.RobolectricTestRunner;
-import org.robolectric.annotation.Config;
+import org.robolectric.RobolectricGradleTestRunner;
+import org.robolectric.RuntimeEnvironment;
 
-import static com.example.butterknife.SimpleAdapter.ViewHolder;
+import static com.example.butterknife.library.SimpleAdapter.ViewHolder;
 import static com.google.common.truth.Truth.assertThat;
 
-@RunWith(RobolectricTestRunner.class) //
-@Config(manifest = "src/main/AndroidManifest.xml")
+@RunWith(RobolectricGradleTestRunner.class)
 public class SimpleAdapterTest {
   @Test public void verifyViewHolderViews() {
-    Context context = Robolectric.application;
+    Context context = RuntimeEnvironment.application;
 
     View root = LayoutInflater.from(context).inflate(R.layout.simple_list_item, null);
     ViewHolder holder = new ViewHolder(root);

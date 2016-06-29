@@ -1,0 +1,29 @@
+apply plugin: 'java'
+apply plugin: 'checkstyle'
+
+sourceCompatibility = rootProject.ext.sourceCompatibilityVersion
+targetCompatibility = rootProject.ext.targetCompatibilityVersion
+
+dependencies {
+  compile deps.lintApi
+  compile deps.lintChecks
+
+  testCompile deps.junit
+  testCompile deps.lint
+  testCompile deps.lintTests
+  testCompile(deps.truth) {
+    exclude group: 'com.google.guava', module: 'guava'
+  }
+}
+
+jar {
+  manifest {
+    attributes 'Lint-Registry': 'butterknife.lint.LintRegistry'
+  }
+}
+
+checkstyle {
+  configFile rootProject.file('checkstyle.xml')
+  showViolations true
+  sourceSets = [sourceSets.main]
+}

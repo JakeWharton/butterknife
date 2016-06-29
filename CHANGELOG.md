@@ -1,6 +1,15 @@
 Change Log
 ==========
 
+Version 8.1.0 *(2016-06-14)*
+----------------------------
+
+ * New: Change the structure of generated view binders to optimize for performance and generated code. This
+   should result in faster binding (not that it's slow) and a reduction of methods.
+ * Fix: Call the correct method on `TextView` to unbind `@OnTextChanged` uses.
+ * Fix: Properly handle package names which contain uppercase letters.
+
+
 Version 8.0.1 *(2016-04-27)*
 ----------------------------
 
