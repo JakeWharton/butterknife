@@ -512,9 +512,6 @@ final class BindingClass {
       if (fieldBinding.isRequired() || requiresCast(fieldBinding.getType())) {
         invoke.add(", $S", asHumanDescription(singletonList(fieldBinding)));
       }
-      if (requiresCast(fieldBinding.getType())) {
-        invoke.add(", $T.class", fieldBinding.getRawType());
-      }
       result.addStatement("$L)", invoke.build());
       return;
     }

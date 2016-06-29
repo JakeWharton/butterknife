@@ -46,20 +46,9 @@ public enum Finder {
 
   public abstract View findOptionalView(Object source, int id);
 
-  public final <T> T findOptionalViewAsType(Object source, int id, String who, Class<T> cls) {
+  public final <T> T findOptionalViewAsType(Object source, int id, String who) {
     View view = findOptionalView(source, id);
-    try {
-      return cls.cast(view);
-    } catch (ClassCastException e) {
-      String name = getResourceEntryName(view, id);
-      throw new IllegalStateException("View '"
-          + name
-          + "' with ID "
-          + id
-          + " for "
-          + who
-          + " was of the wrong type. See cause for more info.", e);
-    }
+    return castView(view, id, who);
   }
 
   public final View findRequiredView(Object source, int id, String who) {
@@ -78,20 +67,9 @@ public enum Finder {
         + " (methods) annotation.");
   }
 
-  public final <T> T findRequiredViewAsType(Object source, int id, String who, Class<T> cls) {
+  public final <T> T findRequiredViewAsType(Object source, int id, String who) {
     View view = findRequiredView(source, id, who);
-    try {
-      return cls.cast(view);
-    } catch (ClassCastException e) {
-      String name = getResourceEntryName(view, id);
-      throw new IllegalStateException("View '"
-          + name
-          + "' with ID "
-          + id
-          + " for "
-          + who
-          + " was of the wrong type. See cause for more info.", e);
-    }
+    return castView(view, id, who);
   }
 
   @SuppressWarnings("unchecked") // That's the point.
