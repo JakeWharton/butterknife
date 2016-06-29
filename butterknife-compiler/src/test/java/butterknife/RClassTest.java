@@ -1,17 +1,13 @@
 package butterknife;
 
-import com.google.testing.compile.JavaFileObjects;
-
-import org.junit.Test;
-
-import java.util.Arrays;
-
-import javax.tools.JavaFileObject;
-
 import butterknife.compiler.ButterKnifeProcessor;
+import com.google.testing.compile.JavaFileObjects;
+import javax.tools.JavaFileObject;
+import org.junit.Test;
 
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.testing.compile.JavaSourcesSubjectFactory.javaSources;
+import static java.util.Arrays.asList;
 
 public class RClassTest {
 
@@ -112,9 +108,9 @@ public class RClassTest {
         + "}"
     );
 
-    assertAbout(javaSources()).that(Arrays.asList(source, NON_FINAL_R, R2))
+    assertAbout(javaSources()).that(asList(source, NON_FINAL_R, R2))
         .processedWith(new ButterKnifeProcessor())
-        .compilesWithoutError()
+        .compilesWithoutWarnings()
         .and()
         .generatesSources(expectedSource);
   }
@@ -150,9 +146,9 @@ public class RClassTest {
         + "}"
     );
 
-    assertAbout(javaSources()).that(Arrays.asList(source, FINAL_R))
+    assertAbout(javaSources()).that(asList(source, FINAL_R))
         .processedWith(new ButterKnifeProcessor())
-        .compilesWithoutError()
+        .compilesWithoutWarnings()
         .and()
         .generatesSources(expectedSource);
   }
@@ -168,9 +164,7 @@ public class RClassTest {
     );
 
     JavaFileObject expectedSource = JavaFileObjects.forSourceString("test/Test_ViewBinder", ""
-        + "// Generated code from Butter Knife. Do not modify!\n"
         + "package test;\n"
-        + "\n"
         + "import android.R;\n"
         + "import android.content.Context;\n"
         + "import android.content.res.Resources;\n"
@@ -180,7 +174,6 @@ public class RClassTest {
         + "import butterknife.internal.ViewBinder;\n"
         + "import java.lang.Object;\n"
         + "import java.lang.Override;\n"
-        + "\n"
         + "public final class Test_ViewBinder implements ViewBinder<Test> {\n"
         + "  @Override\n"
         + "  public Unbinder bind(Finder finder, Test target, Object source) {\n"
@@ -190,16 +183,15 @@ public class RClassTest {
         + "    bindToTarget(target, res, theme);\n"
         + "    return Unbinder.EMPTY;\n"
         + "  }\n"
-        + "\n"
         + "  public static void bindToTarget(Test target, Resources res, Resources.Theme theme) {\n"
         + "    target.black = Utils.getColor(res, theme, R.color.black);\n"
         + "  }\n"
         + "}"
     );
 
-    assertAbout(javaSources()).that(Arrays.asList(source, NON_FINAL_R))
+    assertAbout(javaSources()).that(asList(source, NON_FINAL_R))
         .processedWith(new ButterKnifeProcessor())
-        .compilesWithoutError()
+        .compilesWithoutWarnings()
         .and()
         .generatesSources(expectedSource);
   }

@@ -71,7 +71,7 @@ public class OnItemClickTest {
 
     assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
-        .compilesWithoutError()
+        .compilesWithoutWarnings()
         .and()
         .generatesSources(binderSource, bindingSource);
   }
@@ -144,7 +144,7 @@ public class OnItemClickTest {
 
     assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
-        .compilesWithoutError()
+        .compilesWithoutWarnings()
         .and()
         .generatesSources(binderSource, bindingSource);
   }
@@ -216,7 +216,7 @@ public class OnItemClickTest {
 
     assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
-        .compilesWithoutError()
+        .compilesWithoutWarnings()
         .and()
         .generatesSources(binderSource, bindingSource);
   }
@@ -289,6 +289,8 @@ public class OnItemClickTest {
 
     assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
+        // found raw type: test.Test
+        //   missing type arguments for generic class test.Test<T>
         .compilesWithoutError()
         .and()
         .generatesSources(binderSource, bindingSource);
@@ -354,7 +356,7 @@ public class OnItemClickTest {
 
     assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
-        .compilesWithoutError()
+        .compilesWithoutWarnings()
         .and()
         .generatesSources(binderSource, bindingSource);
   }

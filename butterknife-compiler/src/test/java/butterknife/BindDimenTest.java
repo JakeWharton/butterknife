@@ -44,7 +44,7 @@ public class BindDimenTest {
 
     assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
-        .compilesWithoutError()
+        .compilesWithoutWarnings()
         .and()
         .generatesSources(expectedSource);
   }
@@ -84,7 +84,7 @@ public class BindDimenTest {
 
     assertAbout(javaSource()).that(source)
         .processedWith(new ButterKnifeProcessor())
-        .compilesWithoutError()
+        .compilesWithoutWarnings()
         .and()
         .generatesSources(expectedSource);
   }
