@@ -3,12 +3,13 @@ package butterknife.internal;
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
+import android.support.annotation.IdRes;
 import android.view.View;
 
 @SuppressWarnings("UnusedDeclaration") // Used by generated code.
 public enum Finder {
   VIEW {
-    @Override public View findOptionalView(Object source, int id) {
+    @Override public View findOptionalView(Object source, @IdRes int id) {
       return ((View) source).findViewById(id);
     }
 
@@ -16,7 +17,7 @@ public enum Finder {
       return ((View) source).getContext();
     }
 
-    @Override protected String getResourceEntryName(Object source, int id) {
+    @Override protected String getResourceEntryName(Object source, @IdRes int id) {
       final View view = (View) source;
       // In edit mode, getResourceEntryName() is unsupported due to use of BridgeResources
       if (view.isInEditMode()) {
@@ -26,7 +27,7 @@ public enum Finder {
     }
   },
   ACTIVITY {
-    @Override public View findOptionalView(Object source, int id) {
+    @Override public View findOptionalView(Object source, @IdRes int id) {
       return ((Activity) source).findViewById(id);
     }
 
@@ -35,7 +36,7 @@ public enum Finder {
     }
   },
   DIALOG {
-    @Override public View findOptionalView(Object source, int id) {
+    @Override public View findOptionalView(Object source, @IdRes int id) {
       return ((Dialog) source).findViewById(id);
     }
 
@@ -44,14 +45,15 @@ public enum Finder {
     }
   };
 
-  public abstract View findOptionalView(Object source, int id);
+  public abstract View findOptionalView(Object source, @IdRes int id);
 
-  public final <T> T findOptionalViewAsType(Object source, int id, String who, Class<T> cls) {
+  public final <T> T findOptionalViewAsType(Object source, @IdRes int id, String who,
+      Class<T> cls) {
     View view = findOptionalView(source, id);
     return castView(view, id, who, cls);
   }
 
-  public final View findRequiredView(Object source, int id, String who) {
+  public final View findRequiredView(Object source, @IdRes int id, String who) {
     View view = findOptionalView(source, id);
     if (view != null) {
       return view;
@@ -67,12 +69,13 @@ public enum Finder {
         + " (methods) annotation.");
   }
 
-  public final <T> T findRequiredViewAsType(Object source, int id, String who, Class<T> cls) {
+  public final <T> T findRequiredViewAsType(Object source, @IdRes int id, String who,
+      Class<T> cls) {
     View view = findRequiredView(source, id, who);
     return castView(view, id, who, cls);
   }
 
-  public final <T> T castView(View view, int id, String who, Class<T> cls) {
+  public final <T> T castView(View view, @IdRes int id, String who, Class<T> cls) {
     try {
       return cls.cast(view);
     } catch (ClassCastException e) {
@@ -104,7 +107,7 @@ public enum Finder {
     }
   }
 
-  protected String getResourceEntryName(Object source, int id) {
+  protected String getResourceEntryName(Object source, @IdRes int id) {
     return getContext(source).getResources().getResourceEntryName(id);
   }
 

@@ -23,10 +23,12 @@ public final class Utils {
     throw new RuntimeException("Stub!");
   }
 
+  @SafeVarargs
   public static <T> T[] arrayOf(T... views) {
     throw new RuntimeException("Stub!");
   }
 
+  @SafeVarargs
   public static <T> List<T> listOf(T... views) {
     throw new RuntimeException("Stub!");
   }
