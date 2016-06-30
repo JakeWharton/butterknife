@@ -483,16 +483,19 @@ final class BindingClass {
       if (i > 0) {
         builder.add(", ");
       }
-      builder.add("\n");
+      builder.add("\nfinder.find");
+      builder.add(binding.isRequired() ? "RequiredView" : "OptionalView");
       if (requiresCast(binding.getType())) {
-        builder.add("($T) ", binding.getType());
+        builder.add("AsType");
       }
-      if (binding.isRequired()) {
-        builder.add("finder.findRequiredView(source, $L, $S)", ids.get(i).code,
-            asHumanDescription(singletonList(binding)));
-      } else {
-        builder.add("finder.findOptionalView(source, $L)", ids.get(i).code);
+      builder.add("(source, $L", ids.get(i).code);
+      if (binding.isRequired() || requiresCast(binding.getType())) {
+        builder.add(", $S", asHumanDescription(singletonList(binding)));
       }
+      if (requiresCast(binding.getType())) {
+        builder.add(", $T.class", binding.getRawType());
+      }
+      builder.add(")");
     }
 
     result.addStatement("target.$L = $T.$L($L)", binding.getName(), UTILS, ofName, builder.build());
