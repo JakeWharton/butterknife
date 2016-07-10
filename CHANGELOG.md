@@ -1,6 +1,15 @@
 Change Log
 ==========
 
+Version 8.2.0 *(2016-07-10)*
+----------------------------
+
+ * New: Support for library projects. Requires application of a Butter Knife Gradle plugin. See README for
+   details.
+ * New: Generated code now emits code using `R` references instead of raw integer IDs.
+ * Fix: `@OnPageChange` listner binding now uses the 'add'/'remove' methods on `ViewPager` instead of 'set'.
+
+
 Version 8.1.0 *(2016-06-14)*
 ----------------------------
 
