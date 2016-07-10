@@ -74,6 +74,56 @@ Make sure the line `apply plugin ...` is placed somewhere at the top of the file
 Snapshots of the development version are available in [Sonatype's `snapshots` repository][snap].
 
 
+Compiling with Jack and Build Tools 24
+---------------------------------------
+The new Jack compiler for Android requires new settings. The `android-apt`
+module is no longer required.
+
+Add this to you project-level `build.gradle`:
+
+```groovy
+buildscript {
+  repositories {
+    mavenCentral()
+   }
+  dependencies {
+
+    // Requires Build Tools 2.2.0 at least
+    classpath 'com.android.tools.build:gradle:2.2.0-alpha3'
+  }
+}
+```
+
+Add this to your module-level `build.gradle`:
+
+```groovy
+
+android {
+    compileSdkVersion 24
+    buildToolsVersion "24.0.0"
+
+    defaultConfig {
+      ...
+
+      jackOptions {
+          enabled true
+      }
+    }
+
+    ...
+}
+
+dependencies {
+    compile 'com.jakewharton:butterknife:8.1.0'
+    annotationProcessor 'com.jakewharton:butterknife-compiler:8.1.0'
+}
+```
+
+Also, make sure to have an updated `gradle-wrapper` version defined in `gradle/wrapper/gradle-wrapper.properties`:
+```
+distributionUrl=https\://services.gradle.org/distributions/gradle-2.14-all.zip
+```
+
 License
 -------
 
