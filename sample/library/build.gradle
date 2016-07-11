@@ -1,10 +1,6 @@
 buildscript {
-  repositories {
-    mavenLocal()
-    mavenCentral()
-  }
   dependencies {
-    classpath "${GROUP}:butterknife-gradle-plugin:${VERSION_NAME}"
+    classpath 'com.jakewharton:butterknife-gradle-plugin:8.2.0'
   }
 }
 
@@ -22,8 +18,8 @@ android {
 }
 
 dependencies {
-  compile project(':butterknife')
-  apt project(':butterknife-compiler')
+  compile 'com.jakewharton:butterknife:8.2.0'
+  apt 'com.jakewharton:butterknife-compiler:8.2.0'
 
   testCompile deps.junit
   testCompile deps.truth
