@@ -7,6 +7,8 @@ import com.squareup.javapoet.CodeBlock;
  * Represents an ID of an Android resource.
  */
 final class Id {
+  private static final ClassName ANDROID_R = ClassName.get("android", "R");
+
   final int value;
   final CodeBlock code;
   final boolean qualifed;
@@ -19,7 +21,9 @@ final class Id {
 
   Id(int value, ClassName className, String resourceName) {
     this.value = value;
-    this.code = CodeBlock.of("$T.$N", className, resourceName);
+    this.code = className.topLevelClassName().equals(ANDROID_R)
+      ? CodeBlock.of("$L.$N", className, resourceName)
+      : CodeBlock.of("$T.$N", className, resourceName);
     this.qualifed = true;
   }
 
