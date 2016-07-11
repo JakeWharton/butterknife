@@ -1162,7 +1162,9 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     for (Class<? extends Annotation> annotation : getSupportedAnnotations()) {
       for (Element element : env.getElementsAnnotatedWith(annotation)) {
         JCTree tree = (JCTree) trees.getTree(element, getMirror(element, annotation));
-        tree.accept(scanner);
+        if (tree != null) { // tree can be null if the references are compiled types and not source
+          tree.accept(scanner);
+        }
       }
     }
 
