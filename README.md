@@ -98,7 +98,7 @@ apply plugin: 'com.android.library'
 apply plugin: 'com.jakewharton.butterknife'
 ```
 
-Now make sure you to use `R2` instead of `R` inside all Butter Knife annotations.
+Now make sure you use `R2` instead of `R` inside all Butter Knife annotations.
 
 ```java
 class ExampleActivity extends Activity {
