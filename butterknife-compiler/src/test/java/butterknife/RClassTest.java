@@ -165,7 +165,6 @@ public class RClassTest {
 
     JavaFileObject expectedSource = JavaFileObjects.forSourceString("test/Test_ViewBinder", ""
         + "package test;\n"
-        + "import android.R;\n"
         + "import android.content.Context;\n"
         + "import android.content.res.Resources;\n"
         + "import butterknife.Unbinder;\n"
@@ -184,7 +183,7 @@ public class RClassTest {
         + "    return Unbinder.EMPTY;\n"
         + "  }\n"
         + "  public static void bindToTarget(Test target, Resources res, Resources.Theme theme) {\n"
-        + "    target.black = Utils.getColor(res, theme, R.color.black);\n"
+        + "    target.black = Utils.getColor(res, theme, android.R.color.black);\n"
         + "  }\n"
         + "}"
     );
