@@ -1,6 +1,14 @@
 Change Log
 ==========
 
+Version 8.2.1 *(2016-07-11)*
+----------------------------
+
+ * Fix: Do not emit `android.R` imports in generated code.
+ * Fix: Ensure the processor does not crash when scanning for `R` classes. This can occur when used in a
+   Kotlin project.
+
+
 Version 8.2.0 *(2016-07-10)*
 ----------------------------
 
