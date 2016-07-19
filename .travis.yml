@@ -4,7 +4,7 @@ android:
   components:
     - tools
     - platform-tools
-    - build-tools-24.0.0
+    - build-tools-24.0.1
     - android-24
     - extra-android-m2repository
     - sys-img-armeabi-v7a-android-18
@@ -39,3 +39,5 @@ sudo: false
 cache:
   directories:
     - $HOME/.m2
+    - $HOME/.gradle
+
