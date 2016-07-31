@@ -37,6 +37,13 @@
     // TODO Use fields...
   }
 }</pre>
+            <p>You can remove boiler plate code by simply extending <code>ButterActivity</code> and adding a <code>@BindLayout</code> annotation.</p>
+            <pre class="prettyprint">@BindLayout(R.layout.simple_activity)
+class ExampleActivity extends ButterActivity {
+  @BindView(R.id.title) TextView title;
+  @BindView(R.id.subtitle) TextView subtitle;
+  @BindView(R.id.footer) TextView footer;
+}</pre>
             <p>Instead of slow reflection, code is generated to perform the view look-ups. Calling <code>bind</code> delegates to this generated code that you can see and debug.</p>
             <p>The generated code for the above example is roughly equivalent to the following:</p>
             <pre class="prettyprint">public void bind(ExampleActivity activity) {
@@ -56,7 +63,7 @@
 }</pre>
 
             <h4 id="non-activity">Non-Activity Binding</h4>
-            <p>You can also perform binding on arbitrary objects by supplying your own view root.</p>
+            <p>You can also perform binding on arbitrary objects by supplying your own view root. notice that you could preform the same operation from ButterActivity to a fragment by extending ButterFragment</p>
             <pre class="prettyprint">public class FancyFragment extends Fragment {
   @BindView(R.id.button1) Button button1;
   @BindView(R.id.button2) Button button2;

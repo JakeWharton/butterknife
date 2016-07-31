@@ -30,6 +30,19 @@ class ExampleActivity extends Activity {
     // TODO Use fields...
   }
 }
+
+// You could also use this syntax to ilmenite boiler plates
+@BindLayout(R.layout.simple_activity)
+class ExampleActivity extends ButterActivity {
+  @BindView(R.id.user) EditText username;
+  @BindView(R.id.pass) EditText password;
+
+  @BindString(R.string.login_error) String loginErrorMessage;
+
+  @OnClick(R.id.submit) void submit() {
+    // TODO call server...
+  }
+}
 ```
 
 For documentation and additional information see [the website][3].

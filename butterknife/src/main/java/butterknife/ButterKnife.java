@@ -204,7 +204,7 @@ public final class ButterKnife {
     }
     //noinspection TryWithIdenticalCatches Resolves to API 19+ only type.
     try {
-      Class<?> viewBindingClass = Class.forName(clsName + "_ViewBinder");
+        Class<?> viewBindingClass = Class.forName(clsName + "_ViewBinder");
       //noinspection unchecked
       viewBinder = (ViewBinder<Object>) viewBindingClass.newInstance();
       if (debug) Log.d(TAG, "HIT: Loaded view binder class.");
