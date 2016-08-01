@@ -85,6 +85,9 @@ To use Butter Knife in a library, add the plugin to your `buildscript`:
 
 ```groovy
 buildscript {
+  repositories {
+    mavenCentral()
+   }
   dependencies {
     classpath 'com.jakewharton:butterknife-gradle-plugin:8.2.1'
   }
