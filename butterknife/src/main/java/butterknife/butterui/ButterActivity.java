@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.os.PersistableBundle;
 
 import butterknife.ButterKnife;
+import butterknife.Unbinder;
 
 /**
  * Extenders of this class can remove another part of the unneeded noise in the class.<br>
@@ -32,6 +33,8 @@ import butterknife.ButterKnife;
  *      <br>Jul 31 2016 idosu
  */
 public abstract class ButterActivity extends Activity {
+    private Unbinder unbinder;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -46,6 +49,10 @@ public abstract class ButterActivity extends Activity {
 
     private void bind() {
         setContentView(BindLayoutUtil.getBindLayout(getClass()));
-        ButterKnife.bind(this);
+        unbinder = ButterKnife.bind(this);
+    }
+
+    protected Unbinder getUnbinder() {
+        return unbinder;
     }
 }

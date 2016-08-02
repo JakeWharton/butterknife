@@ -8,6 +8,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import butterknife.ButterKnife;
+import butterknife.Unbinder;
 
 /**
  * Extenders of this class can remove another part of the unneeded noise in the class.<br>
@@ -35,12 +36,17 @@ import butterknife.ButterKnife;
  *      <br>Jul 31 2016 idosu
  */
 public abstract class ButterFragment extends Fragment {
-    @Nullable
+    private Unbinder unbinder;
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         // TODO(idosu): Add a way to configure attachToRoot
         View view = inflater.inflate(BindLayoutUtil.getBindLayout(getClass()), container);
-        ButterKnife.bind(this, view);
+        unbinder = ButterKnife.bind(this, view);
         return view;
+    }
+
+    protected Unbinder getUnbinder() {
+        return unbinder;
     }
 }
