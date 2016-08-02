@@ -3,6 +3,7 @@ package com.example.butterknife.library;
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
+import com.example.butterknife.R;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricGradleTestRunner;

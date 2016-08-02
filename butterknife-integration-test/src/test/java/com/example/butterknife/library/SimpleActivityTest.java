@@ -2,6 +2,7 @@ package com.example.butterknife.library;
 
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
+import com.example.butterknife.R;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;

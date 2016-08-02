@@ -3,6 +3,7 @@ include ':butterknife-annotations'
 include ':butterknife-compiler'
 include ':butterknife-gradle-plugin'
 include ':butterknife-lint'
+include ':butterknife-integration-test'
 
 include ':sample:app'
 include ':sample:library'
