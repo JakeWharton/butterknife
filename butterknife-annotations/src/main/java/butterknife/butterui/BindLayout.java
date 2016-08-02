@@ -6,7 +6,7 @@ import android.view.ViewGroup;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
-import static java.lang.annotation.ElementType.FIELD;
+import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
@@ -27,7 +27,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
  */
 // TODO(idosu): Maybe generate a binder for setting the content view, for now plain old reflection will have to do(it only gets the layout value)
 @Retention(RUNTIME)
-@Target(FIELD)
+@Target(TYPE)
 public @interface BindLayout {
   /** Layout ID. */
   @LayoutRes int value();
