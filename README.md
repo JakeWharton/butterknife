@@ -31,7 +31,7 @@ class ExampleActivity extends Activity {
   }
 }
 
-// You could also use this syntax to ilmenite boiler plates
+// You could also use this syntax to eliminate boiler plates
 @BindLayout(R.layout.simple_activity)
 class ExampleActivity extends ButterActivity {
   @BindView(R.id.user) EditText username;
