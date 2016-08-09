@@ -46,6 +46,10 @@ public abstract class ButterFragment extends Fragment {
         return view;
     }
 
+    /**
+     * Gets butterknife unbinder for this fragment
+     * @return the unbinder
+     */
     protected Unbinder getUnbinder() {
         return unbinder;
     }

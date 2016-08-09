@@ -1,6 +1,11 @@
 package butterknife.butterui;
 
+import android.content.Context;
+import android.os.Bundle;
 import android.support.annotation.LayoutRes;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
 
 import org.junit.Ignore;
 import org.junit.Test;
@@ -27,6 +32,24 @@ public class ButterFragmentTest {
         public static final int res = 1337;
 
         public Integer layoutResID = null;
+
+        @Override
+        public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+            return super.onCreateView(
+                // This is a mock with argument capture
+                new LayoutInflater(null) {
+                    @Override public LayoutInflater cloneInContext(Context context) { return null; }
+
+                    @Override
+                    public View inflate(int resource, ViewGroup root) {
+                        layoutResID = resource;
+                        return null;
+                    }
+                },
+                container,
+                savedInstanceState
+            );
+        }
     }
 
     @Test
@@ -39,11 +62,8 @@ public class ButterFragmentTest {
         }
     }
 
-    @Ignore
     @Test
     public void testWithAnnotationOnCreate() {
-        // TODO: Mock the inflater
-
         FragmentWithAnnotation fragment = Robolectric.buildFragment(FragmentWithAnnotation.class).create().get();
 
         assertNotNull("Method was not called", fragment.layoutResID);

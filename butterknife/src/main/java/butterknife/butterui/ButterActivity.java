@@ -41,17 +41,24 @@ public abstract class ButterActivity extends Activity {
         bind();
     }
 
+    /*
+    TODO(idosu): Check if this ias needed or android calls onCreate(Bundle)
     @Override
     public void onCreate(Bundle savedInstanceState, PersistableBundle persistentState) {
         super.onCreate(savedInstanceState, persistentState);
         bind();
     }
+    */
 
     private void bind() {
         setContentView(BindLayoutUtil.getBindLayout(getClass()));
         unbinder = ButterKnife.bind(this);
     }
 
+    /**
+     * Gets butterknife unbinder for this activity
+     * @return the unbinder
+     */
     protected Unbinder getUnbinder() {
         return unbinder;
     }

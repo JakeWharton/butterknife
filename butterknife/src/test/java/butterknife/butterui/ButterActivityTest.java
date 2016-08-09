@@ -60,7 +60,7 @@ public class ButterActivityTest {
         assertNotNull("It must be because ButterKnife.bind() was not called", activity.getUnbinder());
     }
 
-    @Ignore
+    /*
     @Test
     public void testWithAnnotationOnCreate2() {
         // TODO: Test this with android:persistableMode="persistAcrossReboots"
@@ -72,4 +72,5 @@ public class ButterActivityTest {
 
         assertNotNull("It must be because ButterKnife.bind() was not called", activity.getUnbinder());
     }
+    */
 }
