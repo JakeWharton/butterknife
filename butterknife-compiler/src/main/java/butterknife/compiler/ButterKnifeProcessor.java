@@ -120,7 +120,10 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     elementUtils = env.getElementUtils();
     typeUtils = env.getTypeUtils();
     filer = env.getFiler();
-    trees = Trees.instance(processingEnv);
+    try {
+      trees = Trees.instance(processingEnv);
+    } catch (IllegalArgumentException ignored) {
+    }
   }
 
   @Override public Set<String> getSupportedAnnotationTypes() {
@@ -370,8 +373,8 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     }
     if (!isSubtypeOfType(elementType, VIEW_TYPE) && !isInterface(elementType)) {
       if (elementType.getKind() == TypeKind.ERROR) {
-        note(element, "@%s field with unresolved type (%s) " +
-            "must elsewhere be generated as a View or interface. (%s.%s)",
+        note(element, "@%s field with unresolved type (%s) "
+                + "must elsewhere be generated as a View or interface. (%s.%s)",
             BindView.class.getSimpleName(), elementType, enclosingElement.getQualifiedName(),
             element.getSimpleName());
       } else {
@@ -456,8 +459,8 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     // Verify that the target type extends from View.
     if (viewType != null && !isSubtypeOfType(viewType, VIEW_TYPE) && !isInterface(viewType)) {
       if (viewType.getKind() == TypeKind.ERROR) {
-        note(element, "@%s List or array with unresolved type (%s) " +
-            "must elsewhere be generated as a View or interface. (%s.%s)",
+        note(element, "@%s List or array with unresolved type (%s) "
+                + "must elsewhere be generated as a View or interface. (%s.%s)",
             BindViews.class.getSimpleName(), viewType, enclosingElement.getQualifiedName(),
             element.getSimpleName());
       } else {
@@ -1182,6 +1185,8 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
   }
 
   private void scanForRClasses(RoundEnvironment env) {
+    if (trees == null) return;
+
     RClassScanner scanner = new RClassScanner();
 
     for (Class<? extends Annotation> annotation : getSupportedAnnotations()) {
