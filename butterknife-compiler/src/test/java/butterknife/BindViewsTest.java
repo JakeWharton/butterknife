@@ -1,12 +1,16 @@
 package butterknife;
 
 import butterknife.compiler.ButterKnifeProcessor;
+
+import com.google.common.collect.ImmutableList;
 import com.google.testing.compile.JavaFileObjects;
 import javax.tools.JavaFileObject;
+import javax.tools.StandardLocation;
 import org.junit.Test;
 
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.testing.compile.JavaSourceSubjectFactory.javaSource;
+import static com.google.testing.compile.JavaSourcesSubjectFactory.javaSources;
 
 public class BindViewsTest {
   @Test public void fieldVisibility() {
@@ -270,6 +274,44 @@ public class BindViewsTest {
         .compilesWithoutWarnings()
         .and()
         .generatesSources(binderSource, bindingSource);
+  }
+
+
+  @Test public void bindingGeneratedView() {
+    JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
+        + "package test;\n"
+        + "import android.app.Activity;\n"
+        + "import butterknife.BindViews;\n"
+        + "import java.util.List;\n"
+        + "@PerformGeneration\n"
+        + "public class Test extends Activity {\n"
+        + "    @BindViews({1, 2}) List<GeneratedView> things;\n"
+        + "}"
+    );
+
+    // w/o the GeneratingProcessor it can't find `class GeneratedView`
+    assertAbout(javaSources()).that(ImmutableList.of(source, TestGeneratingProcessor.ANNOTATION))
+        .processedWith(new ButterKnifeProcessor())
+        .failsToCompile()
+        .withErrorContaining("cannot find symbol");
+
+    // now the GeneratingProcessor should let it compile
+    assertAbout(javaSources()).that(ImmutableList.of(source, TestGeneratingProcessor.ANNOTATION))
+        .processedWith(new ButterKnifeProcessor(), new TestGeneratingProcessor("GeneratedView",
+            "package test;",
+            "import android.content.Context;",
+            "import android.view.View;",
+            "public class GeneratedView extends View {",
+            "  public GeneratedView(Context context) {",
+            "    super(context);",
+            "  }",
+            "}"
+        ))
+        .compilesWithoutError()
+        .withNoteContaining("@BindViews List or array with unresolved type (GeneratedView)").and()
+        .withNoteContaining("must elsewhere be generated as a View or interface").and()
+        .and()
+        .generatesFileNamed(StandardLocation.CLASS_OUTPUT, "test", "Test_ViewBinder.class");
   }
 
   @Test public void bindingListOfInterface() {
