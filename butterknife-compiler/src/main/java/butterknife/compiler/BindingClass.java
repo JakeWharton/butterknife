@@ -176,20 +176,18 @@ final class BindingClass {
 
     if (bindNeedsView()) {
       constructor.addParameter(VIEW, "source");
-    }
-    if (bindNeedsResources()) {
-      constructor.addParameter(RESOURCES, "res");
-    }
-    if (bindNeedsTheme()) {
-      constructor.addParameter(THEME, "theme");
+    } else {
+      constructor.addParameter(CONTEXT, "context");
     }
 
     if (hasInheritedBinding()) {
       CodeBlock.Builder invoke = CodeBlock.builder();
       invoke.add("super(target");
-      if (parentBinding.bindNeedsView()) invoke.add(", source");
-      if (parentBinding.bindNeedsResources()) invoke.add(", res");
-      if (parentBinding.bindNeedsTheme()) invoke.add(", theme");
+      if (parentBinding.bindNeedsView()) {
+        invoke.add(", source");
+      } else {
+        invoke.add(", context");
+      }
       constructor.addStatement("$L", invoke.add(")").build());
     } else {
       constructor.addStatement("this.target = target");
@@ -317,24 +315,7 @@ final class BindingClass {
     }
     result.addParameter(VIEW, "source");
 
-    boolean needsView = bindNeedsView();
-    boolean needsResources = bindNeedsResources();
-    boolean needsTheme = bindNeedsTheme();
-
-    if (needsResources) {
-      if (needsTheme) {
-        result.addStatement("$T context = source.getContext()", CONTEXT);
-        result.addStatement("$T res = context.getResources()", RESOURCES);
-        result.addStatement("$T theme = context.getTheme()", THEME);
-      } else {
-        result.addStatement("$T res = source.getContext().getResources()", RESOURCES);
-      }
-    }
-
     if (isFinal && !isGeneratingBinding()) {
-      if (needsResources) {
-        result.addCode("\n");
-      }
       generateBindViewBody(result);
       result.addCode("\n");
     }
@@ -351,9 +332,11 @@ final class BindingClass {
     }
     if (isGeneratingBinding() || !isFinal) {
       invoke.add("(target");
-      if (needsView) invoke.add(", source");
-      if (needsResources) invoke.add(", res");
-      if (needsTheme) invoke.add(", theme");
+      if (bindNeedsView()) {
+        invoke.add(", source");
+      } else {
+        invoke.add(", source.getContext()");
+      }
       result.addStatement("$L", invoke.add(")").build());
     }
 
@@ -366,23 +349,10 @@ final class BindingClass {
 
   private MethodSpec createBindToTargetMethod() {
     MethodSpec.Builder result = MethodSpec.methodBuilder(BIND_TO_TARGET)
-        .addModifiers(PUBLIC, STATIC);
-
-    if (hasMethodBindings()) {
-      result.addParameter(targetTypeName, "target", FINAL);
-    } else {
-      result.addParameter(targetTypeName, "target");
-    }
-
-    if (bindNeedsResources()) {
-      result.addParameter(RESOURCES, "res");
-    }
-    if (bindNeedsTheme()) {
-      result.addParameter(THEME, "theme");
-    }
-
+        .addModifiers(PUBLIC, STATIC)
+        .addParameter(targetTypeName, "target")
+        .addParameter(CONTEXT, "context");
     generateBindViewBody(result);
-
     return result.build();
   }
 
@@ -397,9 +367,13 @@ final class BindingClass {
     if (!hasInheritedBinding() && hasParentBinding()) {
       CodeBlock.Builder invoke = CodeBlock.builder() //
           .add("$T.$N(target", parentBinding.binderClassName, BIND_TO_TARGET);
-      if (parentBinding.bindNeedsView()) invoke.add(", source");
-      if (parentBinding.bindNeedsResources()) invoke.add(", res");
-      if (parentBinding.bindNeedsTheme()) invoke.add(", theme");
+      if (parentBinding.bindNeedsView()) {
+        invoke.add(", source");
+      } else if (bindNeedsView()) {
+        invoke.add(", source.getContext()"); // We have a view but the parent only needs context.
+      } else {
+        invoke.add(", context");
+      }
       result.addStatement("$L", invoke.add(")").build());
       result.addCode("\n");
     }
@@ -426,6 +400,17 @@ final class BindingClass {
     }
 
     if (hasResourceBindings()) {
+      boolean hasView = bindNeedsView() || isFinal;
+      boolean needsSourceToContext = bindNeedsTheme() && hasView;
+      if (needsSourceToContext) {
+        result.addStatement("$T context = source.getContext()", CONTEXT);
+      }
+      result.addStatement("$T res = $N.getResources()", RESOURCES,
+          needsSourceToContext || !hasView ? "context" : "source");
+      if (bindNeedsTheme()) {
+        result.addStatement("$T theme = context.getTheme()", THEME);
+      }
+
       for (FieldBitmapBinding binding : bitmapBindings) {
         result.addStatement("target.$L = $T.decodeResource(res, $L)", binding.getName(),
             BITMAP_FACTORY, binding.getId().code);
@@ -443,7 +428,6 @@ final class BindingClass {
       }
 
       for (FieldResourceBinding binding : resourceBindings) {
-        // TODO being themeable is poor correlation to the need to use Utils.
         if (binding.isThemeable()) {
           result.addStatement("target.$L = $T.$L(res, theme, $L)", binding.getName(),
               UTILS, binding.getMethod(), binding.getId().code);
@@ -809,14 +793,10 @@ final class BindingClass {
     return !collectionBindings.isEmpty();
   }
 
+  /** True if this binding requires a view. Otherwise only a context is needed. */
   private boolean bindNeedsView() {
     return hasViewBindings() //
         || hasParentBinding() && parentBinding.bindNeedsView();
-  }
-
-  private boolean bindNeedsResources() {
-    return hasResourceBindings() //
-        || hasParentBinding() && parentBinding.bindNeedsResources();
   }
 
   private boolean bindNeedsTheme() {
