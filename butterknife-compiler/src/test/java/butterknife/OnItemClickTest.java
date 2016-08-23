@@ -255,9 +255,11 @@ public class OnItemClickTest {
         + "import java.lang.Override;\n"
         + "public class Test_ViewBinding<T extends Test> implements Unbinder {\n"
         + "  protected T target;\n"
+        + "  private View viewSource;\n"
         + "  public Test_ViewBinding(final T target, View source) {\n"
         + "    this.target = target;\n"
-        + "    ((AdapterView<?>) target).setOnItemClickListener(new AdapterView.OnItemClickListener() {\n"
+        + "    viewSource = source;\n"
+        + "    ((AdapterView<?>) source).setOnItemClickListener(new AdapterView.OnItemClickListener() {\n"
         + "      @Override\n"
         + "      public void onItemClick(AdapterView<?> p0, View p1, int p2, long p3) {\n"
         + "        target.doStuff();\n"
@@ -267,7 +269,54 @@ public class OnItemClickTest {
         + "  @Override\n"
         + "  public void unbind() {\n"
         + "    if (this.target == null) throw new IllegalStateException(\"Bindings already cleared.\");\n"
-        + "    ((AdapterView<?>) target).setOnItemClickListener(null);\n"
+        + "    ((AdapterView<?>) viewSource).setOnItemClickListener(null);\n"
+        + "    viewSource = null;\n"
+        + "    this.target = null;\n"
+        + "  }\n"
+        + "}"
+    );
+
+    assertAbout(javaSource()).that(source)
+        .processedWith(new ButterKnifeProcessor())
+        .compilesWithoutWarnings()
+        .and()
+        .generatesSources(bindingSource);
+  }
+
+  @Test public void onClickRootViewAnyTypeBinding() {
+    JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
+        + "package test;\n"
+        + "import butterknife.OnItemClick;\n"
+        + "public class Test {\n"
+        + "  @OnItemClick void doStuff() {}\n"
+        + "}"
+    );
+
+    JavaFileObject bindingSource = JavaFileObjects.forSourceString("test/Test_ViewBinding", ""
+        + "package test;\n"
+        + "import android.view.View;\n"
+        + "import android.widget.AdapterView;\n"
+        + "import butterknife.Unbinder;\n"
+        + "import java.lang.IllegalStateException;\n"
+        + "import java.lang.Override;\n"
+        + "public class Test_ViewBinding<T extends Test> implements Unbinder {\n"
+        + "  protected T target;\n"
+        + "  private View viewSource;\n"
+        + "  public Test_ViewBinding(final T target, View source) {\n"
+        + "    this.target = target;\n"
+        + "    viewSource = source;\n"
+        + "    ((AdapterView<?>) source).setOnItemClickListener(new AdapterView.OnItemClickListener() {\n"
+        + "      @Override\n"
+        + "      public void onItemClick(AdapterView<?> p0, View p1, int p2, long p3) {\n"
+        + "        target.doStuff();\n"
+        + "      }\n"
+        + "    });\n"
+        + "  }\n"
+        + "  @Override\n"
+        + "  public void unbind() {\n"
+        + "    if (this.target == null) throw new IllegalStateException(\"Bindings already cleared.\");\n"
+        + "    ((AdapterView<?>) viewSource).setOnItemClickListener(null);\n"
+        + "    viewSource = null;\n"
         + "    this.target = null;\n"
         + "  }\n"
         + "}"

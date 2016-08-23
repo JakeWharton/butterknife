@@ -888,17 +888,6 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
                 enclosingElement.getQualifiedName(), element.getSimpleName());
             hasError = true;
           }
-
-          // Verify target type is valid for a binding without an id.
-          String targetType = listener.targetType();
-          if (!isSubtypeOfType(enclosingElement.asType(), targetType)
-              && !isInterface(enclosingElement.asType())) {
-            error(element, "@%s annotation without an ID may only be used with an object of type "
-                    + "\"%s\" or an interface. (%s.%s)",
-                annotationClass.getSimpleName(), targetType,
-                enclosingElement.getQualifiedName(), element.getSimpleName());
-            hasError = true;
-          }
         } else {
           error(element, "@%s annotation contains invalid ID %d. (%s.%s)",
               annotationClass.getSimpleName(), id, enclosingElement.getQualifiedName(),

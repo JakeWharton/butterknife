@@ -843,31 +843,6 @@ public class BindViewTest {
         .in(source).onLine(7);
   }
 
-  @Test public void failsRootViewBindingWithBadTarget() throws Exception {
-    JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
-        + "package test;\n"
-        + "import android.content.Context;\n"
-        + "import android.view.View;\n"
-        + "import butterknife.OnItemClick;\n"
-        + "public class Test extends View {\n"
-        + "  @OnItemClick void doStuff() {}\n"
-        + "  public Test(Context context) {\n"
-        + "    super(context);\n"
-        + "  }\n"
-        + "}"
-    );
-
-    assertAbout(javaSource())
-        .that(source)
-        .processedWith(new ButterKnifeProcessor())
-        .failsToCompile()
-        .withErrorContaining(
-            "@OnItemClick annotation without an ID may only be used with an object of type "
-                + "\"android.widget.AdapterView<?>\" or an interface. (test.Test.doStuff)")
-        .in(source)
-        .onLine(6);
-  }
-
   @Test public void failsOptionalRootViewBinding() throws Exception {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"

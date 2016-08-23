@@ -304,11 +304,8 @@ final class BindingClass {
       return;
     }
 
-    String fieldName = "target";
-    if (!bindings.isBoundToRoot()) {
-      fieldName = "view" + bindings.getId().value;
-      result.addField(VIEW, fieldName, PRIVATE);
-    }
+    String fieldName = bindings.isBoundToRoot() ? "viewSource" : "view" + bindings.getId().value;
+    result.addField(VIEW, fieldName, PRIVATE);
 
     // We only need to emit the null check if there are zero required bindings.
     boolean needsNullChecked = bindings.getRequiredBindings().isEmpty();
@@ -340,9 +337,7 @@ final class BindingClass {
       }
     }
 
-    if (!bindings.isBoundToRoot()) {
-      unbindMethod.addStatement("$N = null", fieldName);
-    }
+    unbindMethod.addStatement("$N = null", fieldName);
 
     if (needsNullChecked) {
       unbindMethod.endControlFlow();
@@ -469,14 +464,13 @@ final class BindingClass {
     }
 
     // Add the view reference to the binding.
-    String fieldName = "target";
-    String bindName = "target";
+    String fieldName = "viewSource";
+    String bindName = "source";
     if (!bindings.isBoundToRoot()) {
       fieldName = "view" + bindings.getId().value;
       bindName = "view";
-
-      result.addStatement("$L = view", fieldName);
     }
+    result.addStatement("$L = $N", fieldName, bindName);
 
     for (Map.Entry<ListenerClass, Map<ListenerMethod, Set<MethodViewBinding>>> e
         : classMethodBindings.entrySet()) {
