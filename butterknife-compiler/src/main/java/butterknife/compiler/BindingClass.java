@@ -51,15 +51,15 @@ final class BindingClass {
   private final boolean isFinal;
   private final TypeName targetTypeName;
   private final ClassName binderClassName;
-  private final ClassName unbinderClassName;
+  private final ClassName bindingClassName;
   private BindingClass parentBinding;
 
-  BindingClass(TypeName targetTypeName, ClassName binderClassName, ClassName unbinderClassName,
+  BindingClass(TypeName targetTypeName, ClassName binderClassName, ClassName bindingClassName,
       boolean isFinal) {
     this.isFinal = isFinal;
     this.targetTypeName = targetTypeName;
     this.binderClassName = binderClassName;
-    this.unbinderClassName = unbinderClassName;
+    this.bindingClassName = bindingClassName;
   }
 
   void addBitmap(FieldBitmapBinding binding) {
@@ -120,8 +120,8 @@ final class BindingClass {
     result.addMethod(createBindMethod(targetTypeName));
 
     List<JavaFile> files = new ArrayList<>();
-    if (isGeneratingUnbinder()) {
-      files.add(JavaFile.builder(unbinderClassName.packageName(), createUnbinderClass())
+    if (isGeneratingBinding()) {
+      files.add(JavaFile.builder(bindingClassName.packageName(), createBindingClass())
           .addFileComment("Generated code from Butter Knife. Do not modify!")
           .build()
       );
@@ -136,8 +136,8 @@ final class BindingClass {
     return files;
   }
 
-  private TypeSpec createUnbinderClass() {
-    TypeSpec.Builder result = TypeSpec.classBuilder(unbinderClassName.simpleName())
+  private TypeSpec createBindingClass() {
+    TypeSpec.Builder result = TypeSpec.classBuilder(bindingClassName.simpleName())
         .addModifiers(PUBLIC);
 
     TypeName targetType;
@@ -149,22 +149,22 @@ final class BindingClass {
       result.addTypeVariable(TypeVariableName.get("T", targetTypeName));
     }
 
-    if (hasInheritedUnbinder()) {
-      result.superclass(ParameterizedTypeName.get(getInheritedUnbinder(), targetType));
+    if (hasInheritedBinding()) {
+      result.superclass(ParameterizedTypeName.get(getInheritedBinding(), targetType));
     } else {
       result.addSuperinterface(UNBINDER);
       result.addField(targetType, "target", isFinal ? PRIVATE : PROTECTED);
     }
 
-    result.addMethod(createUnbinderConstructor(targetType));
+    result.addMethod(createBindingConstructor(targetType));
     if (hasViewBindings()) {
-      result.addMethod(createUnbindInterfaceMethod(result, targetType));
+      result.addMethod(createBindingUnbindMethod(result, targetType));
     }
 
     return result.build();
   }
 
-  private MethodSpec createUnbinderConstructor(TypeName targetType) {
+  private MethodSpec createBindingConstructor(TypeName targetType) {
     MethodSpec.Builder constructor = MethodSpec.constructorBuilder()
         .addModifiers(PUBLIC);
 
@@ -184,7 +184,7 @@ final class BindingClass {
       constructor.addParameter(THEME, "theme");
     }
 
-    if (hasInheritedUnbinder()) {
+    if (hasInheritedBinding()) {
       CodeBlock.Builder invoke = CodeBlock.builder();
       invoke.add("super(target");
       if (parentBinding.bindNeedsView()) invoke.add(", source");
@@ -201,17 +201,17 @@ final class BindingClass {
     return constructor.build();
   }
 
-  private MethodSpec createUnbindInterfaceMethod(TypeSpec.Builder unbinderClass,
+  private MethodSpec createBindingUnbindMethod(TypeSpec.Builder bindingClass,
       TypeName targetType) {
     MethodSpec.Builder result = MethodSpec.methodBuilder("unbind")
         .addAnnotation(Override.class)
         .addModifiers(PUBLIC);
-    boolean rootUnbinderWithFields = !hasInheritedUnbinder() && hasFieldBindings();
-    if (hasFieldBindings() || rootUnbinderWithFields) {
+    boolean rootBindingWithFields = !hasInheritedBinding() && hasFieldBindings();
+    if (hasFieldBindings() || rootBindingWithFields) {
       result.addStatement("$T target = this.target", targetType);
     }
-    if (!hasInheritedUnbinder()) {
-      String target = rootUnbinderWithFields ? "target" : "this.target";
+    if (!hasInheritedBinding()) {
+      String target = rootBindingWithFields ? "target" : "this.target";
       result.addStatement("if ($N == null) throw new $T($S)", target, IllegalStateException.class,
           "Bindings already cleared.");
     } else {
@@ -233,11 +233,11 @@ final class BindingClass {
     if (hasMethodBindings()) {
       result.addCode("\n");
       for (ViewBindings bindings : viewIdMap.values()) {
-        addFieldAndUnbindStatement(unbinderClass, result, bindings);
+        addFieldAndUnbindStatement(bindingClass, result, bindings);
       }
     }
 
-    if (!hasInheritedUnbinder()) {
+    if (!hasInheritedBinding()) {
       result.addCode("\n");
       result.addStatement("this.target = null");
     }
@@ -247,7 +247,7 @@ final class BindingClass {
 
   private void addFieldAndUnbindStatement(TypeSpec.Builder result, MethodSpec.Builder unbindMethod,
       ViewBindings bindings) {
-    // Only add fields to the unbinder if there are method bindings.
+    // Only add fields to the binding if there are method bindings.
     Map<ListenerClass, Map<ListenerMethod, Set<MethodViewBinding>>> classMethodBindings =
         bindings.getMethodBindings();
     if (classMethodBindings.isEmpty()) {
@@ -331,7 +331,7 @@ final class BindingClass {
       }
     }
 
-    if (isFinal && !isGeneratingUnbinder()) {
+    if (isFinal && !isGeneratingBinding()) {
       if (needsResources) {
         result.addCode("\n");
       }
@@ -340,16 +340,16 @@ final class BindingClass {
     }
 
     CodeBlock.Builder invoke = CodeBlock.builder();
-    if (isGeneratingUnbinder()) {
+    if (isGeneratingBinding()) {
       if (isFinal) {
-        invoke.add("return new $T", unbinderClassName);
+        invoke.add("return new $T", bindingClassName);
       } else {
-        invoke.add("return new $T<>", unbinderClassName);
+        invoke.add("return new $T<>", bindingClassName);
       }
     } else if (!isFinal) {
       invoke.add("$N", BIND_TO_TARGET);
     }
-    if (isGeneratingUnbinder() || !isFinal) {
+    if (isGeneratingBinding() || !isFinal) {
       invoke.add("(target");
       if (needsView) invoke.add(", source");
       if (needsResources) invoke.add(", res");
@@ -357,7 +357,7 @@ final class BindingClass {
       result.addStatement("$L", invoke.add(")").build());
     }
 
-    if (!isGeneratingUnbinder()) {
+    if (!isGeneratingBinding()) {
       result.addStatement("return $T.EMPTY", UNBINDER);
     }
 
@@ -394,7 +394,7 @@ final class BindingClass {
           .build());
     }
 
-    if (!hasInheritedUnbinder() && hasParentBinding()) {
+    if (!hasInheritedBinding() && hasParentBinding()) {
       CodeBlock.Builder invoke = CodeBlock.builder() //
           .add("$T.$N(target", parentBinding.binderClassName, BIND_TO_TARGET);
       if (parentBinding.bindNeedsView()) invoke.add(", source");
@@ -568,14 +568,14 @@ final class BindingClass {
       result.beginControlFlow("if (view != null)");
     }
 
-    // Add the view reference to the unbinder.
+    // Add the view reference to the binding.
     String fieldName = "target";
     String bindName = "target";
     if (!bindings.isBoundToRoot()) {
       fieldName = "view" + bindings.getId().value;
       bindName = "view";
 
-      if (isGeneratingUnbinder()) {
+      if (isGeneratingBinding()) {
         result.addStatement("$L = view", fieldName);
       }
     }
@@ -633,7 +633,7 @@ final class BindingClass {
         callback.addMethod(callbackMethod.build());
       }
 
-      boolean requiresRemoval = isGeneratingUnbinder() && listener.remover().length() != 0;
+      boolean requiresRemoval = isGeneratingBinding() && listener.remover().length() != 0;
       String listenerField = null;
       if (requiresRemoval) {
         TypeName listenerClassName = bestGuess(listener.type());
@@ -733,19 +733,19 @@ final class BindingClass {
     return parentBinding != null;
   }
 
-  /** True when this type contains an unbinder subclass. */
-  private boolean isGeneratingUnbinder() {
-    return hasViewBindings() || hasInheritedUnbinder();
+  /** True when this type contains a binding type. */
+  private boolean isGeneratingBinding() {
+    return hasViewBindings() || hasInheritedBinding();
   }
 
-  /** True when any of this type's parents contain an unbinder subclass. */
-  private boolean hasInheritedUnbinder() {
-    return hasParentBinding() && parentBinding.isGeneratingUnbinder();
+  /** True when any of this type's parents contain a binder class. */
+  private boolean hasInheritedBinding() {
+    return hasParentBinding() && parentBinding.isGeneratingBinding();
   }
 
-  /** Return the nearest unbinder subclass from this type's parents. */
-  private ClassName getInheritedUnbinder() {
-    return parentBinding.unbinderClassName;
+  /** Return the nearest binding class from this type's parents. */
+  private ClassName getInheritedBinding() {
+    return parentBinding.bindingClassName;
   }
 
   /** True when this type's bindings require a view hierarchy. */

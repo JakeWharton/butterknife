@@ -1095,11 +1095,11 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
       String packageName = getPackageName(enclosingElement);
       String className = getClassName(enclosingElement, packageName);
       ClassName binderClassName = ClassName.get(packageName, className + "_ViewBinder");
-      ClassName unbinderClassName = ClassName.get(packageName, className + "_ViewBinding");
+      ClassName bindingClassName = ClassName.get(packageName, className + "_ViewBinding");
 
       boolean isFinal = enclosingElement.getModifiers().contains(Modifier.FINAL);
 
-      bindingClass = new BindingClass(targetType, binderClassName, unbinderClassName, isFinal);
+      bindingClass = new BindingClass(targetType, binderClassName, bindingClassName, isFinal);
       targetClassMap.put(enclosingElement, bindingClass);
     }
     return bindingClass;
