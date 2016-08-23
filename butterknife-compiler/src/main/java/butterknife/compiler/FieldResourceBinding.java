@@ -25,6 +25,7 @@ final class FieldResourceBinding {
     return method;
   }
 
+  /** When true, requires delegating the method to our {@code Utils} class. */
   public boolean isThemeable() {
     return themeable;
   }
