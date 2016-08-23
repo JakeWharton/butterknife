@@ -19,61 +19,44 @@ public class BindStringTest {
         + "}"
     );
 
-    JavaFileObject expectedSource = JavaFileObjects.forSourceString("test/Test_ViewBinder", ""
+    JavaFileObject binderSource = JavaFileObjects.forSourceString("test/Test_ViewBinder", ""
+        + "// Generated code from Butter Knife. Do not modify!\n"
+        + "package test;\n"
+        + "\n"
+        + "import android.view.View;\n"
+        + "import butterknife.Unbinder;\n"
+        + "import butterknife.internal.ViewBinder;\n"
+        + "import java.lang.Override;\n"
+        + "\n"
+        + "public final class Test_ViewBinder implements ViewBinder<Test> {\n"
+        + "  @Override\n"
+        + "  public Unbinder bind(Test target, View source) {\n"
+        + "    return new Test_ViewBinding<>(target, source.getContext());\n"
+        + "  }\n"
+        + "}"
+    );
+
+    JavaFileObject bindingSource = JavaFileObjects.forSourceString("test/Test_ViewBinding", ""
+        + "// Generated code from Butter Knife. Do not modify!\n"
         + "package test;\n"
         + "import android.content.Context;\n"
         + "import android.content.res.Resources;\n"
-        + "import android.view.View;\n"
         + "import butterknife.Unbinder;\n"
-        + "import butterknife.internal.ViewBinder;\n"
+        + "import java.lang.IllegalStateException;\n"
         + "import java.lang.Override;\n"
         + "import java.lang.SuppressWarnings;\n"
-        + "public final class Test_ViewBinder implements ViewBinder<Test> {\n"
-        + "  @Override\n"
-        + "  public Unbinder bind(Test target, View source) {\n"
-        + "    bindToTarget(target, source.getContext());\n"
-        + "    return Unbinder.EMPTY;\n"
-        + "  }\n"
+        + "public class Test_ViewBinding<T extends Test> implements Unbinder {\n"
+        + "  protected T target;\n"
         + "  @SuppressWarnings(\"ResourceType\")\n"
-        + "  public static void bindToTarget(Test target, Context context) {\n"
+        + "  public Test_ViewBinding(T target, Context context) {\n"
+        + "    this.target = target;\n"
         + "    Resources res = context.getResources();\n"
         + "    target.one = res.getString(1);\n"
         + "  }\n"
-        + "}"
-    );
-
-    assertAbout(javaSource()).that(source)
-        .processedWith(new ButterKnifeProcessor())
-        .compilesWithoutWarnings()
-        .and()
-        .generatesSources(expectedSource);
-  }
-
-  @Test public void finalClass() {
-    JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
-        + "package test;\n"
-        + "import android.app.Activity;\n"
-        + "import butterknife.BindString;\n"
-        + "public final class Test extends Activity {\n"
-        + "  @BindString(1) String one;\n"
-        + "}"
-    );
-
-    JavaFileObject expectedSource = JavaFileObjects.forSourceString("test/Test_ViewBinder", ""
-        + "package test;\n"
-        + "import android.content.res.Resources;\n"
-        + "import android.view.View;\n"
-        + "import butterknife.Unbinder;\n"
-        + "import butterknife.internal.ViewBinder;\n"
-        + "import java.lang.Override;\n"
-        + "import java.lang.SuppressWarnings;\n"
-        + "public final class Test_ViewBinder implements ViewBinder<Test> {\n"
         + "  @Override\n"
-        + "  @SuppressWarnings(\"ResourceType\")"
-        + "  public Unbinder bind(Test target, View source) {\n"
-        + "    Resources res = source.getResources();\n"
-        + "    target.one = res.getString(1);\n"
-        + "    return Unbinder.EMPTY;\n"
+        + "  public void unbind() {\n"
+        + "    if (this.target == null) throw new IllegalStateException(\"Bindings already cleared.\");\n"
+        + "    this.target = null;\n"
         + "  }\n"
         + "}"
     );
@@ -82,7 +65,7 @@ public class BindStringTest {
         .processedWith(new ButterKnifeProcessor())
         .compilesWithoutWarnings()
         .and()
-        .generatesSources(expectedSource);
+        .generatesSources(binderSource, bindingSource);
   }
 
   @Test public void typeMustBeString() {
