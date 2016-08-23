@@ -28,9 +28,9 @@ import static javax.lang.model.element.Modifier.FINAL;
 import static javax.lang.model.element.Modifier.PRIVATE;
 import static javax.lang.model.element.Modifier.PROTECTED;
 import static javax.lang.model.element.Modifier.PUBLIC;
-import static javax.lang.model.element.Modifier.STATIC;
 
 final class BindingClass {
+  private static final String FILE_COMMENT = "Generated code from Butter Knife. Do not modify!";
   private static final ClassName VIEW_BINDER = ClassName.get("butterknife.internal", "ViewBinder");
   private static final ClassName UTILS = ClassName.get("butterknife.internal", "Utils");
   private static final ClassName VIEW = ClassName.get("android.view", "View");
@@ -40,7 +40,6 @@ final class BindingClass {
   private static final ClassName UNBINDER = ClassName.get("butterknife", "Unbinder");
   private static final ClassName BITMAP_FACTORY =
       ClassName.get("android.graphics", "BitmapFactory");
-  private static final String BIND_TO_TARGET = "bindToTarget";
 
   private final Map<Id, ViewBindings> viewIdMap = new LinkedHashMap<>();
   private final Map<FieldCollectionViewBinding, List<Id>> collectionBindings =
@@ -113,27 +112,41 @@ final class BindingClass {
   }
 
   Collection<JavaFile> brewJava() {
-    TypeSpec.Builder result = TypeSpec.classBuilder(binderClassName)
-        .addModifiers(PUBLIC, FINAL)
-        .addSuperinterface(ParameterizedTypeName.get(VIEW_BINDER, targetTypeName));
+    return Arrays.asList(
+        JavaFile.builder(bindingClassName.packageName(), createBindingClass())
+            .addFileComment(FILE_COMMENT)
+            .build(),
+        JavaFile.builder(binderClassName.packageName(), createBinderClass())
+            .addFileComment(FILE_COMMENT)
+            .build()
+    );
+  }
 
-    result.addMethod(createBindMethod(targetTypeName));
+  private MethodSpec createBinderBindMethod(TypeName targetType) {
+    MethodSpec.Builder result = MethodSpec.methodBuilder("bind")
+        .addAnnotation(Override.class)
+        .addModifiers(PUBLIC)
+        .returns(UNBINDER)
+        .addParameter(targetType, "target")
+        .addParameter(VIEW, "source");
 
-    List<JavaFile> files = new ArrayList<>();
-    if (isGeneratingBinding()) {
-      files.add(JavaFile.builder(bindingClassName.packageName(), createBindingClass())
-          .addFileComment("Generated code from Butter Knife. Do not modify!")
-          .build()
-      );
-    } else if (!isFinal) {
-      result.addMethod(createBindToTargetMethod());
+    CodeBlock.Builder invoke = CodeBlock.builder()
+        .add("return new $T", bindingClassName);
+    if (!isFinal) {
+      invoke.add("<>");
     }
+    invoke.add("(target, $N)", bindNeedsView() ? "source" : "source.getContext()");
+    result.addStatement("$L", invoke.build());
 
-    files.add(JavaFile.builder(binderClassName.packageName(), result.build())
-        .addFileComment("Generated code from Butter Knife. Do not modify!")
-        .build());
+    return result.build();
+  }
 
-    return files;
+  private TypeSpec createBinderClass() {
+    return TypeSpec.classBuilder(binderClassName)
+        .addModifiers(PUBLIC, FINAL)
+        .addSuperinterface(ParameterizedTypeName.get(VIEW_BINDER, targetTypeName))
+        .addMethod(createBinderBindMethod(targetTypeName))
+        .build();
   }
 
   private TypeSpec createBindingClass() {
@@ -149,15 +162,15 @@ final class BindingClass {
       result.addTypeVariable(TypeVariableName.get("T", targetTypeName));
     }
 
-    if (hasInheritedBinding()) {
-      result.superclass(ParameterizedTypeName.get(getInheritedBinding(), targetType));
+    if (hasParentBinding()) {
+      result.superclass(ParameterizedTypeName.get(getParentBinding(), targetType));
     } else {
       result.addSuperinterface(UNBINDER);
       result.addField(targetType, "target", isFinal ? PRIVATE : PROTECTED);
     }
 
     result.addMethod(createBindingConstructor(targetType));
-    if (hasViewBindings()) {
+    if (hasViewBindings() || !hasParentBinding()) {
       result.addMethod(createBindingUnbindMethod(result, targetType));
     }
 
@@ -180,15 +193,79 @@ final class BindingClass {
       constructor.addParameter(CONTEXT, "context");
     }
 
-    if (hasInheritedBinding()) {
-      constructor.addStatement("super(target, $N)",
-          parentBinding.bindNeedsView() ? "source" : "context");
-    } else {
+    if (!hasParentBinding()) {
       constructor.addStatement("this.target = target");
+    } else if (parentBinding.bindNeedsView()) {
+      constructor.addStatement("super(target, source)");
+    } else if (bindNeedsView()) {
+      constructor.addStatement("super(target, source.getContext())");
+    } else {
+      constructor.addStatement("super(target, context)");
     }
     constructor.addCode("\n");
 
-    generateBindViewBody(constructor);
+    if (hasUnqualifiedResourceBindings()) {
+      // Aapt can change IDs out from underneath us, just suppress since all will work at runtime.
+      constructor.addAnnotation(AnnotationSpec.builder(SuppressWarnings.class)
+          .addMember("value", "$S", "ResourceType")
+          .build());
+    }
+
+    if (hasViewBindings()) {
+      if (bindNeedsViewLocal()) {
+        // Local variable in which all views will be temporarily stored.
+        constructor.addStatement("$T view", VIEW);
+      }
+      for (ViewBindings bindings : viewIdMap.values()) {
+        addViewBindings(constructor, bindings);
+      }
+      for (Map.Entry<FieldCollectionViewBinding, List<Id>> entry : collectionBindings.entrySet()) {
+        emitCollectionBinding(constructor, entry.getKey(), entry.getValue());
+      }
+
+      if (hasResourceBindings()) {
+        constructor.addCode("\n");
+      }
+    }
+
+    if (hasResourceBindings()) {
+      boolean hasView = bindNeedsView();
+      boolean needsSourceToContext = bindNeedsTheme() && hasView;
+      if (needsSourceToContext) {
+        constructor.addStatement("$T context = source.getContext()", CONTEXT);
+      }
+      constructor.addStatement("$T res = $N.getResources()", RESOURCES,
+          needsSourceToContext || !hasView ? "context" : "source");
+      if (bindNeedsTheme()) {
+        constructor.addStatement("$T theme = context.getTheme()", THEME);
+      }
+
+      for (FieldBitmapBinding binding : bitmapBindings) {
+        constructor.addStatement("target.$L = $T.decodeResource(res, $L)", binding.getName(),
+            BITMAP_FACTORY, binding.getId().code);
+      }
+
+      for (FieldDrawableBinding binding : drawableBindings) {
+        Id tintAttributeId = binding.getTintAttributeId();
+        if (tintAttributeId.value != 0) {
+          constructor.addStatement("target.$L = $T.getTintedDrawable(res, theme, $L, $L)",
+              binding.getName(), UTILS, binding.getId().code, tintAttributeId.code);
+        } else {
+          constructor.addStatement("target.$L = $T.getDrawable(res, theme, $L)", binding.getName(),
+              UTILS, binding.getId().code);
+        }
+      }
+
+      for (FieldResourceBinding binding : resourceBindings) {
+        if (binding.isThemeable()) {
+          constructor.addStatement("target.$L = $T.$L(res, theme, $L)", binding.getName(),
+              UTILS, binding.getMethod(), binding.getId().code);
+        } else {
+          constructor.addStatement("target.$L = res.$L($L)", binding.getName(), binding.getMethod(),
+              binding.getId().code);
+        }
+      }
+    }
 
     return constructor.build();
   }
@@ -198,11 +275,11 @@ final class BindingClass {
     MethodSpec.Builder result = MethodSpec.methodBuilder("unbind")
         .addAnnotation(Override.class)
         .addModifiers(PUBLIC);
-    boolean rootBindingWithFields = !hasInheritedBinding() && hasFieldBindings();
+    boolean rootBindingWithFields = !hasParentBinding() && hasFieldBindings();
     if (hasFieldBindings() || rootBindingWithFields) {
       result.addStatement("$T target = this.target", targetType);
     }
-    if (!hasInheritedBinding()) {
+    if (!hasParentBinding()) {
       String target = rootBindingWithFields ? "target" : "this.target";
       result.addStatement("if ($N == null) throw new $T($S)", target, IllegalStateException.class,
           "Bindings already cleared.");
@@ -229,7 +306,7 @@ final class BindingClass {
       }
     }
 
-    if (!hasInheritedBinding()) {
+    if (!hasParentBinding()) {
       result.addCode("\n");
       result.addStatement("this.target = null");
     }
@@ -297,65 +374,12 @@ final class BindingClass {
         : listenerClass.setter();
   }
 
-  private MethodSpec createBindMethod(TypeName targetType) {
-    MethodSpec.Builder result = MethodSpec.methodBuilder("bind")
-        .addAnnotation(Override.class)
-        .addModifiers(PUBLIC)
-        .returns(UNBINDER)
-        .addParameter(targetType, "target")
-        .addParameter(VIEW, "source");
-
-    if (isGeneratingBinding()) {
-      CodeBlock.Builder invoke = CodeBlock.builder()
-          .add("return new $T", bindingClassName);
-      if (!isFinal) {
-        invoke.add("<>");
-      }
-      invoke.add("(target, $N)", bindNeedsView() ? "source" : "source.getContext()");
-      result.addStatement("$L", invoke.build());
-    } else {
-      if (isFinal) {
-        generateBindViewBody(result);
-        result.addCode("\n");
-      } else {
-        result.addStatement("$N(target, $N)", BIND_TO_TARGET,
-            bindNeedsView() ? "source" : "source.getContext()");
-      }
-      result.addStatement("return $T.EMPTY", UNBINDER);
-    }
-
-    return result.build();
-  }
-
-  private MethodSpec createBindToTargetMethod() {
-    MethodSpec.Builder result = MethodSpec.methodBuilder(BIND_TO_TARGET)
-        .addModifiers(PUBLIC, STATIC)
-        .addParameter(targetTypeName, "target")
-        .addParameter(CONTEXT, "context");
-    generateBindViewBody(result);
-    return result.build();
-  }
-
   private void generateBindViewBody(MethodSpec.Builder result) {
     if (hasUnqualifiedResourceBindings()) {
       // Aapt can change IDs out from underneath us, just suppress since all will work at runtime.
       result.addAnnotation(AnnotationSpec.builder(SuppressWarnings.class)
           .addMember("value", "$S", "ResourceType")
           .build());
-    }
-
-    if (!hasInheritedBinding() && hasParentBinding()) {
-      CodeBlock.Builder invoke = CodeBlock.builder() //
-          .add("$T.$N(target", parentBinding.binderClassName, BIND_TO_TARGET);
-      if (parentBinding.bindNeedsView()) {
-        invoke.add(", source");
-      } else if (bindNeedsView()) {
-        invoke.add(", source.getContext()"); // We have a view but the parent only needs context.
-      } else {
-        invoke.add(", context");
-      }
-      result.addStatement("$L", invoke.add(")").build());
-      result.addCode("\n");
     }
 
     if (hasViewBindings()) {
@@ -380,7 +404,7 @@ final class BindingClass {
     }
 
     if (hasResourceBindings()) {
-      boolean hasView = bindNeedsView() || isFinal;
+      boolean hasView = bindNeedsView();
       boolean needsSourceToContext = bindNeedsTheme() && hasView;
       if (needsSourceToContext) {
         result.addStatement("$T context = source.getContext()", CONTEXT);
@@ -539,9 +563,7 @@ final class BindingClass {
       fieldName = "view" + bindings.getId().value;
       bindName = "view";
 
-      if (isGeneratingBinding()) {
-        result.addStatement("$L = view", fieldName);
-      }
+      result.addStatement("$L = view", fieldName);
     }
 
     for (Map.Entry<ListenerClass, Map<ListenerMethod, Set<MethodViewBinding>>> e
@@ -597,7 +619,7 @@ final class BindingClass {
         callback.addMethod(callbackMethod.build());
       }
 
-      boolean requiresRemoval = isGeneratingBinding() && listener.remover().length() != 0;
+      boolean requiresRemoval = listener.remover().length() != 0;
       String listenerField = null;
       if (requiresRemoval) {
         TypeName listenerClassName = bestGuess(listener.type());
@@ -619,7 +641,7 @@ final class BindingClass {
     }
   }
 
-  static List<ListenerMethod> getListenerMethods(ListenerClass listener) {
+  private static List<ListenerMethod> getListenerMethods(ListenerClass listener) {
     if (listener.method().length == 1) {
       return Arrays.asList(listener.method());
     }
@@ -665,7 +687,7 @@ final class BindingClass {
     }
   }
 
-  static TypeName bestGuess(String type) {
+  private static TypeName bestGuess(String type) {
     switch (type) {
       case "void": return TypeName.VOID;
       case "boolean": return TypeName.BOOLEAN;
@@ -697,18 +719,8 @@ final class BindingClass {
     return parentBinding != null;
   }
 
-  /** True when this type contains a binding type. */
-  private boolean isGeneratingBinding() {
-    return hasViewBindings() || hasInheritedBinding();
-  }
-
-  /** True when any of this type's parents contain a binder class. */
-  private boolean hasInheritedBinding() {
-    return hasParentBinding() && parentBinding.isGeneratingBinding();
-  }
-
   /** Return the nearest binding class from this type's parents. */
-  private ClassName getInheritedBinding() {
+  private ClassName getParentBinding() {
     return parentBinding.bindingClassName;
   }
 
