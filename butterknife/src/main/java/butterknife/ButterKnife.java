@@ -12,7 +12,6 @@ import android.support.annotation.UiThread;
 import android.util.Log;
 import android.util.Property;
 import android.view.View;
-import butterknife.internal.Finder;
 import butterknife.internal.ViewBinder;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -104,7 +103,7 @@ public final class ButterKnife {
 
   static final Map<Class<?>, ViewBinder<Object>> BINDERS = new LinkedHashMap<>();
   static final ViewBinder<Object> NOP_VIEW_BINDER = new ViewBinder<Object>() {
-    @Override public Unbinder bind(Finder finder, Object target, Object source) {
+    @Override public Unbinder bind(Object target, View source) {
       return Unbinder.EMPTY;
     }
   };
@@ -122,7 +121,8 @@ public final class ButterKnife {
    */
   @NonNull @UiThread
   public static Unbinder bind(@NonNull Activity target) {
-    return getViewBinder(target).bind(Finder.ACTIVITY, target, target);
+    View sourceView = target.getWindow().getDecorView();
+    return getViewBinder(target).bind(target, sourceView);
   }
 
   /**
@@ -133,7 +133,7 @@ public final class ButterKnife {
    */
   @NonNull @UiThread
   public static Unbinder bind(@NonNull View target) {
-    return getViewBinder(target).bind(Finder.VIEW, target, target);
+    return getViewBinder(target).bind(target, target);
   }
 
   /**
@@ -144,7 +144,8 @@ public final class ButterKnife {
    */
   @NonNull @UiThread
   public static Unbinder bind(@NonNull Dialog target) {
-    return getViewBinder(target).bind(Finder.DIALOG, target, target);
+    View sourceView = target.getWindow().getDecorView();
+    return getViewBinder(target).bind(target, sourceView);
   }
 
   /**
@@ -156,7 +157,8 @@ public final class ButterKnife {
    */
   @NonNull @UiThread
   public static Unbinder bind(@NonNull Object target, @NonNull Activity source) {
-    return getViewBinder(target).bind(Finder.ACTIVITY, target, source);
+    View sourceView = source.getWindow().getDecorView();
+    return getViewBinder(target).bind(target, sourceView);
   }
 
   /**
@@ -168,7 +170,7 @@ public final class ButterKnife {
    */
   @NonNull @UiThread
   public static Unbinder bind(@NonNull Object target, @NonNull View source) {
-    return getViewBinder(target).bind(Finder.VIEW, target, source);
+    return getViewBinder(target).bind(target, source);
   }
 
   /**
@@ -180,7 +182,8 @@ public final class ButterKnife {
    */
   @NonNull @UiThread
   public static Unbinder bind(@NonNull Object target, @NonNull Dialog source) {
-    return getViewBinder(target).bind(Finder.DIALOG, target, source);
+    View sourceView = source.getWindow().getDecorView();
+    return getViewBinder(target).bind(target, sourceView);
   }
 
   @NonNull @CheckResult @UiThread

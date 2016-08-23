@@ -7,12 +7,14 @@ import android.os.Build;
 import android.support.annotation.AttrRes;
 import android.support.annotation.ColorRes;
 import android.support.annotation.DrawableRes;
+import android.support.annotation.IdRes;
 import android.support.v4.graphics.drawable.DrawableCompat;
 import android.util.TypedValue;
+import android.view.View;
 import java.lang.reflect.Array;
 import java.util.List;
 
-@SuppressWarnings("deprecation") //
+@SuppressWarnings({ "deprecation", "WeakerAccess" }) // Used by generated code.
 public final class Utils {
   private static final boolean HAS_SUPPORT_V4 = hasSupportV4();
 
@@ -106,6 +108,72 @@ public final class Utils {
       DrawableCompat.setTint(drawable, color);
       return drawable;
     }
+  }
+  public static <T> T findOptionalViewAsType(View source, @IdRes int id, String who,
+      Class<T> cls) {
+    View view = source.findViewById(id);
+    return castView(view, id, who, cls);
+  }
+
+  public static View findRequiredView(View source, @IdRes int id, String who) {
+    View view = source.findViewById(id);
+    if (view != null) {
+      return view;
+    }
+    String name = getResourceEntryName(source, id);
+    throw new IllegalStateException("Required view '"
+        + name
+        + "' with ID "
+        + id
+        + " for "
+        + who
+        + " was not found. If this view is optional add '@Nullable' (fields) or '@Optional'"
+        + " (methods) annotation.");
+  }
+
+  public static <T> T findRequiredViewAsType(View source, @IdRes int id, String who,
+      Class<T> cls) {
+    View view = findRequiredView(source, id, who);
+    return castView(view, id, who, cls);
+  }
+
+  public static <T> T castView(View view, @IdRes int id, String who, Class<T> cls) {
+    try {
+      return cls.cast(view);
+    } catch (ClassCastException e) {
+      String name = getResourceEntryName(view, id);
+      throw new IllegalStateException("View '"
+          + name
+          + "' with ID "
+          + id
+          + " for "
+          + who
+          + " was of the wrong type. See cause for more info.", e);
+    }
+  }
+
+  @SuppressWarnings("unchecked") // That's the point.
+  public static <T> T castParam(Object value, String from, int fromPos, String to, int toPos) {
+    try {
+      return (T) value;
+    } catch (ClassCastException e) {
+      throw new IllegalStateException("Parameter #"
+          + (fromPos + 1)
+          + " of method '"
+          + from
+          + "' was of the wrong type for parameter #"
+          + (toPos + 1)
+          + " of method '"
+          + to
+          + "'. See cause for more info.", e);
+    }
+  }
+
+  private static String getResourceEntryName(View view, @IdRes int id) {
+    if (view.isInEditMode()) {
+      return "<unavailable while editing>";
+    }
+    return view.getContext().getResources().getResourceEntryName(id);
   }
 
   private Utils() {

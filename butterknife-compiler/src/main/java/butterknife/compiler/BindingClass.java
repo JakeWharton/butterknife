@@ -31,7 +31,6 @@ import static javax.lang.model.element.Modifier.PUBLIC;
 import static javax.lang.model.element.Modifier.STATIC;
 
 final class BindingClass {
-  private static final ClassName FINDER = ClassName.get("butterknife.internal", "Finder");
   private static final ClassName VIEW_BINDER = ClassName.get("butterknife.internal", "ViewBinder");
   private static final ClassName UTILS = ClassName.get("butterknife.internal", "Utils");
   private static final ClassName VIEW = ClassName.get("android.view", "View");
@@ -175,13 +174,8 @@ final class BindingClass {
       constructor.addParameter(targetType, "target");
     }
 
-    if (bindNeedsFinder()) {
-      if (methodBindingsNeedFinder()) {
-        constructor.addParameter(FINDER, "finder", FINAL);
-      } else {
-        constructor.addParameter(FINDER, "finder");
-      }
-      constructor.addParameter(Object.class, "source");
+    if (bindNeedsView()) {
+      constructor.addParameter(VIEW, "source");
     }
     if (bindNeedsResources()) {
       constructor.addParameter(RESOURCES, "res");
@@ -193,7 +187,7 @@ final class BindingClass {
     if (hasInheritedUnbinder()) {
       CodeBlock.Builder invoke = CodeBlock.builder();
       invoke.add("super(target");
-      if (parentBinding.bindNeedsFinder()) invoke.add(", finder, source");
+      if (parentBinding.bindNeedsView()) invoke.add(", source");
       if (parentBinding.bindNeedsResources()) invoke.add(", res");
       if (parentBinding.bindNeedsTheme()) invoke.add(", theme");
       constructor.addStatement("$L", invoke.add(")").build());
@@ -315,26 +309,25 @@ final class BindingClass {
     MethodSpec.Builder result = MethodSpec.methodBuilder("bind")
         .addAnnotation(Override.class)
         .addModifiers(PUBLIC)
-        .returns(UNBINDER)
-        .addParameter(FINDER, "finder");
+        .returns(UNBINDER);
     if (isFinal && hasMethodBindings()) {
       result.addParameter(targetType, "target", FINAL);
     } else {
       result.addParameter(targetType, "target");
     }
-    result.addParameter(Object.class, "source");
+    result.addParameter(VIEW, "source");
 
-    boolean needsFinder = bindNeedsFinder();
+    boolean needsView = bindNeedsView();
     boolean needsResources = bindNeedsResources();
     boolean needsTheme = bindNeedsTheme();
 
     if (needsResources) {
       if (needsTheme) {
-        result.addStatement("$T context = finder.getContext(source)", CONTEXT);
+        result.addStatement("$T context = source.getContext()", CONTEXT);
         result.addStatement("$T res = context.getResources()", RESOURCES);
         result.addStatement("$T theme = context.getTheme()", THEME);
       } else {
-        result.addStatement("$T res = finder.getContext(source).getResources()", RESOURCES);
+        result.addStatement("$T res = source.getContext().getResources()", RESOURCES);
       }
     }
 
@@ -358,7 +351,7 @@ final class BindingClass {
     }
     if (isGeneratingUnbinder() || !isFinal) {
       invoke.add("(target");
-      if (needsFinder) invoke.add(", finder, source");
+      if (needsView) invoke.add(", source");
       if (needsResources) invoke.add(", res");
       if (needsTheme) invoke.add(", theme");
       result.addStatement("$L", invoke.add(")").build());
@@ -404,7 +397,7 @@ final class BindingClass {
     if (!hasInheritedUnbinder() && hasParentBinding()) {
       CodeBlock.Builder invoke = CodeBlock.builder() //
           .add("$T.$N(target", parentBinding.binderClassName, BIND_TO_TARGET);
-      if (parentBinding.bindNeedsFinder()) invoke.add(", finder, source");
+      if (parentBinding.bindNeedsView()) invoke.add(", source");
       if (parentBinding.bindNeedsResources()) invoke.add(", res");
       if (parentBinding.bindNeedsTheme()) invoke.add(", theme");
       result.addStatement("$L", invoke.add(")").build());
@@ -483,19 +476,26 @@ final class BindingClass {
       if (i > 0) {
         builder.add(", ");
       }
-      builder.add("\nfinder.find");
-      builder.add(binding.isRequired() ? "RequiredView" : "OptionalView");
-      if (requiresCast(binding.getType())) {
-        builder.add("AsType");
+      builder.add("\n");
+
+      boolean requiresCast = requiresCast(binding.getType());
+      if (!requiresCast && !binding.isRequired()) {
+        builder.add("source.findViewById($L)", ids.get(i).code);
+      } else {
+        builder.add("$T.find", UTILS);
+        builder.add(binding.isRequired() ? "RequiredView" : "OptionalView");
+        if (requiresCast) {
+          builder.add("AsType");
+        }
+        builder.add("(source, $L", ids.get(i).code);
+        if (binding.isRequired() || requiresCast) {
+          builder.add(", $S", asHumanDescription(singletonList(binding)));
+        }
+        if (requiresCast) {
+          builder.add(", $T.class", binding.getRawType());
+        }
+        builder.add(")");
       }
-      builder.add("(source, $L", ids.get(i).code);
-      if (binding.isRequired() || requiresCast(binding.getType())) {
-        builder.add(", $S", asHumanDescription(singletonList(binding)));
-      }
-      if (requiresCast(binding.getType())) {
-        builder.add(", $T.class", binding.getRawType());
-      }
-      builder.add(")");
     }
 
     result.addStatement("target.$L = $T.$L($L)", binding.getName(), UTILS, ofName, builder.build());
@@ -505,29 +505,37 @@ final class BindingClass {
     if (bindings.isSingleFieldBinding()) {
       // Optimize the common case where there's a single binding directly to a field.
       FieldViewBinding fieldBinding = bindings.getFieldBinding();
-      CodeBlock.Builder invoke = CodeBlock.builder()
-          .add("target.$L = finder.find", fieldBinding.getName());
-      invoke.add(fieldBinding.isRequired() ? "RequiredView" : "OptionalView");
-      if (requiresCast(fieldBinding.getType())) {
-        invoke.add("AsType");
+      CodeBlock.Builder builder = CodeBlock.builder()
+          .add("target.$L = ", fieldBinding.getName());
+
+      boolean requiresCast = requiresCast(fieldBinding.getType());
+      if (!requiresCast && !fieldBinding.isRequired()) {
+        builder.add("source.findViewById($L)", bindings.getId().code);
+      } else {
+        builder.add("$T.find", UTILS);
+        builder.add(fieldBinding.isRequired() ? "RequiredView" : "OptionalView");
+        if (requiresCast) {
+          builder.add("AsType");
+        }
+        builder.add("(source, $L", bindings.getId().code);
+        if (fieldBinding.isRequired() || requiresCast) {
+          builder.add(", $S", asHumanDescription(singletonList(fieldBinding)));
+        }
+        if (requiresCast) {
+          builder.add(", $T.class", fieldBinding.getRawType());
+        }
+        builder.add(")");
       }
-      invoke.add("(source, $L", bindings.getId().code);
-      if (fieldBinding.isRequired() || requiresCast(fieldBinding.getType())) {
-        invoke.add(", $S", asHumanDescription(singletonList(fieldBinding)));
-      }
-      if (requiresCast(fieldBinding.getType())) {
-        invoke.add(", $T.class", fieldBinding.getRawType());
-      }
-      result.addStatement("$L)", invoke.build());
+      result.addStatement("$L", builder.build());
       return;
     }
 
     List<ViewBinding> requiredViewBindings = bindings.getRequiredBindings();
     if (requiredViewBindings.isEmpty()) {
-      result.addStatement("view = finder.findOptionalView(source, $L)", bindings.getId().code);
+      result.addStatement("view = source.findViewById($L)", bindings.getId().code);
     } else if (!bindings.isBoundToRoot()) {
-      result.addStatement("view = finder.findRequiredView(source, $L, $S)", bindings.getId().code,
-          asHumanDescription(requiredViewBindings));
+      result.addStatement("view = $T.findRequiredView(source, $L, $S)", UTILS,
+          bindings.getId().code, asHumanDescription(requiredViewBindings));
     }
 
     addFieldBindings(result, bindings);
@@ -538,8 +546,8 @@ final class BindingClass {
     FieldViewBinding fieldBinding = bindings.getFieldBinding();
     if (fieldBinding != null) {
       if (requiresCast(fieldBinding.getType())) {
-        result.addStatement("target.$L = finder.castView(view, $L, $S, $T.class)",
-            fieldBinding.getName(), bindings.getId().code,
+        result.addStatement("target.$L = $T.castView(view, $L, $S, $T.class)",
+            fieldBinding.getName(), UTILS, bindings.getId().code,
             asHumanDescription(singletonList(fieldBinding)), fieldBinding.getRawType());
       } else {
         result.addStatement("target.$L = view", fieldBinding.getName());
@@ -610,7 +618,7 @@ final class BindingClass {
               int listenerPosition = parameter.getListenerPosition();
 
               if (parameter.requiresCast(listenerParameters[listenerPosition])) {
-                builder.add("finder.<$T>castParam(p$L, $S, $L, $S, $L)", parameter.getType(),
+                builder.add("$T.<$T>castParam(p$L, $S, $L, $S, $L)", UTILS, parameter.getType(),
                     listenerPosition, method.name(), listenerPosition, binding.getName(), i);
               } else {
                 builder.add("p$L", listenerPosition);
@@ -792,28 +800,6 @@ final class BindingClass {
     return false;
   }
 
-  private boolean methodBindingsNeedFinder() {
-    for (ViewBindings viewBindings : viewIdMap.values()) {
-      for (Map.Entry<ListenerClass, Map<ListenerMethod, Set<MethodViewBinding>>> entry
-          : viewBindings.getMethodBindings().entrySet()) {
-        Map<ListenerMethod, Set<MethodViewBinding>> methodBindings = entry.getValue();
-        for (ListenerMethod method : getListenerMethods(entry.getKey())) {
-          if (methodBindings.containsKey(method)) {
-            String[] parameterTypes = method.parameters();
-            for (MethodViewBinding methodViewBinding : methodBindings.get(method)) {
-              for (Parameter parameter : methodViewBinding.getParameters()) {
-                if (parameter.requiresCast(parameterTypes[parameter.getListenerPosition()])) {
-                  return true;
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-    return false;
-  }
-
   private boolean hasFieldBindings() {
     for (ViewBindings viewBindings : viewIdMap.values()) {
       if (viewBindings.getFieldBinding() != null) {
@@ -823,9 +809,9 @@ final class BindingClass {
     return !collectionBindings.isEmpty();
   }
 
-  private boolean bindNeedsFinder() {
+  private boolean bindNeedsView() {
     return hasViewBindings() //
-        || hasParentBinding() && parentBinding.bindNeedsFinder();
+        || hasParentBinding() && parentBinding.bindNeedsView();
   }
 
   private boolean bindNeedsResources() {
