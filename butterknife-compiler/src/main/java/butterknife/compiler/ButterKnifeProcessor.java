@@ -159,13 +159,11 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
       TypeElement typeElement = entry.getKey();
       BindingClass bindingClass = entry.getValue();
 
-      for (JavaFile javaFile : bindingClass.brewJava()) {
-        try {
-          javaFile.writeTo(filer);
-        } catch (IOException e) {
-          error(typeElement, "Unable to write view binder for type %s: %s", typeElement,
-              e.getMessage());
-        }
+      JavaFile javaFile = bindingClass.brewJava();
+      try {
+        javaFile.writeTo(filer);
+      } catch (IOException e) {
+        error(typeElement, "Unable to write binding for type %s: %s", typeElement, e.getMessage());
       }
     }
 
@@ -1094,12 +1092,11 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
       String packageName = getPackageName(enclosingElement);
       String className = getClassName(enclosingElement, packageName);
-      ClassName binderClassName = ClassName.get(packageName, className + "_ViewBinder");
       ClassName bindingClassName = ClassName.get(packageName, className + "_ViewBinding");
 
       boolean isFinal = enclosingElement.getModifiers().contains(Modifier.FINAL);
 
-      bindingClass = new BindingClass(targetType, binderClassName, bindingClassName, isFinal);
+      bindingClass = new BindingClass(targetType, bindingClassName, isFinal);
       targetClassMap.put(enclosingElement, bindingClass);
     }
     return bindingClass;

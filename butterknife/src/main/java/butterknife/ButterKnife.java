@@ -7,12 +7,15 @@ import android.os.Build;
 import android.support.annotation.CheckResult;
 import android.support.annotation.IdRes;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
 import android.support.annotation.UiThread;
+import android.support.annotation.VisibleForTesting;
 import android.util.Log;
 import android.util.Property;
 import android.view.View;
-import butterknife.internal.ViewBinder;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -101,12 +104,8 @@ public final class ButterKnife {
   private static final String TAG = "ButterKnife";
   private static boolean debug = false;
 
-  static final Map<Class<?>, ViewBinder<Object>> BINDERS = new LinkedHashMap<>();
-  static final ViewBinder<Object> NOP_VIEW_BINDER = new ViewBinder<Object>() {
-    @Override public Unbinder bind(Object target, View source) {
-      return Unbinder.EMPTY;
-    }
-  };
+  @VisibleForTesting
+  static final Map<Class<?>, Constructor<? extends Unbinder>> BINDINGS = new LinkedHashMap<>();
 
   /** Control whether debug logging is enabled. */
   public static void setDebug(boolean debug) {
@@ -122,7 +121,7 @@ public final class ButterKnife {
   @NonNull @UiThread
   public static Unbinder bind(@NonNull Activity target) {
     View sourceView = target.getWindow().getDecorView();
-    return getViewBinder(target).bind(target, sourceView);
+    return createBinding(target, sourceView);
   }
 
   /**
@@ -133,7 +132,7 @@ public final class ButterKnife {
    */
   @NonNull @UiThread
   public static Unbinder bind(@NonNull View target) {
-    return getViewBinder(target).bind(target, target);
+    return createBinding(target, target);
   }
 
   /**
@@ -145,7 +144,7 @@ public final class ButterKnife {
   @NonNull @UiThread
   public static Unbinder bind(@NonNull Dialog target) {
     View sourceView = target.getWindow().getDecorView();
-    return getViewBinder(target).bind(target, sourceView);
+    return createBinding(target, sourceView);
   }
 
   /**
@@ -158,7 +157,7 @@ public final class ButterKnife {
   @NonNull @UiThread
   public static Unbinder bind(@NonNull Object target, @NonNull Activity source) {
     View sourceView = source.getWindow().getDecorView();
-    return getViewBinder(target).bind(target, sourceView);
+    return createBinding(target, sourceView);
   }
 
   /**
@@ -170,7 +169,7 @@ public final class ButterKnife {
    */
   @NonNull @UiThread
   public static Unbinder bind(@NonNull Object target, @NonNull View source) {
-    return getViewBinder(target).bind(target, source);
+    return createBinding(target, source);
   }
 
   /**
@@ -183,44 +182,62 @@ public final class ButterKnife {
   @NonNull @UiThread
   public static Unbinder bind(@NonNull Object target, @NonNull Dialog source) {
     View sourceView = source.getWindow().getDecorView();
-    return getViewBinder(target).bind(target, sourceView);
+    return createBinding(target, sourceView);
   }
 
-  @NonNull @CheckResult @UiThread
-  static ViewBinder<Object> getViewBinder(@NonNull Object target) {
+  private static Unbinder createBinding(@NonNull Object target, @NonNull View source) {
     Class<?> targetClass = target.getClass();
-    if (debug) Log.d(TAG, "Looking up view binder for " + targetClass.getName());
-    return findViewBinderForClass(targetClass);
+    if (debug) Log.d(TAG, "Looking up binding for " + targetClass.getName());
+    Constructor<? extends Unbinder> constructor = findBindingConstructorForClass(targetClass);
+
+    if (constructor == null) {
+      return Unbinder.EMPTY;
+    }
+
+    //noinspection TryWithIdenticalCatches Resolves to API 19+ only type.
+    try {
+      return constructor.newInstance(target, source);
+    } catch (IllegalAccessException e) {
+      throw new RuntimeException("Unable to invoke " + constructor, e);
+    } catch (InstantiationException e) {
+      throw new RuntimeException("Unable to invoke " + constructor, e);
+    } catch (InvocationTargetException e) {
+      Throwable cause = e.getCause();
+      if (cause instanceof RuntimeException) {
+        throw (RuntimeException) cause;
+      }
+      if (cause instanceof Error) {
+        throw (Error) cause;
+      }
+      throw new RuntimeException("Unable to create binding instance.", cause);
+    }
   }
 
-  @NonNull @CheckResult @UiThread
-  private static ViewBinder<Object> findViewBinderForClass(Class<?> cls) {
-    ViewBinder<Object> viewBinder = BINDERS.get(cls);
-    if (viewBinder != null) {
-      if (debug) Log.d(TAG, "HIT: Cached in view binder map.");
-      return viewBinder;
+  @Nullable @CheckResult @UiThread
+  private static Constructor<? extends Unbinder> findBindingConstructorForClass(Class<?> cls) {
+    Constructor<? extends Unbinder> bindingCtor = BINDINGS.get(cls);
+    if (bindingCtor != null) {
+      if (debug) Log.d(TAG, "HIT: Cached in binding map.");
+      return bindingCtor;
     }
     String clsName = cls.getName();
     if (clsName.startsWith("android.") || clsName.startsWith("java.")) {
       if (debug) Log.d(TAG, "MISS: Reached framework class. Abandoning search.");
-      return NOP_VIEW_BINDER;
+      return null;
     }
-    //noinspection TryWithIdenticalCatches Resolves to API 19+ only type.
     try {
-      Class<?> viewBindingClass = Class.forName(clsName + "_ViewBinder");
+      Class<?> bindingClass = Class.forName(clsName + "_ViewBinding");
       //noinspection unchecked
-      viewBinder = (ViewBinder<Object>) viewBindingClass.newInstance();
-      if (debug) Log.d(TAG, "HIT: Loaded view binder class.");
+      bindingCtor = (Constructor<? extends Unbinder>) bindingClass.getConstructor(cls, View.class);
+      if (debug) Log.d(TAG, "HIT: Loaded binding class and constructor.");
     } catch (ClassNotFoundException e) {
       if (debug) Log.d(TAG, "Not found. Trying superclass " + cls.getSuperclass().getName());
-      viewBinder = findViewBinderForClass(cls.getSuperclass());
-    } catch (InstantiationException e) {
-      throw new RuntimeException("Unable to create view binder for " + clsName, e);
-    } catch (IllegalAccessException e) {
-      throw new RuntimeException("Unable to create view binder for " + clsName, e);
+      bindingCtor = findBindingConstructorForClass(cls.getSuperclass());
+    } catch (NoSuchMethodException e) {
+      throw new RuntimeException("Unable to find binding constructor for " + clsName, e);
     }
-    BINDERS.put(cls, viewBinder);
-    return viewBinder;
+    BINDINGS.put(cls, bindingCtor);
+    return bindingCtor;
   }
 
   /** Apply the specified {@code actions} across the {@code list} of views. */

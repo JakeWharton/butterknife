@@ -15,7 +15,6 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 
-import java.util.Arrays;
 import java.util.List;
 
 import static com.google.common.truth.Truth.assertThat;
@@ -53,7 +52,7 @@ public class ButterKnifeTest {
 
   @Before @After // Clear out cache of binders before and after each test.
   public void resetViewsCache() {
-    ButterKnife.BINDERS.clear();
+    ButterKnife.BINDINGS.clear();
   }
 
   @Test public void propertyAppliedToView() {
@@ -237,16 +236,15 @@ public class ButterKnifeTest {
     }
 
     Example example = new Example();
-    assertThat(ButterKnife.getViewBinder(example)).isSameAs(ButterKnife.NOP_VIEW_BINDER);
-    assertThat(ButterKnife.BINDERS).containsEntry(Example.class, ButterKnife.NOP_VIEW_BINDER);
+    assertThat(ButterKnife.bind(example, (View) null)).isSameAs(Unbinder.EMPTY);
   }
 
   @Ignore("This doesn't work!") // TODO
   @Test public void bindingKnownPackagesIsNoOp() {
     Activity activity = Robolectric.buildActivity(Activity.class).attach().setup().get();
     ButterKnife.bind(activity);
-    assertThat(ButterKnife.BINDERS).isEmpty();
+    assertThat(ButterKnife.BINDINGS).isEmpty();
     ButterKnife.bind(new Object(), activity);
-    assertThat(ButterKnife.BINDERS).isEmpty();
+    assertThat(ButterKnife.BINDINGS).isEmpty();
   }
 }
