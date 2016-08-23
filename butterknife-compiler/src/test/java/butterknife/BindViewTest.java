@@ -24,20 +24,6 @@ public class BindViewTest {
         + "}"
     );
 
-    JavaFileObject binderSource = JavaFileObjects.forSourceString("test/Test_ViewBinder", ""
-        + "package test;\n"
-        + "import android.view.View;\n"
-        + "import butterknife.Unbinder;\n"
-        + "import butterknife.internal.ViewBinder;\n"
-        + "import java.lang.Override;\n"
-        + "public final class Test_ViewBinder implements ViewBinder<Test> {\n"
-        + "  @Override\n"
-        + "  public Unbinder bind(Test target, View source) {\n"
-        + "    return new Test_ViewBinding<>(target, source);\n"
-        + "  }\n"
-        + "}"
-    );
-
     JavaFileObject bindingSource = JavaFileObjects.forSourceString("test/Test_ViewBinding", ""
         + "package test;\n"
         + "import android.view.View;\n"
@@ -65,7 +51,7 @@ public class BindViewTest {
         .processedWith(new ButterKnifeProcessor())
         .compilesWithoutWarnings()
         .and()
-        .generatesSources(binderSource, bindingSource);
+        .generatesSources(bindingSource);
   }
 
   @Test public void bindingGeneratedView() {
@@ -101,7 +87,7 @@ public class BindViewTest {
         .withNoteContaining("@BindView field with unresolved type (GeneratedView)").and()
         .withNoteContaining("must elsewhere be generated as a View or interface").and()
         .and()
-        .generatesFileNamed(StandardLocation.CLASS_OUTPUT, "test", "Test_ViewBinder.class");
+        .generatesFileNamed(StandardLocation.CLASS_OUTPUT, "test", "Test_ViewBinding.class");
   }
 
   @Test public void bindingViewFinalClass() {
@@ -112,20 +98,6 @@ public class BindViewTest {
         + "import butterknife.BindView;\n"
         + "public final class Test extends Activity {\n"
         + "    @BindView(1) View thing;\n"
-        + "}"
-    );
-
-    JavaFileObject binderSource = JavaFileObjects.forSourceString("test/Test_ViewBinder", ""
-        + "package test;\n"
-        + "import android.view.View;\n"
-        + "import butterknife.Unbinder;\n"
-        + "import butterknife.internal.ViewBinder;\n"
-        + "import java.lang.Override;\n"
-        + "public final class Test_ViewBinder implements ViewBinder<Test> {\n"
-        + "  @Override\n"
-        + "  public Unbinder bind(Test target, View source) {\n"
-        + "    return new Test_ViewBinding(target, source);\n"
-        + "  }\n"
         + "}"
     );
 
@@ -156,7 +128,7 @@ public class BindViewTest {
         .processedWith(new ButterKnifeProcessor())
         .compilesWithoutWarnings()
         .and()
-        .generatesSources(binderSource, bindingSource);
+        .generatesSources(bindingSource);
   }
 
   @Test public void bindingViewFinalClassWithBaseClass() {
@@ -175,20 +147,6 @@ public class BindViewTest {
         + "import butterknife.BindView;\n"
         + "public final class Test extends Base {\n"
         + "    @BindView(1) View thing;\n"
-        + "}"
-    );
-
-    JavaFileObject binderBaseSource = JavaFileObjects.forSourceString("test/Base_ViewBinder", ""
-        + "package test;\n"
-        + "import android.view.View;\n"
-        + "import butterknife.Unbinder;\n"
-        + "import butterknife.internal.ViewBinder;\n"
-        + "import java.lang.Override;\n"
-        + "public final class Base_ViewBinder implements ViewBinder<Base> {\n"
-        + "  @Override\n"
-        + "  public Unbinder bind(Base target, View source) {\n"
-        + "    return new Base_ViewBinding<>(target, source);\n"
-        + "  }\n"
         + "}"
     );
 
@@ -211,20 +169,6 @@ public class BindViewTest {
         + "    if (target == null) throw new IllegalStateException(\"Bindings already cleared.\");\n"
         + "    target.thing = null;\n"
         + "    this.target = null;\n"
-        + "  }\n"
-        + "}"
-    );
-
-    JavaFileObject binderTestSource = JavaFileObjects.forSourceString("test/Test_ViewBinder", ""
-        + "package test;\n"
-        + "import android.view.View;\n"
-        + "import butterknife.Unbinder;\n"
-        + "import butterknife.internal.ViewBinder;\n"
-        + "import java.lang.Override;\n"
-        + "public final class Test_ViewBinder implements ViewBinder<Test> {\n"
-        + "  @Override\n"
-        + "  public Unbinder bind(Test target, View source) {\n"
-        + "    return new Test_ViewBinding(target, source);\n"
         + "  }\n"
         + "}"
     );
@@ -252,7 +196,7 @@ public class BindViewTest {
         .processedWith(new ButterKnifeProcessor())
         .compilesWithoutWarnings()
         .and()
-        .generatesSources(binderBaseSource, bindingBaseSource, binderTestSource, bindingTestSource);
+        .generatesSources(bindingBaseSource, bindingTestSource);
   }
 
   @Test public void bindingViewInnerClass() {
@@ -264,20 +208,6 @@ public class BindViewTest {
         + "public class Outer {\n"
         + "  public static class Test extends Activity {\n"
         + "    @BindView(1) View thing;\n"
-        + "  }\n"
-        + "}"
-    );
-
-    JavaFileObject binderSource = JavaFileObjects.forSourceString("test/Outer$Test_ViewBinder", ""
-        + "package test;\n"
-        + "import android.view.View;\n"
-        + "import butterknife.Unbinder;\n"
-        + "import butterknife.internal.ViewBinder;\n"
-        + "import java.lang.Override;\n"
-        + "public final class Outer$Test_ViewBinder implements ViewBinder<Outer.Test> {\n"
-        + "  @Override\n"
-        + "  public Unbinder bind(Outer.Test target, View source) {\n"
-        + "    return new Outer$Test_ViewBinding<>(target, source);\n"
         + "  }\n"
         + "}"
     );
@@ -309,7 +239,7 @@ public class BindViewTest {
         .processedWith(new ButterKnifeProcessor())
         .compilesWithoutWarnings()
         .and()
-        .generatesSources(binderSource, bindingSource);
+        .generatesSources(bindingSource);
   }
 
   @Test public void bindingViewUppercasePackageName() {
@@ -320,20 +250,6 @@ public class BindViewTest {
         + "import butterknife.BindView;\n"
         + "public class Test extends Activity {\n"
         + "    @BindView(1) View thing;\n"
-        + "}"
-    );
-
-    JavaFileObject binderSource = JavaFileObjects.forSourceString("test/Test_ViewBinder", ""
-        + "package com.Example;\n"
-        + "import android.view.View;\n"
-        + "import butterknife.Unbinder;\n"
-        + "import butterknife.internal.ViewBinder;\n"
-        + "import java.lang.Override;\n"
-        + "public final class Test_ViewBinder implements ViewBinder<Test> {\n"
-        + "  @Override\n"
-        + "  public Unbinder bind(Test target, View source) {\n"
-        + "    return new Test_ViewBinding<>(target, source);\n"
-        + "  }\n"
         + "}"
     );
 
@@ -364,7 +280,7 @@ public class BindViewTest {
         .processedWith(new ButterKnifeProcessor())
         .compilesWithoutWarnings()
         .and()
-        .generatesSources(binderSource, bindingSource);
+        .generatesSources(bindingSource);
   }
 
   @Test public void bindingInterface() throws Exception {
@@ -376,20 +292,6 @@ public class BindViewTest {
         + "public class Test extends Activity {\n"
         + "    interface TestInterface {}\n"
         + "    @BindView(1) TestInterface thing;\n"
-        + "}"
-    );
-
-    JavaFileObject binderSource = JavaFileObjects.forSourceString("test/Test_ViewBinder", ""
-        + "package test;\n"
-        + "import android.view.View;\n"
-        + "import butterknife.Unbinder;\n"
-        + "import butterknife.internal.ViewBinder;\n"
-        + "import java.lang.Override;\n"
-        + "public final class Test_ViewBinder implements ViewBinder<Test> {\n"
-        + "  @Override\n"
-        + "  public Unbinder bind(Test target, View source) {\n"
-        + "    return new Test_ViewBinding<>(target, source);\n"
-        + "  }\n"
         + "}"
     );
 
@@ -420,7 +322,7 @@ public class BindViewTest {
         .processedWith(new ButterKnifeProcessor())
         .compilesWithoutWarnings()
         .and()
-        .generatesSources(binderSource, bindingSource);
+        .generatesSources(bindingSource);
   }
 
   @Test public void genericType() {
@@ -432,20 +334,6 @@ public class BindViewTest {
         + "import butterknife.BindView;\n"
         + "class Test<T extends TextView> extends Activity {\n"
         + "    @BindView(1) T thing;\n"
-        + "}"
-    );
-
-    JavaFileObject binderSource = JavaFileObjects.forSourceString("test/Test_ViewBinder", ""
-        + "package test;\n"
-        + "import android.view.View;\n"
-        + "import butterknife.Unbinder;\n"
-        + "import butterknife.internal.ViewBinder;\n"
-        + "import java.lang.Override;\n"
-        + "public final class Test_ViewBinder implements ViewBinder<Test> {\n"
-        + "  @Override\n"
-        + "  public Unbinder bind(Test target, View source) {\n"
-        + "    return new Test_ViewBinding<>(target, source);\n"
-        + "  }\n"
         + "}"
     );
 
@@ -479,7 +367,7 @@ public class BindViewTest {
         //   missing type arguments for generic class test.Test<T>
         .compilesWithoutError()
         .and()
-        .generatesSources(binderSource, bindingSource);
+        .generatesSources(bindingSource);
   }
 
   @Test public void oneFindPerId() {
@@ -492,20 +380,6 @@ public class BindViewTest {
         + "public class Test extends Activity {\n"
         + "  @BindView(1) View thing1;\n"
         + "  @OnClick(1) void doStuff() {}\n"
-        + "}"
-    );
-
-    JavaFileObject binderSource = JavaFileObjects.forSourceString("test/Test_ViewBinder", ""
-        + "package test;\n"
-        + "import android.view.View;\n"
-        + "import butterknife.Unbinder;\n"
-        + "import butterknife.internal.ViewBinder;\n"
-        + "import java.lang.Override;\n"
-        + "public final class Test_ViewBinder implements ViewBinder<Test> {\n"
-        + "  @Override\n"
-        + "  public Unbinder bind(Test target, View source) {\n"
-        + "    return new Test_ViewBinding<>(target, source);\n"
-        + "  }\n"
         + "}"
     );
 
@@ -549,7 +423,7 @@ public class BindViewTest {
         .processedWith(new ButterKnifeProcessor())
         .compilesWithoutWarnings()
         .and()
-        .generatesSources(binderSource, bindingSource);
+        .generatesSources(bindingSource);
   }
 
   @Test public void oneFindPerIdWithCast() {
@@ -562,20 +436,6 @@ public class BindViewTest {
         + "public class Test extends Activity {\n"
         + "  @BindView(1) Button thing1;\n"
         + "  @OnClick(1) void doStuff() {}\n"
-        + "}"
-    );
-
-    JavaFileObject binderSource = JavaFileObjects.forSourceString("test/Test_ViewBinder", ""
-        + "package test;\n"
-        + "import android.view.View;\n"
-        + "import butterknife.Unbinder;\n"
-        + "import butterknife.internal.ViewBinder;\n"
-        + "import java.lang.Override;\n"
-        + "public final class Test_ViewBinder implements ViewBinder<Test> {\n"
-        + "  @Override\n"
-        + "  public Unbinder bind(Test target, View source) {\n"
-        + "    return new Test_ViewBinding<>(target, source);\n"
-        + "  }\n"
         + "}"
     );
 
@@ -620,7 +480,7 @@ public class BindViewTest {
         .processedWith(new ButterKnifeProcessor())
         .compilesWithoutError()
         .and()
-        .generatesSources(binderSource, bindingSource);
+        .generatesSources(bindingSource);
   }
 
   @Test public void fieldVisibility() {
@@ -653,20 +513,6 @@ public class BindViewTest {
         + "}"
     );
 
-    JavaFileObject binderSource = JavaFileObjects.forSourceString("test/Test_ViewBinder", ""
-        + "package test;\n"
-        + "import android.view.View;\n"
-        + "import butterknife.Unbinder;\n"
-        + "import butterknife.internal.ViewBinder;\n"
-        + "import java.lang.Override;\n"
-        + "public final class Test_ViewBinder implements ViewBinder<Test> {\n"
-        + "  @Override\n"
-        + "  public Unbinder bind(Test target, View source) {\n"
-        + "    return new Test_ViewBinding<>(target, source);\n"
-        + "  }\n"
-        + "}"
-    );
-
     JavaFileObject bindingSource = JavaFileObjects.forSourceString("test/Test_ViewBinding", ""
         + "package test;\n"
         + "import android.view.View;\n"
@@ -694,7 +540,7 @@ public class BindViewTest {
         .processedWith(new ButterKnifeProcessor())
         .compilesWithoutWarnings()
         .and()
-        .generatesSources(binderSource, bindingSource);
+        .generatesSources(bindingSource);
   }
 
   @Test public void superclass() {
@@ -723,20 +569,6 @@ public class BindViewTest {
         + "}"
     );
 
-    JavaFileObject binder1Source = JavaFileObjects.forSourceString("test/Test_ViewBinder", ""
-        + "package test;\n"
-        + "import android.view.View;\n"
-        + "import butterknife.Unbinder;\n"
-        + "import butterknife.internal.ViewBinder;\n"
-        + "import java.lang.Override;\n"
-        + "public final class Test_ViewBinder implements ViewBinder<Test> {\n"
-        + "  @Override\n"
-        + "  public Unbinder bind(Test target, View source) {\n"
-        + "    return new Test_ViewBinding<>(target, source);\n"
-        + "  }\n"
-        + "}"
-    );
-
     JavaFileObject binding1Source = JavaFileObjects.forSourceString("test/Test_ViewBinding", ""
         + "package test;\n"
         + "import android.view.View;\n"
@@ -756,20 +588,6 @@ public class BindViewTest {
         + "    if (target == null) throw new IllegalStateException(\"Bindings already cleared.\");\n"
         + "    target.view = null;\n"
         + "    this.target = null;\n"
-        + "  }\n"
-        + "}"
-    );
-
-    JavaFileObject binder2Source = JavaFileObjects.forSourceString("test/TestOne_ViewBinder", ""
-        + "package test;\n"
-        + "import android.view.View;\n"
-        + "import butterknife.Unbinder;\n"
-        + "import butterknife.internal.ViewBinder;\n"
-        + "import java.lang.Override;\n"
-        + "public final class TestOne_ViewBinder implements ViewBinder<TestOne> {\n"
-        + "  @Override\n"
-        + "  public Unbinder bind(TestOne target, View source) {\n"
-        + "    return new TestOne_ViewBinding<>(target, source);\n"
         + "  }\n"
         + "}"
     );
@@ -797,7 +615,7 @@ public class BindViewTest {
         .processedWith(new ButterKnifeProcessor())
         .compilesWithoutWarnings()
         .and()
-        .generatesSources(binder1Source, binding1Source, binder2Source, binding2Source);
+        .generatesSources(binding1Source, binding2Source);
   }
 
   @Test public void genericSuperclass() {
@@ -825,19 +643,6 @@ public class BindViewTest {
         + "public class TestTwo extends Test<Object> {\n"
         + "}"
     );
-    JavaFileObject binder1Source = JavaFileObjects.forSourceString("test/Test_ViewBinder", ""
-        + "package test;\n"
-        + "import android.view.View;\n"
-        + "import butterknife.Unbinder;\n"
-        + "import butterknife.internal.ViewBinder;\n"
-        + "import java.lang.Override;\n"
-        + "public final class Test_ViewBinder implements ViewBinder<Test> {\n"
-        + "  @Override\n"
-        + "  public Unbinder bind(Test target, View source) {\n"
-        + "    return new Test_ViewBinding<>(target, source);\n"
-        + "  }\n"
-        + "}"
-    );
 
     JavaFileObject binding1Source = JavaFileObjects.forSourceString("test/Test_ViewBinding", ""
         + "package test;\n"
@@ -858,20 +663,6 @@ public class BindViewTest {
         + "    if (target == null) throw new IllegalStateException(\"Bindings already cleared.\");\n"
         + "    target.view = null;\n"
         + "    this.target = null;\n"
-        + "  }\n"
-        + "}"
-    );
-
-    JavaFileObject binder2Source = JavaFileObjects.forSourceString("test/TestOne_ViewBinder", ""
-        + "package test;\n"
-        + "import android.view.View;\n"
-        + "import butterknife.Unbinder;\n"
-        + "import butterknife.internal.ViewBinder;\n"
-        + "import java.lang.Override;\n"
-        + "public final class TestOne_ViewBinder implements ViewBinder<TestOne> {\n"
-        + "  @Override\n"
-        + "  public Unbinder bind(TestOne target, View source) {\n"
-        + "    return new TestOne_ViewBinding<>(target, source);\n"
         + "  }\n"
         + "}"
     );
@@ -901,7 +692,7 @@ public class BindViewTest {
         //   missing type arguments for generic class test.Test<T>
         .compilesWithoutError()
         .and()
-        .generatesSources(binder1Source, binding1Source, binder2Source, binding2Source);
+        .generatesSources(binding1Source, binding2Source);
   }
 
   @Test public void failsInJavaPackage() {

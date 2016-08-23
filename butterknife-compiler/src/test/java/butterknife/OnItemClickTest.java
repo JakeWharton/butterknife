@@ -20,20 +20,6 @@ public class OnItemClickTest {
         + "}"
     );
 
-    JavaFileObject binderSource = JavaFileObjects.forSourceString("test/Test_ViewBinder", ""
-        + "package test;\n"
-        + "import android.view.View;\n"
-        + "import butterknife.Unbinder;\n"
-        + "import butterknife.internal.ViewBinder;\n"
-        + "import java.lang.Override;\n"
-        + "public final class Test_ViewBinder implements ViewBinder<Test> {\n"
-        + "  @Override\n"
-        + "  public Unbinder bind(Test target, View source) {\n"
-        + "    return new Test_ViewBinding<>(target, source);\n"
-        + "  }\n"
-        + "}"
-    );
-
     JavaFileObject bindingSource = JavaFileObjects.forSourceString("test/Test_ViewBinding", ""
         + "package test;\n"
         + "import android.view.View;\n"
@@ -71,7 +57,7 @@ public class OnItemClickTest {
         .processedWith(new ButterKnifeProcessor())
         .compilesWithoutWarnings()
         .and()
-        .generatesSources(binderSource, bindingSource);
+        .generatesSources(bindingSource);
   }
 
   @Test public void onItemClickBindingWithParameters() {
@@ -88,20 +74,6 @@ public class OnItemClickTest {
         + "    int position,\n"
         + "    long id\n"
         + "  ) {}\n"
-        + "}"
-    );
-
-    JavaFileObject binderSource = JavaFileObjects.forSourceString("test/Test_ViewBinder", ""
-        + "package test;\n"
-        + "import android.view.View;\n"
-        + "import butterknife.Unbinder;\n"
-        + "import butterknife.internal.ViewBinder;\n"
-        + "import java.lang.Override;\n"
-        + "public final class Test_ViewBinder implements ViewBinder<Test> {\n"
-        + "  @Override\n"
-        + "  public Unbinder bind(Test target, View source) {\n"
-        + "    return new Test_ViewBinding<>(target, source);\n"
-        + "  }\n"
         + "}"
     );
 
@@ -142,7 +114,7 @@ public class OnItemClickTest {
         .processedWith(new ButterKnifeProcessor())
         .compilesWithoutWarnings()
         .and()
-        .generatesSources(binderSource, bindingSource);
+        .generatesSources(bindingSource);
   }
 
   @Test public void onItemClickBindingWithParameterSubset() {
@@ -157,20 +129,6 @@ public class OnItemClickTest {
         + "    ListView parent,\n"
         + "    int position\n"
         + "  ) {}\n"
-        + "}"
-    );
-
-    JavaFileObject binderSource = JavaFileObjects.forSourceString("test/Test_ViewBinder", ""
-        + "package test;\n"
-        + "import android.view.View;\n"
-        + "import butterknife.Unbinder;\n"
-        + "import butterknife.internal.ViewBinder;\n"
-        + "import java.lang.Override;\n"
-        + "public final class Test_ViewBinder implements ViewBinder<Test> {\n"
-        + "  @Override\n"
-        + "  public Unbinder bind(Test target, View source) {\n"
-        + "    return new Test_ViewBinding<>(target, source);\n"
-        + "  }\n"
         + "}"
     );
 
@@ -212,7 +170,7 @@ public class OnItemClickTest {
         .processedWith(new ButterKnifeProcessor())
         .compilesWithoutWarnings()
         .and()
-        .generatesSources(binderSource, bindingSource);
+        .generatesSources(bindingSource);
   }
 
   @Test public void onItemClickBindingWithParameterSubsetAndGenerics() {
@@ -227,20 +185,6 @@ public class OnItemClickTest {
         + "    T parent,\n"
         + "    int position\n"
         + "  ) {}\n"
-        + "}"
-    );
-
-    JavaFileObject binderSource = JavaFileObjects.forSourceString("test/Test_ViewBinder", ""
-        + "package test;\n"
-        + "import android.view.View;\n"
-        + "import butterknife.Unbinder;\n"
-        + "import butterknife.internal.ViewBinder;\n"
-        + "import java.lang.Override;\n"
-        + "public final class Test_ViewBinder implements ViewBinder<Test> {\n"
-        + "  @Override\n"
-        + "  public Unbinder bind(Test target, View source) {\n"
-        + "    return new Test_ViewBinding<>(target, source);\n"
-        + "  }\n"
         + "}"
     );
 
@@ -285,7 +229,7 @@ public class OnItemClickTest {
         //   missing type arguments for generic class test.Test<T>
         .compilesWithoutError()
         .and()
-        .generatesSources(binderSource, bindingSource);
+        .generatesSources(bindingSource);
   }
 
   @Test public void onClickRootViewBinding() {
@@ -298,20 +242,6 @@ public class OnItemClickTest {
         + "  @OnItemClick void doStuff() {}\n"
         + "  public Test(Context context) {\n"
         + "    super(context);\n"
-        + "  }\n"
-        + "}"
-    );
-
-    JavaFileObject binderSource = JavaFileObjects.forSourceString("test/Test_ViewBinder", ""
-        + "package test;\n"
-        + "import android.view.View;\n"
-        + "import butterknife.Unbinder;\n"
-        + "import butterknife.internal.ViewBinder;\n"
-        + "import java.lang.Override;\n"
-        + "public final class Test_ViewBinder implements ViewBinder<Test> {\n"
-        + "  @Override\n"
-        + "  public Unbinder bind(Test target, View source) {\n"
-        + "    return new Test_ViewBinding<>(target, source);\n"
         + "  }\n"
         + "}"
     );
@@ -347,7 +277,7 @@ public class OnItemClickTest {
         .processedWith(new ButterKnifeProcessor())
         .compilesWithoutWarnings()
         .and()
-        .generatesSources(binderSource, bindingSource);
+        .generatesSources(bindingSource);
   }
 
   @Test public void failsWithInvalidId() {

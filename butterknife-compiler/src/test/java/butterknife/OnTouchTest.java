@@ -19,20 +19,6 @@ public class OnTouchTest {
         + "}"
     );
 
-    JavaFileObject binderSource = JavaFileObjects.forSourceString("test/Test_ViewBinder", ""
-        + "package test;\n"
-        + "import android.view.View;\n"
-        + "import butterknife.Unbinder;\n"
-        + "import butterknife.internal.ViewBinder;\n"
-        + "import java.lang.Override;\n"
-        + "public final class Test_ViewBinder implements ViewBinder<Test> {\n"
-        + "  @Override\n"
-        + "  public Unbinder bind(Test target, View source) {\n"
-        + "    return new Test_ViewBinding<>(target, source);\n"
-        + "  }\n"
-        + "}"
-    );
-
     JavaFileObject bindingSource = JavaFileObjects.forSourceString("test/Test_ViewBinding", ""
         + "package test;\n"
         + "import android.view.MotionEvent;\n"
@@ -70,7 +56,7 @@ public class OnTouchTest {
         .processedWith(new ButterKnifeProcessor())
         .compilesWithoutWarnings()
         .and()
-        .generatesSources(binderSource, bindingSource);
+        .generatesSources(bindingSource);
   }
 
   @Test public void failsMultipleListenersWithReturnValue() throws Exception {
