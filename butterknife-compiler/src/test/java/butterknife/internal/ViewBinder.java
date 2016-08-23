@@ -1,7 +1,8 @@
 package butterknife.internal;
 
+import android.view.View;
 import butterknife.Unbinder;
 
 public interface ViewBinder<T> {
-  Unbinder bind(Finder finder, T target, Object source);
+  Unbinder bind(T target, View source);
 }
