@@ -91,7 +91,7 @@ public class OnClickTest {
         + "import java.lang.Override;\n"
         + "public final class Test_ViewBinder implements ViewBinder<Test> {\n"
         + "  @Override\n"
-        + "  public Unbinder bind(final Test target, View source) {\n"
+        + "  public Unbinder bind(Test target, View source) {\n"
         + "    return new Test_ViewBinding(target, source);\n"
         + "  }\n"
         + "}"

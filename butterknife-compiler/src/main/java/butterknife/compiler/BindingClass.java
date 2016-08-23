@@ -181,14 +181,8 @@ final class BindingClass {
     }
 
     if (hasInheritedBinding()) {
-      CodeBlock.Builder invoke = CodeBlock.builder();
-      invoke.add("super(target");
-      if (parentBinding.bindNeedsView()) {
-        invoke.add(", source");
-      } else {
-        invoke.add(", context");
-      }
-      constructor.addStatement("$L", invoke.add(")").build());
+      constructor.addStatement("super(target, $N)",
+          parentBinding.bindNeedsView() ? "source" : "context");
     } else {
       constructor.addStatement("this.target = target");
     }
@@ -307,40 +301,26 @@ final class BindingClass {
     MethodSpec.Builder result = MethodSpec.methodBuilder("bind")
         .addAnnotation(Override.class)
         .addModifiers(PUBLIC)
-        .returns(UNBINDER);
-    if (isFinal && hasMethodBindings()) {
-      result.addParameter(targetType, "target", FINAL);
-    } else {
-      result.addParameter(targetType, "target");
-    }
-    result.addParameter(VIEW, "source");
+        .returns(UNBINDER)
+        .addParameter(targetType, "target")
+        .addParameter(VIEW, "source");
 
-    if (isFinal && !isGeneratingBinding()) {
-      generateBindViewBody(result);
-      result.addCode("\n");
-    }
-
-    CodeBlock.Builder invoke = CodeBlock.builder();
     if (isGeneratingBinding()) {
+      CodeBlock.Builder invoke = CodeBlock.builder()
+          .add("return new $T", bindingClassName);
+      if (!isFinal) {
+        invoke.add("<>");
+      }
+      invoke.add("(target, $N)", bindNeedsView() ? "source" : "source.getContext()");
+      result.addStatement("$L", invoke.build());
+    } else {
       if (isFinal) {
-        invoke.add("return new $T", bindingClassName);
+        generateBindViewBody(result);
+        result.addCode("\n");
       } else {
-        invoke.add("return new $T<>", bindingClassName);
+        result.addStatement("$N(target, $N)", BIND_TO_TARGET,
+            bindNeedsView() ? "source" : "source.getContext()");
       }
-    } else if (!isFinal) {
-      invoke.add("$N", BIND_TO_TARGET);
-    }
-    if (isGeneratingBinding() || !isFinal) {
-      invoke.add("(target");
-      if (bindNeedsView()) {
-        invoke.add(", source");
-      } else {
-        invoke.add(", source.getContext()");
-      }
-      result.addStatement("$L", invoke.add(")").build());
-    }
-
-    if (!isGeneratingBinding()) {
       result.addStatement("return $T.EMPTY", UNBINDER);
     }
 
