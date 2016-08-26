@@ -6,8 +6,10 @@ import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.support.annotation.AttrRes;
 import android.support.annotation.ColorRes;
+import android.support.annotation.DimenRes;
 import android.support.annotation.DrawableRes;
 import android.support.annotation.IdRes;
+import android.support.annotation.UiThread;
 import android.support.v4.graphics.drawable.DrawableCompat;
 import android.util.TypedValue;
 import android.view.View;
@@ -17,6 +19,7 @@ import java.util.List;
 @SuppressWarnings({ "deprecation", "WeakerAccess" }) // Used by generated code.
 public final class Utils {
   private static final boolean HAS_SUPPORT_V4 = hasSupportV4();
+  private static final TypedValue VALUE = new TypedValue();
 
   private static boolean hasSupportV4() {
     try {
@@ -43,6 +46,17 @@ public final class Utils {
       return res.getColor(id);
     }
     return res.getColor(id, theme);
+  }
+
+  @UiThread // Implicit synchronization for use of shared resource VALUE.
+  public static float getFloat(Resources res, @DimenRes int id) {
+    TypedValue value = VALUE;
+    res.getValue(id, value, true);
+    if (value.type == TypedValue.TYPE_FLOAT) {
+      return value.getFloat();
+    }
+    throw new Resources.NotFoundException("Resource ID #0x" + Integer.toHexString(id)
+        + " type #0x" + Integer.toHexString(value.type) + " is not valid");
   }
 
   public static ColorStateList getColorStateList(Resources res, Resources.Theme theme,

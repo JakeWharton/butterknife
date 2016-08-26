@@ -24,6 +24,10 @@ public final class Utils {
     throw new RuntimeException("Stub!");
   }
 
+  public static float getFloat(Resources res, int id) {
+    throw new RuntimeException("Stub!");
+  }
+
   @SafeVarargs
   public static <T> T[] arrayOf(T... views) {
     throw new RuntimeException("Stub!");
