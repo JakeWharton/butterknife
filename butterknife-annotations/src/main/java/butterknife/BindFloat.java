@@ -12,7 +12,7 @@ import static java.lang.annotation.RetentionPolicy.CLASS;
  * <p>
  * This is different than simply reading a normal dimension as a float value which
  * {@link BindDimen @BindDimen} supports. The resource must be defined as a float like
- * {@code <item name="whatever" type="float">1.1</item>}.
+ * {@code <item name="whatever" format="float" type="dimen">1.1</item>}.
  * <pre><code>
  * {@literal @}BindFloat(R.dimen.image_ratio) float imageRatio;
  * </code></pre>
