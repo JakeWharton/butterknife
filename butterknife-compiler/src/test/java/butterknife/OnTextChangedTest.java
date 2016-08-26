@@ -21,6 +21,7 @@ public class OnTextChangedTest {
 
     JavaFileObject bindingSource = JavaFileObjects.forSourceString("test/Test_ViewBinding", ""
         + "package test;\n"
+        + "import android.support.annotation.CallSuper;\n"
         + "import android.support.annotation.UiThread;\n"
         + "import android.text.Editable;\n"
         + "import android.text.TextWatcher;\n"
@@ -56,6 +57,7 @@ public class OnTextChangedTest {
         + "    ((TextView) view).addTextChangedListener(view1TextWatcher);\n"
         + "  }\n"
         + "  @Override\n"
+        + "  @CallSuper\n"
         + "  public void unbind() {\n"
         + "    if (this.target == null) throw new IllegalStateException(\"Bindings already cleared.\");\n"
         + "    ((TextView) view1).removeTextChangedListener(view1TextWatcher);\n"

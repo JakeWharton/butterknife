@@ -21,6 +21,7 @@ public class OnCheckedChangedTest {
 
     JavaFileObject bindingSource = JavaFileObjects.forSourceString("test/Test_ViewBinding", ""
         + "package test;\n"
+        + "import android.support.annotation.CallSuper;\n"
         + "import android.support.annotation.UiThread;\n"
         + "import android.view.View;\n"
         + "import android.widget.CompoundButton;\n"
@@ -45,6 +46,7 @@ public class OnCheckedChangedTest {
         + "    });\n"
         + "  }\n"
         + "  @Override\n"
+        + "  @CallSuper\n"
         + "  public void unbind() {\n"
         + "    if (this.target == null) throw new IllegalStateException(\"Bindings already cleared.\");\n"
         + "    ((CompoundButton) view1).setOnCheckedChangeListener(null);\n"

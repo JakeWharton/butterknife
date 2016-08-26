@@ -37,6 +37,8 @@ final class BindingClass {
   private static final ClassName THEME = RESOURCES.nestedClass("Theme");
   private static final ClassName UI_THREAD =
       ClassName.get("android.support.annotation", "UiThread");
+  private static final ClassName CALL_SUPER =
+      ClassName.get("android.support.annotation", "CallSuper");
   private static final ClassName UNBINDER = ClassName.get("butterknife", "Unbinder");
   private static final ClassName BITMAP_FACTORY =
       ClassName.get("android.graphics", "BitmapFactory");
@@ -265,6 +267,9 @@ final class BindingClass {
     MethodSpec.Builder result = MethodSpec.methodBuilder("unbind")
         .addAnnotation(Override.class)
         .addModifiers(PUBLIC);
+    if (!isFinal && !hasParentBinding()) {
+      result.addAnnotation(CALL_SUPER);
+    }
     boolean rootBindingWithFields = !hasParentBinding() && hasFieldBindings();
     if (hasFieldBindings() || rootBindingWithFields) {
       result.addStatement("$T target = this.target", targetType);
