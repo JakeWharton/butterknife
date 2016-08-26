@@ -21,6 +21,7 @@ public class OnTextChangedTest {
 
     JavaFileObject bindingSource = JavaFileObjects.forSourceString("test/Test_ViewBinding", ""
         + "package test;\n"
+        + "import android.support.annotation.UiThread;\n"
         + "import android.text.Editable;\n"
         + "import android.text.TextWatcher;\n"
         + "import android.view.View;\n"
@@ -34,6 +35,7 @@ public class OnTextChangedTest {
         + "  protected T target;\n"
         + "  private View view1;\n"
         + "  private TextWatcher view1TextWatcher;\n"
+        + "  @UiThread\n"
         + "  public Test_ViewBinding(final T target, View source) {\n"
         + "    this.target = target;\n"
         + "    View view;\n"
@@ -65,6 +67,7 @@ public class OnTextChangedTest {
     );
 
     assertAbout(javaSource()).that(source)
+        .withCompilerOptions("-Xlint:-processing")
         .processedWith(new ButterKnifeProcessor())
         .compilesWithoutWarnings()
         .and()

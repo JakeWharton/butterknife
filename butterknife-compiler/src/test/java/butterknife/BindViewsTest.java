@@ -28,6 +28,7 @@ public class BindViewsTest {
     );
 
     assertAbout(javaSource()).that(source)
+        .withCompilerOptions("-Xlint:-processing")
         .processedWith(new ButterKnifeProcessor())
         .compilesWithoutWarnings();
   }
@@ -45,6 +46,7 @@ public class BindViewsTest {
 
     JavaFileObject bindingSource = JavaFileObjects.forSourceString("test/Test_ViewBinding", ""
         + "package test;\n"
+        + "import android.support.annotation.UiThread;\n"
         + "import android.view.View;\n"
         + "import butterknife.Unbinder;\n"
         + "import butterknife.internal.Utils;\n"
@@ -52,6 +54,7 @@ public class BindViewsTest {
         + "import java.lang.Override;\n"
         + "public class Test_ViewBinding<T extends Test> implements Unbinder {\n"
         + "  protected T target;\n"
+        + "  @UiThread\n"
         + "  public Test_ViewBinding(T target, View source) {\n"
         + "    this.target = target;\n"
         + "    target.thing = Utils.arrayOf(\n"
@@ -70,6 +73,7 @@ public class BindViewsTest {
     );
 
     assertAbout(javaSource()).that(source)
+        .withCompilerOptions("-Xlint:-processing")
         .processedWith(new ButterKnifeProcessor())
         .compilesWithoutWarnings()
         .and()
@@ -89,6 +93,7 @@ public class BindViewsTest {
 
     JavaFileObject bindingSource = JavaFileObjects.forSourceString("test/Test_ViewBinding", ""
         + "package test;\n"
+        + "import android.support.annotation.UiThread;\n"
         + "import android.view.View;\n"
         + "import butterknife.Unbinder;\n"
         + "import butterknife.internal.Utils;\n"
@@ -96,6 +101,7 @@ public class BindViewsTest {
         + "import java.lang.Override;\n"
         + "public class Test_ViewBinding<T extends Test> implements Unbinder {\n"
         + "  protected T target;\n"
+        + "  @UiThread\n"
         + "  public Test_ViewBinding(T target, View source) {\n"
         + "    this.target = target;\n"
         + "    target.thing = Utils.arrayOf(\n"
@@ -114,6 +120,7 @@ public class BindViewsTest {
     );
 
     assertAbout(javaSource()).that(source)
+        .withCompilerOptions("-Xlint:-processing")
         .processedWith(new ButterKnifeProcessor())
         // found raw type: test.Test
         //   missing type arguments for generic class test.Test<T>
@@ -135,6 +142,7 @@ public class BindViewsTest {
 
     JavaFileObject bindingSource = JavaFileObjects.forSourceString("test/Test_ViewBinding", ""
         + "package test;\n"
+        + "import android.support.annotation.UiThread;\n"
         + "import android.view.View;\n"
         + "import android.widget.TextView;\n"
         + "import butterknife.Unbinder;\n"
@@ -143,6 +151,7 @@ public class BindViewsTest {
         + "import java.lang.Override;\n"
         + "public class Test_ViewBinding<T extends Test> implements Unbinder {\n"
         + "  protected T target;\n"
+        + "  @UiThread\n"
         + "  public Test_ViewBinding(T target, View source) {\n"
         + "    this.target = target;\n"
         + "    target.thing = Utils.arrayOf(\n"
@@ -161,6 +170,7 @@ public class BindViewsTest {
     );
 
     assertAbout(javaSource()).that(source)
+        .withCompilerOptions("-Xlint:-processing")
         .processedWith(new ButterKnifeProcessor())
         .compilesWithoutWarnings()
         .and()
@@ -181,6 +191,7 @@ public class BindViewsTest {
 
     JavaFileObject bindingSource = JavaFileObjects.forSourceString("test/Test_ViewBinding", ""
         + "package test;\n"
+        + "import android.support.annotation.UiThread;\n"
         + "import android.view.View;\n"
         + "import butterknife.Unbinder;\n"
         + "import butterknife.internal.Utils;\n"
@@ -188,6 +199,7 @@ public class BindViewsTest {
         + "import java.lang.Override;\n"
         + "public class Test_ViewBinding<T extends Test> implements Unbinder {\n"
         + "  protected T target;\n"
+        + "  @UiThread\n"
         + "  public Test_ViewBinding(T target, View source) {\n"
         + "    this.target = target;\n"
         + "    target.thing = Utils.listOf(\n"
@@ -206,6 +218,7 @@ public class BindViewsTest {
     );
 
     assertAbout(javaSource()).that(source)
+        .withCompilerOptions("-Xlint:-processing")
         .processedWith(new ButterKnifeProcessor())
         .compilesWithoutWarnings()
         .and()
@@ -264,6 +277,7 @@ public class BindViewsTest {
 
     JavaFileObject bindingSource = JavaFileObjects.forSourceString("test/Test_ViewBinding", ""
         + "package test;\n"
+        + "import android.support.annotation.UiThread;\n"
         + "import android.view.View;\n"
         + "import butterknife.Unbinder;\n"
         + "import butterknife.internal.Utils;\n"
@@ -271,6 +285,7 @@ public class BindViewsTest {
         + "import java.lang.Override;\n"
         + "public class Test_ViewBinding<T extends Test> implements Unbinder {\n"
         + "  protected T target;\n"
+        + "  @UiThread\n"
         + "  public Test_ViewBinding(T target, View source) {\n"
         + "    this.target = target;\n"
         + "    target.thing = Utils.listOf(\n"
@@ -289,6 +304,7 @@ public class BindViewsTest {
     );
 
     assertAbout(javaSource()).that(source)
+        .withCompilerOptions("-Xlint:-processing")
         .processedWith(new ButterKnifeProcessor())
         .compilesWithoutWarnings()
         .and()
@@ -309,6 +325,7 @@ public class BindViewsTest {
 
     JavaFileObject bindingSource = JavaFileObjects.forSourceString("test/Test_ViewBinding", ""
         + "package test;\n"
+        + "import android.support.annotation.UiThread;\n"
         + "import android.view.View;\n"
         + "import butterknife.Unbinder;\n"
         + "import butterknife.internal.Utils;\n"
@@ -316,6 +333,7 @@ public class BindViewsTest {
         + "import java.lang.Override;\n"
         + "public class Test_ViewBinding<T extends Test> implements Unbinder {\n"
         + "  protected T target;\n"
+        + "  @UiThread\n"
         + "  public Test_ViewBinding(T target, View source) {\n"
         + "    this.target = target;\n"
         + "    target.thing = Utils.listOf(\n"
@@ -334,6 +352,7 @@ public class BindViewsTest {
     );
 
     assertAbout(javaSource()).that(source)
+        .withCompilerOptions("-Xlint:-processing")
         .processedWith(new ButterKnifeProcessor())
         // found raw type: test.Test
         //   missing type arguments for generic class test.Test<T>
@@ -357,6 +376,7 @@ public class BindViewsTest {
 
     JavaFileObject bindingSource = JavaFileObjects.forSourceString("test/Test_ViewBinding", ""
         + "package test;\n"
+        + "import android.support.annotation.UiThread;\n"
         + "import android.view.View;\n"
         + "import butterknife.Unbinder;\n"
         + "import butterknife.internal.Utils;\n"
@@ -364,6 +384,7 @@ public class BindViewsTest {
         + "import java.lang.Override;\n"
         + "public class Test_ViewBinding<T extends Test> implements Unbinder {\n"
         + "  protected T target;\n"
+        + "  @UiThread\n"
         + "  public Test_ViewBinding(T target, View source) {\n"
         + "    this.target = target;\n"
         + "    target.thing = Utils.listOf(\n"

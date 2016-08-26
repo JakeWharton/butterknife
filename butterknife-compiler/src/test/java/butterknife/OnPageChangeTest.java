@@ -21,6 +21,7 @@ public class OnPageChangeTest {
 
     JavaFileObject bindingSource = JavaFileObjects.forSourceString("test/Test_ViewBinding", ""
         + "package test;\n"
+        + "import android.support.annotation.UiThread;\n"
         + "import android.support.v4.view.ViewPager;\n"
         + "import android.view.View;\n"
         + "import butterknife.Unbinder;\n"
@@ -31,6 +32,7 @@ public class OnPageChangeTest {
         + "  protected T target;\n"
         + "  private View view1;\n"
         + "  private ViewPager.OnPageChangeListener view1OnPageChangeListener;\n"
+        + "  @UiThread\n"
         + "  public Test_ViewBinding(final T target, View source) {\n"
         + "    this.target = target;\n"
         + "    View view;\n"
@@ -62,6 +64,7 @@ public class OnPageChangeTest {
     );
 
     assertAbout(javaSource()).that(source)
+        .withCompilerOptions("-Xlint:-processing")
         .processedWith(new ButterKnifeProcessor())
         .compilesWithoutWarnings()
         .and()
