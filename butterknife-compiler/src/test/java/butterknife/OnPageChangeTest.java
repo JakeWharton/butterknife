@@ -21,6 +21,7 @@ public class OnPageChangeTest {
 
     JavaFileObject bindingSource = JavaFileObjects.forSourceString("test/Test_ViewBinding", ""
         + "package test;\n"
+        + "import android.support.annotation.CallSuper;\n"
         + "import android.support.annotation.UiThread;\n"
         + "import android.support.v4.view.ViewPager;\n"
         + "import android.view.View;\n"
@@ -53,6 +54,7 @@ public class OnPageChangeTest {
         + "    ((ViewPager) view).addOnPageChangeListener(view1OnPageChangeListener);\n"
         + "  }\n"
         + "  @Override\n"
+        + "  @CallSuper\n"
         + "  public void unbind() {\n"
         + "    if (this.target == null) throw new IllegalStateException(\"Bindings already cleared.\");\n"
         + "    ((ViewPager) view1).removeOnPageChangeListener(view1OnPageChangeListener);\n"

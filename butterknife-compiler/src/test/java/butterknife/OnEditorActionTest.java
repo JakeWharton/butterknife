@@ -21,6 +21,7 @@ public class OnEditorActionTest {
 
     JavaFileObject bindingSource = JavaFileObjects.forSourceString("test/Test_ViewBinding", ""
         + "package test;\n"
+        + "import android.support.annotation.CallSuper;\n"
         + "import android.support.annotation.UiThread;\n"
         + "import android.view.KeyEvent;\n"
         + "import android.view.View;\n"
@@ -46,6 +47,7 @@ public class OnEditorActionTest {
         + "    });\n"
         + "  }\n"
         + "  @Override\n"
+        + "  @CallSuper\n"
         + "  public void unbind() {\n"
         + "    if (this.target == null) throw new IllegalStateException(\"Bindings already cleared.\");\n"
         + "    ((TextView) view1).setOnEditorActionListener(null);\n"
