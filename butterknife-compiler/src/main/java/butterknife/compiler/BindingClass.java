@@ -238,9 +238,14 @@ final class BindingClass {
       }
 
       for (FieldResourceBinding binding : resourceBindings) {
-        if (binding.isThemeable()) {
-          constructor.addStatement("target.$L = $T.$L(res, theme, $L)", binding.getName(),
-              UTILS, binding.getMethod(), binding.getId().code);
+        if (binding.requiresUtils()) {
+          if (binding.isThemeable()) {
+            constructor.addStatement("target.$L = $T.$L(res, theme, $L)", binding.getName(), UTILS,
+                binding.getMethod(), binding.getId().code);
+          } else {
+            constructor.addStatement("target.$L = $T.$L(res, $L)", binding.getName(), UTILS,
+                binding.getMethod(), binding.getId().code);
+          }
         } else {
           constructor.addStatement("target.$L = res.$L($L)", binding.getName(), binding.getMethod(),
               binding.getId().code);

@@ -6,6 +6,7 @@ import butterknife.BindBool;
 import butterknife.BindColor;
 import butterknife.BindDimen;
 import butterknife.BindDrawable;
+import butterknife.BindFloat;
 import butterknife.BindInt;
 import butterknife.BindString;
 import butterknife.BindView;
@@ -88,7 +89,6 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
   private static final String NULLABLE_ANNOTATION_NAME = "Nullable";
   private static final String STRING_TYPE = "java.lang.String";
   private static final String LIST_TYPE = List.class.getCanonicalName();
-  private static final String R = "R";
   private static final List<Class<? extends Annotation>> LISTENERS = Arrays.asList(//
       OnCheckedChanged.class, //
       OnClick.class, //
@@ -143,6 +143,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     annotations.add(BindColor.class);
     annotations.add(BindDimen.class);
     annotations.add(BindDrawable.class);
+    annotations.add(BindFloat.class);
     annotations.add(BindInt.class);
     annotations.add(BindString.class);
     annotations.add(BindView.class);
@@ -233,6 +234,16 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
         parseResourceDrawable(element, targetClassMap, erasedTargetNames);
       } catch (Exception e) {
         logParsingError(element, BindDrawable.class, e);
+      }
+    }
+
+    // Process each @BindFloat element.
+    for (Element element : env.getElementsAnnotatedWith(BindFloat.class)) {
+      if (!SuperficialValidation.validateElement(element)) continue;
+      try {
+        parseResourceFloat(element, targetClassMap, erasedTargetNames);
+      } catch (Exception e) {
+        logParsingError(element, BindFloat.class, e);
       }
     }
 
@@ -532,7 +543,8 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     int id = element.getAnnotation(BindBool.class).value();
 
     BindingClass bindingClass = getOrCreateTargetClass(targetClassMap, enclosingElement);
-    FieldResourceBinding binding = new FieldResourceBinding(getId(id), name, "getBoolean", false);
+    FieldResourceBinding binding = new FieldResourceBinding(getId(id), name, "getBoolean", false,
+        false);
     bindingClass.addResource(binding);
 
     erasedTargetNames.add(enclosingElement);
@@ -569,7 +581,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
     BindingClass bindingClass = getOrCreateTargetClass(targetClassMap, enclosingElement);
     FieldResourceBinding binding = new FieldResourceBinding(getId(id), name,
-        isColorStateList ? "getColorStateList" : "getColor", true);
+        isColorStateList ? "getColorStateList" : "getColor", true, true);
     bindingClass.addResource(binding);
 
     erasedTargetNames.add(enclosingElement);
@@ -606,7 +618,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
     BindingClass bindingClass = getOrCreateTargetClass(targetClassMap, enclosingElement);
     FieldResourceBinding binding = new FieldResourceBinding(getId(id), name,
-        isInt ? "getDimensionPixelSize" : "getDimension", false);
+        isInt ? "getDimensionPixelSize" : "getDimension", false, false);
     bindingClass.addResource(binding);
 
     erasedTargetNames.add(enclosingElement);
@@ -677,6 +689,39 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     erasedTargetNames.add(enclosingElement);
   }
 
+  private void parseResourceFloat(Element element, Map<TypeElement, BindingClass> targetClassMap,
+      Set<TypeElement> erasedTargetNames) {
+    boolean hasError = false;
+    TypeElement enclosingElement = (TypeElement) element.getEnclosingElement();
+
+    // Verify that the target type is float.
+    if (element.asType().getKind() != TypeKind.FLOAT) {
+      error(element, "@%s field type must be 'float'. (%s.%s)",
+          BindFloat.class.getSimpleName(), enclosingElement.getQualifiedName(),
+          element.getSimpleName());
+      hasError = true;
+    }
+
+    // Verify common generated code restrictions.
+    hasError |= isInaccessibleViaGeneratedCode(BindFloat.class, "fields", element);
+    hasError |= isBindingInWrongPackage(BindFloat.class, element);
+
+    if (hasError) {
+      return;
+    }
+
+    // Assemble information on the field.
+    String name = element.getSimpleName().toString();
+    int id = element.getAnnotation(BindFloat.class).value();
+
+    BindingClass bindingClass = getOrCreateTargetClass(targetClassMap, enclosingElement);
+    FieldResourceBinding binding =
+        new FieldResourceBinding(getId(id), name, "getFloat", true, false);
+    bindingClass.addResource(binding);
+
+    erasedTargetNames.add(enclosingElement);
+  }
+
   private void parseResourceInt(Element element, Map<TypeElement, BindingClass> targetClassMap,
       Set<TypeElement> erasedTargetNames) {
     boolean hasError = false;
@@ -702,7 +747,8 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     int id = element.getAnnotation(BindInt.class).value();
 
     BindingClass bindingClass = getOrCreateTargetClass(targetClassMap, enclosingElement);
-    FieldResourceBinding binding = new FieldResourceBinding(getId(id), name, "getInteger", false);
+    FieldResourceBinding binding = new FieldResourceBinding(getId(id), name, "getInteger", false,
+        false);
     bindingClass.addResource(binding);
 
     erasedTargetNames.add(enclosingElement);
@@ -734,7 +780,8 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     int id = element.getAnnotation(BindString.class).value();
 
     BindingClass bindingClass = getOrCreateTargetClass(targetClassMap, enclosingElement);
-    FieldResourceBinding binding = new FieldResourceBinding(getId(id), name, "getString", false);
+    FieldResourceBinding binding = new FieldResourceBinding(getId(id), name, "getString", false,
+        false);
     bindingClass.addResource(binding);
 
     erasedTargetNames.add(enclosingElement);
@@ -768,7 +815,8 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     int id = element.getAnnotation(BindArray.class).value();
 
     BindingClass bindingClass = getOrCreateTargetClass(targetClassMap, enclosingElement);
-    FieldResourceBinding binding = new FieldResourceBinding(getId(id), name, methodName, false);
+    FieldResourceBinding binding = new FieldResourceBinding(getId(id), name, methodName, false,
+        false);
     bindingClass.addResource(binding);
 
     erasedTargetNames.add(enclosingElement);
