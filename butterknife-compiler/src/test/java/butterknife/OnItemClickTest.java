@@ -22,6 +22,7 @@ public class OnItemClickTest {
 
     JavaFileObject bindingSource = JavaFileObjects.forSourceString("test/Test_ViewBinding", ""
         + "package test;\n"
+        + "import android.support.annotation.UiThread;\n"
         + "import android.view.View;\n"
         + "import android.widget.AdapterView;\n"
         + "import butterknife.Unbinder;\n"
@@ -31,6 +32,7 @@ public class OnItemClickTest {
         + "public class Test_ViewBinding<T extends Test> implements Unbinder {\n"
         + "  protected T target;\n"
         + "  private View view1;\n"
+        + "  @UiThread\n"
         + "  public Test_ViewBinding(final T target, View source) {\n"
         + "    this.target = target;\n"
         + "    View view;\n"
@@ -54,6 +56,7 @@ public class OnItemClickTest {
     );
 
     assertAbout(javaSource()).that(source)
+        .withCompilerOptions("-Xlint:-processing")
         .processedWith(new ButterKnifeProcessor())
         .compilesWithoutWarnings()
         .and()
@@ -79,6 +82,7 @@ public class OnItemClickTest {
 
     JavaFileObject bindingSource = JavaFileObjects.forSourceString("test/Test_ViewBinding", ""
         + "package test;\n"
+        + "import android.support.annotation.UiThread;\n"
         + "import android.view.View;\n"
         + "import android.widget.AdapterView;\n"
         + "import butterknife.Unbinder;\n"
@@ -88,6 +92,7 @@ public class OnItemClickTest {
         + "public class Test_ViewBinding<T extends Test> implements Unbinder {\n"
         + "  protected T target;\n"
         + "  private View view1;\n"
+        + "  @UiThread\n"
         + "  public Test_ViewBinding(final T target, View source) {\n"
         + "    this.target = target;\n"
         + "    View view;\n"
@@ -111,6 +116,7 @@ public class OnItemClickTest {
     );
 
     assertAbout(javaSource()).that(source)
+        .withCompilerOptions("-Xlint:-processing")
         .processedWith(new ButterKnifeProcessor())
         .compilesWithoutWarnings()
         .and()
@@ -134,6 +140,7 @@ public class OnItemClickTest {
 
     JavaFileObject bindingSource = JavaFileObjects.forSourceString("test/Test_ViewBinding", ""
         + "package test;\n"
+        + "import android.support.annotation.UiThread;\n"
         + "import android.view.View;\n"
         + "import android.widget.AdapterView;\n"
         + "import android.widget.ListView;\n"
@@ -144,6 +151,7 @@ public class OnItemClickTest {
         + "public class Test_ViewBinding<T extends Test> implements Unbinder {\n"
         + "  protected T target;\n"
         + "  private View view1;\n"
+        + "  @UiThread\n"
         + "  public Test_ViewBinding(final T target, View source) {\n"
         + "    this.target = target;\n"
         + "    View view;\n"
@@ -167,6 +175,7 @@ public class OnItemClickTest {
     );
 
     assertAbout(javaSource()).that(source)
+        .withCompilerOptions("-Xlint:-processing")
         .processedWith(new ButterKnifeProcessor())
         .compilesWithoutWarnings()
         .and()
@@ -190,6 +199,7 @@ public class OnItemClickTest {
 
     JavaFileObject bindingSource = JavaFileObjects.forSourceString("test/Test_ViewBinding", ""
         + "package test;\n"
+        + "import android.support.annotation.UiThread;\n"
         + "import android.view.View;\n"
         + "import android.widget.AdapterView;\n"
         + "import android.widget.ListView;\n"
@@ -200,6 +210,7 @@ public class OnItemClickTest {
         + "public class Test_ViewBinding<T extends Test> implements Unbinder {\n"
         + "  protected T target;\n"
         + "  private View view1;\n"
+        + "  @UiThread\n"
         + "  public Test_ViewBinding(final T target, View source) {\n"
         + "    this.target = target;\n"
         + "    View view;\n"
@@ -224,6 +235,7 @@ public class OnItemClickTest {
     );
 
     assertAbout(javaSource()).that(source)
+        .withCompilerOptions("-Xlint:-processing")
         .processedWith(new ButterKnifeProcessor())
         // found raw type: test.Test
         //   missing type arguments for generic class test.Test<T>
@@ -248,6 +260,7 @@ public class OnItemClickTest {
 
     JavaFileObject bindingSource = JavaFileObjects.forSourceString("test/Test_ViewBinding", ""
         + "package test;\n"
+        + "import android.support.annotation.UiThread;\n"
         + "import android.view.View;\n"
         + "import android.widget.AdapterView;\n"
         + "import butterknife.Unbinder;\n"
@@ -256,6 +269,7 @@ public class OnItemClickTest {
         + "public class Test_ViewBinding<T extends Test> implements Unbinder {\n"
         + "  protected T target;\n"
         + "  private View viewSource;\n"
+        + "  @UiThread\n"
         + "  public Test_ViewBinding(final T target, View source) {\n"
         + "    this.target = target;\n"
         + "    viewSource = source;\n"
@@ -277,6 +291,7 @@ public class OnItemClickTest {
     );
 
     assertAbout(javaSource()).that(source)
+        .withCompilerOptions("-Xlint:-processing")
         .processedWith(new ButterKnifeProcessor())
         .compilesWithoutWarnings()
         .and()
@@ -294,6 +309,7 @@ public class OnItemClickTest {
 
     JavaFileObject bindingSource = JavaFileObjects.forSourceString("test/Test_ViewBinding", ""
         + "package test;\n"
+        + "import android.support.annotation.UiThread;\n"
         + "import android.view.View;\n"
         + "import android.widget.AdapterView;\n"
         + "import butterknife.Unbinder;\n"
@@ -302,6 +318,7 @@ public class OnItemClickTest {
         + "public class Test_ViewBinding<T extends Test> implements Unbinder {\n"
         + "  protected T target;\n"
         + "  private View viewSource;\n"
+        + "  @UiThread\n"
         + "  public Test_ViewBinding(final T target, View source) {\n"
         + "    this.target = target;\n"
         + "    viewSource = source;\n"
@@ -323,6 +340,7 @@ public class OnItemClickTest {
     );
 
     assertAbout(javaSource()).that(source)
+        .withCompilerOptions("-Xlint:-processing")
         .processedWith(new ButterKnifeProcessor())
         .compilesWithoutWarnings()
         .and()

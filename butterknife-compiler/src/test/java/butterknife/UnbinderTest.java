@@ -29,6 +29,7 @@ public class UnbinderTest {
 
     JavaFileObject bindingSource = JavaFileObjects.forSourceString("test/Test_ViewBinding", ""
         + "package test;\n"
+        + "import android.support.annotation.UiThread;\n"
         + "import android.view.View;\n"
         + "import butterknife.Unbinder;\n"
         + "import butterknife.internal.DebouncingOnClickListener;\n"
@@ -38,6 +39,7 @@ public class UnbinderTest {
         + "public class Test_ViewBinding<T extends Test> implements Unbinder {\n"
         + "  protected T target;\n"
         + "  private View view1;\n"
+        + "  @UiThread\n"
         + "  public Test_ViewBinding(final T target, View source) {\n"
         + "    this.target = target;\n"
         + "    View view;\n"
@@ -73,6 +75,7 @@ public class UnbinderTest {
     );
 
     assertAbout(javaSource()).that(source)
+        .withCompilerOptions("-Xlint:-processing")
         .processedWith(new ButterKnifeProcessor())
         .compilesWithoutWarnings()
         .and()
@@ -92,6 +95,7 @@ public class UnbinderTest {
 
     JavaFileObject bindingSource = JavaFileObjects.forSourceString("test/Test_ViewBinding", ""
         + "package test;\n"
+        + "import android.support.annotation.UiThread;\n"
         + "import android.view.View;\n"
         + "import butterknife.Unbinder;\n"
         + "import butterknife.internal.DebouncingOnClickListener;\n"
@@ -100,6 +104,7 @@ public class UnbinderTest {
         + "public class Test_ViewBinding<T extends Test> implements Unbinder {\n"
         + "  protected T target;\n"
         + "  private View view1;\n"
+        + "  @UiThread\n"
         + "  public Test_ViewBinding(final T target, View source) {\n"
         + "    this.target = target;\n"
         + "    View view;\n"
@@ -159,6 +164,7 @@ public class UnbinderTest {
 
     JavaFileObject binding1Source = JavaFileObjects.forSourceString("test/Test_ViewBinding", ""
         + "package test;\n"
+        + "import android.support.annotation.UiThread;\n"
         + "import android.view.View;\n"
         + "import butterknife.Unbinder;\n"
         + "import butterknife.internal.DebouncingOnClickListener;\n"
@@ -168,6 +174,7 @@ public class UnbinderTest {
         + "public class Test_ViewBinding<T extends Test> implements Unbinder {\n"
         + "  protected T target;\n"
         + "  private View view1;\n"
+        + "  @UiThread\n"
         + "  public Test_ViewBinding(final T target, View source) {\n"
         + "    this.target = target;\n"
         + "    View view;\n"
@@ -192,12 +199,14 @@ public class UnbinderTest {
 
     JavaFileObject binding2Source = JavaFileObjects.forSourceString("test/TestOne_ViewBinding", ""
         + "package test;\n"
+        + "import android.support.annotation.UiThread;\n"
         + "import android.view.View;\n"
         + "import butterknife.internal.DebouncingOnClickListener;\n"
         + "import butterknife.internal.Utils;\n"
         + "import java.lang.Override;\n"
         + "public class TestOne_ViewBinding<T extends TestOne> extends Test_ViewBinding<T> {\n"
         + "  private View view1;\n"
+        + "  @UiThread\n"
         + "  public TestOne_ViewBinding(final T target, View source) {\n"
         + "    super(target, source);\n"
         + "    View view;\n"
@@ -220,6 +229,7 @@ public class UnbinderTest {
     );
 
     assertAbout(javaSources()).that(asList(source1, source2, source3))
+        .withCompilerOptions("-Xlint:-processing")
         .processedWith(new ButterKnifeProcessor())
         .compilesWithoutWarnings()
         .and()
@@ -246,6 +256,7 @@ public class UnbinderTest {
 
     JavaFileObject binding1Source = JavaFileObjects.forSourceString("test/Test_ViewBinding", ""
         + "package test;\n"
+        + "import android.support.annotation.UiThread;\n"
         + "import android.view.View;\n"
         + "import butterknife.Unbinder;\n"
         + "import butterknife.internal.DebouncingOnClickListener;\n"
@@ -255,6 +266,7 @@ public class UnbinderTest {
         + "public class Test_ViewBinding<T extends Test> implements Unbinder {\n"
         + "  protected T target;\n"
         + "  private View view1;\n"
+        + "  @UiThread\n"
         + "  public Test_ViewBinding(final T target, View source) {\n"
         + "    this.target = target;\n"
         + "    View view;\n"
@@ -279,12 +291,14 @@ public class UnbinderTest {
 
     JavaFileObject binding2Source = JavaFileObjects.forSourceString("test/TestOne_ViewBinding", ""
         + "package test;\n"
+        + "import android.support.annotation.UiThread;\n"
         + "import android.view.View;\n"
         + "import butterknife.internal.DebouncingOnClickListener;\n"
         + "import butterknife.internal.Utils;\n"
         + "import java.lang.Override;\n"
         + "public class TestOne_ViewBinding<T extends TestOne> extends Test_ViewBinding<T> {\n"
         + "  private View view1;\n"
+        + "  @UiThread\n"
         + "  public TestOne_ViewBinding(final T target, View source) {\n"
         + "    super(target, source);\n"
         + "    View view;\n"
@@ -307,6 +321,7 @@ public class UnbinderTest {
     );
 
     assertAbout(javaSources()).that(asList(source1, source2))
+        .withCompilerOptions("-Xlint:-processing")
         .processedWith(new ButterKnifeProcessor())
         .compilesWithoutWarnings()
         .and()
@@ -334,6 +349,7 @@ public class UnbinderTest {
 
     JavaFileObject binding1Source = JavaFileObjects.forSourceString("test/Test_ViewBinding", ""
         + "package test;\n"
+        + "import android.support.annotation.UiThread;\n"
         + "import android.view.View;\n"
         + "import butterknife.Unbinder;\n"
         + "import butterknife.internal.DebouncingOnClickListener;\n"
@@ -343,6 +359,7 @@ public class UnbinderTest {
         + "public class Test_ViewBinding<T extends Test> implements Unbinder {\n"
         + "  protected T target;\n"
         + "  private View view1;\n"
+        + "  @UiThread\n"
         + "  public Test_ViewBinding(final T target, View source) {\n"
         + "    this.target = target;\n"
         + "    View view;\n"
@@ -368,6 +385,7 @@ public class UnbinderTest {
     JavaFileObject binding2Source =
         JavaFileObjects.forSourceString("test/one/TestOne_ViewBinding", ""
             + "package test.one;\n"
+            + "import android.support.annotation.UiThread;\n"
             + "import android.view.View;\n"
             + "import butterknife.internal.DebouncingOnClickListener;\n"
             + "import butterknife.internal.Utils;\n"
@@ -375,6 +393,7 @@ public class UnbinderTest {
             + "import test.Test_ViewBinding;\n"
             + "public class TestOne_ViewBinding<T extends TestOne> extends Test_ViewBinding<T> {\n"
             + "  private View view2;\n"
+            + "  @UiThread\n"
             + "  public TestOne_ViewBinding(final T target, View source) {\n"
             + "    super(target, source);\n"
             + "    View view;\n"
@@ -397,6 +416,7 @@ public class UnbinderTest {
         );
 
     assertAbout(javaSources()).that(asList(source1, source2))
+        .withCompilerOptions("-Xlint:-processing")
         .processedWith(new ButterKnifeProcessor())
         .compilesWithoutWarnings()
         .and()
@@ -429,6 +449,7 @@ public class UnbinderTest {
 
     JavaFileObject binding1Source = JavaFileObjects.forSourceString("test/Test_ViewBinding", ""
         + "package test;\n"
+        + "import android.support.annotation.UiThread;\n"
         + "import android.view.View;\n"
         + "import butterknife.Unbinder;\n"
         + "import butterknife.internal.DebouncingOnClickListener;\n"
@@ -438,6 +459,7 @@ public class UnbinderTest {
         + "public class Test_ViewBinding<T extends Test> implements Unbinder {\n"
         + "  protected T target;\n"
         + "  private View view1;\n"
+        + "  @UiThread\n"
         + "  public Test_ViewBinding(final T target, View source) {\n"
         + "    this.target = target;\n"
         + "    View view;\n"
@@ -462,12 +484,14 @@ public class UnbinderTest {
 
     JavaFileObject binding2Source = JavaFileObjects.forSourceString("test/TestTwo_ViewBinding", ""
         + "package test;\n"
+        + "import android.support.annotation.UiThread;\n"
         + "import android.view.View;\n"
         + "import butterknife.internal.DebouncingOnClickListener;\n"
         + "import butterknife.internal.Utils;\n"
         + "import java.lang.Override;\n"
         + "public class TestTwo_ViewBinding<T extends TestTwo> extends Test_ViewBinding<T> {\n"
         + "  private View view1;\n"
+        + "  @UiThread\n"
         + "  public TestTwo_ViewBinding(final T target, View source) {\n"
         + "    super(target, source);\n"
         + "    View view;\n"
@@ -490,6 +514,7 @@ public class UnbinderTest {
     );
 
     assertAbout(javaSources()).that(asList(source1, source2, source3))
+        .withCompilerOptions("-Xlint:-processing")
         .processedWith(new ButterKnifeProcessor())
         .compilesWithoutWarnings()
         .and()
@@ -622,6 +647,7 @@ public class UnbinderTest {
         + "package test;\n"
         + "import android.content.Context;\n"
         + "import android.content.res.Resources;\n"
+        + "import android.support.annotation.UiThread;\n"
         + "import android.view.View;\n"
         + "import butterknife.Unbinder;\n"
         + "import butterknife.internal.Utils;\n"
@@ -635,9 +661,11 @@ public class UnbinderTest {
         + "   *     Only present for runtime invocation through {@code ButterKnife.bind()}.\n"
         + "   */\n"
         + "  @Deprecated\n"
+        + "  @UiThread\n"
         + "  public Test_ViewBinding(T target, View source) {\n"
         + "    this(target, source.getContext());\n"
         + "  }\n"
+        + "  @UiThread\n"
         + "  public A_ViewBinding(T target, Context context) {\n"
         + "    this.target = target;\n"
         + "    Resources res = context.getResources();\n"
@@ -657,6 +685,7 @@ public class UnbinderTest {
         + "package test;\n"
         + "import android.content.Context;\n"
         + "import android.content.res.Resources;\n"
+        + "import android.support.annotation.UiThread;\n"
         + "import android.view.View;\n"
         + "import butterknife.internal.Utils;\n"
         + "import java.lang.Deprecated;\n"
@@ -666,9 +695,11 @@ public class UnbinderTest {
         + "   *     Only present for runtime invocation through {@code ButterKnife.bind()}.\n"
         + "   */\n"
         + "  @Deprecated\n"
+        + "  @UiThread\n"
         + "  public Test_ViewBinding(T target, View source) {\n"
         + "    this(target, source.getContext());\n"
         + "  }\n"
+        + "  @UiThread\n"
         + "  public B_ViewBinding(T target, Context context) {\n"
         + "    super(target, context);\n"
         + "    Resources res = context.getResources();\n"
@@ -683,10 +714,12 @@ public class UnbinderTest {
         + "package test;\n"
         + "import android.content.Context;\n"
         + "import android.content.res.Resources;\n"
+        + "import android.support.annotation.UiThread;\n"
         + "import android.view.View;\n"
         + "import butterknife.internal.Utils;\n"
         + "import java.lang.Override;\n"
         + "public class C_ViewBinding<T extends C> extends B_ViewBinding<T> {\n"
+        + "  @UiThread\n"
         + "  public C_ViewBinding(T target, View source) {\n"
         + "    super(target, source.getContext());\n"
         + "    target.button1 = Utils.findRequiredView(source, android.R.id.button1, \"field 'button1'\");\n"
@@ -708,9 +741,11 @@ public class UnbinderTest {
         + "package test;\n"
         + "import android.content.Context;\n"
         + "import android.content.res.Resources;\n"
+        + "import android.support.annotation.UiThread;\n"
         + "import android.view.View;\n"
         + "import butterknife.internal.Utils;\n"
         + "public class D_ViewBinding<T extends D> extends C_ViewBinding<T> {\n"
+        + "  @UiThread\n"
         + "  public D_ViewBinding(T target, View source) {\n"
         + "    super(target, source);\n"
         + "    Context context = source.getContext();\n"
@@ -725,9 +760,11 @@ public class UnbinderTest {
         + "package test;\n"
         + "import android.content.Context;\n"
         + "import android.content.res.Resources;\n"
+        + "import android.support.annotation.UiThread;\n"
         + "import android.view.View;\n"
         + "import butterknife.internal.Utils;\n"
         + "public class E_ViewBinding<T extends E> extends C_ViewBinding<T> {\n"
+        + "  @UiThread\n"
         + "  public E_ViewBinding(T target, View source) {\n"
         + "    super(target, source);\n"
         + "    Context context = source.getContext();\n"
@@ -742,9 +779,11 @@ public class UnbinderTest {
         + "package test;\n"
         + "import android.content.Context;\n"
         + "import android.content.res.Resources;\n"
+        + "import android.support.annotation.UiThread;\n"
         + "import android.view.View;\n"
         + "import butterknife.internal.Utils;\n"
         + "public class F_ViewBinding<T extends F> extends D_ViewBinding<T> {\n"
+        + "  @UiThread\n"
         + "  public F_ViewBinding(T target, View source) {\n"
         + "    super(target, source);\n"
         + "    Context context = source.getContext();\n"
@@ -759,12 +798,14 @@ public class UnbinderTest {
         + "package test;\n"
         + "import android.content.Context;\n"
         + "import android.content.res.Resources;\n"
+        + "import android.support.annotation.UiThread;\n"
         + "import android.view.View;\n"
         + "import butterknife.internal.DebouncingOnClickListener;\n"
         + "import butterknife.internal.Utils;\n"
         + "import java.lang.Override;\n"
         + "public class G_ViewBinding<T extends G> extends E_ViewBinding<T> {\n"
         + "  private View view16908290;\n"
+        + "  @UiThread\n"
         + "  public G_ViewBinding(final T target, View source) {\n"
         + "    super(target, source);\n"
         + "    View view;\n"
@@ -797,10 +838,12 @@ public class UnbinderTest {
         + "package test;\n"
         + "import android.content.Context;\n"
         + "import android.content.res.Resources;\n"
+        + "import android.support.annotation.UiThread;\n"
         + "import android.view.View;\n"
         + "import butterknife.internal.Utils;\n"
         + "import java.lang.Override;\n"
         + "public class H_ViewBinding<T extends H> extends G_ViewBinding<T> {\n"
+        + "  @UiThread\n"
         + "  public H_ViewBinding(T target, View source) {\n"
         + "    super(target, source);\n"
         + "    target.button3 = Utils.findRequiredView(source, android.R.id.button3, \"field 'button3'\");\n"

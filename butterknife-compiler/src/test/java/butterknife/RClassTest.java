@@ -92,6 +92,7 @@ public class RClassTest {
         + "package test;\n"
         + "import android.content.Context;\n"
         + "import android.content.res.Resources;\n"
+        + "import android.support.annotation.UiThread;\n"
         + "import android.view.View;\n"
         + "import butterknife.Unbinder;\n"
         + "import java.lang.Deprecated;\n"
@@ -104,9 +105,11 @@ public class RClassTest {
         + "   *     Only present for runtime invocation through {@code ButterKnife.bind()}.\n"
         + "   */\n"
         + "  @Deprecated\n"
+        + "  @UiThread\n"
         + "  public Test_ViewBinding(T target, View source) {\n"
         + "    this(target, source.getContext());\n"
         + "  }\n"
+        + "  @UiThread\n"
         + "  public Test_ViewBinding(T target, Context context) {\n"
         + "    this.target = target;\n"
         + "    Resources res = context.getResources();\n"
@@ -121,6 +124,7 @@ public class RClassTest {
     );
 
     assertAbout(javaSources()).that(asList(source, NON_FINAL_R, R2))
+        .withCompilerOptions("-Xlint:-processing")
         .processedWith(new ButterKnifeProcessor())
         .compilesWithoutWarnings()
         .and()
@@ -142,6 +146,7 @@ public class RClassTest {
         + "package test;\n"
         + "import android.content.Context;\n"
         + "import android.content.res.Resources;\n"
+        + "import android.support.annotation.UiThread;\n"
         + "import android.view.View;\n"
         + "import butterknife.Unbinder;\n"
         + "import java.lang.Deprecated;\n"
@@ -154,9 +159,11 @@ public class RClassTest {
         + "   *     Only present for runtime invocation through {@code ButterKnife.bind()}.\n"
         + "   */\n"
         + "  @Deprecated\n"
+        + "  @UiThread\n"
         + "  public Test_ViewBinding(T target, View source) {\n"
         + "    this(target, source.getContext());\n"
         + "  }\n"
+        + "  @UiThread\n"
         + "  public Test_ViewBinding(T target, Context context) {\n"
         + "    this.target = target;\n"
         + "    Resources res = context.getResources();\n"
@@ -171,6 +178,7 @@ public class RClassTest {
     );
 
     assertAbout(javaSources()).that(asList(source, FINAL_R))
+        .withCompilerOptions("-Xlint:-processing")
         .processedWith(new ButterKnifeProcessor())
         .compilesWithoutWarnings()
         .and()
@@ -192,6 +200,7 @@ public class RClassTest {
         + "package test;\n"
         + "import android.content.Context;\n"
         + "import android.content.res.Resources;\n"
+        + "import android.support.annotation.UiThread;\n"
         + "import android.view.View;\n"
         + "import butterknife.Unbinder;\n"
         + "import butterknife.internal.Utils;\n"
@@ -205,9 +214,11 @@ public class RClassTest {
         + "   *     Only present for runtime invocation through {@code ButterKnife.bind()}.\n"
         + "   */\n"
         + "  @Deprecated\n"
+        + "  @UiThread\n"
         + "  public Test_ViewBinding(T target, View source) {\n"
         + "    this(target, source.getContext());\n"
         + "  }\n"
+        + "  @UiThread\n"
         + "  public Test_ViewBinding(T target, Context context) {\n"
         + "    this.target = target;\n"
         + "    Resources res = context.getResources();\n"
@@ -223,6 +234,7 @@ public class RClassTest {
     );
 
     assertAbout(javaSources()).that(asList(source, NON_FINAL_R))
+        .withCompilerOptions("-Xlint:-processing")
         .processedWith(new ButterKnifeProcessor())
         .compilesWithoutWarnings()
         .and()

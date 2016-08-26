@@ -35,6 +35,8 @@ final class BindingClass {
   private static final ClassName CONTEXT = ClassName.get("android.content", "Context");
   private static final ClassName RESOURCES = ClassName.get("android.content.res", "Resources");
   private static final ClassName THEME = RESOURCES.nestedClass("Theme");
+  private static final ClassName UI_THREAD =
+      ClassName.get("android.support.annotation", "UiThread");
   private static final ClassName UNBINDER = ClassName.get("butterknife", "Unbinder");
   private static final ClassName BITMAP_FACTORY =
       ClassName.get("android.graphics", "BitmapFactory");
@@ -151,6 +153,7 @@ final class BindingClass {
                 + "Only present for runtime invocation through {@code ButterKnife.bind()}.\n",
             bindingClassName, targetType, CONTEXT)
         .addAnnotation(Deprecated.class)
+        .addAnnotation(UI_THREAD)
         .addModifiers(PUBLIC)
         .addParameter(targetType, "target")
         .addParameter(VIEW, "source")
@@ -160,6 +163,7 @@ final class BindingClass {
 
   private MethodSpec createBindingConstructor(TypeName targetType) {
     MethodSpec.Builder constructor = MethodSpec.constructorBuilder()
+        .addAnnotation(UI_THREAD)
         .addModifiers(PUBLIC);
 
     if (hasMethodBindings()) {

@@ -24,6 +24,7 @@ public class BindColorTest {
         + "package test;\n"
         + "import android.content.Context;\n"
         + "import android.content.res.Resources;\n"
+        + "import android.support.annotation.UiThread;\n"
         + "import android.view.View;\n"
         + "import butterknife.Unbinder;\n"
         + "import butterknife.internal.Utils;\n"
@@ -38,9 +39,11 @@ public class BindColorTest {
         + "   *     Only present for runtime invocation through {@code ButterKnife.bind()}.\n"
         + "   */\n"
         + "  @Deprecated\n"
+        + "  @UiThread\n"
         + "  public Test_ViewBinding(T target, View source) {\n"
         + "    this(target, source.getContext());\n"
         + "  }\n"
+        + "  @UiThread\n"
         + "  @SuppressWarnings(\"ResourceType\")\n"
         + "  public Test_ViewBinding(T target, Context context) {\n"
         + "    this.target = target;\n"
@@ -57,6 +60,7 @@ public class BindColorTest {
     );
 
     assertAbout(javaSource()).that(source)
+        .withCompilerOptions("-Xlint:-processing")
         .processedWith(new ButterKnifeProcessor())
         .compilesWithoutWarnings()
         .and()
@@ -79,6 +83,7 @@ public class BindColorTest {
         + "package test;\n"
         + "import android.content.Context;\n"
         + "import android.content.res.Resources;\n"
+        + "import android.support.annotation.UiThread;\n"
         + "import android.view.View;\n"
         + "import butterknife.Unbinder;\n"
         + "import butterknife.internal.Utils;\n"
@@ -93,9 +98,11 @@ public class BindColorTest {
         + "   *     Only present for runtime invocation through {@code ButterKnife.bind()}.\n"
         + "   */\n"
         + "  @Deprecated\n"
+        + "  @UiThread\n"
         + "  public Test_ViewBinding(T target, View source) {\n"
         + "    this(target, source.getContext());\n"
         + "  }\n"
+        + "  @UiThread\n"
         + "  @SuppressWarnings(\"ResourceType\")\n"
         + "  public Test_ViewBinding(T target, Context context) {\n"
         + "    this.target = target;\n"
@@ -112,6 +119,7 @@ public class BindColorTest {
     );
 
     assertAbout(javaSource()).that(source)
+        .withCompilerOptions("-Xlint:-processing")
         .processedWith(new ButterKnifeProcessor())
         .compilesWithoutWarnings()
         .and()
