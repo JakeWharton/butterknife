@@ -1,6 +1,15 @@
 Change Log
 ==========
 
+Version 8.4.0 *(2016-08-26)*
+----------------------------
+
+ * New: `@BindFloat` annotation for dimensions whose format is of type 'float'. See the annotation for more
+   information.
+ * Generated constructors are now annotated with `@UiThread` and non-final, base classes `unbind()` methods
+   are annotated with `@CallSuper`.
+
+
 Version 8.3.0 *(2016-08-23)*
 ----------------------------
 
