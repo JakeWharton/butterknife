@@ -52,6 +52,7 @@ ext {
 
 def androidToolsVersion = '25.1.2'
 def supportLibraryVersion = '24.2.0'
+def butterknifeLatestReleaseVersion = '8.4.0'
 
 ext.deps = [
     // Android
@@ -63,6 +64,8 @@ ext.deps = [
     lintApi: "com.android.tools.lint:lint-api:$androidToolsVersion",
     lintChecks: "com.android.tools.lint:lint-checks:$androidToolsVersion",
     lintTests: "com.android.tools.lint:lint-tests:$androidToolsVersion",
+    butterknife: "com.jakewharton:butterknife:$butterknifeLatestReleaseVersion",
+    butterknifeCompiler: "com.jakewharton:butterknife-compiler:$butterknifeLatestReleaseVersion",
 
     // Square
     javapoet: 'com.squareup:javapoet:1.7.0',

@@ -31,8 +31,8 @@ android {
 }
 
 dependencies {
-  compile 'com.jakewharton:butterknife:8.2.0'
-  apt 'com.jakewharton:butterknife-compiler:8.2.0'
+  compile deps.butterknife
+  apt deps.butterknifeCompiler
 
   compile project(':sample:library')
 
