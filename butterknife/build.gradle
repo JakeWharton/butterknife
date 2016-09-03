@@ -27,6 +27,7 @@ dependencies {
   testCompile deps.junit
   testCompile deps.truth
   testCompile deps.robolectric
+  testCompile deps.openglApi
 }
 
 apply from: rootProject.file('gradle/gradle-mvn-push.gradle')
