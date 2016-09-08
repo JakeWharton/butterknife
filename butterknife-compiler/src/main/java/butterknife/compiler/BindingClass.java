@@ -10,7 +10,6 @@ import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
-import com.squareup.javapoet.TypeVariableName;
 import com.squareup.javapoet.WildcardTypeName;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -26,7 +25,6 @@ import static butterknife.compiler.ButterKnifeProcessor.VIEW_TYPE;
 import static java.util.Collections.singletonList;
 import static javax.lang.model.element.Modifier.FINAL;
 import static javax.lang.model.element.Modifier.PRIVATE;
-import static javax.lang.model.element.Modifier.PROTECTED;
 import static javax.lang.model.element.Modifier.PUBLIC;
 
 final class BindingClass {
@@ -114,31 +112,28 @@ final class BindingClass {
   private TypeSpec createBindingClass() {
     TypeSpec.Builder result = TypeSpec.classBuilder(bindingClassName.simpleName())
         .addModifiers(PUBLIC);
-
-    TypeName targetType;
     if (isFinal) {
       result.addModifiers(FINAL);
-      targetType = targetTypeName;
-    } else {
-      targetType = TypeVariableName.get("T");
-      result.addTypeVariable(TypeVariableName.get("T", targetTypeName));
     }
 
     if (hasParentBinding()) {
-      result.superclass(ParameterizedTypeName.get(getParentBinding(), targetType));
+      result.superclass(getParentBinding());
     } else {
       result.addSuperinterface(UNBINDER);
-      result.addField(targetType, "target", isFinal ? PRIVATE : PROTECTED);
     }
 
-    if (!bindNeedsView()) {
-      // Add a delegating constructor with a target type + view signature for reflective use.
-      result.addMethod(createBindingViewDelegateConstructor(targetType));
+    if (needsTargetField()) {
+      result.addField(targetTypeName, "target", PRIVATE);
     }
-    result.addMethod(createBindingConstructor(targetType));
+
+    if (!needsView()) {
+      // Add a delegating constructor with a target type + view signature for reflective use.
+      result.addMethod(createBindingViewDelegateConstructor(targetTypeName));
+    }
+    result.addMethod(createBindingConstructor(targetTypeName));
 
     if (hasViewBindings() || !hasParentBinding()) {
-      result.addMethod(createBindingUnbindMethod(result, targetType));
+      result.addMethod(createBindingUnbindMethod(result, targetTypeName));
     }
 
     return result.build();
@@ -169,22 +164,26 @@ final class BindingClass {
       constructor.addParameter(targetType, "target");
     }
 
-    if (bindNeedsView()) {
+    if (needsView()) {
       constructor.addParameter(VIEW, "source");
     } else {
       constructor.addParameter(CONTEXT, "context");
     }
 
-    if (!hasParentBinding()) {
-      constructor.addStatement("this.target = target");
-    } else if (parentBinding.bindNeedsView()) {
-      constructor.addStatement("super(target, source)");
-    } else if (bindNeedsView()) {
-      constructor.addStatement("super(target, source.getContext())");
-    } else {
-      constructor.addStatement("super(target, context)");
+    if (hasParentBinding()) {
+      if (parentBinding.needsView()) {
+        constructor.addStatement("super(target, source)");
+      } else if (needsView()) {
+        constructor.addStatement("super(target, source.getContext())");
+      } else {
+        constructor.addStatement("super(target, context)");
+      }
+      constructor.addCode("\n");
     }
-    constructor.addCode("\n");
+    if (needsTargetField()) {
+      constructor.addStatement("this.target = target");
+      constructor.addCode("\n");
+    }
 
     if (hasUnqualifiedResourceBindings()) {
       // Aapt can change IDs out from underneath us, just suppress since all will work at runtime.
@@ -194,7 +193,7 @@ final class BindingClass {
     }
 
     if (hasViewBindings()) {
-      if (bindNeedsViewLocal()) {
+      if (needsViewLocal()) {
         // Local variable in which all views will be temporarily stored.
         constructor.addStatement("$T view", VIEW);
       }
@@ -211,10 +210,10 @@ final class BindingClass {
     }
 
     if (hasResourceBindings()) {
-      if (bindNeedsView()) {
+      if (needsView()) {
         constructor.addStatement("$T context = source.getContext()", CONTEXT);
       }
-      if (bindNeedsResource()) {
+      if (needsResource()) {
         constructor.addStatement("$T res = context.getResources()", RESOURCES);
       }
 
@@ -245,19 +244,14 @@ final class BindingClass {
     if (!isFinal && !hasParentBinding()) {
       result.addAnnotation(CALL_SUPER);
     }
-    boolean rootBindingWithFields = !hasParentBinding() && hasFieldBindings();
-    if (hasFieldBindings() || rootBindingWithFields) {
-      result.addStatement("$T target = this.target", targetType);
-    }
-    if (!hasParentBinding()) {
-      String target = rootBindingWithFields ? "target" : "this.target";
-      result.addStatement("if ($N == null) throw new $T($S)", target, IllegalStateException.class,
-          "Bindings already cleared.");
-    } else {
-      result.addStatement("super.unbind()");
-    }
 
-    if (hasFieldBindings()) {
+    if (needsTargetField()) {
+      if (hasFieldBindings()) {
+        result.addStatement("$T target = this.target", targetType);
+      }
+      result.addStatement("if (target == null) throw new $T($S)", IllegalStateException.class,
+          "Bindings already cleared.");
+      result.addStatement("$N = null", hasFieldBindings() ? "this.target" : "target");
       result.addCode("\n");
       for (ViewBindings bindings : viewIdMap.values()) {
         if (bindings.getFieldBinding() != null) {
@@ -276,11 +270,10 @@ final class BindingClass {
       }
     }
 
-    if (!hasParentBinding()) {
+    if (hasParentBinding()) {
       result.addCode("\n");
-      result.addStatement("this.target = null");
+      result.addStatement("super.unbind()");
     }
-
     return result.build();
   }
 
@@ -673,18 +666,22 @@ final class BindingClass {
   }
 
   /** True if this binding requires Resources. Otherwise only Context is needed. */
-  private boolean bindNeedsResource() {
+  private boolean needsResource() {
     return hasResourceBindingsNeedingResource()
-        || hasParentBinding() && parentBinding.bindNeedsResource();
+        || hasParentBinding() && parentBinding.needsResource();
   }
 
   /** True if this binding requires a view. Otherwise only a context is needed. */
-  private boolean bindNeedsView() {
+  private boolean needsView() {
     return hasViewBindings() //
-        || hasParentBinding() && parentBinding.bindNeedsView();
+        || hasParentBinding() && parentBinding.needsView();
   }
 
-  private boolean bindNeedsViewLocal() {
+  private boolean needsTargetField() {
+    return hasFieldBindings() || hasMethodBindings();
+  }
+
+  private boolean needsViewLocal() {
     for (ViewBindings viewBindings : viewIdMap.values()) {
       if (viewBindings.requiresLocal()) {
         return true;
