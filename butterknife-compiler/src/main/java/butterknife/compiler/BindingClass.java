@@ -30,23 +30,22 @@ import static javax.lang.model.element.Modifier.PROTECTED;
 import static javax.lang.model.element.Modifier.PUBLIC;
 
 final class BindingClass {
-  private static final ClassName UTILS = ClassName.get("butterknife.internal", "Utils");
+  static final ClassName UTILS = ClassName.get("butterknife.internal", "Utils");
   private static final ClassName VIEW = ClassName.get("android.view", "View");
   private static final ClassName CONTEXT = ClassName.get("android.content", "Context");
   private static final ClassName RESOURCES = ClassName.get("android.content.res", "Resources");
-  private static final ClassName THEME = RESOURCES.nestedClass("Theme");
   private static final ClassName UI_THREAD =
       ClassName.get("android.support.annotation", "UiThread");
   private static final ClassName CALL_SUPER =
       ClassName.get("android.support.annotation", "CallSuper");
   private static final ClassName UNBINDER = ClassName.get("butterknife", "Unbinder");
-  private static final ClassName BITMAP_FACTORY =
-      ClassName.get("android.graphics", "BitmapFactory");
+  static final ClassName BITMAP_FACTORY = ClassName.get("android.graphics", "BitmapFactory");
+  static final ClassName CONTEXT_COMPAT =
+      ClassName.get("android.support.v4.content", "ContextCompat");
 
   private final Map<Id, ViewBindings> viewIdMap = new LinkedHashMap<>();
   private final Map<FieldCollectionViewBinding, List<Id>> collectionBindings =
       new LinkedHashMap<>();
-  private final List<FieldBitmapBinding> bitmapBindings = new ArrayList<>();
   private final List<FieldDrawableBinding> drawableBindings = new ArrayList<>();
   private final List<FieldResourceBinding> resourceBindings = new ArrayList<>();
   private final boolean isFinal;
@@ -58,10 +57,6 @@ final class BindingClass {
     this.isFinal = isFinal;
     this.targetTypeName = targetTypeName;
     this.bindingClassName = bindingClassName;
-  }
-
-  void addBitmap(FieldBitmapBinding binding) {
-    bitmapBindings.add(binding);
   }
 
   void addDrawable(FieldDrawableBinding binding) {
@@ -216,46 +211,26 @@ final class BindingClass {
     }
 
     if (hasResourceBindings()) {
-      boolean hasView = bindNeedsView();
-      boolean needsSourceToContext = bindNeedsTheme() && hasView;
-      if (needsSourceToContext) {
+      if (bindNeedsView()) {
         constructor.addStatement("$T context = source.getContext()", CONTEXT);
       }
-      constructor.addStatement("$T res = $N.getResources()", RESOURCES,
-          needsSourceToContext || !hasView ? "context" : "source");
-      if (bindNeedsTheme()) {
-        constructor.addStatement("$T theme = context.getTheme()", THEME);
-      }
-
-      for (FieldBitmapBinding binding : bitmapBindings) {
-        constructor.addStatement("target.$L = $T.decodeResource(res, $L)", binding.getName(),
-            BITMAP_FACTORY, binding.getId().code);
+      if (bindNeedsResource()) {
+        constructor.addStatement("$T res = context.getResources()", RESOURCES);
       }
 
       for (FieldDrawableBinding binding : drawableBindings) {
         Id tintAttributeId = binding.getTintAttributeId();
         if (tintAttributeId.value != 0) {
-          constructor.addStatement("target.$L = $T.getTintedDrawable(res, theme, $L, $L)",
+          constructor.addStatement("target.$L = $T.getTintedDrawable(context, $L, $L)",
               binding.getName(), UTILS, binding.getId().code, tintAttributeId.code);
         } else {
-          constructor.addStatement("target.$L = $T.getDrawable(res, theme, $L)", binding.getName(),
-              UTILS, binding.getId().code);
+          constructor.addStatement("target.$L = $T.getDrawable(context, $L)", binding.getName(),
+              CONTEXT_COMPAT, binding.getId().code);
         }
       }
 
       for (FieldResourceBinding binding : resourceBindings) {
-        if (binding.requiresUtils()) {
-          if (binding.isThemeable()) {
-            constructor.addStatement("target.$L = $T.$L(res, theme, $L)", binding.getName(), UTILS,
-                binding.getMethod(), binding.getId().code);
-          } else {
-            constructor.addStatement("target.$L = $T.$L(res, $L)", binding.getName(), UTILS,
-                binding.getMethod(), binding.getId().code);
-          }
-        } else {
-          constructor.addStatement("target.$L = res.$L($L)", binding.getName(), binding.getMethod(),
-              binding.getId().code);
-        }
+        constructor.addStatement("$L", binding.render());
       }
     }
 
@@ -651,36 +626,28 @@ final class BindingClass {
 
   /** True when this type's bindings require Android's {@code Resources}. */
   private boolean hasResourceBindings() {
-    return !(bitmapBindings.isEmpty() && drawableBindings.isEmpty() && resourceBindings.isEmpty());
+    return !(drawableBindings.isEmpty() && resourceBindings.isEmpty());
   }
 
   /** True when this type's bindings use raw integer values instead of {@code R} references. */
   private boolean hasUnqualifiedResourceBindings() {
-    for (FieldBitmapBinding binding : bitmapBindings) {
-      if (!binding.getId().qualifed) {
-        return true;
-      }
-    }
     for (FieldDrawableBinding binding : drawableBindings) {
       if (!binding.getId().qualifed) {
         return true;
       }
     }
     for (FieldResourceBinding binding : resourceBindings) {
-      if (!binding.getId().qualifed) {
+      if (!binding.id.qualifed) {
         return true;
       }
     }
     return false;
   }
 
-  /** True when this type's resource bindings require Android's {@code Theme}. */
-  private boolean hasResourceBindingsNeedingTheme() {
-    if (!drawableBindings.isEmpty()) {
-      return true;
-    }
-    for (FieldResourceBinding resourceBinding : resourceBindings) {
-      if (resourceBinding.isThemeable()) {
+  /** True when this type's bindings use Resource directly instead of Context. */
+  private boolean hasResourceBindingsNeedingResource() {
+    for (FieldResourceBinding binding : resourceBindings) {
+      if (binding.type.requiresResource) {
         return true;
       }
     }
@@ -705,15 +672,16 @@ final class BindingClass {
     return !collectionBindings.isEmpty();
   }
 
+  /** True if this binding requires Resources. Otherwise only Context is needed. */
+  private boolean bindNeedsResource() {
+    return hasResourceBindingsNeedingResource()
+        || hasParentBinding() && parentBinding.bindNeedsResource();
+  }
+
   /** True if this binding requires a view. Otherwise only a context is needed. */
   private boolean bindNeedsView() {
     return hasViewBindings() //
         || hasParentBinding() && parentBinding.bindNeedsView();
-  }
-
-  private boolean bindNeedsTheme() {
-    return hasResourceBindings() && hasResourceBindingsNeedingTheme() //
-        || hasParentBinding() && parentBinding.bindNeedsTheme();
   }
 
   private boolean bindNeedsViewLocal() {

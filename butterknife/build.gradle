@@ -20,7 +20,7 @@ android {
 dependencies {
   compile project(':butterknife-annotations')
   compile deps.supportAnnotations
-  provided deps.supportv4
+  compile deps.supportCompat
 
   lintRules project(':butterknife-lint')
 

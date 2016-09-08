@@ -543,8 +543,8 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     int id = element.getAnnotation(BindBool.class).value();
 
     BindingClass bindingClass = getOrCreateTargetClass(targetClassMap, enclosingElement);
-    FieldResourceBinding binding = new FieldResourceBinding(getId(id), name, "getBoolean", false,
-        false);
+    FieldResourceBinding binding =
+        new FieldResourceBinding(getId(id), name, FieldResourceBinding.Type.BOOL);
     bindingClass.addResource(binding);
 
     erasedTargetNames.add(enclosingElement);
@@ -581,7 +581,8 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
     BindingClass bindingClass = getOrCreateTargetClass(targetClassMap, enclosingElement);
     FieldResourceBinding binding = new FieldResourceBinding(getId(id), name,
-        isColorStateList ? "getColorStateList" : "getColor", true, true);
+        isColorStateList ? FieldResourceBinding.Type.COLOR_STATE_LIST
+            : FieldResourceBinding.Type.COLOR);
     bindingClass.addResource(binding);
 
     erasedTargetNames.add(enclosingElement);
@@ -618,7 +619,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
     BindingClass bindingClass = getOrCreateTargetClass(targetClassMap, enclosingElement);
     FieldResourceBinding binding = new FieldResourceBinding(getId(id), name,
-        isInt ? "getDimensionPixelSize" : "getDimension", false, false);
+        isInt ? FieldResourceBinding.Type.DIMEN_AS_INT : FieldResourceBinding.Type.DIMEN_AS_FLOAT);
     bindingClass.addResource(binding);
 
     erasedTargetNames.add(enclosingElement);
@@ -650,8 +651,9 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     int id = element.getAnnotation(BindBitmap.class).value();
 
     BindingClass bindingClass = getOrCreateTargetClass(targetClassMap, enclosingElement);
-    FieldBitmapBinding binding = new FieldBitmapBinding(getId(id), name);
-    bindingClass.addBitmap(binding);
+    FieldResourceBinding binding =
+        new FieldResourceBinding(getId(id), name, FieldResourceBinding.Type.BITMAP);
+    bindingClass.addResource(binding);
 
     erasedTargetNames.add(enclosingElement);
   }
@@ -716,7 +718,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
     BindingClass bindingClass = getOrCreateTargetClass(targetClassMap, enclosingElement);
     FieldResourceBinding binding =
-        new FieldResourceBinding(getId(id), name, "getFloat", true, false);
+        new FieldResourceBinding(getId(id), name, FieldResourceBinding.Type.FLOAT);
     bindingClass.addResource(binding);
 
     erasedTargetNames.add(enclosingElement);
@@ -747,8 +749,8 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     int id = element.getAnnotation(BindInt.class).value();
 
     BindingClass bindingClass = getOrCreateTargetClass(targetClassMap, enclosingElement);
-    FieldResourceBinding binding = new FieldResourceBinding(getId(id), name, "getInteger", false,
-        false);
+    FieldResourceBinding binding =
+        new FieldResourceBinding(getId(id), name, FieldResourceBinding.Type.INT);
     bindingClass.addResource(binding);
 
     erasedTargetNames.add(enclosingElement);
@@ -780,8 +782,8 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     int id = element.getAnnotation(BindString.class).value();
 
     BindingClass bindingClass = getOrCreateTargetClass(targetClassMap, enclosingElement);
-    FieldResourceBinding binding = new FieldResourceBinding(getId(id), name, "getString", false,
-        false);
+    FieldResourceBinding binding =
+        new FieldResourceBinding(getId(id), name, FieldResourceBinding.Type.STRING);
     bindingClass.addResource(binding);
 
     erasedTargetNames.add(enclosingElement);
@@ -793,8 +795,8 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     TypeElement enclosingElement = (TypeElement) element.getEnclosingElement();
 
     // Verify that the target type is supported.
-    String methodName = getArrayResourceMethodName(element);
-    if (methodName == null) {
+    FieldResourceBinding.Type type = getArrayResourceMethodName(element);
+    if (type == null) {
       error(element,
           "@%s field type must be one of: String[], int[], CharSequence[], %s. (%s.%s)",
           BindArray.class.getSimpleName(), TYPED_ARRAY_TYPE, enclosingElement.getQualifiedName(),
@@ -815,8 +817,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     int id = element.getAnnotation(BindArray.class).value();
 
     BindingClass bindingClass = getOrCreateTargetClass(targetClassMap, enclosingElement);
-    FieldResourceBinding binding = new FieldResourceBinding(getId(id), name, methodName, false,
-        false);
+    FieldResourceBinding binding = new FieldResourceBinding(getId(id), name, type);
     bindingClass.addResource(binding);
 
     erasedTargetNames.add(enclosingElement);
@@ -826,20 +827,20 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
    * Returns a method name from the {@link android.content.res.Resources} class for array resource
    * binding, null if the element type is not supported.
    */
-  private static String getArrayResourceMethodName(Element element) {
+  private static FieldResourceBinding.Type getArrayResourceMethodName(Element element) {
     TypeMirror typeMirror = element.asType();
     if (TYPED_ARRAY_TYPE.equals(typeMirror.toString())) {
-      return "obtainTypedArray";
+      return FieldResourceBinding.Type.TYPED_ARRAY;
     }
     if (TypeKind.ARRAY.equals(typeMirror.getKind())) {
       ArrayType arrayType = (ArrayType) typeMirror;
       String componentType = arrayType.getComponentType().toString();
       if (STRING_TYPE.equals(componentType)) {
-        return "getStringArray";
+        return FieldResourceBinding.Type.STRING_ARRAY;
       } else if ("int".equals(componentType)) {
-        return "getIntArray";
+        return FieldResourceBinding.Type.INT_ARRAY;
       } else if ("java.lang.CharSequence".equals(componentType)) {
-        return "getTextArray";
+        return FieldResourceBinding.Type.TEXT_ARRAY;
       }
     }
     return null;

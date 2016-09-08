@@ -1,77 +1,52 @@
 package butterknife.internal;
 
-import android.content.res.ColorStateList;
+import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.drawable.Drawable;
-import android.os.Build;
 import android.support.annotation.AttrRes;
-import android.support.annotation.ColorRes;
 import android.support.annotation.DimenRes;
 import android.support.annotation.DrawableRes;
 import android.support.annotation.IdRes;
 import android.support.annotation.UiThread;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.graphics.drawable.DrawableCompat;
 import android.util.TypedValue;
 import android.view.View;
 import java.lang.reflect.Array;
 import java.util.List;
 
-@SuppressWarnings({ "deprecation", "WeakerAccess" }) // Used by generated code.
+@SuppressWarnings("WeakerAccess") // Used by generated code.
 public final class Utils {
-  private static final boolean HAS_SUPPORT_V4 = hasSupportV4();
   private static final TypedValue VALUE = new TypedValue();
 
-  private static boolean hasSupportV4() {
-    try {
-      Class.forName("android.support.v4.graphics.drawable.DrawableCompat");
-      return true;
-    } catch (ClassNotFoundException ignored) {
-      return false;
-    } catch (VerifyError ignored) {
-      return false;
-    }
-  }
-
-  public static Drawable getTintedDrawable(Resources res, Resources.Theme theme,
+  @UiThread // Implicit synchronization for use of shared resource VALUE.
+  public static Drawable getTintedDrawable(Context context,
       @DrawableRes int id, @AttrRes int tintAttrId) {
-    if (HAS_SUPPORT_V4) {
-      return SupportV4.getTintedDrawable(res, theme, id, tintAttrId);
+    boolean attributeFound = context.getTheme().resolveAttribute(tintAttrId, VALUE, true);
+    if (!attributeFound) {
+      throw new Resources.NotFoundException("Required tint color attribute with name "
+          + context.getResources().getResourceEntryName(tintAttrId)
+          + " and attribute ID "
+          + tintAttrId
+          + " was not found.");
     }
-    throw new RuntimeException(
-        "Android support-v4 library is required for @BindDrawable with tint.");
-  }
 
-  public static int getColor(Resources res, Resources.Theme theme, @ColorRes int id) {
-    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
-      return res.getColor(id);
-    }
-    return res.getColor(id, theme);
+    Drawable drawable = ContextCompat.getDrawable(context, id);
+    drawable = DrawableCompat.wrap(drawable.mutate());
+    int color = ContextCompat.getColor(context, VALUE.resourceId);
+    DrawableCompat.setTint(drawable, color);
+    return drawable;
   }
 
   @UiThread // Implicit synchronization for use of shared resource VALUE.
-  public static float getFloat(Resources res, @DimenRes int id) {
+  public static float getFloat(Context context, @DimenRes int id) {
     TypedValue value = VALUE;
-    res.getValue(id, value, true);
+    context.getResources().getValue(id, value, true);
     if (value.type == TypedValue.TYPE_FLOAT) {
       return value.getFloat();
     }
     throw new Resources.NotFoundException("Resource ID #0x" + Integer.toHexString(id)
         + " type #0x" + Integer.toHexString(value.type) + " is not valid");
-  }
-
-  public static ColorStateList getColorStateList(Resources res, Resources.Theme theme,
-      @ColorRes int id) {
-    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
-      return res.getColorStateList(id);
-    }
-    return res.getColorStateList(id, theme);
-  }
-
-  public static Drawable getDrawable(Resources res, Resources.Theme theme, @DrawableRes int id) {
-    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
-      return res.getDrawable(id);
-    }
-    return res.getDrawable(id, theme);
   }
 
   @SafeVarargs
@@ -102,27 +77,6 @@ public final class Utils {
     return newViews;
   }
 
-  static class SupportV4 {
-    private static final TypedValue OUT_VALUE = new TypedValue();
-
-    static Drawable getTintedDrawable(Resources res, Resources.Theme theme, @DrawableRes int id,
-        @AttrRes int tintAttributeId) {
-      boolean attributeFound = theme.resolveAttribute(tintAttributeId, OUT_VALUE, true);
-      if (!attributeFound) {
-        throw new Resources.NotFoundException("Required tint color attribute with name "
-            + res.getResourceEntryName(tintAttributeId)
-            + " and attribute ID "
-            + tintAttributeId
-            + " was not found.");
-      }
-
-      Drawable drawable = getDrawable(res, theme, id);
-      drawable = DrawableCompat.wrap(drawable.mutate());
-      int color = getColor(res, theme, OUT_VALUE.resourceId);
-      DrawableCompat.setTint(drawable, color);
-      return drawable;
-    }
-  }
   public static <T> T findOptionalViewAsType(View source, @IdRes int id, String who,
       Class<T> cls) {
     View view = source.findViewById(id);
