@@ -6,7 +6,7 @@ interface ResourceBinding {
   Id id();
 
   /** True if the code for this binding requires a 'res' variable for {@code Resources} access. */
-  boolean requiresResources();
+  boolean requiresResources(int sdk);
 
-  CodeBlock render();
+  CodeBlock render(int sdk);
 }

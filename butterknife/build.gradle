@@ -9,6 +9,8 @@ android {
     minSdkVersion rootProject.ext.minSdkVersion
 
     consumerProguardFiles 'proguard-rules.txt'
+
+    testInstrumentationRunner 'android.support.test.runner.AndroidJUnitRunner'
   }
 
   lintOptions {
@@ -24,10 +26,16 @@ dependencies {
 
   lintRules project(':butterknife-lint')
 
+  androidTestCompile deps.junit
+  androidTestCompile deps.truth
+  androidTestCompile deps.supportTestRunner
+
   testCompile deps.junit
   testCompile deps.truth
-  testCompile deps.robolectric
-  testCompile deps.openglApi
+  testCompile deps.compiletesting
+  testCompile files(org.gradle.internal.jvm.Jvm.current().getRuntimeJar())
+  testCompile files(org.gradle.internal.jvm.Jvm.current().getToolsJar())
+  testCompile project(':butterknife-compiler')
 }
 
 apply from: rootProject.file('gradle/gradle-mvn-push.gradle')
