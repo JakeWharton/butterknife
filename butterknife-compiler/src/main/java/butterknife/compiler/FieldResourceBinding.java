@@ -5,13 +5,13 @@ import com.squareup.javapoet.CodeBlock;
 
 final class FieldResourceBinding {
   enum Type {
-    BITMAP(BindingClass.BITMAP_FACTORY, "decodeResource", true),
+    BITMAP(BindingSet.BITMAP_FACTORY, "decodeResource", true),
     BOOL("getBoolean"),
-    COLOR(BindingClass.CONTEXT_COMPAT, "getColor", false),
-    COLOR_STATE_LIST(BindingClass.CONTEXT_COMPAT, "getColorStateList", false),
+    COLOR(BindingSet.CONTEXT_COMPAT, "getColor", false),
+    COLOR_STATE_LIST(BindingSet.CONTEXT_COMPAT, "getColorStateList", false),
     DIMEN_AS_INT("getDimensionPixelSize"),
     DIMEN_AS_FLOAT("getDimension"),
-    FLOAT(BindingClass.UTILS, "getFloat", false),
+    FLOAT(BindingSet.UTILS, "getFloat", false),
     INT("getInteger"),
     INT_ARRAY("getIntArray"),
     STRING("getString"),

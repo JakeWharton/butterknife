@@ -2,12 +2,12 @@ package butterknife.compiler;
 
 import org.junit.Test;
 
-import static butterknife.compiler.BindingClass.asHumanDescription;
+import static butterknife.compiler.BindingSet.asHumanDescription;
 import static com.google.common.truth.Truth.assertThat;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 
-public class ViewBindingClassTest {
+public class BindingSetTest {
   @Test public void humanDescriptionJoinWorks() {
     ViewBinding one = new TestViewBinding("one");
     ViewBinding two = new TestViewBinding("two");

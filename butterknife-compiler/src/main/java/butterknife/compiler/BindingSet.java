@@ -2,6 +2,8 @@ package butterknife.compiler;
 
 import butterknife.internal.ListenerClass;
 import butterknife.internal.ListenerMethod;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.squareup.javapoet.AnnotationSpec;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
@@ -20,14 +22,18 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import javax.lang.model.element.Modifier;
+import javax.lang.model.element.TypeElement;
 
 import static butterknife.compiler.ButterKnifeProcessor.VIEW_TYPE;
+import static com.google.auto.common.MoreElements.getPackage;
 import static java.util.Collections.singletonList;
 import static javax.lang.model.element.Modifier.FINAL;
 import static javax.lang.model.element.Modifier.PRIVATE;
 import static javax.lang.model.element.Modifier.PUBLIC;
 
-final class BindingClass {
+/** A set of all the bindings requested by a single type. */
+final class BindingSet {
   static final ClassName UTILS = ClassName.get("butterknife.internal", "Utils");
   private static final ClassName VIEW = ClassName.get("android.view", "View");
   private static final ClassName CONTEXT = ClassName.get("android.content", "Context");
@@ -41,75 +47,37 @@ final class BindingClass {
   static final ClassName CONTEXT_COMPAT =
       ClassName.get("android.support.v4.content", "ContextCompat");
 
-  private final Map<Id, ViewBindings> viewIdMap = new LinkedHashMap<>();
-  private final Map<FieldCollectionViewBinding, List<Id>> collectionBindings =
-      new LinkedHashMap<>();
-  private final List<FieldDrawableBinding> drawableBindings = new ArrayList<>();
-  private final List<FieldResourceBinding> resourceBindings = new ArrayList<>();
-  private final boolean isFinal;
   private final TypeName targetTypeName;
   private final ClassName bindingClassName;
-  private BindingClass parentBinding;
+  private final boolean isFinal;
+  private final List<ViewBindings> viewBindings;
+  private final Map<FieldCollectionViewBinding, List<Id>> collectionBindings;
+  private final List<FieldDrawableBinding> drawableBindings;
+  private final List<FieldResourceBinding> resourceBindings;
+  private final BindingSet parentBinding;
 
-  BindingClass(TypeName targetTypeName, ClassName bindingClassName, boolean isFinal) {
+  BindingSet(TypeName targetTypeName, ClassName bindingClassName, boolean isFinal,
+      Collection<ViewBindings> viewBindings,
+      Map<FieldCollectionViewBinding, List<Id>> collectionBindings,
+      Collection<FieldDrawableBinding> drawableBindings,
+      Collection<FieldResourceBinding> resourceBindings, BindingSet parentBinding) {
     this.isFinal = isFinal;
     this.targetTypeName = targetTypeName;
     this.bindingClassName = bindingClassName;
-  }
-
-  void addDrawable(FieldDrawableBinding binding) {
-    drawableBindings.add(binding);
-  }
-
-  void addField(Id id, FieldViewBinding binding) {
-    getOrCreateViewBindings(id).setFieldBinding(binding);
-  }
-
-  void addFieldCollection(List<Id> ids, FieldCollectionViewBinding binding) {
-    collectionBindings.put(binding, ids);
-  }
-
-  boolean addMethod(
-      Id id,
-      ListenerClass listener,
-      ListenerMethod method,
-      MethodViewBinding binding) {
-    ViewBindings viewBindings = getOrCreateViewBindings(id);
-    if (viewBindings.hasMethodBinding(listener, method) && !"void".equals(method.returnType())) {
-      return false;
-    }
-    viewBindings.addMethodBinding(listener, method, binding);
-    return true;
-  }
-
-  void addResource(FieldResourceBinding binding) {
-    resourceBindings.add(binding);
-  }
-
-  void setParent(BindingClass parent) {
-    this.parentBinding = parent;
-  }
-
-  ViewBindings getViewBinding(Id id) {
-    return viewIdMap.get(id);
-  }
-
-  private ViewBindings getOrCreateViewBindings(Id id) {
-    ViewBindings viewId = viewIdMap.get(id);
-    if (viewId == null) {
-      viewId = new ViewBindings(id);
-      viewIdMap.put(id, viewId);
-    }
-    return viewId;
+    this.viewBindings = ImmutableList.copyOf(viewBindings);
+    this.collectionBindings = ImmutableMap.copyOf(collectionBindings);
+    this.drawableBindings = ImmutableList.copyOf(drawableBindings);
+    this.resourceBindings = ImmutableList.copyOf(resourceBindings);
+    this.parentBinding = parentBinding;
   }
 
   JavaFile brewJava() {
-    return JavaFile.builder(bindingClassName.packageName(), createBindingClass())
+    return JavaFile.builder(bindingClassName.packageName(), createType())
         .addFileComment("Generated code from Butter Knife. Do not modify!")
         .build();
   }
 
-  private TypeSpec createBindingClass() {
+  private TypeSpec createType() {
     TypeSpec.Builder result = TypeSpec.classBuilder(bindingClassName.simpleName())
         .addModifiers(PUBLIC);
     if (isFinal) {
@@ -197,7 +165,7 @@ final class BindingClass {
         // Local variable in which all views will be temporarily stored.
         constructor.addStatement("$T view", VIEW);
       }
-      for (ViewBindings bindings : viewIdMap.values()) {
+      for (ViewBindings bindings : viewBindings) {
         addViewBindings(constructor, bindings);
       }
       for (Map.Entry<FieldCollectionViewBinding, List<Id>> entry : collectionBindings.entrySet()) {
@@ -253,7 +221,7 @@ final class BindingClass {
           "Bindings already cleared.");
       result.addStatement("$N = null", hasFieldBindings() ? "this.target" : "target");
       result.addCode("\n");
-      for (ViewBindings bindings : viewIdMap.values()) {
+      for (ViewBindings bindings : viewBindings) {
         if (bindings.getFieldBinding() != null) {
           result.addStatement("target.$L = null", bindings.getFieldBinding().getName());
         }
@@ -265,7 +233,7 @@ final class BindingClass {
 
     if (hasMethodBindings()) {
       result.addCode("\n");
-      for (ViewBindings bindings : viewIdMap.values()) {
+      for (ViewBindings bindings : viewBindings) {
         addFieldAndUnbindStatement(bindingClass, result, bindings);
       }
     }
@@ -614,7 +582,7 @@ final class BindingClass {
 
   /** True when this type's bindings require a view hierarchy. */
   private boolean hasViewBindings() {
-    return !viewIdMap.isEmpty() || !collectionBindings.isEmpty();
+    return !viewBindings.isEmpty() || !collectionBindings.isEmpty();
   }
 
   /** True when this type's bindings require Android's {@code Resources}. */
@@ -648,8 +616,8 @@ final class BindingClass {
   }
 
   private boolean hasMethodBindings() {
-    for (ViewBindings viewBindings : viewIdMap.values()) {
-      if (!viewBindings.getMethodBindings().isEmpty()) {
+    for (ViewBindings bindings : viewBindings) {
+      if (!bindings.getMethodBindings().isEmpty()) {
         return true;
       }
     }
@@ -657,8 +625,8 @@ final class BindingClass {
   }
 
   private boolean hasFieldBindings() {
-    for (ViewBindings viewBindings : viewIdMap.values()) {
-      if (viewBindings.getFieldBinding() != null) {
+    for (ViewBindings bindings : viewBindings) {
+      if (bindings.getFieldBinding() != null) {
         return true;
       }
     }
@@ -682,8 +650,8 @@ final class BindingClass {
   }
 
   private boolean needsViewLocal() {
-    for (ViewBindings viewBindings : viewIdMap.values()) {
-      if (viewBindings.requiresLocal()) {
+    for (ViewBindings bindings : viewBindings) {
+      if (bindings.requiresLocal()) {
         return true;
       }
     }
@@ -696,5 +664,91 @@ final class BindingClass {
 
   @Override public String toString() {
     return bindingClassName.toString();
+  }
+
+  static Builder newBuilder(TypeElement enclosingElement) {
+    TypeName targetType = TypeName.get(enclosingElement.asType());
+    if (targetType instanceof ParameterizedTypeName) {
+      targetType = ((ParameterizedTypeName) targetType).rawType;
+    }
+
+    String packageName = getPackage(enclosingElement).getQualifiedName().toString();
+    String className = enclosingElement.getQualifiedName().toString().substring(
+        packageName.length() + 1).replace('.', '$');
+    ClassName bindingClassName = ClassName.get(packageName, className + "_ViewBinding");
+
+    boolean isFinal = enclosingElement.getModifiers().contains(Modifier.FINAL);
+    return new Builder(targetType, bindingClassName, isFinal);
+  }
+
+  static final class Builder {
+    private final TypeName targetTypeName;
+    private final ClassName bindingClassName;
+    private final boolean isFinal;
+
+    private BindingSet parentBinding;
+
+    private final Map<Id, ViewBindings> viewIdMap = new LinkedHashMap<>();
+    private final Map<FieldCollectionViewBinding, List<Id>> collectionBindings =
+        new LinkedHashMap<>();
+    private final List<FieldDrawableBinding> drawableBindings = new ArrayList<>();
+    private final List<FieldResourceBinding> resourceBindings = new ArrayList<>();
+
+    private Builder(TypeName targetTypeName, ClassName bindingClassName, boolean isFinal) {
+      this.targetTypeName = targetTypeName;
+      this.bindingClassName = bindingClassName;
+      this.isFinal = isFinal;
+    }
+
+    void addDrawable(FieldDrawableBinding binding) {
+      drawableBindings.add(binding);
+    }
+
+    void addField(Id id, FieldViewBinding binding) {
+      getOrCreateViewBindings(id).setFieldBinding(binding);
+    }
+
+    void addFieldCollection(List<Id> ids, FieldCollectionViewBinding binding) {
+      collectionBindings.put(binding, ids);
+    }
+
+    boolean addMethod(
+        Id id,
+        ListenerClass listener,
+        ListenerMethod method,
+        MethodViewBinding binding) {
+      ViewBindings viewBindings = getOrCreateViewBindings(id);
+      if (viewBindings.hasMethodBinding(listener, method) && !"void".equals(method.returnType())) {
+        return false;
+      }
+      viewBindings.addMethodBinding(listener, method, binding);
+      return true;
+    }
+
+    void addResource(FieldResourceBinding binding) {
+      resourceBindings.add(binding);
+    }
+
+    void setParent(BindingSet parent) {
+      this.parentBinding = parent;
+    }
+
+    ViewBindings getViewBinding(Id id) {
+      return viewIdMap.get(id);
+    }
+
+    private ViewBindings getOrCreateViewBindings(Id id) {
+      ViewBindings viewId = viewIdMap.get(id);
+      if (viewId == null) {
+        viewId = new ViewBindings(id);
+        viewIdMap.put(id, viewId);
+      }
+      return viewId;
+    }
+
+    BindingSet build() {
+      return new BindingSet(targetTypeName, bindingClassName, isFinal, viewIdMap.values(),
+          collectionBindings, drawableBindings, resourceBindings, parentBinding);
+    }
   }
 }
