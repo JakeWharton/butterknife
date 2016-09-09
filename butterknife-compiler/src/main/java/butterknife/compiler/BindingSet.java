@@ -3,7 +3,6 @@ package butterknife.compiler;
 import butterknife.internal.ListenerClass;
 import butterknife.internal.ListenerMethod;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.squareup.javapoet.AnnotationSpec;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
@@ -51,19 +50,19 @@ final class BindingSet {
   private final ClassName bindingClassName;
   private final boolean isFinal;
   private final List<ViewBindings> viewBindings;
-  private final Map<FieldCollectionViewBinding, List<Id>> collectionBindings;
+  private final List<FieldCollectionViewBinding> collectionBindings;
   private final List<ResourceBinding> resourceBindings;
   private final BindingSet parentBinding;
 
   private BindingSet(TypeName targetTypeName, ClassName bindingClassName, boolean isFinal,
       Collection<ViewBindings> viewBindings,
-      Map<FieldCollectionViewBinding, List<Id>> collectionBindings,
+      Collection<FieldCollectionViewBinding> collectionBindings,
       Collection<ResourceBinding> resourceBindings, BindingSet parentBinding) {
     this.isFinal = isFinal;
     this.targetTypeName = targetTypeName;
     this.bindingClassName = bindingClassName;
     this.viewBindings = ImmutableList.copyOf(viewBindings);
-    this.collectionBindings = ImmutableMap.copyOf(collectionBindings);
+    this.collectionBindings = ImmutableList.copyOf(collectionBindings);
     this.resourceBindings = ImmutableList.copyOf(resourceBindings);
     this.parentBinding = parentBinding;
   }
@@ -165,8 +164,8 @@ final class BindingSet {
       for (ViewBindings bindings : viewBindings) {
         addViewBindings(constructor, bindings);
       }
-      for (Map.Entry<FieldCollectionViewBinding, List<Id>> entry : collectionBindings.entrySet()) {
-        emitCollectionBinding(constructor, entry.getKey(), entry.getValue());
+      for (FieldCollectionViewBinding binding : collectionBindings) {
+        constructor.addStatement("$L", binding.render());
       }
 
       if (!resourceBindings.isEmpty()) {
@@ -211,8 +210,8 @@ final class BindingSet {
           result.addStatement("target.$L = null", bindings.getFieldBinding().getName());
         }
       }
-      for (FieldCollectionViewBinding fieldCollectionBinding : collectionBindings.keySet()) {
-        result.addStatement("target.$L = null", fieldCollectionBinding.getName());
+      for (FieldCollectionViewBinding binding : collectionBindings) {
+        result.addStatement("target.$L = null", binding.name);
       }
     }
 
@@ -283,52 +282,6 @@ final class BindingSet {
     return requiresRemoval
         ? listenerClass.remover()
         : listenerClass.setter();
-  }
-
-  private void emitCollectionBinding(
-      MethodSpec.Builder result,
-      FieldCollectionViewBinding binding,
-      List<Id> ids) {
-    String ofName;
-    switch (binding.getKind()) {
-      case ARRAY:
-        ofName = "arrayOf";
-        break;
-      case LIST:
-        ofName = "listOf";
-        break;
-      default:
-        throw new IllegalStateException("Unknown kind: " + binding.getKind());
-    }
-
-    CodeBlock.Builder builder = CodeBlock.builder();
-    for (int i = 0; i < ids.size(); i++) {
-      if (i > 0) {
-        builder.add(", ");
-      }
-      builder.add("\n");
-
-      boolean requiresCast = requiresCast(binding.getType());
-      if (!requiresCast && !binding.isRequired()) {
-        builder.add("source.findViewById($L)", ids.get(i).code);
-      } else {
-        builder.add("$T.find", UTILS);
-        builder.add(binding.isRequired() ? "RequiredView" : "OptionalView");
-        if (requiresCast) {
-          builder.add("AsType");
-        }
-        builder.add("(source, $L", ids.get(i).code);
-        if (binding.isRequired() || requiresCast) {
-          builder.add(", $S", asHumanDescription(singletonList(binding)));
-        }
-        if (requiresCast) {
-          builder.add(", $T.class", binding.getRawType());
-        }
-        builder.add(")");
-      }
-    }
-
-    result.addStatement("target.$L = $T.$L($L)", binding.getName(), UTILS, ofName, builder.build());
   }
 
   private void addViewBindings(MethodSpec.Builder result, ViewBindings bindings) {
@@ -617,7 +570,7 @@ final class BindingSet {
         || parentBinding != null && parentBinding.constructorNeedsView();
   }
 
-  private static boolean requiresCast(TypeName type) {
+  static boolean requiresCast(TypeName type) {
     return !VIEW_TYPE.equals(type.toString());
   }
 
@@ -648,8 +601,7 @@ final class BindingSet {
     private BindingSet parentBinding;
 
     private final Map<Id, ViewBindings> viewIdMap = new LinkedHashMap<>();
-    private final Map<FieldCollectionViewBinding, List<Id>> collectionBindings =
-        new LinkedHashMap<>();
+    private final List<FieldCollectionViewBinding> collectionBindings = new ArrayList<>();
     private final List<ResourceBinding> resourceBindings = new ArrayList<>();
 
     private Builder(TypeName targetTypeName, ClassName bindingClassName, boolean isFinal) {
@@ -662,8 +614,8 @@ final class BindingSet {
       getOrCreateViewBindings(id).setFieldBinding(binding);
     }
 
-    void addFieldCollection(List<Id> ids, FieldCollectionViewBinding binding) {
-      collectionBindings.put(binding, ids);
+    void addFieldCollection(FieldCollectionViewBinding binding) {
+      collectionBindings.add(binding);
     }
 
     boolean addMethod(
