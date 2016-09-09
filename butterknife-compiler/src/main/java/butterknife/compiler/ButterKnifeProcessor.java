@@ -456,8 +456,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     TypeName type = TypeName.get(elementType);
     boolean required = isFieldRequired(element);
 
-    FieldViewBinding binding = new FieldViewBinding(name, type, required);
-    builder.addField(getId(id), binding);
+    builder.addField(getId(id), new FieldViewBinding(name, type, required));
 
     // Add the type-erased version to the valid binding targets set.
     erasedTargetNames.add(enclosingElement);
@@ -548,8 +547,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     }
 
     BindingSet.Builder builder = getOrCreateBindingBuilder(builderMap, enclosingElement);
-    FieldCollectionViewBinding binding = new FieldCollectionViewBinding(name, type, kind, required);
-    builder.addFieldCollection(idVars, binding);
+    builder.addFieldCollection(new FieldCollectionViewBinding(name, type, kind, idVars, required));
 
     erasedTargetNames.add(enclosingElement);
   }
@@ -580,9 +578,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     int id = element.getAnnotation(BindBool.class).value();
 
     BindingSet.Builder builder = getOrCreateBindingBuilder(builderMap, enclosingElement);
-    FieldResourceBinding binding =
-        new FieldResourceBinding(getId(id), name, FieldResourceBinding.Type.BOOL);
-    builder.addResource(binding);
+    builder.addResource(new FieldResourceBinding(getId(id), name, FieldResourceBinding.Type.BOOL));
 
     erasedTargetNames.add(enclosingElement);
   }
@@ -617,10 +613,9 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     int id = element.getAnnotation(BindColor.class).value();
 
     BindingSet.Builder builder = getOrCreateBindingBuilder(builderMap, enclosingElement);
-    FieldResourceBinding binding = new FieldResourceBinding(getId(id), name,
+    builder.addResource(new FieldResourceBinding(getId(id), name,
         isColorStateList ? FieldResourceBinding.Type.COLOR_STATE_LIST
-            : FieldResourceBinding.Type.COLOR);
-    builder.addResource(binding);
+            : FieldResourceBinding.Type.COLOR));
 
     erasedTargetNames.add(enclosingElement);
   }
@@ -655,9 +650,8 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     int id = element.getAnnotation(BindDimen.class).value();
 
     BindingSet.Builder builder = getOrCreateBindingBuilder(builderMap, enclosingElement);
-    FieldResourceBinding binding = new FieldResourceBinding(getId(id), name,
-        isInt ? FieldResourceBinding.Type.DIMEN_AS_INT : FieldResourceBinding.Type.DIMEN_AS_FLOAT);
-    builder.addResource(binding);
+    builder.addResource(new FieldResourceBinding(getId(id), name,
+        isInt ? FieldResourceBinding.Type.DIMEN_AS_INT : FieldResourceBinding.Type.DIMEN_AS_FLOAT));
 
     erasedTargetNames.add(enclosingElement);
   }
@@ -688,9 +682,8 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     int id = element.getAnnotation(BindBitmap.class).value();
 
     BindingSet.Builder builder = getOrCreateBindingBuilder(builderMap, enclosingElement);
-    FieldResourceBinding binding =
-        new FieldResourceBinding(getId(id), name, FieldResourceBinding.Type.BITMAP);
-    builder.addResource(binding);
+    builder.addResource(
+        new FieldResourceBinding(getId(id), name, FieldResourceBinding.Type.BITMAP));
 
     erasedTargetNames.add(enclosingElement);
   }
@@ -722,8 +715,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     int tint = element.getAnnotation(BindDrawable.class).tint();
 
     BindingSet.Builder builder = getOrCreateBindingBuilder(builderMap, enclosingElement);
-    FieldDrawableBinding binding = new FieldDrawableBinding(getId(id), name, getId(tint));
-    builder.addResource(binding);
+    builder.addResource(new FieldDrawableBinding(getId(id), name, getId(tint)));
 
     erasedTargetNames.add(enclosingElement);
   }
@@ -754,9 +746,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     int id = element.getAnnotation(BindFloat.class).value();
 
     BindingSet.Builder builder = getOrCreateBindingBuilder(builderMap, enclosingElement);
-    FieldResourceBinding binding =
-        new FieldResourceBinding(getId(id), name, FieldResourceBinding.Type.FLOAT);
-    builder.addResource(binding);
+    builder.addResource(new FieldResourceBinding(getId(id), name, FieldResourceBinding.Type.FLOAT));
 
     erasedTargetNames.add(enclosingElement);
   }
@@ -786,9 +776,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     int id = element.getAnnotation(BindInt.class).value();
 
     BindingSet.Builder builder = getOrCreateBindingBuilder(builderMap, enclosingElement);
-    FieldResourceBinding binding =
-        new FieldResourceBinding(getId(id), name, FieldResourceBinding.Type.INT);
-    builder.addResource(binding);
+    builder.addResource(new FieldResourceBinding(getId(id), name, FieldResourceBinding.Type.INT));
 
     erasedTargetNames.add(enclosingElement);
   }
@@ -819,9 +807,8 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     int id = element.getAnnotation(BindString.class).value();
 
     BindingSet.Builder builder = getOrCreateBindingBuilder(builderMap, enclosingElement);
-    FieldResourceBinding binding =
-        new FieldResourceBinding(getId(id), name, FieldResourceBinding.Type.STRING);
-    builder.addResource(binding);
+    builder.addResource(
+        new FieldResourceBinding(getId(id), name, FieldResourceBinding.Type.STRING));
 
     erasedTargetNames.add(enclosingElement);
   }
@@ -854,8 +841,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     int id = element.getAnnotation(BindArray.class).value();
 
     BindingSet.Builder builder = getOrCreateBindingBuilder(builderMap, enclosingElement);
-    FieldResourceBinding binding = new FieldResourceBinding(getId(id), name, type);
-    builder.addResource(binding);
+    builder.addResource(new FieldResourceBinding(getId(id), name, type));
 
     erasedTargetNames.add(enclosingElement);
   }

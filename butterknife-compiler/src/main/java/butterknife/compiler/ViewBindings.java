@@ -11,8 +11,8 @@ import java.util.Set;
 
 final class ViewBindings {
   private final Id id;
-  private final LinkedHashMap<ListenerClass, Map<ListenerMethod, Set<MethodViewBinding>>>
-      methodBindings = new LinkedHashMap<>();
+  private final Map<ListenerClass, Map<ListenerMethod, Set<MethodViewBinding>>> methodBindings =
+      new LinkedHashMap<>();
   private FieldViewBinding fieldBinding;
 
   ViewBindings(Id id) {
