@@ -52,21 +52,18 @@ final class BindingSet {
   private final boolean isFinal;
   private final List<ViewBindings> viewBindings;
   private final Map<FieldCollectionViewBinding, List<Id>> collectionBindings;
-  private final List<FieldDrawableBinding> drawableBindings;
-  private final List<FieldResourceBinding> resourceBindings;
+  private final List<ResourceBinding> resourceBindings;
   private final BindingSet parentBinding;
 
-  BindingSet(TypeName targetTypeName, ClassName bindingClassName, boolean isFinal,
+  private BindingSet(TypeName targetTypeName, ClassName bindingClassName, boolean isFinal,
       Collection<ViewBindings> viewBindings,
       Map<FieldCollectionViewBinding, List<Id>> collectionBindings,
-      Collection<FieldDrawableBinding> drawableBindings,
-      Collection<FieldResourceBinding> resourceBindings, BindingSet parentBinding) {
+      Collection<ResourceBinding> resourceBindings, BindingSet parentBinding) {
     this.isFinal = isFinal;
     this.targetTypeName = targetTypeName;
     this.bindingClassName = bindingClassName;
     this.viewBindings = ImmutableList.copyOf(viewBindings);
     this.collectionBindings = ImmutableMap.copyOf(collectionBindings);
-    this.drawableBindings = ImmutableList.copyOf(drawableBindings);
     this.resourceBindings = ImmutableList.copyOf(resourceBindings);
     this.parentBinding = parentBinding;
   }
@@ -84,23 +81,23 @@ final class BindingSet {
       result.addModifiers(FINAL);
     }
 
-    if (hasParentBinding()) {
-      result.superclass(getParentBinding());
+    if (parentBinding != null) {
+      result.superclass(parentBinding.bindingClassName);
     } else {
       result.addSuperinterface(UNBINDER);
     }
 
-    if (needsTargetField()) {
+    if (hasTargetField()) {
       result.addField(targetTypeName, "target", PRIVATE);
     }
 
-    if (!needsView()) {
+    if (!constructorNeedsView()) {
       // Add a delegating constructor with a target type + view signature for reflective use.
       result.addMethod(createBindingViewDelegateConstructor(targetTypeName));
     }
     result.addMethod(createBindingConstructor(targetTypeName));
 
-    if (hasViewBindings() || !hasParentBinding()) {
+    if (hasViewBindings() || parentBinding == null) {
       result.addMethod(createBindingUnbindMethod(result, targetTypeName));
     }
 
@@ -132,25 +129,10 @@ final class BindingSet {
       constructor.addParameter(targetType, "target");
     }
 
-    if (needsView()) {
+    if (constructorNeedsView()) {
       constructor.addParameter(VIEW, "source");
     } else {
       constructor.addParameter(CONTEXT, "context");
-    }
-
-    if (hasParentBinding()) {
-      if (parentBinding.needsView()) {
-        constructor.addStatement("super(target, source)");
-      } else if (needsView()) {
-        constructor.addStatement("super(target, source.getContext())");
-      } else {
-        constructor.addStatement("super(target, context)");
-      }
-      constructor.addCode("\n");
-    }
-    if (needsTargetField()) {
-      constructor.addStatement("this.target = target");
-      constructor.addCode("\n");
     }
 
     if (hasUnqualifiedResourceBindings()) {
@@ -160,8 +142,23 @@ final class BindingSet {
           .build());
     }
 
+    if (parentBinding != null) {
+      if (parentBinding.constructorNeedsView()) {
+        constructor.addStatement("super(target, source)");
+      } else if (constructorNeedsView()) {
+        constructor.addStatement("super(target, source.getContext())");
+      } else {
+        constructor.addStatement("super(target, context)");
+      }
+      constructor.addCode("\n");
+    }
+    if (hasTargetField()) {
+      constructor.addStatement("this.target = target");
+      constructor.addCode("\n");
+    }
+
     if (hasViewBindings()) {
-      if (needsViewLocal()) {
+      if (hasViewLocal()) {
         // Local variable in which all views will be temporarily stored.
         constructor.addStatement("$T view", VIEW);
       }
@@ -172,31 +169,19 @@ final class BindingSet {
         emitCollectionBinding(constructor, entry.getKey(), entry.getValue());
       }
 
-      if (hasResourceBindings()) {
+      if (!resourceBindings.isEmpty()) {
         constructor.addCode("\n");
       }
     }
 
-    if (hasResourceBindings()) {
-      if (needsView()) {
+    if (!resourceBindings.isEmpty()) {
+      if (constructorNeedsView()) {
         constructor.addStatement("$T context = source.getContext()", CONTEXT);
       }
-      if (needsResource()) {
+      if (hasResourceBindingsNeedingResource()) {
         constructor.addStatement("$T res = context.getResources()", RESOURCES);
       }
-
-      for (FieldDrawableBinding binding : drawableBindings) {
-        Id tintAttributeId = binding.getTintAttributeId();
-        if (tintAttributeId.value != 0) {
-          constructor.addStatement("target.$L = $T.getTintedDrawable(context, $L, $L)",
-              binding.getName(), UTILS, binding.getId().code, tintAttributeId.code);
-        } else {
-          constructor.addStatement("target.$L = $T.getDrawable(context, $L)", binding.getName(),
-              CONTEXT_COMPAT, binding.getId().code);
-        }
-      }
-
-      for (FieldResourceBinding binding : resourceBindings) {
+      for (ResourceBinding binding : resourceBindings) {
         constructor.addStatement("$L", binding.render());
       }
     }
@@ -209,11 +194,11 @@ final class BindingSet {
     MethodSpec.Builder result = MethodSpec.methodBuilder("unbind")
         .addAnnotation(Override.class)
         .addModifiers(PUBLIC);
-    if (!isFinal && !hasParentBinding()) {
+    if (!isFinal && parentBinding == null) {
       result.addAnnotation(CALL_SUPER);
     }
 
-    if (needsTargetField()) {
+    if (hasTargetField()) {
       if (hasFieldBindings()) {
         result.addStatement("$T target = this.target", targetType);
       }
@@ -238,7 +223,7 @@ final class BindingSet {
       }
     }
 
-    if (hasParentBinding()) {
+    if (parentBinding != null) {
       result.addCode("\n");
       result.addStatement("super.unbind()");
     }
@@ -570,35 +555,15 @@ final class BindingSet {
     }
   }
 
-  /** True when this type has a parent view binder type. */
-  private boolean hasParentBinding() {
-    return parentBinding != null;
-  }
-
-  /** Return the nearest binding class from this type's parents. */
-  private ClassName getParentBinding() {
-    return parentBinding.bindingClassName;
-  }
-
   /** True when this type's bindings require a view hierarchy. */
   private boolean hasViewBindings() {
     return !viewBindings.isEmpty() || !collectionBindings.isEmpty();
   }
 
-  /** True when this type's bindings require Android's {@code Resources}. */
-  private boolean hasResourceBindings() {
-    return !(drawableBindings.isEmpty() && resourceBindings.isEmpty());
-  }
-
   /** True when this type's bindings use raw integer values instead of {@code R} references. */
   private boolean hasUnqualifiedResourceBindings() {
-    for (FieldDrawableBinding binding : drawableBindings) {
-      if (!binding.getId().qualifed) {
-        return true;
-      }
-    }
-    for (FieldResourceBinding binding : resourceBindings) {
-      if (!binding.id.qualifed) {
+    for (ResourceBinding binding : resourceBindings) {
+      if (!binding.id().qualifed) {
         return true;
       }
     }
@@ -607,8 +572,8 @@ final class BindingSet {
 
   /** True when this type's bindings use Resource directly instead of Context. */
   private boolean hasResourceBindingsNeedingResource() {
-    for (FieldResourceBinding binding : resourceBindings) {
-      if (binding.type.requiresResource) {
+    for (ResourceBinding binding : resourceBindings) {
+      if (binding.requiresResources()) {
         return true;
       }
     }
@@ -633,29 +598,23 @@ final class BindingSet {
     return !collectionBindings.isEmpty();
   }
 
-  /** True if this binding requires Resources. Otherwise only Context is needed. */
-  private boolean needsResource() {
-    return hasResourceBindingsNeedingResource()
-        || hasParentBinding() && parentBinding.needsResource();
-  }
-
-  /** True if this binding requires a view. Otherwise only a context is needed. */
-  private boolean needsView() {
-    return hasViewBindings() //
-        || hasParentBinding() && parentBinding.needsView();
-  }
-
-  private boolean needsTargetField() {
+  private boolean hasTargetField() {
     return hasFieldBindings() || hasMethodBindings();
   }
 
-  private boolean needsViewLocal() {
+  private boolean hasViewLocal() {
     for (ViewBindings bindings : viewBindings) {
       if (bindings.requiresLocal()) {
         return true;
       }
     }
     return false;
+  }
+
+  /** True if this binding requires a view. Otherwise only a context is needed. */
+  private boolean constructorNeedsView() {
+    return hasViewBindings() //
+        || parentBinding != null && parentBinding.constructorNeedsView();
   }
 
   private static boolean requiresCast(TypeName type) {
@@ -691,17 +650,12 @@ final class BindingSet {
     private final Map<Id, ViewBindings> viewIdMap = new LinkedHashMap<>();
     private final Map<FieldCollectionViewBinding, List<Id>> collectionBindings =
         new LinkedHashMap<>();
-    private final List<FieldDrawableBinding> drawableBindings = new ArrayList<>();
-    private final List<FieldResourceBinding> resourceBindings = new ArrayList<>();
+    private final List<ResourceBinding> resourceBindings = new ArrayList<>();
 
     private Builder(TypeName targetTypeName, ClassName bindingClassName, boolean isFinal) {
       this.targetTypeName = targetTypeName;
       this.bindingClassName = bindingClassName;
       this.isFinal = isFinal;
-    }
-
-    void addDrawable(FieldDrawableBinding binding) {
-      drawableBindings.add(binding);
     }
 
     void addField(Id id, FieldViewBinding binding) {
@@ -725,7 +679,7 @@ final class BindingSet {
       return true;
     }
 
-    void addResource(FieldResourceBinding binding) {
+    void addResource(ResourceBinding binding) {
       resourceBindings.add(binding);
     }
 
@@ -748,7 +702,7 @@ final class BindingSet {
 
     BindingSet build() {
       return new BindingSet(targetTypeName, bindingClassName, isFinal, viewIdMap.values(),
-          collectionBindings, drawableBindings, resourceBindings, parentBinding);
+          collectionBindings, resourceBindings, parentBinding);
     }
   }
 }
