@@ -68,13 +68,13 @@ final class BindingSet {
     this.parentBinding = parentBinding;
   }
 
-  JavaFile brewJava() {
-    return JavaFile.builder(bindingClassName.packageName(), createType())
+  JavaFile brewJava(int sdk) {
+    return JavaFile.builder(bindingClassName.packageName(), createType(sdk))
         .addFileComment("Generated code from Butter Knife. Do not modify!")
         .build();
   }
 
-  private TypeSpec createType() {
+  private TypeSpec createType(int sdk) {
     TypeSpec.Builder result = TypeSpec.classBuilder(bindingClassName.simpleName())
         .addModifiers(PUBLIC);
     if (isFinal) {
@@ -95,7 +95,7 @@ final class BindingSet {
       // Add a delegating constructor with a target type + view signature for reflective use.
       result.addMethod(createBindingViewDelegateConstructor(targetTypeName));
     }
-    result.addMethod(createBindingConstructor(targetTypeName));
+    result.addMethod(createBindingConstructor(targetTypeName, sdk));
 
     if (hasViewBindings() || parentBinding == null) {
       result.addMethod(createBindingUnbindMethod(result, targetTypeName));
@@ -118,7 +118,7 @@ final class BindingSet {
         .build();
   }
 
-  private MethodSpec createBindingConstructor(TypeName targetType) {
+  private MethodSpec createBindingConstructor(TypeName targetType, int sdk) {
     MethodSpec.Builder constructor = MethodSpec.constructorBuilder()
         .addAnnotation(UI_THREAD)
         .addModifiers(PUBLIC);
@@ -178,11 +178,11 @@ final class BindingSet {
       if (constructorNeedsView()) {
         constructor.addStatement("$T context = source.getContext()", CONTEXT);
       }
-      if (hasResourceBindingsNeedingResource()) {
+      if (hasResourceBindingsNeedingResource(sdk)) {
         constructor.addStatement("$T res = context.getResources()", RESOURCES);
       }
       for (ResourceBinding binding : resourceBindings) {
-        constructor.addStatement("$L", binding.render());
+        constructor.addStatement("$L", binding.render(sdk));
       }
     }
 
@@ -571,9 +571,9 @@ final class BindingSet {
   }
 
   /** True when this type's bindings use Resource directly instead of Context. */
-  private boolean hasResourceBindingsNeedingResource() {
+  private boolean hasResourceBindingsNeedingResource(int sdk) {
     for (ResourceBinding binding : resourceBindings) {
-      if (binding.requiresResources()) {
+      if (binding.requiresResources(sdk)) {
         return true;
       }
     }

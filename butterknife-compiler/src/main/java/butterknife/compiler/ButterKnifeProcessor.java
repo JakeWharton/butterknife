@@ -45,6 +45,7 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
+import java.util.Collections;
 import java.util.Deque;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -81,6 +82,8 @@ import static javax.lang.model.element.Modifier.STATIC;
 
 @AutoService(Processor.class)
 public final class ButterKnifeProcessor extends AbstractProcessor {
+  // TODO remove when http://b.android.com/187527 is released.
+  private static final String OPTION_SDK_INT = "butterknife.minSdk";
   static final Id NO_ID = new Id(-1);
   static final String VIEW_TYPE = "android.view.View";
   private static final String COLOR_STATE_LIST_TYPE = "android.content.res.ColorStateList";
@@ -112,11 +115,24 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
   private Types typeUtils;
   private Filer filer;
   private Trees trees;
+  private int sdk = 1;
 
   private final Map<Integer, Id> symbols = new LinkedHashMap<>();
 
   @Override public synchronized void init(ProcessingEnvironment env) {
     super.init(env);
+
+    String sdk = env.getOptions().get(OPTION_SDK_INT);
+    if (sdk != null) {
+      try {
+        this.sdk = Integer.parseInt(sdk);
+      } catch (NumberFormatException e) {
+        env.getMessager()
+            .printMessage(Kind.WARNING, "Unable to parse supplied minSdk option '"
+                + sdk
+                + "'. Falling back to API 1 support.");
+      }
+    }
 
     elementUtils = env.getElementUtils();
     typeUtils = env.getTypeUtils();
@@ -125,6 +141,10 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
       trees = Trees.instance(processingEnv);
     } catch (IllegalArgumentException ignored) {
     }
+  }
+
+  @Override public Set<String> getSupportedOptions() {
+    return Collections.singleton(OPTION_SDK_INT);
   }
 
   @Override public Set<String> getSupportedAnnotationTypes() {
@@ -161,7 +181,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
       TypeElement typeElement = entry.getKey();
       BindingSet binding = entry.getValue();
 
-      JavaFile javaFile = binding.brewJava();
+      JavaFile javaFile = binding.brewJava(sdk);
       try {
         javaFile.writeTo(filer);
       } catch (IOException e) {

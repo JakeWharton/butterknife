@@ -1,20 +1,15 @@
 package butterknife.internal;
 
+import android.content.Context;
+import android.support.test.InstrumentationRegistry;
 import android.view.View;
-import butterknife.shadow.EditModeShadowView;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.robolectric.RobolectricTestRunner;
-import org.robolectric.RuntimeEnvironment;
-import org.robolectric.annotation.Config;
 
 import static butterknife.internal.Utils.arrayOf;
 import static butterknife.internal.Utils.listOf;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.fail;
 
-@RunWith(RobolectricTestRunner.class)
-@Config(manifest = Config.NONE)
 public final class UtilsTest {
   @Test public void listOfFiltersNull() {
     assertThat(listOf(null, null, null)).isEmpty();
@@ -37,7 +32,8 @@ public final class UtilsTest {
   }
 
   @Test public void finderThrowsNiceError() {
-    View view = new View(RuntimeEnvironment.application);
+    Context context = InstrumentationRegistry.getContext();
+    View view = new View(context);
     try {
       Utils.findRequiredView(view, android.R.id.button1, "yo mama");
       fail();
@@ -48,9 +44,9 @@ public final class UtilsTest {
     }
   }
 
-  @Config(shadows = EditModeShadowView.class)
   @Test public void finderThrowsLessNiceErrorInEditMode() {
-    View view = new View(RuntimeEnvironment.application);
+    Context context = InstrumentationRegistry.getContext();
+    View view = new EditModeView(context);
     try {
       Utils.findRequiredView(view, android.R.id.button1, "yo mama");
       fail();
@@ -58,6 +54,16 @@ public final class UtilsTest {
       assertThat(e).hasMessage("Required view '<unavailable while editing>' "
           + "with ID " + android.R.id.button1
           + " for yo mama was not found. If this view is optional add '@Nullable' (fields) or '@Optional' (methods) annotation.");
+    }
+  }
+
+  static final class EditModeView extends View {
+    EditModeView(Context context) {
+      super(context);
+    }
+
+    @Override public boolean isInEditMode() {
+      return true;
     }
   }
 }

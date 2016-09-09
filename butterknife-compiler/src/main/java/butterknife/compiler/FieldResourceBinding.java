@@ -2,16 +2,24 @@ package butterknife.compiler;
 
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import static java.util.Collections.singletonList;
+import static java.util.Collections.unmodifiableList;
 
 final class FieldResourceBinding implements ResourceBinding {
   enum Type {
-    BITMAP(BindingSet.BITMAP_FACTORY, "decodeResource", true),
+    BITMAP(new ResourceMethod(BindingSet.BITMAP_FACTORY, "decodeResource", true, 1)),
     BOOL("getBoolean"),
-    COLOR(BindingSet.CONTEXT_COMPAT, "getColor", false),
-    COLOR_STATE_LIST(BindingSet.CONTEXT_COMPAT, "getColorStateList", false),
+    COLOR(new ResourceMethod(BindingSet.CONTEXT_COMPAT, "getColor", false, 1),
+        new ResourceMethod(null, "getColor", false, 23)),
+    COLOR_STATE_LIST(new ResourceMethod(BindingSet.CONTEXT_COMPAT, "getColorStateList", false, 1),
+        new ResourceMethod(null, "getColorStateList", false, 23)),
     DIMEN_AS_INT("getDimensionPixelSize"),
     DIMEN_AS_FLOAT("getDimension"),
-    FLOAT(BindingSet.UTILS, "getFloat", false),
+    FLOAT(new ResourceMethod(BindingSet.UTILS, "getFloat", false, 1)),
     INT("getInteger"),
     INT_ARRAY("getIntArray"),
     STRING("getString"),
@@ -19,26 +27,51 @@ final class FieldResourceBinding implements ResourceBinding {
     TEXT_ARRAY("getTextArray"),
     TYPED_ARRAY("obtainTypedArray");
 
-    final ClassName typeName;
-    final String methodName;
-    final boolean requiresResources;
+    private final List<ResourceMethod> methods;
 
-    Type(String methodName) {
-      this.typeName = null;
-      this.methodName = methodName;
-      this.requiresResources = true;
+    Type(ResourceMethod... methods) {
+      List<ResourceMethod> methodList = new ArrayList<>(methods.length);
+      Collections.addAll(methodList, methods);
+      Collections.sort(methodList);
+      Collections.reverse(methodList);
+      this.methods = unmodifiableList(methodList);
     }
 
-    Type(ClassName typeName, String methodName, boolean requiresResources) {
-      this.typeName = typeName;
-      this.methodName = methodName;
-      this.requiresResources = requiresResources;
+    Type(String methodName) {
+      methods = singletonList(new ResourceMethod(null, methodName, true, 1));
+    }
+
+    ResourceMethod methodForSdk(int sdk) {
+      for (ResourceMethod method : methods) {
+        if (method.sdk <= sdk) {
+          return method;
+        }
+      }
+      throw new AssertionError();
     }
   }
 
-  final Id id;
-  final String name;
-  final Type type;
+  static final class ResourceMethod implements Comparable<ResourceMethod> {
+    final ClassName typeName;
+    final String name;
+    final boolean requiresResources;
+    final int sdk;
+
+    ResourceMethod(ClassName typeName, String name, boolean requiresResources, int sdk) {
+      this.typeName = typeName;
+      this.name = name;
+      this.requiresResources = requiresResources;
+      this.sdk = sdk;
+    }
+
+    @Override public int compareTo(ResourceMethod other) {
+      return Integer.compare(sdk, other.sdk);
+    }
+  }
+
+  private final Id id;
+  private final String name;
+  private final Type type;
 
   FieldResourceBinding(Id id, String name, Type type) {
     this.id = id;
@@ -50,19 +83,23 @@ final class FieldResourceBinding implements ResourceBinding {
     return id;
   }
 
-  @Override public boolean requiresResources() {
-    return type.requiresResources;
+  @Override public boolean requiresResources(int sdk) {
+    return type.methodForSdk(sdk).requiresResources;
   }
 
-  @Override public CodeBlock render() {
-    if (type.typeName == null) {
-      return CodeBlock.of("target.$L = res.$L($L)", name, type.methodName, id.code);
+  @Override public CodeBlock render(int sdk) {
+    ResourceMethod method = type.methodForSdk(sdk);
+    if (method.typeName == null) {
+      if (method.requiresResources) {
+        return CodeBlock.of("target.$L = res.$L($L)", name, method.name, id.code);
+      }
+      return CodeBlock.of("target.$L = context.$L($L)", name, method.name, id.code);
     }
-    if (type.requiresResources) {
-      return CodeBlock.of("target.$L = $T.$L(res, $L)", name, type.typeName, type.methodName,
+    if (method.requiresResources) {
+      return CodeBlock.of("target.$L = $T.$L(res, $L)", name, method.typeName, method.name,
           id.code);
     }
-    return CodeBlock.of("target.$L = $T.$L(context, $L)", name, type.typeName, type.methodName,
+    return CodeBlock.of("target.$L = $T.$L(context, $L)", name, method.typeName, method.name,
         id.code);
   }
 }
