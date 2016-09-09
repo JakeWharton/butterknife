@@ -1,6 +1,11 @@
 package butterknife.compiler;
 
-final class FieldDrawableBinding {
+import com.squareup.javapoet.CodeBlock;
+
+import static butterknife.compiler.BindingSet.CONTEXT_COMPAT;
+import static butterknife.compiler.BindingSet.UTILS;
+
+final class FieldDrawableBinding implements ResourceBinding {
   private final Id id;
   private final String name;
   private final Id tintAttributeId;
@@ -11,15 +16,19 @@ final class FieldDrawableBinding {
     this.tintAttributeId = tintAttributeId;
   }
 
-  public Id getId() {
+  @Override public Id id() {
     return id;
   }
 
-  public String getName() {
-    return name;
+  @Override public boolean requiresResources() {
+    return false;
   }
 
-  public Id getTintAttributeId() {
-    return tintAttributeId;
+  @Override public CodeBlock render() {
+    if (tintAttributeId.value != 0) {
+      return CodeBlock.of("target.$L = $T.getTintedDrawable(context, $L, $L)", name, UTILS, id.code,
+          tintAttributeId.code);
+    }
+    return CodeBlock.of("target.$L = $T.getDrawable(context, $L)", name, CONTEXT_COMPAT, id.code);
   }
 }

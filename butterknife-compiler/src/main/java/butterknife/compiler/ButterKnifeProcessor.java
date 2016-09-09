@@ -703,7 +703,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
     BindingSet.Builder builder = getOrCreateBindingBuilder(builderMap, enclosingElement);
     FieldDrawableBinding binding = new FieldDrawableBinding(getId(id), name, getId(tint));
-    builder.addDrawable(binding);
+    builder.addResource(binding);
 
     erasedTargetNames.add(enclosingElement);
   }

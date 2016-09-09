@@ -3,7 +3,7 @@ package butterknife.compiler;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 
-final class FieldResourceBinding {
+final class FieldResourceBinding implements ResourceBinding {
   enum Type {
     BITMAP(BindingSet.BITMAP_FACTORY, "decodeResource", true),
     BOOL("getBoolean"),
@@ -21,18 +21,18 @@ final class FieldResourceBinding {
 
     final ClassName typeName;
     final String methodName;
-    final boolean requiresResource;
+    final boolean requiresResources;
 
     Type(String methodName) {
       this.typeName = null;
       this.methodName = methodName;
-      this.requiresResource = true;
+      this.requiresResources = true;
     }
 
-    Type(ClassName typeName, String methodName, boolean requiresResource) {
+    Type(ClassName typeName, String methodName, boolean requiresResources) {
       this.typeName = typeName;
       this.methodName = methodName;
-      this.requiresResource = requiresResource;
+      this.requiresResources = requiresResources;
     }
   }
 
@@ -46,11 +46,19 @@ final class FieldResourceBinding {
     this.type = type;
   }
 
-  CodeBlock render() {
+  @Override public Id id() {
+    return id;
+  }
+
+  @Override public boolean requiresResources() {
+    return type.requiresResources;
+  }
+
+  @Override public CodeBlock render() {
     if (type.typeName == null) {
       return CodeBlock.of("target.$L = res.$L($L)", name, type.methodName, id.code);
     }
-    if (type.requiresResource) {
+    if (type.requiresResources) {
       return CodeBlock.of("target.$L = $T.$L(res, $L)", name, type.typeName, type.methodName,
           id.code);
     }
