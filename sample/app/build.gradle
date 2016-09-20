@@ -37,7 +37,6 @@ dependencies {
 
   testCompile deps.junit
   testCompile deps.truth
-  testCompile deps.robolectric
 }
 
 afterEvaluate {
