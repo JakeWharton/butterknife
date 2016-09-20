@@ -211,26 +211,23 @@ ImageView photo = ButterKnife.findById(view, R.id.photo);</pre>
             <p>Add a static import for <code>ButterKnife.findById</code> and enjoy even more fun.</p>
 
             <h3 id="download">Download</h3>
-            Configure your project-level build.gradle to include the 'android-apt' plugin:
+            Configure your project-level build.gradle to use at least version 2.2.0 of the Android Gradle Plugin:
             <h4>Project-level build.gradle</h4>
             <pre class="prettyprint">
 buildscript {
-  repositories {
-    mavenCentral()
-   }
-  dependencies {
-    classpath 'com.neenbedankt.gradle.plugins:android-apt:1.8'
-  }
+    ...
+    dependencies {
+        classpath 'com.android.tools.build:gradle:2.2.0'  // 2.2.0 or higher
+    }
 }
             </pre>
-            Then, apply the 'android-apt' plugin in your module-level build.gradle and add the Butter Knife dependencies:
+
+            Then add the Butter Knife dependencies to the module-level build.gradle:
             <h4>Module-level build.gradle</h4>
             <pre class="prettyprint">
-apply plugin: 'android-apt'
-
 dependencies {
-  compile 'com.jakewharton:butterknife:<span class="version"><em>(insert latest version)</em></span>'
-  apt 'com.jakewharton:butterknife-compiler:<span class="version"><em>(insert latest version)</em></span>'
+  compile 'com.jakewharton:butterknife:8.4.0</span>'
+  compile 'com.jakewharton:butterknife-compiler:8.4.0</em></span>'
 }
             </pre>
             <h3 id="license">License</h3>
