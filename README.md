@@ -45,10 +45,10 @@ Configure your project-level `build.gradle` to use at least vesion 2.2.0 of the 
 
 ```groovy
 buildscript {
-    ...
-    dependencies {
-        classpath 'com.android.tools.build:gradle:2.2.0'  // 2.2.0 or higher
-    }
+  ...
+  dependencies {
+    classpath 'com.android.tools.build:gradle:2.2.0'  // 2.2.0 or higher
+  }
 }
 ```
 
