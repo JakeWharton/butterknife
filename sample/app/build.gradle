@@ -1,5 +1,4 @@
 apply plugin: 'com.android.application'
-apply plugin: 'com.neenbedankt.android-apt'
 
 android {
   compileSdkVersion rootProject.ext.compileSdkVersion
@@ -32,13 +31,12 @@ android {
 
 dependencies {
   compile deps.butterknife
-  apt deps.butterknifeCompiler
+  annotationProcessor deps.butterknifeCompiler
 
   compile project(':sample:library')
 
   testCompile deps.junit
   testCompile deps.truth
-  testCompile deps.robolectric
 }
 
 afterEvaluate {

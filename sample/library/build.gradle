@@ -1,11 +1,10 @@
 buildscript {
   dependencies {
-    classpath 'com.jakewharton:butterknife-gradle-plugin:8.2.0'
+    classpath 'com.jakewharton:butterknife-gradle-plugin:8.4.0'
   }
 }
 
 apply plugin: 'com.android.library'
-apply plugin: 'com.neenbedankt.android-apt'
 apply plugin: 'com.jakewharton.butterknife'
 
 android {
@@ -19,9 +18,8 @@ android {
 
 dependencies {
   compile deps.butterknife
-  apt deps.butterknifeCompiler
+  annotationProcessor deps.butterknifeCompiler
 
   testCompile deps.junit
   testCompile deps.truth
-  testCompile deps.robolectric
 }
