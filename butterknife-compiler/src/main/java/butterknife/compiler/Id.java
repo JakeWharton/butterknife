@@ -30,4 +30,12 @@ final class Id {
   @Override public boolean equals(Object o) {
     return o instanceof Id && value == ((Id) o).value;
   }
+
+  @Override public int hashCode() {
+    return value;
+  }
+
+  @Override public String toString() {
+    throw new UnsupportedOperationException("Please use value or code explicitly");
+  }
 }
