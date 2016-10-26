@@ -27,15 +27,27 @@ final class Id {
     this.qualifed = true;
   }
 
+  @Override public String toString() {
+    throw new UnsupportedOperationException("Please use value or code explicitly");
+  }
+
   @Override public boolean equals(Object o) {
-    return o instanceof Id && value == ((Id) o).value;
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    Id id = (Id) o;
+
+    if (value != id.value) return false;
+    if (qualifed != id.qualifed) return false;
+    if (!code.equals(id.code)) return false;
+
+    return true;
   }
 
   @Override public int hashCode() {
-    return value;
-  }
-
-  @Override public String toString() {
-    throw new UnsupportedOperationException("Please use value or code explicitly");
+    int result = value;
+    result = 31 * result + code.hashCode();
+    result = 31 * result + (qualifed ? 1 : 0);
+    return result;
   }
 }
