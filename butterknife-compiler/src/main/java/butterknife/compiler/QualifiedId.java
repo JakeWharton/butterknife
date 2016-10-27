@@ -12,8 +12,8 @@ final class QualifiedId {
   @Override public String toString() {
     return "QualifiedId{"
         + "packageName='"
-        + packageName +
-        '\''
+        + packageName
+        + '\''
         + ", id="
         + id
         + '}';
