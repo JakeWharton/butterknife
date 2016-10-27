@@ -10,10 +10,13 @@ final class QualifiedId {
   }
 
   @Override public String toString() {
-    return "QualifiedId{" +
-        "packageName='" + packageName + '\'' +
-        ", id=" + id +
-        '}';
+    return "QualifiedId{"
+        + "packageName='"
+        + packageName +
+        '\''
+        + ", id="
+        + id
+        + '}';
   }
 
   @Override public boolean equals(Object o) {
