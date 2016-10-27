@@ -1259,7 +1259,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     }
   }
 
-  private void parseRClass(String respectivePackageName, String rClass) {
+  private void parseRClass(String rPackageName, String rClass) {
     Element element;
 
     try {
@@ -1270,10 +1270,10 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
     JCTree tree = (JCTree) trees.getTree(element);
     if (tree != null) { // tree can be null if the references are compiled types and not source
-      IdScanner idScanner = new IdScanner(symbols, respectivePackageName);
+      IdScanner idScanner = new IdScanner(symbols, rPackageName);
       tree.accept(idScanner);
     } else {
-      parseCompiledR(respectivePackageName, (TypeElement) element);
+      parseCompiledR(rPackageName, (TypeElement) element);
     }
   }
 
