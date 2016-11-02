@@ -3,6 +3,7 @@ subprojects { project ->
   version = VERSION_NAME
 
   repositories {
+    mavenCentral()
     maven {
       url "https://plugins.gradle.org/m2/"
     }
@@ -30,6 +31,7 @@ subprojects { project ->
 
   buildscript {
     repositories {
+      mavenCentral()
       maven {
         url "https://plugins.gradle.org/m2/"
       }
