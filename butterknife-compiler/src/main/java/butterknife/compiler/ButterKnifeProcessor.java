@@ -1037,7 +1037,9 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
           if (methodParameterUsed.get(j)) {
             continue;
           }
-          if (isSubtypeOfType(methodParameterType, parameterTypes[j])
+          if ((isSubtypeOfType(methodParameterType, parameterTypes[j])
+                  && isSubtypeOfType(methodParameterType, VIEW_TYPE))
+              || isTypeEqual(methodParameterType, parameterTypes[j])
               || isInterface(methodParameterType)) {
             parameters[i] = new Parameter(j, TypeName.get(methodParameterType));
             methodParameterUsed.set(j);
@@ -1103,7 +1105,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
   }
 
   private boolean isSubtypeOfType(TypeMirror typeMirror, String otherType) {
-    if (otherType.equals(typeMirror.toString())) {
+    if (isTypeEqual(typeMirror, otherType)) {
       return true;
     }
     if (typeMirror.getKind() != TypeKind.DECLARED) {
@@ -1140,6 +1142,10 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
       }
     }
     return false;
+  }
+
+  private boolean isTypeEqual(TypeMirror typeMirror, String otherType) {
+    return otherType.equals(typeMirror.toString());
   }
 
   private BindingSet.Builder getOrCreateBindingBuilder(
