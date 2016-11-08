@@ -440,11 +440,10 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
     BindingSet.Builder builder = builderMap.get(enclosingElement);
     if (builder != null) {
-      ViewBindings viewBindings = builder.getViewBinding(getId(id));
-      if (viewBindings != null && viewBindings.getFieldBinding() != null) {
-        FieldViewBinding existingBinding = viewBindings.getFieldBinding();
+      String existingBindingName = builder.findExistingBindingName(getId(id));
+      if (existingBindingName != null) {
         error(element, "Attempt to use @%s for an already bound ID %d on '%s'. (%s.%s)",
-            BindView.class.getSimpleName(), id, existingBinding.getName(),
+            BindView.class.getSimpleName(), id, existingBindingName,
             enclosingElement.getQualifiedName(), element.getSimpleName());
         return;
       }
