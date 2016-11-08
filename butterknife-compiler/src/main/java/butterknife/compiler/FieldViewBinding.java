@@ -4,7 +4,7 @@ import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 
-final class FieldViewBinding implements ViewBinding {
+final class FieldViewBinding implements MemberViewBinding {
   private final String name;
   private final TypeName type;
   private final boolean required;
