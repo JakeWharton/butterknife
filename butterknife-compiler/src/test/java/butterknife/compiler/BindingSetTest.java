@@ -9,9 +9,9 @@ import static java.util.Collections.singletonList;
 
 public class BindingSetTest {
   @Test public void humanDescriptionJoinWorks() {
-    ViewBinding one = new TestViewBinding("one");
-    ViewBinding two = new TestViewBinding("two");
-    ViewBinding three = new TestViewBinding("three");
+    MemberViewBinding one = new TestViewBinding("one");
+    MemberViewBinding two = new TestViewBinding("two");
+    MemberViewBinding three = new TestViewBinding("three");
 
     String result1 = asHumanDescription(singletonList(one));
     assertThat(result1).isEqualTo("one");
@@ -23,7 +23,7 @@ public class BindingSetTest {
     assertThat(result3).isEqualTo("one, two, and three");
   }
 
-  private static class TestViewBinding implements ViewBinding {
+  private static class TestViewBinding implements MemberViewBinding {
     private final String description;
 
     private TestViewBinding(String description) {

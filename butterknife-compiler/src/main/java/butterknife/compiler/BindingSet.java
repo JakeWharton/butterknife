@@ -49,21 +49,21 @@ final class BindingSet {
   private final TypeName targetTypeName;
   private final ClassName bindingClassName;
   private final boolean isFinal;
-  private final List<ViewBindings> viewBindings;
-  private final List<FieldCollectionViewBinding> collectionBindings;
-  private final List<ResourceBinding> resourceBindings;
+  private final ImmutableList<ViewBinding> viewBindings;
+  private final ImmutableList<FieldCollectionViewBinding> collectionBindings;
+  private final ImmutableList<ResourceBinding> resourceBindings;
   private final BindingSet parentBinding;
 
   private BindingSet(TypeName targetTypeName, ClassName bindingClassName, boolean isFinal,
-      Collection<ViewBindings> viewBindings,
-      Collection<FieldCollectionViewBinding> collectionBindings,
-      Collection<ResourceBinding> resourceBindings, BindingSet parentBinding) {
+      ImmutableList<ViewBinding> viewBindings,
+      ImmutableList<FieldCollectionViewBinding> collectionBindings,
+      ImmutableList<ResourceBinding> resourceBindings, BindingSet parentBinding) {
     this.isFinal = isFinal;
     this.targetTypeName = targetTypeName;
     this.bindingClassName = bindingClassName;
-    this.viewBindings = ImmutableList.copyOf(viewBindings);
-    this.collectionBindings = ImmutableList.copyOf(collectionBindings);
-    this.resourceBindings = ImmutableList.copyOf(resourceBindings);
+    this.viewBindings = viewBindings;
+    this.collectionBindings = collectionBindings;
+    this.resourceBindings = resourceBindings;
     this.parentBinding = parentBinding;
   }
 
@@ -161,8 +161,8 @@ final class BindingSet {
         // Local variable in which all views will be temporarily stored.
         constructor.addStatement("$T view", VIEW);
       }
-      for (ViewBindings bindings : viewBindings) {
-        addViewBindings(constructor, bindings);
+      for (ViewBinding binding : viewBindings) {
+        addViewBinding(constructor, binding);
       }
       for (FieldCollectionViewBinding binding : collectionBindings) {
         constructor.addStatement("$L", binding.render());
@@ -205,9 +205,9 @@ final class BindingSet {
           "Bindings already cleared.");
       result.addStatement("$N = null", hasFieldBindings() ? "this.target" : "target");
       result.addCode("\n");
-      for (ViewBindings bindings : viewBindings) {
-        if (bindings.getFieldBinding() != null) {
-          result.addStatement("target.$L = null", bindings.getFieldBinding().getName());
+      for (ViewBinding binding : viewBindings) {
+        if (binding.getFieldBinding() != null) {
+          result.addStatement("target.$L = null", binding.getFieldBinding().getName());
         }
       }
       for (FieldCollectionViewBinding binding : collectionBindings) {
@@ -217,8 +217,8 @@ final class BindingSet {
 
     if (hasMethodBindings()) {
       result.addCode("\n");
-      for (ViewBindings bindings : viewBindings) {
-        addFieldAndUnbindStatement(bindingClass, result, bindings);
+      for (ViewBinding binding : viewBindings) {
+        addFieldAndUnbindStatement(bindingClass, result, binding);
       }
     }
 
@@ -230,7 +230,7 @@ final class BindingSet {
   }
 
   private void addFieldAndUnbindStatement(TypeSpec.Builder result, MethodSpec.Builder unbindMethod,
-      ViewBindings bindings) {
+      ViewBinding bindings) {
     // Only add fields to the binding if there are method bindings.
     Map<ListenerClass, Map<ListenerMethod, Set<MethodViewBinding>>> classMethodBindings =
         bindings.getMethodBindings();
@@ -284,23 +284,23 @@ final class BindingSet {
         : listenerClass.setter();
   }
 
-  private void addViewBindings(MethodSpec.Builder result, ViewBindings bindings) {
-    if (bindings.isSingleFieldBinding()) {
+  private void addViewBinding(MethodSpec.Builder result, ViewBinding binding) {
+    if (binding.isSingleFieldBinding()) {
       // Optimize the common case where there's a single binding directly to a field.
-      FieldViewBinding fieldBinding = bindings.getFieldBinding();
+      FieldViewBinding fieldBinding = binding.getFieldBinding();
       CodeBlock.Builder builder = CodeBlock.builder()
           .add("target.$L = ", fieldBinding.getName());
 
       boolean requiresCast = requiresCast(fieldBinding.getType());
       if (!requiresCast && !fieldBinding.isRequired()) {
-        builder.add("source.findViewById($L)", bindings.getId().code);
+        builder.add("source.findViewById($L)", binding.getId().code);
       } else {
         builder.add("$T.find", UTILS);
         builder.add(fieldBinding.isRequired() ? "RequiredView" : "OptionalView");
         if (requiresCast) {
           builder.add("AsType");
         }
-        builder.add("(source, $L", bindings.getId().code);
+        builder.add("(source, $L", binding.getId().code);
         if (fieldBinding.isRequired() || requiresCast) {
           builder.add(", $S", asHumanDescription(singletonList(fieldBinding)));
         }
@@ -313,24 +313,24 @@ final class BindingSet {
       return;
     }
 
-    List<ViewBinding> requiredViewBindings = bindings.getRequiredBindings();
-    if (requiredViewBindings.isEmpty()) {
-      result.addStatement("view = source.findViewById($L)", bindings.getId().code);
-    } else if (!bindings.isBoundToRoot()) {
+    List<MemberViewBinding> requiredBindings = binding.getRequiredBindings();
+    if (requiredBindings.isEmpty()) {
+      result.addStatement("view = source.findViewById($L)", binding.getId().code);
+    } else if (!binding.isBoundToRoot()) {
       result.addStatement("view = $T.findRequiredView(source, $L, $S)", UTILS,
-          bindings.getId().code, asHumanDescription(requiredViewBindings));
+          binding.getId().code, asHumanDescription(requiredBindings));
     }
 
-    addFieldBindings(result, bindings);
-    addMethodBindings(result, bindings);
+    addFieldBinding(result, binding);
+    addMethodBindings(result, binding);
   }
 
-  private void addFieldBindings(MethodSpec.Builder result, ViewBindings bindings) {
-    FieldViewBinding fieldBinding = bindings.getFieldBinding();
+  private void addFieldBinding(MethodSpec.Builder result, ViewBinding binding) {
+    FieldViewBinding fieldBinding = binding.getFieldBinding();
     if (fieldBinding != null) {
       if (requiresCast(fieldBinding.getType())) {
         result.addStatement("target.$L = $T.castView(view, $L, $S, $T.class)",
-            fieldBinding.getName(), UTILS, bindings.getId().code,
+            fieldBinding.getName(), UTILS, binding.getId().code,
             asHumanDescription(singletonList(fieldBinding)), fieldBinding.getRawType());
       } else {
         result.addStatement("target.$L = view", fieldBinding.getName());
@@ -338,15 +338,15 @@ final class BindingSet {
     }
   }
 
-  private void addMethodBindings(MethodSpec.Builder result, ViewBindings bindings) {
+  private void addMethodBindings(MethodSpec.Builder result, ViewBinding binding) {
     Map<ListenerClass, Map<ListenerMethod, Set<MethodViewBinding>>> classMethodBindings =
-        bindings.getMethodBindings();
+        binding.getMethodBindings();
     if (classMethodBindings.isEmpty()) {
       return;
     }
 
     // We only need to emit the null check if there are zero required bindings.
-    boolean needsNullChecked = bindings.getRequiredBindings().isEmpty();
+    boolean needsNullChecked = binding.getRequiredBindings().isEmpty();
     if (needsNullChecked) {
       result.beginControlFlow("if (view != null)");
     }
@@ -354,8 +354,8 @@ final class BindingSet {
     // Add the view reference to the binding.
     String fieldName = "viewSource";
     String bindName = "source";
-    if (!bindings.isBoundToRoot()) {
-      fieldName = "view" + bindings.getId().value;
+    if (!binding.isBoundToRoot()) {
+      fieldName = "view" + binding.getId().value;
       bindName = "view";
     }
     result.addStatement("$L = $N", fieldName, bindName);
@@ -385,9 +385,9 @@ final class BindingSet {
         }
 
         if (methodBindings.containsKey(method)) {
-          for (MethodViewBinding binding : methodBindings.get(method)) {
-            builder.add("target.$L(", binding.getName());
-            List<Parameter> parameters = binding.getParameters();
+          for (MethodViewBinding methodBinding : methodBindings.get(method)) {
+            builder.add("target.$L(", methodBinding.getName());
+            List<Parameter> parameters = methodBinding.getParameters();
             String[] listenerParameters = method.parameters();
             for (int i = 0, count = parameters.size(); i < count; i++) {
               if (i > 0) {
@@ -399,7 +399,7 @@ final class BindingSet {
 
               if (parameter.requiresCast(listenerParameters[listenerPosition])) {
                 builder.add("$T.<$T>castParam(p$L, $S, $L, $S, $L)", UTILS, parameter.getType(),
-                    listenerPosition, method.name(), listenerPosition, binding.getName(), i);
+                    listenerPosition, method.name(), listenerPosition, methodBinding.getName(), i);
               } else {
                 builder.add("p$L", listenerPosition);
               }
@@ -459,8 +459,8 @@ final class BindingSet {
     }
   }
 
-  static String asHumanDescription(Collection<? extends ViewBinding> bindings) {
-    Iterator<? extends ViewBinding> iterator = bindings.iterator();
+  static String asHumanDescription(Collection<? extends MemberViewBinding> bindings) {
+    Iterator<? extends MemberViewBinding> iterator = bindings.iterator();
     switch (bindings.size()) {
       case 1:
         return iterator.next().getDescription();
@@ -534,7 +534,7 @@ final class BindingSet {
   }
 
   private boolean hasMethodBindings() {
-    for (ViewBindings bindings : viewBindings) {
+    for (ViewBinding bindings : viewBindings) {
       if (!bindings.getMethodBindings().isEmpty()) {
         return true;
       }
@@ -543,7 +543,7 @@ final class BindingSet {
   }
 
   private boolean hasFieldBindings() {
-    for (ViewBindings bindings : viewBindings) {
+    for (ViewBinding bindings : viewBindings) {
       if (bindings.getFieldBinding() != null) {
         return true;
       }
@@ -556,7 +556,7 @@ final class BindingSet {
   }
 
   private boolean hasViewLocal() {
-    for (ViewBindings bindings : viewBindings) {
+    for (ViewBinding bindings : viewBindings) {
       if (bindings.requiresLocal()) {
         return true;
       }
@@ -600,9 +600,10 @@ final class BindingSet {
 
     private BindingSet parentBinding;
 
-    private final Map<Id, ViewBindings> viewIdMap = new LinkedHashMap<>();
-    private final List<FieldCollectionViewBinding> collectionBindings = new ArrayList<>();
-    private final List<ResourceBinding> resourceBindings = new ArrayList<>();
+    private final Map<Id, ViewBinding.Builder> viewIdMap = new LinkedHashMap<>();
+    private final ImmutableList.Builder<FieldCollectionViewBinding> collectionBindings =
+        ImmutableList.builder();
+    private final ImmutableList.Builder<ResourceBinding> resourceBindings = ImmutableList.builder();
 
     private Builder(TypeName targetTypeName, ClassName bindingClassName, boolean isFinal) {
       this.targetTypeName = targetTypeName;
@@ -623,11 +624,11 @@ final class BindingSet {
         ListenerClass listener,
         ListenerMethod method,
         MethodViewBinding binding) {
-      ViewBindings viewBindings = getOrCreateViewBindings(id);
-      if (viewBindings.hasMethodBinding(listener, method) && !"void".equals(method.returnType())) {
+      ViewBinding.Builder viewBinding = getOrCreateViewBindings(id);
+      if (viewBinding.hasMethodBinding(listener, method) && !"void".equals(method.returnType())) {
         return false;
       }
-      viewBindings.addMethodBinding(listener, method, binding);
+      viewBinding.addMethodBinding(listener, method, binding);
       return true;
     }
 
@@ -639,22 +640,34 @@ final class BindingSet {
       this.parentBinding = parent;
     }
 
-    ViewBindings getViewBinding(Id id) {
-      return viewIdMap.get(id);
+    String findExistingBindingName(Id id) {
+      ViewBinding.Builder builder = viewIdMap.get(id);
+      if (builder == null) {
+        return null;
+      }
+      FieldViewBinding fieldBinding = builder.fieldBinding;
+      if (fieldBinding == null) {
+        return null;
+      }
+      return fieldBinding.getName();
     }
 
-    private ViewBindings getOrCreateViewBindings(Id id) {
-      ViewBindings viewId = viewIdMap.get(id);
+    private ViewBinding.Builder getOrCreateViewBindings(Id id) {
+      ViewBinding.Builder viewId = viewIdMap.get(id);
       if (viewId == null) {
-        viewId = new ViewBindings(id);
+        viewId = new ViewBinding.Builder(id);
         viewIdMap.put(id, viewId);
       }
       return viewId;
     }
 
     BindingSet build() {
-      return new BindingSet(targetTypeName, bindingClassName, isFinal, viewIdMap.values(),
-          collectionBindings, resourceBindings, parentBinding);
+      ImmutableList.Builder<ViewBinding> viewBindings = ImmutableList.builder();
+      for (ViewBinding.Builder builder : viewIdMap.values()) {
+        viewBindings.add(builder.build());
+      }
+      return new BindingSet(targetTypeName, bindingClassName, isFinal, viewBindings.build(),
+          collectionBindings.build(), resourceBindings.build(), parentBinding);
     }
   }
 }
