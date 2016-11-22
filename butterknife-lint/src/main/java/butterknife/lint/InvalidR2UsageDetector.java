@@ -67,7 +67,6 @@ public class InvalidR2UsageDetector extends Detector implements Detector.JavaPsi
     }
 
     private static void detectR2(JavaContext context, PsiElement node) {
-      System.out.println("visiting " + node.getText() + ", parent=" + node.getParent().getParent().getClass());
       PsiClass[] classes = context.getJavaFile().getClasses();
       if (classes.length > 0 && classes[0].getName() != null) {
         String qualifiedName = classes[0].getName();
@@ -79,7 +78,6 @@ public class InvalidR2UsageDetector extends Detector implements Detector.JavaPsi
       }
       boolean isR2 = isR2Expression(node);
       if (isR2 && !context.isSuppressedWithComment(node, ISSUE)) {
-        System.out.println("about to report " + node.getText());
         context.report(ISSUE, node, context.getLocation(node), LINT_ERROR_BODY);
       }
     }
