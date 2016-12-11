@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Butter Knife</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Vinculação de campos e métodos para views do Android.">
+    <link href="http://fonts.googleapis.com/css?family=Roboto:regular,medium,thin,italic,mediumitalic,bold" rel="stylesheet" title="roboto">
+    <link href="static/bootstrap.min.css" rel="stylesheet">
+    <link href="static/bootstrap-responsive.min.css" rel="stylesheet">
+    <link href="static/prettify.css" rel="stylesheet">
+    <link href="static/app.css" rel="stylesheet">
+  </head>
+  <body>
+    <div class="container">
+      <div class="row">
+        <div class="span4 side">
+          <img src="static/logo.png">
+          <h1>Butter Knife</h1>
+          <h2>Vinculação de campos e métodos para views do Android</h2>
+          <p><a href="javadoc/">Javadoc</a> &middot; <a href="http://stackoverflow.com/questions/ask?tags=butterknife">StackOverflow</a></p>
+        </div>
+        <div class="offset4 span8 main">
+          <div class="main-inner">
+            <h3 id="introduction">Introdução</h3>
+            <p>Adicione anotações <code>@Bind</code> e um ID à view para o Butter Knife encontrar e fazer o cast automáticamente da view correspondente no seu layout.</p>
+            <pre class="prettyprint">class ActivityExemplo extends Activity {
+  @Bind(R.id.titulo) TextView titulo;
+  @Bind(R.id.subtitulo) TextView subtitulo;
+  @Bind(R.id.rodape) TextView rodape;
+
+  @Override public void onCreate(Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+    setContentView(R.layout.simple_activity);
+    ButterKnife.bind(this);
+    // TODO Use os campos...
+  }
+}</pre>
+            <p>Ao invés de uma reflexão lenta, o código é gerado para encontrar as views. Chamar <code>@bind</code> gera o código abaixo que você pode ver e depurar.</p>
+            <p>O código gerado para o exemplo acima é equivalente ao seguinte:</p>
+            <pre class="prettyprint">public void bind(ExampleActivity activity) {
+  activity.subtitulo = (android.widget.TextView) activity.findViewById(2130968578);
+  activity.rodape = (android.widget.TextView) activity.findViewById(2130968579);
+  activity.titulo = (android.widget.TextView) activity.findViewById(2130968577);
+}</pre>
+
+            <h4 id="non-activity">Binding fora da Activity</h4>
+            <p>Você também pode vincular objetos arbritários passando sua view raíz.</p>
+            <pre class="prettyprint">public class FancyFragment extends Fragment {
+  @Bind(R.id.button1) Button button1;
+  @Bind(R.id.button2) Button button2;
+
+  @Override public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    View view = inflater.inflate(R.layout.fancy_fragment, container, false);
+    ButterKnife.bind(this, view);
+    // TODO Use os campos...
+    return view;
+  }
+}</pre>
+            <p>Outro uso do Butter Knife é para simplificar o pattern view holder dentro de um list adapter.</p>
+            <pre class="prettyprint">public class MyAdapter extends BaseAdapter {
+  @Override public View getView(int position, View view, ViewGroup parent) {
+    ViewHolder holder;
+    if (view != null) {
+      holder = (ViewHolder) view.getTag();
+    } else {
+      view = inflater.inflate(R.layout.whatever, parent, false);
+      holder = new ViewHolder(view);
+      view.setTag(holder);
+    }
+
+    holder.nome.setText("John Doe");
+    // etc...
+
+    return view;
+  }
+
+  static class ViewHolder {
+    @Bind(R.id.nome) TextView nome;
+    @Bind(R.id.sobrenome) TextView sobrenome;
+
+    public ViewHolder(View view) {
+      ButterKnife.bind(this, view);
+    }
+  }
+}</pre>
+            <p>Você pode ver essa implementação em ação no exemplo mostrado.</p>
+            <p>Chamadas ao <code>ButterKnife.bind</code> podem ser feitas em qualquer lugar em que você utilizaria <code>findViewById</code>.</p>
+            <p>Outras APIs de Binding providas:</p>
+            <ul>
+              <li>Vincule objetos arbitrários usando uma activity como view raíz. Se você utiliza um pattern como o MVC você pode vincular o controller usando sua activity. <code>ButterKnife.bind(this, activity)</code>.</li>
+              <li>Vincule uma view filha em campos utilizando <code>ButterKnife.bind(this)</code>. Se você utiliza tags <code>&lt;merge></code> em um layout e inflar no construtor de uma view customizada você pode chamar esse código logo em seguida. Alternativamente, tipos de views customizadas infladas do XML podem usá-lo no callback <code>onFinishInflate()</code>.</li>
+            </ul>
+
+            <h4 id="view-lists">Listas de Views</h4>
+            <p>Você pode agrupar multiplos Views em um<code>List</code> ou array.</p>
+            <pre class="prettyprint">@Bind({ R.id.nome, R.id.nome_do_meio, R.id.ultimo_nome })
+List&lt;EditText> nameViews;</pre>
+            <p>O método <code>apply</code> permite que você use todas as views em uma lista de uma só vez.</p>
+            <pre class="prettyprint">ButterKnife.apply(nameViews, DISABLE);
+ButterKnife.apply(nameViews, ENABLED, false);</pre>
+            <p><code>As interfaces Action</code> e <code>Setter</code> permitem especificar um comportamento simples.</p>
+            <pre class="prettyprint">static final ButterKnife.Action&lt;View> DISABLE = new ButterKnife.Action&lt;View>() {
+  @Override public void apply(View view, int index) {
+    view.setEnabled(false);
+  }
+};
+static final ButterKnife.Setter&lt;View, Boolean> ENABLED = new ButterKnife.Setter&lt;View, Boolean>() {
+  @Override public void set(View view, Boolean value, int index) {
+    view.setEnabled(value);
+  }
+};</pre>
+            <p>Uma <a href="https://developer.android.com/reference/android/util/Property.html"><code>Property</code></a> do Android também pode ser utilizada com o método <code>apply</code>.</p>
+            <pre class="prettyprint">ButterKnife.apply(nameViews, View.ALPHA, 0.0f);</pre>
+
+            <h4 id="listener-binding">Vinculação de Listeners</h4>
+            <p>Listeners can also automatically be configured onto methods.</p>
+            <pre class="prettyprint">@OnClick(R.id.enviar)
+public void enviar(View view) {
+  // TODO enviar dados ao servidor...
+}</pre>
+            <p>Todos os argumentos do listener são opcionais.</p>
+            <pre class="prettyprint">@OnClick(R.id.enviar)
+public void enviar() {
+  // TODO enviar dados ao servidor...
+}</pre>
+            <p>Defina um tipo específico e ele será convertido automaticamente.</p>
+            <pre class="prettyprint">@OnClick(R.id.enviar)
+public void digaOi(Button button) {
+  button.setText("Oi!");
+}</pre>
+            <p>Especifique múltiplos IDs em um único binding para tratar eventos comuns.</p>
+            <pre class="prettyprint">@OnClick({ R.id.porta1, R.id.porta2, R.id.porta3 })
+public void escolherPorta(Porta porta) {
+  if (porta.possuiPremio()) {
+    Toast.makeText(this, "Você Ganhou!", LENGTH_SHORT).show();
+  } else {
+    Toast.makeText(this, "Tente novamente.", LENGTH_SHORT).show();
+  }
+}</pre>
+            <p>Views customizadas podem vincular seus próprios listeners não especificando um ID.</p>
+            <pre class="prettyprint">public class FancyButton extends Button {
+  @OnClick
+  public void onClick() {
+    // TODO faça algo!
+  }
+}
+</pre>
+
+            <h4 id="reset">Desvinculação</h4>
+            <p>Fragments têm um ciclo de vida diferente de activities. Quando um fragment é vinculado no <code>onCreateView</code>, atribua <code>null</code> às views no <code>onDestroyView</code>. Butter Knife tem um método <code>unbind</code> para desvincular automaticamente.</p>
+            <pre class="prettyprint">public class FancyFragment extends Fragment {
+  @Bind(R.id.button1) Button button1;
+  @Bind(R.id.button2) Button button2;
+
+  @Override public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    View view = inflater.inflate(R.layout.fancy_fragment, container, false);
+    ButterKnife.bind(this, view);
+    // TODO Use os campos...
+    return view;
+  }
+
+  @Override public void onDestroyView() {
+    super.onDestroyView();
+    ButterKnife.unbind(this);
+  }
+}</pre>
+
+            <h4 id="optional">Vínculos Opcionais</h4>
+            <p>Por default, tanto o <code>@Bind</code> quanto os binds de listeners são requeridos. Uma excessão será lançada se a view alvo não puder ser encontrada.</p>
+            <p>Para ignorar esse comportamento e criar binds opcionais, adicione a anotação <code>@Nullable</code> ao campo ou método.</p>
+            <p>Nota: Qualquer anotação <code>@Nullable</code> pode ser utilizada para isso. É recomendado utilizar a anotação <code>@Nullable</code> da biblioteca "support-annotations" do Android, veja <a href="http://tools.android.com/tech-docs/support-annotations">Android Tools Project</a>.</p>
+            <pre class="prettyprint">@Nullable @Bind(R.id.pode_nao_estar_la) TextView podeNaoEstarLa;
+
+@Nullable @OnClick(R.id.talvez_ausente) void onTalvezAusenteClicked() {
+  // TODO ...
+}</pre>
+
+            <h4 id="multi-method-listeners">Listeners de múltiplos métodos</h4>
+            <p>Anotações de métodos em que os listeners correspondentes possuem múltiplos callbacks podem ser utilizados para vincular qualquer um deles. Cada anotação é vinculada a um callback default. Especifique um outro utilizando o parâmetro <code>callback</code>.</p>
+            <pre class="prettyprint">@OnItemSelected(R.id.list_view)
+void onItemSelected(int position) {
+  // TODO ...
+}
+
+@OnItemSelected(value = R.id.maybe_missing, callback = NOTHING_SELECTED)
+void onNothingSelected() {
+  // TODO ...
+}</pre>
+
+            <h4 id="bonus">Bonus</h4>
+            <p>Métodos <code>findById</code> que simplificam código que ainda tem que encontrar views em uma <code>View</code>, <code>Activity</code>, or <code>Dialog</code>, também estão inclusos. É utilizado tipos genéricos para inferir o tipo do retorno e automaticamente o converte.</p>
+            <pre class="prettyprint">View view = LayoutInflater.from(context).inflate(R.layout.algo, null);
+TextView primeiroNome = ButterKnife.findById(view, R.id.primeiro_nome);
+TextView ultimoNome = ButterKnife.findById(view, R.id.ultimo_nome);
+ImageView foto = ButterKnife.findById(view, R.id.foto);</pre>
+            <p>Adicione um import estático a <code>ButterKnife.findById</code> e se divirta ainda mais.</p>
+
+            <h3 id="download">Download</h3>
+            <p class="downloads">
+              <a href="http://repository.sonatype.org/service/local/artifact/maven/redirect?r=central-proxy&g=com.jakewharton&a=butterknife&v=LATEST" class="btn btn-large btn-inverse" id="download-btn">JAR do Butter Knife<span class="runner-version"></span></a>
+            </p>
+            <p>O código fonte dessa biblioteca e da aplicação de exemplo assim como o desse site está <a href="http://github.com/JakeWharton/butterknife">disponível no GitHub</a>. O <a href="javadoc/index.html">Javadoc</a> também está disponível. Contribua para a tradução <a href="https://github.com/WilderPereira/butterknife-ptBR">nesse repositório</p></a>
+
+            <h4>Maven</h4>
+            <p>Se você está utilizando Maven você pode declarar está biblioteca como uma dependência.</p>
+            <pre class="prettyprint">&lt;dependency>
+  &lt;groupId>com.jakewharton&lt;/groupId>
+  &lt;artifactId>butterknife&lt;/artifactId>
+  &lt;version><span class="version"><em>(Coloque a última versão)</em></span>&lt;/version>
+&lt;/dependency></pre>
+
+            <h4>Gradle</h4>
+            <pre class="prettyprint">compile 'com.jakewharton:butterknife:<span class="version"><em>(Coloque a última versão)</em></span>'</pre>
+            <p>Certifique-se de que não receba este aviso no seu <code>build.gradle</code>.</p>
+            <pre class="prettyprint">lintOptions {
+  disable 'InvalidPackage'
+}</pre>
+            <p>Algumas configurações também podem requerir exclusões adicionais.</p>
+            <pre class="prettyprint">packagingOptions {
+  exclude 'META-INF/services/javax.annotation.processing.Processor'
+}</pre>
+
+            <h4 id="ide">Configuração da IDE</h4>
+            <p>Algumas IDEs requerem configurações adicionais para habilitar o processamento de anotações.</p>
+            <ul>
+              <li><em>IntelliJ IDEA</em> &mdash; Se você utiliza alguma configuração externa em seu projeto (Como <code>pom.xml</code> do Maven) o processamento de anotações deve funcionar. Se não, veja o <a href="ide-idea.pt_BR.html">manual de configuração</a>.</li>
+              <li><em>Eclipse</em> &mdash; <a href="ide-eclipse.pt_BR.html">manual de configuração</a>.</li>
+            </ul>
+
+            <h4 id="proguard">ProGuard</h4>
+            <p>O Butter Knife utiliza e gera classes dinamicamente, o que significa que ferramentas de análises estáticas como o ProGuard podem pensar que estão inutilizados. Pra previnir que elas sejam removidas, marque elas explicitamente para que continuem.
+                Para previnir que o ProGuard renomeie classes que usam @Bind em um campo a opção <code>keepclasseswithmembernames</code> é utilizada.</p>
+            <pre>-keep class butterknife.** { *; }
+-dontwarn butterknife.internal.**
+-keep class **$$ViewBinder { *; }
+
+-keepclasseswithmembernames class * {
+    @butterknife.* &lt;fields&gt;;
+}
+
+-keepclasseswithmembernames class * {
+    @butterknife.* &lt;methods&gt;;
+}</pre>
+
+            <h3 id="license">Licença</h3>
+            <pre class="license">Copyright 2013 Jake Wharton
+
+Licenciado sob a licença do Apache, Versão 2.0 (a "Licença");
+você não pode usar este arquivo exceto em conformidade com a Licença.
+Você pode obter uma cópia da Licença em
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+A menos que seja exigido pela lei aplicável ou acordado por escrito, software
+distribuído sob a Licença é distribuído na base "AS IS",
+EM GARANTIAS OU CONDIÇÕES DE QUALQUER NATUREZA, evidente ou implícita. 
+Veja a Licença para as permissões específicas da linguagem e as limitações
+sob a licença.</pre>
+
+            <a id="ribbon" href="https://github.com/JakeWharton/butterknife"><img src="static/ribbon.png" alt="Fork me on GitHub"></a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+    <script src="static/jquery-maven-artifact.min.js"></script>
+    <script src="static/prettify.js"></script>
+    <script>
+      prettyPrint();
+      $.fn.artifactVersion('com.jakewharton', 'butterknife', function(version, url) {
+        $('.version').text(version);
+        $('#download-btn').text('Butter Knife v' + version + ' JAR').attr('href', url);
+      });
+    </script>
+  </body>
+</html>
