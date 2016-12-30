@@ -189,7 +189,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
       }
     }
 
-    return true;
+    return false;
   }
 
   private Map<TypeElement, BindingSet> findAndParseTargets(RoundEnvironment env) {
