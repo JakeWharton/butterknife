@@ -21,6 +21,7 @@ public class OnTouchTest {
 
     JavaFileObject bindingSource = JavaFileObjects.forSourceString("test/Test_ViewBinding", ""
         + "package test;\n"
+        + "import android.annotation.SuppressLint;\n"
         + "import android.support.annotation.CallSuper;\n"
         + "import android.support.annotation.UiThread;\n"
         + "import android.view.MotionEvent;\n"
@@ -33,6 +34,7 @@ public class OnTouchTest {
         + "  private Test target;\n"
         + "  private View view1;\n"
         + "  @UiThread\n"
+        + "  @SuppressLint(\"ClickableViewAccessibility\")\n"
         + "  public Test_ViewBinding(final Test target, View source) {\n"
         + "    this.target = target;\n"
         + "    View view;\n"
