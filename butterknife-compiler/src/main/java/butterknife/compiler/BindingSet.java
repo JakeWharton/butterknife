@@ -1,5 +1,6 @@
 package butterknife.compiler;
 
+import butterknife.OnTouch;
 import butterknife.internal.ListenerClass;
 import butterknife.internal.ListenerMethod;
 import com.google.common.collect.ImmutableList;
@@ -41,6 +42,8 @@ final class BindingSet {
       ClassName.get("android.support.annotation", "UiThread");
   private static final ClassName CALL_SUPER =
       ClassName.get("android.support.annotation", "CallSuper");
+  private static final ClassName SUPPRESS_LINT =
+      ClassName.get("android.annotation", "SuppressLint");
   private static final ClassName UNBINDER = ClassName.get("butterknife", "Unbinder");
   static final ClassName BITMAP_FACTORY = ClassName.get("android.graphics", "BitmapFactory");
   static final ClassName CONTEXT_COMPAT =
@@ -138,6 +141,12 @@ final class BindingSet {
       // Aapt can change IDs out from underneath us, just suppress since all will work at runtime.
       constructor.addAnnotation(AnnotationSpec.builder(SuppressWarnings.class)
           .addMember("value", "$S", "ResourceType")
+          .build());
+    }
+
+    if (hasOnTouchMethodBindings()) {
+      constructor.addAnnotation(AnnotationSpec.builder(SUPPRESS_LINT)
+          .addMember("value", "$S", "ClickableViewAccessibility")
           .build());
     }
 
@@ -536,6 +545,16 @@ final class BindingSet {
   private boolean hasMethodBindings() {
     for (ViewBinding bindings : viewBindings) {
       if (!bindings.getMethodBindings().isEmpty()) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private boolean hasOnTouchMethodBindings() {
+    for (ViewBinding bindings : viewBindings) {
+      if (bindings.getMethodBindings()
+          .containsKey(OnTouch.class.getAnnotation(ListenerClass.class))) {
         return true;
       }
     }
