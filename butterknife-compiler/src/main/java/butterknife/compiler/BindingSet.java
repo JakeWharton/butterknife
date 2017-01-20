@@ -95,40 +95,40 @@ final class BindingSet {
 
     if (!constructorNeedsView()) {
       // Add a delegating constructor with a target type + view signature for reflective use.
-      result.addMethod(createBindingViewDelegateConstructor(targetTypeName));
+      result.addMethod(createBindingViewDelegateConstructor());
     }
-    result.addMethod(createBindingConstructor(targetTypeName, sdk));
+    result.addMethod(createBindingConstructor(sdk));
 
     if (hasViewBindings() || parentBinding == null) {
-      result.addMethod(createBindingUnbindMethod(result, targetTypeName));
+      result.addMethod(createBindingUnbindMethod(result));
     }
 
     return result.build();
   }
 
-  private MethodSpec createBindingViewDelegateConstructor(TypeName targetType) {
+  private MethodSpec createBindingViewDelegateConstructor() {
     return MethodSpec.constructorBuilder()
         .addJavadoc("@deprecated Use {@link #$T($T, $T)} for direct creation.\n    "
                 + "Only present for runtime invocation through {@code ButterKnife.bind()}.\n",
-            bindingClassName, targetType, CONTEXT)
+            bindingClassName, targetTypeName, CONTEXT)
         .addAnnotation(Deprecated.class)
         .addAnnotation(UI_THREAD)
         .addModifiers(PUBLIC)
-        .addParameter(targetType, "target")
+        .addParameter(targetTypeName, "target")
         .addParameter(VIEW, "source")
         .addStatement(("this(target, source.getContext())"))
         .build();
   }
 
-  private MethodSpec createBindingConstructor(TypeName targetType, int sdk) {
+  private MethodSpec createBindingConstructor(int sdk) {
     MethodSpec.Builder constructor = MethodSpec.constructorBuilder()
         .addAnnotation(UI_THREAD)
         .addModifiers(PUBLIC);
 
     if (hasMethodBindings()) {
-      constructor.addParameter(targetType, "target", FINAL);
+      constructor.addParameter(targetTypeName, "target", FINAL);
     } else {
-      constructor.addParameter(targetType, "target");
+      constructor.addParameter(targetTypeName, "target");
     }
 
     if (constructorNeedsView()) {
@@ -197,8 +197,7 @@ final class BindingSet {
     return constructor.build();
   }
 
-  private MethodSpec createBindingUnbindMethod(TypeSpec.Builder bindingClass,
-      TypeName targetType) {
+  private MethodSpec createBindingUnbindMethod(TypeSpec.Builder bindingClass) {
     MethodSpec.Builder result = MethodSpec.methodBuilder("unbind")
         .addAnnotation(Override.class)
         .addModifiers(PUBLIC);
@@ -208,7 +207,7 @@ final class BindingSet {
 
     if (hasTargetField()) {
       if (hasFieldBindings()) {
-        result.addStatement("$T target = this.target", targetType);
+        result.addStatement("$T target = this.target", targetTypeName);
       }
       result.addStatement("if (target == null) throw new $T($S)", IllegalStateException.class,
           "Bindings already cleared.");
