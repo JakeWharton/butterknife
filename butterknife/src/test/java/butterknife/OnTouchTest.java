@@ -12,9 +12,8 @@ public class OnTouchTest {
   @Test public void touch() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
-        + "import android.app.Activity;\n"
         + "import butterknife.OnTouch;\n"
-        + "public class Test extends Activity {\n"
+        + "public class Test {\n"
         + "  @OnTouch(1) boolean doStuff() { return false; }\n"
         + "}"
     );
@@ -69,9 +68,8 @@ public class OnTouchTest {
   @Test public void failsMultipleListenersWithReturnValue() throws Exception {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
-        + "import android.app.Activity;\n"
         + "import butterknife.OnTouch;\n"
-        + "public class Test extends Activity {\n"
+        + "public class Test {\n"
         + "  @OnTouch(1) boolean doStuff1() {}\n"
         + "  @OnTouch(1) boolean doStuff2() {}\n"
         + "}"
@@ -82,6 +80,6 @@ public class OnTouchTest {
         .failsToCompile()
         .withErrorContaining(
             "Multiple listener methods with return value specified for ID 1. (test.Test.doStuff2)")
-        .in(source).onLine(6);
+        .in(source).onLine(5);
   }
 }

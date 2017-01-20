@@ -13,9 +13,8 @@ public class OnItemClickTest {
   @Test public void onItemClickBinding() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;"
-        + "import android.app.Activity;"
         + "import butterknife.OnItemClick;"
-        + "public class Test extends Activity {"
+        + "public class Test {"
         + "  @OnItemClick(1) void doStuff() {}"
         + "}"
     );
@@ -68,11 +67,10 @@ public class OnItemClickTest {
   @Test public void onItemClickBindingWithParameters() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
-        + "import android.app.Activity;\n"
         + "import android.view.View;\n"
         + "import android.widget.AdapterView;\n"
         + "import butterknife.OnItemClick;\n"
-        + "public class Test extends Activity {\n"
+        + "public class Test {\n"
         + "  @OnItemClick(1) void doStuff(\n"
         + "    AdapterView<?> parent,\n"
         + "    View view,\n"
@@ -130,11 +128,10 @@ public class OnItemClickTest {
   @Test public void onItemClickBindingWithParameterSubset() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
-        + "import android.app.Activity;\n"
         + "import android.view.View;\n"
         + "import android.widget.ListView;\n"
         + "import butterknife.OnItemClick;\n"
-        + "public class Test extends Activity {\n"
+        + "public class Test {\n"
         + "  @OnItemClick(1) void doStuff(\n"
         + "    ListView parent,\n"
         + "    int position\n"
@@ -191,11 +188,10 @@ public class OnItemClickTest {
   @Test public void onItemClickBindingWithParameterSubsetAndGenerics() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
-        + "import android.app.Activity;\n"
         + "import android.view.View;\n"
         + "import android.widget.ListView;\n"
         + "import butterknife.OnItemClick;\n"
-        + "public class Test<T extends ListView> extends Activity {\n"
+        + "public class Test<T extends ListView> {\n"
         + "  @OnItemClick(1) void doStuff(\n"
         + "    T parent,\n"
         + "    int position\n"
@@ -362,10 +358,8 @@ public class OnItemClickTest {
   @Test public void failsWithInvalidId() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
-        + "import android.content.Context;\n"
-        + "import android.app.Activity;\n"
         + "import butterknife.OnItemClick;\n"
-        + "public class Test extends Activity {\n"
+        + "public class Test {\n"
         + "  @OnItemClick({1, -1}) void doStuff() {}\n"
         + "}"
     );
@@ -374,17 +368,16 @@ public class OnItemClickTest {
         .processedWith(new ButterKnifeProcessor())
         .failsToCompile()
         .withErrorContaining("@OnItemClick annotation contains invalid ID -1. (test.Test.doStuff)")
-        .in(source).onLine(6);
+        .in(source).onLine(4);
   }
 
   @Test public void failsWithInvalidParameterConfiguration() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
-        + "import android.app.Activity;\n"
         + "import android.view.View;\n"
         + "import android.widget.AdapterView;\n"
         + "import butterknife.OnItemClick;\n"
-        + "public class Test extends Activity {\n"
+        + "public class Test {\n"
         + "  @OnItemClick(1) void doStuff(\n"
         + "    AdapterView<?> parent,\n"
         + "    View view,\n"
@@ -416,6 +409,6 @@ public class OnItemClickTest {
             + "    long\n"
             + "  \n"
             + "  These may be listed in any order but will be searched for from top to bottom.")
-        .in(source).onLine(7);
+        .in(source).onLine(6);
   }
 }

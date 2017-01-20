@@ -12,9 +12,8 @@ public class OnItemLongClickTest {
   @Test public void itemLongClick() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
-        + "import android.app.Activity;\n"
         + "import butterknife.OnItemLongClick;\n"
-        + "public class Test extends Activity {\n"
+        + "public class Test {\n"
         + "  @OnItemLongClick(1) boolean doStuff() { return false; }\n"
         + "}"
     );

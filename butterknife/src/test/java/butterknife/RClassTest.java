@@ -80,9 +80,8 @@ public class RClassTest {
   @Test public void library() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
-        + "import android.app.Activity;\n"
         + "import butterknife.BindInt;\n"
-        + "public class Test extends Activity {\n"
+        + "public class Test {\n"
         + "  @BindInt(R2.integer.res) int one;\n"
         + "}"
     );
@@ -131,9 +130,8 @@ public class RClassTest {
   @Test public void app() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
-        + "import android.app.Activity;\n"
         + "import butterknife.BindBool;\n"
-        + "public class Test extends Activity {\n"
+        + "public class Test {\n"
         + "  @BindBool(R.bool.res) boolean bool;\n"
         + "}"
     );
@@ -182,9 +180,8 @@ public class RClassTest {
   @Test public void compiledRClass() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
-        + "import android.app.Activity;\n"
         + "import butterknife.BindColor;\n"
-        + "public class Test extends Activity {\n"
+        + "public class Test {\n"
         + "  @BindColor(android.R.color.black) int black;\n"
         + "}"
     );

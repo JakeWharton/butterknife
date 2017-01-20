@@ -13,9 +13,8 @@ public class OnItemSelectedTest {
   @Test public void defaultMethod() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
-        + "import android.app.Activity;\n"
         + "import butterknife.OnItemSelected;\n"
-        + "public class Test extends Activity {\n"
+        + "public class Test {\n"
         + "  @OnItemSelected(1) void doStuff() {}\n"
         + "}"
     );
@@ -71,10 +70,9 @@ public class OnItemSelectedTest {
   @Test public void nonDefaultMethod() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;"
-        + "import android.app.Activity;"
         + "import butterknife.OnItemSelected;"
         + "import static butterknife.OnItemSelected.Callback.NOTHING_SELECTED;"
-        + "public class Test extends Activity {"
+        + "public class Test {"
         + "  @OnItemSelected(value = 1, callback = NOTHING_SELECTED)"
         + "  void doStuff() {}"
         + "}"
@@ -131,10 +129,9 @@ public class OnItemSelectedTest {
   @Test public void allMethods() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;"
-        + "import android.app.Activity;"
         + "import butterknife.OnItemSelected;"
         + "import static butterknife.OnItemSelected.Callback.NOTHING_SELECTED;"
-        + "public class Test extends Activity {"
+        + "public class Test {"
         + "  @OnItemSelected(1)"
         + "  void onItemSelected() {}"
         + "  @OnItemSelected(value = 1, callback = NOTHING_SELECTED)"
@@ -194,10 +191,9 @@ public class OnItemSelectedTest {
   @Test public void multipleBindingPermutation() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;"
-        + "import android.app.Activity;"
         + "import butterknife.OnItemSelected;"
         + "import static butterknife.OnItemSelected.Callback.NOTHING_SELECTED;"
-        + "public class Test extends Activity {"
+        + "public class Test {"
         + "  @OnItemSelected({ 1, 2 })"
         + "  void onItemSelected() {}"
         + "  @OnItemSelected(value = { 1, 3 }, callback = NOTHING_SELECTED)"

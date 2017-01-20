@@ -12,9 +12,8 @@ public class OnEditorActionTest {
   @Test public void editorAction() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
-        + "import android.app.Activity;\n"
         + "import butterknife.OnEditorAction;\n"
-        + "public class Test extends Activity {\n"
+        + "public class Test {\n"
         + "  @OnEditorAction(1) boolean doStuff() { return false; }\n"
         + "}"
     );

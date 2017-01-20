@@ -14,12 +14,11 @@ public class UnbinderTest {
   @Test public void multipleBindings() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
-        + "import android.app.Activity;\n"
         + "import android.view.View;\n"
         + "import butterknife.BindView;\n"
         + "import butterknife.OnClick;\n"
         + "import butterknife.OnLongClick;\n"
-        + "public class Test extends Activity {\n"
+        + "public class Test {\n"
         + "  @BindView(1) View view;\n"
         + "  @BindView(2) View view2;\n"
         + "  @OnClick(1) void doStuff() {}\n"
@@ -87,9 +86,8 @@ public class UnbinderTest {
   @Test public void unbindingThroughAbstractChild() {
     JavaFileObject source1 = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
-        + "import android.app.Activity;\n"
         + "import butterknife.OnClick;\n"
-        + "public class Test extends Activity {\n"
+        + "public class Test {\n"
         + "  @OnClick(1) void doStuff1() { }\n"
         + "}"
     );

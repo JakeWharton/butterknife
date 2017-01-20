@@ -16,10 +16,9 @@ public class BindViewTest {
   @Test public void bindingView() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
-        + "import android.app.Activity;\n"
         + "import android.view.View;\n"
         + "import butterknife.BindView;\n"
-        + "public class Test extends Activity {\n"
+        + "public class Test {\n"
         + "    @BindView(1) View thing;\n"
         + "}"
     );
@@ -62,10 +61,9 @@ public class BindViewTest {
   @Test public void bindingGeneratedView() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
-        + "import android.app.Activity;\n"
         + "import butterknife.BindView;\n"
         + "@PerformGeneration\n"
-        + "public class Test extends Activity {\n"
+        + "public class Test {\n"
         + "    @BindView(1) GeneratedView thing;\n"
         + "}"
     );
@@ -98,10 +96,9 @@ public class BindViewTest {
   @Test public void bindingViewFinalClass() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
-        + "import android.app.Activity;\n"
         + "import android.view.View;\n"
         + "import butterknife.BindView;\n"
-        + "public final class Test extends Activity {\n"
+        + "public final class Test {\n"
         + "    @BindView(1) View thing;\n"
         + "}"
     );
@@ -142,10 +139,9 @@ public class BindViewTest {
   @Test public void bindingViewFinalClassWithBaseClass() {
     JavaFileObject baseSource = JavaFileObjects.forSourceString("test.Base", ""
         + "package test;\n"
-        + "import android.app.Activity;\n"
         + "import android.view.View;\n"
         + "import butterknife.BindView;\n"
-        + "public class Base extends Activity {\n"
+        + "public class Base {\n"
         + "    @BindView(1) View thing;\n"
         + "}"
     );
@@ -222,11 +218,10 @@ public class BindViewTest {
   @Test public void bindingViewInnerClass() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Outer", ""
         + "package test;\n"
-        + "import android.app.Activity;\n"
         + "import android.view.View;\n"
         + "import butterknife.BindView;\n"
         + "public class Outer {\n"
-        + "  public static class Test extends Activity {\n"
+        + "  public static class Test {\n"
         + "    @BindView(1) View thing;\n"
         + "  }\n"
         + "}"
@@ -270,10 +265,9 @@ public class BindViewTest {
   @Test public void bindingViewUppercasePackageName() {
     JavaFileObject source = JavaFileObjects.forSourceString("com.Example.Test", ""
         + "package com.Example;\n"
-        + "import android.app.Activity;\n"
         + "import android.view.View;\n"
         + "import butterknife.BindView;\n"
-        + "public class Test extends Activity {\n"
+        + "public class Test {\n"
         + "    @BindView(1) View thing;\n"
         + "}"
     );
@@ -316,10 +310,9 @@ public class BindViewTest {
   @Test public void bindingInterface() throws Exception {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
-        + "import android.app.Activity;\n"
         + "import android.view.View;\n"
         + "import butterknife.BindView;\n"
-        + "public class Test extends Activity {\n"
+        + "public class Test {\n"
         + "    interface TestInterface {}\n"
         + "    @BindView(1) TestInterface thing;\n"
         + "}"
@@ -363,11 +356,10 @@ public class BindViewTest {
   @Test public void genericType() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
-        + "import android.app.Activity;\n"
         + "import android.widget.EditText;\n"
         + "import android.widget.TextView;\n"
         + "import butterknife.BindView;\n"
-        + "class Test<T extends TextView> extends Activity {\n"
+        + "class Test<T extends TextView> {\n"
         + "    @BindView(1) T thing;\n"
         + "}"
     );
@@ -413,11 +405,10 @@ public class BindViewTest {
   @Test public void oneFindPerId() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
-        + "import android.app.Activity;\n"
         + "import android.view.View;\n"
         + "import butterknife.BindView;\n"
         + "import butterknife.OnClick;\n"
-        + "public class Test extends Activity {\n"
+        + "public class Test {\n"
         + "  @BindView(1) View thing1;\n"
         + "  @OnClick(1) void doStuff() {}\n"
         + "}"
@@ -474,11 +465,10 @@ public class BindViewTest {
   @Test public void oneFindPerIdWithCast() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
-        + "import android.app.Activity;\n"
         + "import android.widget.Button;\n"
         + "import butterknife.BindView;\n"
         + "import butterknife.OnClick;\n"
-        + "public class Test extends Activity {\n"
+        + "public class Test {\n"
         + "  @BindView(1) Button thing1;\n"
         + "  @OnClick(1) void doStuff() {}\n"
         + "}"
@@ -536,10 +526,9 @@ public class BindViewTest {
   @Test public void fieldVisibility() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
-        + "import android.app.Activity;\n"
         + "import android.view.View;\n"
         + "import butterknife.BindView;\n"
-        + "public class Test extends Activity {\n"
+        + "public class Test {\n"
         + "  @BindView(1) public View thing1;\n"
         + "  @BindView(2) View thing2;\n"
         + "  @BindView(3) protected View thing3;\n"
@@ -555,10 +544,9 @@ public class BindViewTest {
   @Test public void nullable() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
-        + "import android.app.Activity;\n"
         + "import android.view.View;\n"
         + "import butterknife.BindView;\n"
-        + "public class Test extends Activity {\n"
+        + "public class Test {\n"
         + "  @interface Nullable {}\n"
         + "  @Nullable @BindView(1) View view;\n"
         + "}"
@@ -601,10 +589,9 @@ public class BindViewTest {
   @Test public void superclass() {
     JavaFileObject source1 = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
-        + "import android.app.Activity;\n"
         + "import android.view.View;\n"
         + "import butterknife.BindView;\n"
-        + "public class Test extends Activity {\n"
+        + "public class Test {\n"
         + "  @BindView(1) View view;\n"
         + "}"
     );
@@ -688,10 +675,9 @@ public class BindViewTest {
   @Test public void genericSuperclass() {
     JavaFileObject source1 = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
-        + "import android.app.Activity;\n"
         + "import android.view.View;\n"
         + "import butterknife.BindView;\n"
-        + "public class Test<T> extends Activity {\n"
+        + "public class Test<T> {\n"
         + "  @BindView(1) View view;\n"
         + "}"
     );
@@ -833,9 +819,8 @@ public class BindViewTest {
   @Test public void failsIfNotView() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
-        + "import android.app.Activity;\n"
         + "import butterknife.BindView;\n"
-        + "public class Test extends Activity {\n"
+        + "public class Test {\n"
         + "  @BindView(1) String thing;\n"
         + "}"
     );
@@ -845,7 +830,7 @@ public class BindViewTest {
         .failsToCompile()
         .withErrorContaining(
             "@BindView fields must extend from View or be an interface. (test.Test.thing)")
-        .in(source).onLine(5);
+        .in(source).onLine(4);
   }
 
   @Test public void failsIfInInterface() {
@@ -869,10 +854,9 @@ public class BindViewTest {
   @Test public void failsIfPrivate() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
-        + "import android.app.Activity;\n"
         + "import android.view.View;\n"
         + "import butterknife.BindView;\n"
-        + "public class Test extends Activity {\n"
+        + "public class Test {\n"
         + "    @BindView(1) private View thing;\n"
         + "}"
     );
@@ -881,16 +865,15 @@ public class BindViewTest {
         .processedWith(new ButterKnifeProcessor())
         .failsToCompile()
         .withErrorContaining("@BindView fields must not be private or static. (test.Test.thing)")
-        .in(source).onLine(6);
+        .in(source).onLine(5);
   }
 
   @Test public void failsIfStatic() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
-        + "import android.app.Activity;\n"
         + "import android.view.View;\n"
         + "import butterknife.BindView;\n"
-        + "public class Test extends Activity {\n"
+        + "public class Test {\n"
         + "    @BindView(1) static View thing;\n"
         + "}"
     );
@@ -899,16 +882,15 @@ public class BindViewTest {
         .processedWith(new ButterKnifeProcessor())
         .failsToCompile()
         .withErrorContaining("@BindView fields must not be private or static. (test.Test.thing)")
-        .in(source).onLine(6);
+        .in(source).onLine(5);
   }
 
   @Test public void duplicateBindingFails() throws Exception {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
-        + "import android.app.Activity;\n"
         + "import android.view.View;\n"
         + "import butterknife.BindView;\n"
-        + "public class Test extends Activity {\n"
+        + "public class Test {\n"
         + "    @BindView(1) View thing1;\n"
         + "    @BindView(1) View thing2;\n"
         + "}"
@@ -919,7 +901,7 @@ public class BindViewTest {
         .failsToCompile()
         .withErrorContaining(
             "Attempt to use @BindView for an already bound ID 1 on 'thing1'. (test.Test.thing2)")
-        .in(source).onLine(7);
+        .in(source).onLine(6);
   }
 
   @Test public void failsOptionalRootViewBinding() throws Exception {

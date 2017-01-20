@@ -12,9 +12,8 @@ public class BindStringTest {
   @Test public void simple() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
-        + "import android.app.Activity;\n"
         + "import butterknife.BindString;\n"
-        + "public class Test extends Activity {\n"
+        + "public class Test {\n"
         + "  @BindString(1) String one;\n"
         + "}"
     );
@@ -65,9 +64,8 @@ public class BindStringTest {
   @Test public void typeMustBeString() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
-        + "import android.app.Activity;\n"
         + "import butterknife.BindString;\n"
-        + "public class Test extends Activity {\n"
+        + "public class Test {\n"
         + "  @BindString(1) boolean one;\n"
         + "}"
     );
@@ -76,6 +74,6 @@ public class BindStringTest {
         .processedWith(new ButterKnifeProcessor())
         .failsToCompile()
         .withErrorContaining("@BindString field type must be 'String'. (test.Test.one)")
-        .in(source).onLine(5);
+        .in(source).onLine(4);
   }
 }

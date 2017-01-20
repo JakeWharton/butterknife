@@ -12,10 +12,9 @@ public class BindBitmapTest {
   @Test public void simple() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
-        + "import android.app.Activity;\n"
         + "import android.graphics.Bitmap;\n"
         + "import butterknife.BindBitmap;\n"
-        + "public class Test extends Activity {\n"
+        + "public class Test {\n"
         + "  @BindBitmap(1) Bitmap one;\n"
         + "}"
     );
@@ -67,9 +66,8 @@ public class BindBitmapTest {
   @Test public void typeMustBeBitmap() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
-        + "import android.app.Activity;\n"
         + "import butterknife.BindBitmap;\n"
-        + "public class Test extends Activity {\n"
+        + "public class Test {\n"
         + "  @BindBitmap(1) String one;\n"
         + "}"
     );
@@ -78,6 +76,6 @@ public class BindBitmapTest {
         .processedWith(new ButterKnifeProcessor())
         .failsToCompile()
         .withErrorContaining("@BindBitmap field type must be 'Bitmap'. (test.Test.one)")
-        .in(source).onLine(5);
+        .in(source).onLine(4);
   }
 }

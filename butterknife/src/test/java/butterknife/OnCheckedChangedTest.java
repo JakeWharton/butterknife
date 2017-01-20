@@ -12,9 +12,8 @@ public class OnCheckedChangedTest {
   @Test public void checkedChanged() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
-        + "import android.app.Activity;\n"
         + "import butterknife.OnCheckedChanged;\n"
-        + "public class Test extends Activity {\n"
+        + "public class Test {\n"
         + "  @OnCheckedChanged(1) void doStuff() {}\n"
         + "}"
     );

@@ -12,10 +12,9 @@ public class BindDrawableTest {
   @Test public void simple() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
-        + "import android.app.Activity;\n"
         + "import android.graphics.drawable.Drawable;\n"
         + "import butterknife.BindDrawable;\n"
-        + "public class Test extends Activity {\n"
+        + "public class Test {\n"
         + "  @BindDrawable(1) Drawable one;\n"
         + "}"
     );
@@ -65,10 +64,9 @@ public class BindDrawableTest {
   @Test public void simpleSdk21() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
-        + "import android.app.Activity;\n"
         + "import android.graphics.drawable.Drawable;\n"
         + "import butterknife.BindDrawable;\n"
-        + "public class Test extends Activity {\n"
+        + "public class Test {\n"
         + "  @BindDrawable(1) Drawable one;\n"
         + "}"
     );
@@ -117,10 +115,9 @@ public class BindDrawableTest {
   @Test public void withTint() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
-        + "import android.app.Activity;\n"
         + "import android.graphics.drawable.Drawable;\n"
         + "import butterknife.BindDrawable;\n"
-        + "public class Test extends Activity {\n"
+        + "public class Test {\n"
         + "  @BindDrawable(value = 1, tint = 2) Drawable one;\n"
         + "}"
     );
@@ -170,9 +167,8 @@ public class BindDrawableTest {
   @Test public void typeMustBeDrawable() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
-        + "import android.app.Activity;\n"
         + "import butterknife.BindDrawable;\n"
-        + "public class Test extends Activity {\n"
+        + "public class Test {\n"
         + "  @BindDrawable(1) String one;\n"
         + "}"
     );
@@ -181,6 +177,6 @@ public class BindDrawableTest {
         .processedWith(new ButterKnifeProcessor())
         .failsToCompile()
         .withErrorContaining("@BindDrawable field type must be 'Drawable'. (test.Test.one)")
-        .in(source).onLine(5);
+        .in(source).onLine(4);
   }
 }
