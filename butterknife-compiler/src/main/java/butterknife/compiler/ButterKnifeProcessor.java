@@ -86,6 +86,8 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
   private static final String OPTION_SDK_INT = "butterknife.minSdk";
   static final Id NO_ID = new Id(-1);
   static final String VIEW_TYPE = "android.view.View";
+  static final String ACTIVITY_TYPE = "android.app.Activity";
+  static final String DIALOG_TYPE = "android.app.Dialog";
   private static final String COLOR_STATE_LIST_TYPE = "android.content.res.ColorStateList";
   private static final String BITMAP_TYPE = "android.graphics.Bitmap";
   private static final String DRAWABLE_TYPE = "android.graphics.drawable.Drawable";
@@ -1103,7 +1105,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
         && ((DeclaredType) typeMirror).asElement().getKind() == INTERFACE;
   }
 
-  private boolean isSubtypeOfType(TypeMirror typeMirror, String otherType) {
+  static boolean isSubtypeOfType(TypeMirror typeMirror, String otherType) {
     if (isTypeEqual(typeMirror, otherType)) {
       return true;
     }
@@ -1143,7 +1145,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     return false;
   }
 
-  private boolean isTypeEqual(TypeMirror typeMirror, String otherType) {
+  private static boolean isTypeEqual(TypeMirror typeMirror, String otherType) {
     return otherType.equals(typeMirror.toString());
   }
 
