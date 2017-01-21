@@ -12,9 +12,8 @@ public class BindIntTest {
   @Test public void simple() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
-        + "import android.app.Activity;\n"
         + "import butterknife.BindInt;\n"
-        + "public class Test extends Activity {\n"
+        + "public class Test {\n"
         + "  @BindInt(1) int one;\n"
         + "}"
     );
@@ -65,9 +64,8 @@ public class BindIntTest {
   @Test public void typeMustBeInt() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
-        + "import android.app.Activity;\n"
         + "import butterknife.BindInt;\n"
-        + "public class Test extends Activity {\n"
+        + "public class Test {\n"
         + "  @BindInt(1) String one;\n"
         + "}"
     );
@@ -76,6 +74,6 @@ public class BindIntTest {
         .processedWith(new ButterKnifeProcessor())
         .failsToCompile()
         .withErrorContaining("@BindInt field type must be 'int'. (test.Test.one)")
-        .in(source).onLine(5);
+        .in(source).onLine(4);
   }
 }

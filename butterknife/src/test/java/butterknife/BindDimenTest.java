@@ -12,9 +12,8 @@ public class BindDimenTest {
   @Test public void simpleFloat() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
-        + "import android.app.Activity;\n"
         + "import butterknife.BindDimen;\n"
-        + "public class Test extends Activity {\n"
+        + "public class Test {\n"
         + "  @BindDimen(1) float one;\n"
         + "}"
     );
@@ -65,9 +64,8 @@ public class BindDimenTest {
   @Test public void simpleInt() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
-        + "import android.app.Activity;\n"
         + "import butterknife.BindDimen;\n"
-        + "public class Test extends Activity {\n"
+        + "public class Test {\n"
         + "  @BindDimen(1) int one;\n"
         + "}"
     );
@@ -118,9 +116,8 @@ public class BindDimenTest {
   @Test public void typeMustBeIntOrFloat() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
-        + "import android.app.Activity;\n"
         + "import butterknife.BindDimen;\n"
-        + "public class Test extends Activity {\n"
+        + "public class Test {\n"
         + "  @BindDimen(1) String one;\n"
         + "}"
     );
@@ -129,6 +126,6 @@ public class BindDimenTest {
         .processedWith(new ButterKnifeProcessor())
         .failsToCompile()
         .withErrorContaining("@BindDimen field type must be 'int' or 'float'. (test.Test.one)")
-        .in(source).onLine(5);
+        .in(source).onLine(4);
   }
 }

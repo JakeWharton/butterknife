@@ -12,9 +12,8 @@ public class OnTextChangedTest {
   @Test public void textChanged() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
-        + "import android.app.Activity;\n"
         + "import butterknife.OnTextChanged;\n"
-        + "public class Test extends Activity {\n"
+        + "public class Test {\n"
         + "  @OnTextChanged(1) void doStuff() {}\n"
         + "}"
     );
@@ -79,9 +78,8 @@ public class OnTextChangedTest {
   @Test public void textChangedWithParameter() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
             + "package test;\n"
-            + "import android.app.Activity;\n"
             + "import butterknife.OnTextChanged;\n"
-            + "public class Test extends Activity {\n"
+            + "public class Test {\n"
             + "  @OnTextChanged(1) void doStuff(CharSequence p0) {}\n"
             + "}"
     );
@@ -146,9 +144,8 @@ public class OnTextChangedTest {
   @Test public void textChangedWithParameters() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
             + "package test;\n"
-            + "import android.app.Activity;\n"
             + "import butterknife.OnTextChanged;\n"
-            + "public class Test extends Activity {\n"
+            + "public class Test {\n"
             + "  @OnTextChanged(1) void doStuff(CharSequence p0, int p1, int p2, int p3) {}\n"
             + "}"
     );
@@ -213,9 +210,8 @@ public class OnTextChangedTest {
   @Test public void textChangedWithWrongParameter() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
             + "package test;\n"
-            + "import android.app.Activity;\n"
             + "import butterknife.OnTextChanged;\n"
-            + "public class Test extends Activity {\n"
+            + "public class Test {\n"
             + "  @OnTextChanged(1) void doStuff(String p0, int p1, int p2, int p3) {}\n"
             + "}"
     );

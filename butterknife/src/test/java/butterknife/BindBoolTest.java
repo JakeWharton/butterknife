@@ -12,9 +12,8 @@ public class BindBoolTest {
   @Test public void simple() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;"
-        + "import android.app.Activity;"
         + "import butterknife.BindBool;"
-        + "public class Test extends Activity {"
+        + "public class Test {"
         + "  @BindBool(1) boolean one;"
         + "}"
     );
@@ -65,9 +64,8 @@ public class BindBoolTest {
   @Test public void typeMustBeBoolean() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
-        + "import android.app.Activity;\n"
         + "import butterknife.BindBool;\n"
-        + "public class Test extends Activity {\n"
+        + "public class Test {\n"
         + "  @BindBool(1) String one;\n"
         + "}"
     );
@@ -76,6 +74,6 @@ public class BindBoolTest {
         .processedWith(new ButterKnifeProcessor())
         .failsToCompile()
         .withErrorContaining("@BindBool field type must be 'boolean'. (test.Test.one)")
-        .in(source).onLine(5);
+        .in(source).onLine(4);
   }
 }

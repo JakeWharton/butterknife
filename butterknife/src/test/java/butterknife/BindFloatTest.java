@@ -12,9 +12,8 @@ public class BindFloatTest {
   @Test public void simple() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;"
-        + "import android.app.Activity;"
         + "import butterknife.BindFloat;"
-        + "public class Test extends Activity {"
+        + "public class Test {"
         + "  @BindFloat(1) float one;"
         + "}"
     );
@@ -64,9 +63,8 @@ public class BindFloatTest {
   @Test public void typeMustBeFloat() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
-        + "import android.app.Activity;\n"
         + "import butterknife.BindFloat;\n"
-        + "public class Test extends Activity {\n"
+        + "public class Test {\n"
         + "  @BindFloat(1) String one;\n"
         + "}"
     );
@@ -75,6 +73,6 @@ public class BindFloatTest {
         .processedWith(new ButterKnifeProcessor())
         .failsToCompile()
         .withErrorContaining("@BindFloat field type must be 'float'. (test.Test.one)")
-        .in(source).onLine(5);
+        .in(source).onLine(4);
   }
 }
