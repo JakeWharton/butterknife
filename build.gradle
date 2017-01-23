@@ -45,15 +45,15 @@ subprojects { project ->
 
 ext {
   minSdkVersion = 9
-  targetSdkVersion = 24
-  compileSdkVersion = 24
-  buildToolsVersion = '24.0.2'
+  targetSdkVersion = 25
+  compileSdkVersion = 25
+  buildToolsVersion = '25.0.2'
   sourceCompatibilityVersion = JavaVersion.VERSION_1_7
   targetCompatibilityVersion = JavaVersion.VERSION_1_7
 }
 
 def androidToolsVersion = '25.2.0'
-def supportLibraryVersion = '24.2.1'
+def supportLibraryVersion = '25.1.0'
 def butterknifeLatestReleaseVersion = '8.4.0'
 
 ext.deps = [
@@ -69,7 +69,7 @@ ext.deps = [
     lintTests: "com.android.tools.lint:lint-tests:$androidToolsVersion",
 
     // Square
-    javapoet: 'com.squareup:javapoet:1.7.0',
+    javapoet: 'com.squareup:javapoet:1.8.0',
 
     // Third Party
     javaparser: 'com.github.javaparser:javaparser-core:2.4.0',
