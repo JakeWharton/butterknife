@@ -1,6 +1,12 @@
 Change Log
 ==========
 
+Version 8.5.1 *(2017-01-24)*
+----------------------------
+
+ * Fix: Tweak bundled ProGuard rules to only retain the two-argument constructor accessed via reflection.
+
+
 Version 8.5.0 *(2017-01-23)*
 ----------------------------
 
