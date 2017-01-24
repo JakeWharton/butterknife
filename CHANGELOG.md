@@ -1,6 +1,19 @@
 Change Log
 ==========
 
+Version 8.5.0 *(2017-01-23)*
+----------------------------
+
+ * Emit `@SuppressLint` when using `@OnTouch` to avoid a lint warning.
+ * Migrate lint checks from Lombok AST to JetBrains PSI.
+ * Annotations are no longer claimed by the processor.
+ * Based on the minimum SDK version (as specified by `butterknife.minSdk` until http://b.android.com/187527 is
+   released) the generated code now changes to use newer APIs when available.
+ * Generated classes now include single-argument overloads for `View`, `Activity`, and `Dialog` subclasses.
+ * Generated classes are no longer generic.
+ * Minimum supported SDK is now 9.
+
+
 Version 8.4.0 *(2016-08-26)*
 ----------------------------
 
