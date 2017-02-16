@@ -26,6 +26,7 @@ import java.util.Deque;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -1261,12 +1262,15 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
       }
     }
 
-    for (Map.Entry<String, String> rClass : scanner.getRClasses().entrySet()) {
-      parseRClass(rClass.getKey(), rClass.getValue());
+    for (Map.Entry<String, Set<String>> packageNameToRClassSet : scanner.getRClasses().entrySet()) {
+      String respectivePackageName = packageNameToRClassSet.getKey();
+      for (String rClass: packageNameToRClassSet.getValue()) {
+        parseRClass(respectivePackageName, rClass);
+      }
     }
   }
 
-  private void parseRClass(String rPackageName, String rClass) {
+  private void parseRClass(String respectivePackageName, String rClass) {
     Element element;
 
     try {
@@ -1277,10 +1281,11 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
     JCTree tree = (JCTree) trees.getTree(element);
     if (tree != null) { // tree can be null if the references are compiled types and not source
-      IdScanner idScanner = new IdScanner(symbols, rPackageName);
+      IdScanner idScanner = new IdScanner(symbols, elementUtils.getPackageOf(element).getQualifiedName().toString(),
+              respectivePackageName);
       tree.accept(idScanner);
     } else {
-      parseCompiledR(rPackageName, (TypeElement) element);
+      parseCompiledR(respectivePackageName, (TypeElement) element);
     }
   }
 
@@ -1309,8 +1314,8 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
   }
 
   private static class RClassScanner extends TreeScanner {
-    // Maps the currently evaulated packageName to R Classes
-    private final Map<String, String> rClasses = new LinkedHashMap<>();
+    // Maps the currently evaulated rPackageName to R Classes
+    private final Map<String, Set<String>> rClasses = new LinkedHashMap<>();
     private String currentPackageName;
 
     @Override public void visitSelect(JCTree.JCFieldAccess jcFieldAccess) {
@@ -1319,12 +1324,16 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
           && symbol.getEnclosingElement() != null
           && symbol.getEnclosingElement().getEnclosingElement() != null
           && symbol.getEnclosingElement().getEnclosingElement().enclClass() != null) {
-        rClasses.put(currentPackageName,
-            symbol.getEnclosingElement().getEnclosingElement().enclClass().className());
+        Set<String> rClassSet = rClasses.get(currentPackageName);
+        if (rClassSet == null) {
+          rClassSet = new HashSet<>();
+          rClasses.put(currentPackageName, rClassSet);
+        }
+        rClassSet.add(symbol.getEnclosingElement().getEnclosingElement().enclClass().className());
       }
     }
 
-    Map<String, String> getRClasses() {
+    Map<String, Set<String>> getRClasses() {
       return rClasses;
     }
 
@@ -1335,11 +1344,13 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
   private static class IdScanner extends TreeScanner {
     private final Map<QualifiedId, Id> ids;
-    private final String packageName;
+    private final String rPackageName;
+    private final String respectivePackageName;
 
-    IdScanner(Map<QualifiedId, Id> ids, String packageName) {
+    IdScanner(Map<QualifiedId, Id> ids, String rPackageName, String respectivePackageName) {
       this.ids = ids;
-      this.packageName = packageName;
+      this.rPackageName = rPackageName;
+      this.respectivePackageName = respectivePackageName;
     }
 
     @Override public void visitClassDef(JCTree.JCClassDecl jcClassDecl) {
@@ -1348,8 +1359,8 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
           ClassTree classTree = (ClassTree) tree;
           String className = classTree.getSimpleName().toString();
           if (SUPPORTED_TYPES.contains(className)) {
-            ClassName rClassName = ClassName.get(packageName, "R", className);
-            VarScanner scanner = new VarScanner(ids, packageName, rClassName);
+            ClassName rClassName = ClassName.get(rPackageName, "R", className);
+            VarScanner scanner = new VarScanner(ids, rClassName, respectivePackageName);
             ((JCTree) classTree).accept(scanner);
           }
         }
@@ -1359,20 +1370,22 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
   private static class VarScanner extends TreeScanner {
     private final Map<QualifiedId, Id> ids;
-    private final String packageName;
     private final ClassName className;
+    private final String respectivePackageName;
 
-    private VarScanner(Map<QualifiedId, Id> ids, String packageName, ClassName className) {
+    private VarScanner(Map<QualifiedId, Id> ids,
+                       ClassName className,
+                       String respectivePackageName) {
       this.ids = ids;
-      this.packageName = packageName;
       this.className = className;
+      this.respectivePackageName = respectivePackageName;
     }
 
     @Override public void visitVarDef(JCTree.JCVariableDecl jcVariableDecl) {
       if ("int".equals(jcVariableDecl.getType().toString())) {
         int id = Integer.valueOf(jcVariableDecl.getInitializer().toString());
         String resourceName = jcVariableDecl.getName().toString();
-        QualifiedId qualifiedId = new QualifiedId(packageName, id);
+        QualifiedId qualifiedId = new QualifiedId(respectivePackageName, id);
         ids.put(qualifiedId, new Id(id, className, resourceName));
       }
     }
