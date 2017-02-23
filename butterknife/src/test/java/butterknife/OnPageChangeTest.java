@@ -12,9 +12,8 @@ public class OnPageChangeTest {
   @Test public void pageChange() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
-        + "import android.app.Activity;\n"
         + "import butterknife.OnPageChange;\n"
-        + "public class Test extends Activity {\n"
+        + "public class Test {\n"
         + "  @OnPageChange(1) void doStuff() {}\n"
         + "}"
     );

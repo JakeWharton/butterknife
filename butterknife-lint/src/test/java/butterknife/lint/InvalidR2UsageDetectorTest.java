@@ -6,7 +6,6 @@ import com.google.common.collect.ImmutableList;
 import java.util.List;
 
 public class InvalidR2UsageDetectorTest extends LintDetectorTestBase {
-
   private static final String PATH_TEST_RESOURCES = "/src/test/java/sample/r2/";
   private static final String NO_WARNINGS = "No warnings.";
   private static final String R2 = "R2.java";

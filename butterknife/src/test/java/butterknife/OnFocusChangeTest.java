@@ -12,9 +12,8 @@ public class OnFocusChangeTest {
   @Test public void focusChange() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
-        + "import android.app.Activity;\n"
         + "import butterknife.OnFocusChange;\n"
-        + "public class Test extends Activity {\n"
+        + "public class Test {\n"
         + "  @OnFocusChange(1) void doStuff() {}\n"
         + "}"
     );

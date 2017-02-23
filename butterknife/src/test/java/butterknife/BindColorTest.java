@@ -12,9 +12,8 @@ public class BindColorTest {
   @Test public void simpleInt() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
-        + "import android.app.Activity;\n"
         + "import butterknife.BindColor;\n"
-        + "public class Test extends Activity {\n"
+        + "public class Test {\n"
         + "  @BindColor(1) int one;\n"
         + "}"
     );
@@ -64,9 +63,8 @@ public class BindColorTest {
   @Test public void simpleIntSdk23() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
-        + "import android.app.Activity;\n"
         + "import butterknife.BindColor;\n"
-        + "public class Test extends Activity {\n"
+        + "public class Test {\n"
         + "  @BindColor(1) int one;\n"
         + "}"
     );
@@ -115,10 +113,9 @@ public class BindColorTest {
   @Test public void simpleColorStateList() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
-        + "import android.app.Activity;\n"
         + "import android.content.res.ColorStateList;\n"
         + "import butterknife.BindColor;\n"
-        + "public class Test extends Activity {\n"
+        + "public class Test {\n"
         + "  @BindColor(1) ColorStateList one;\n"
         +"}"
     );
@@ -168,10 +165,9 @@ public class BindColorTest {
   @Test public void simpleColorStateListSdk23() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
-        + "import android.app.Activity;\n"
         + "import android.content.res.ColorStateList;\n"
         + "import butterknife.BindColor;\n"
-        + "public class Test extends Activity {\n"
+        + "public class Test {\n"
         + "  @BindColor(1) ColorStateList one;\n"
         +"}"
     );
@@ -220,9 +216,8 @@ public class BindColorTest {
   @Test public void typeMustBeIntOrColorStateList() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
-        + "import android.app.Activity;\n"
         + "import butterknife.BindColor;\n"
-        + "public class Test extends Activity {\n"
+        + "public class Test {\n"
         + "  @BindColor(1) String one;\n"
         + "}"
     );
@@ -231,6 +226,6 @@ public class BindColorTest {
         .processedWith(new ButterKnifeProcessor())
         .failsToCompile()
         .withErrorContaining("@BindColor field type must be 'int' or 'ColorStateList'. (test.Test.one)")
-        .in(source).onLine(5);
+        .in(source).onLine(4);
   }
 }

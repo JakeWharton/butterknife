@@ -12,9 +12,8 @@ public class OnClickTest {
   @Test public void onClickBinding() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
-        + "import android.app.Activity;\n"
         + "import butterknife.OnClick;\n"
-        + "public class Test extends Activity {\n"
+        + "public class Test {\n"
         + "  @OnClick(1) void doStuff() {}\n"
         + "}"
     );
@@ -67,9 +66,8 @@ public class OnClickTest {
   @Test public void onClickBindingFinalType() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
-        + "import android.app.Activity;\n"
         + "import butterknife.OnClick;\n"
-        + "public final class Test extends Activity {\n"
+        + "public final class Test {\n"
         + "  @OnClick(1) void doStuff() {}\n"
         + "}"
     );
@@ -121,9 +119,8 @@ public class OnClickTest {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
         + "import android.view.View;\n"
-        + "import android.app.Activity;\n"
         + "import butterknife.OnClick;\n"
-        + "public class Test extends Activity {\n"
+        + "public class Test {\n"
         + "  @OnClick(1) void doStuff1() {}\n"
         + "  @OnClick(1) void doStuff2() {}\n"
         + "  @OnClick({1, 2}) void doStuff3(View v) {}\n"
@@ -191,11 +188,10 @@ public class OnClickTest {
   @Test public void findOnlyCalledOnce() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
-        + "import android.app.Activity;\n"
         + "import android.view.View;\n"
         + "import butterknife.BindView;\n"
         + "import butterknife.OnClick;\n"
-        + "public class Test extends Activity {\n"
+        + "public class Test {\n"
         + "  @BindView(1) View view;\n"
         + "  @OnClick(1) void doStuff() {}\n"
         + "}"
@@ -252,10 +248,9 @@ public class OnClickTest {
   @Test public void methodVisibility() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
-        + "import android.app.Activity;\n"
         + "import android.view.View;\n"
         + "import butterknife.OnClick;\n"
-        + "public class Test extends Activity {\n"
+        + "public class Test {\n"
         + "  @OnClick(1) public void thing1() {}\n"
         + "  @OnClick(2) void thing2() {}\n"
         + "  @OnClick(3) protected void thing3() {}\n"
@@ -271,12 +266,11 @@ public class OnClickTest {
   @Test public void methodCastsArgument() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
-        + "import android.app.Activity;\n"
         + "import android.view.View;\n"
         + "import android.widget.Button;\n"
         + "import android.widget.TextView;\n"
         + "import butterknife.OnClick;\n"
-        + "public class Test extends Activity {\n"
+        + "public class Test {\n"
         + "  interface TestInterface {}\n"
         + "  @OnClick(0) void click0() {}\n"
         + "  @OnClick(1) void click1(View view) {}\n"
@@ -380,10 +374,9 @@ public class OnClickTest {
   @Test public void methodWithMultipleIds() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
-        + "import android.app.Activity;\n"
         + "import android.view.View;\n"
         + "import butterknife.OnClick;\n"
-        + "public class Test extends Activity {\n"
+        + "public class Test {\n"
         + "  @OnClick({1, 2, 3}) void click() {}\n"
         + "}"
     );
@@ -458,10 +451,9 @@ public class OnClickTest {
   @Test public void nullable() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
-        + "import android.app.Activity;\n"
         + "import butterknife.OnClick;\n"
         + "import butterknife.Optional;\n"
-        + "public class Test extends Activity {\n"
+        + "public class Test {\n"
         + "  @Optional @OnClick(1) void doStuff() {}\n"
         + "}");
 
@@ -516,12 +508,11 @@ public class OnClickTest {
   @Test public void optionalAndRequiredSkipsNullCheck() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
-        + "import android.app.Activity;\n"
         + "import android.view.View;\n"
         + "import butterknife.BindView;\n"
         + "import butterknife.OnClick;\n"
         + "import butterknife.Optional;\n"
-        + "public class Test extends Activity {\n"
+        + "public class Test {\n"
         + "  @BindView(1) View view;\n"
         + "  @Optional @OnClick(1) void doStuff() {}\n"
         + "}"
@@ -612,9 +603,8 @@ public class OnClickTest {
   @Test public void failsIfHasReturnType() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
-        + "import android.app.Activity;\n"
         + "import butterknife.OnClick;\n"
-        + "public class Test extends Activity {\n"
+        + "public class Test {\n"
         + "  @OnClick(1)\n"
         + "  public String doStuff() {\n"
         + "  }\n"
@@ -625,15 +615,14 @@ public class OnClickTest {
         .processedWith(new ButterKnifeProcessor())
         .failsToCompile()
         .withErrorContaining("@OnClick methods must have a 'void' return type. (test.Test.doStuff)")
-        .in(source).onLine(6);
+        .in(source).onLine(5);
   }
 
   @Test public void failsIfPrivateMethod() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
-        + "import android.app.Activity;\n"
         + "import butterknife.OnClick;\n"
-        + "public class Test extends Activity {\n"
+        + "public class Test {\n"
         + "  @OnClick(1)\n"
         + "  private void doStuff() {\n"
         + "  }\n"
@@ -644,15 +633,14 @@ public class OnClickTest {
         .processedWith(new ButterKnifeProcessor())
         .failsToCompile()
         .withErrorContaining("@OnClick methods must not be private or static. (test.Test.doStuff)")
-        .in(source).onLine(6);
+        .in(source).onLine(5);
   }
 
   @Test public void failsIfStatic() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
-        + "import android.app.Activity;\n"
         + "import butterknife.OnClick;\n"
-        + "public class Test extends Activity {\n"
+        + "public class Test {\n"
         + "  @OnClick(1)\n"
         + "  public static void doStuff() {\n"
         + "  }\n"
@@ -663,15 +651,14 @@ public class OnClickTest {
         .processedWith(new ButterKnifeProcessor())
         .failsToCompile()
         .withErrorContaining("@OnClick methods must not be private or static. (test.Test.doStuff)")
-        .in(source).onLine(6);
+        .in(source).onLine(5);
   }
 
   @Test public void failsIfParameterNotView() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
-        + "import android.app.Activity;\n"
         + "import butterknife.OnClick;\n"
-        + "public class Test extends Activity {\n"
+        + "public class Test {\n"
         + "  @OnClick(1)\n"
         + "  public void doStuff(String thing) {\n"
         + "  }\n"
@@ -692,16 +679,15 @@ public class OnClickTest {
             + "    android.view.View\n"
             + "  \n"
             + "  These may be listed in any order but will be searched for from top to bottom.")
-        .in(source).onLine(6);
+        .in(source).onLine(5);
   }
 
   @Test public void failsIfMoreThanOneParameter() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
-        + "import android.app.Activity;\n"
         + "import android.view.View;\n"
         + "import butterknife.OnClick;\n"
-        + "public class Test extends Activity {\n"
+        + "public class Test {\n"
         + "  @OnClick(1)\n"
         + "  public void doStuff(View thing, View otherThing) {\n"
         + "  }\n"
@@ -713,7 +699,7 @@ public class OnClickTest {
         .failsToCompile()
         .withErrorContaining(
             "@OnClick methods can have at most 1 parameter(s). (test.Test.doStuff)")
-        .in(source).onLine(7);
+        .in(source).onLine(6);
   }
 
   @Test public void failsIfInInterface() {
@@ -737,9 +723,8 @@ public class OnClickTest {
   @Test public void failsIfHasDuplicateIds() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
-        + "import android.app.Activity;\n"
         + "import butterknife.OnClick;\n"
-        + "public class Test extends Activity {\n"
+        + "public class Test {\n"
         + "  @OnClick({1, 2, 3, 1})\n"
         + "  void doStuff() {\n"
         + "  }\n"
@@ -751,6 +736,6 @@ public class OnClickTest {
         .failsToCompile()
         .withErrorContaining(
             "@OnClick annotation for method contains duplicate ID 1. (test.Test.doStuff)")
-        .in(source).onLine(6);
+        .in(source).onLine(5);
   }
 }

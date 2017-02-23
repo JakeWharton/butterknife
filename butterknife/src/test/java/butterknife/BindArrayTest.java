@@ -12,9 +12,8 @@ public class BindArrayTest {
   @Test public void stringArray() throws Exception {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
-        + "import android.app.Activity;\n"
         + "import butterknife.BindArray;\n"
-        + "public class Test extends Activity {\n"
+        + "public class Test {\n"
         + "  @BindArray(1) String[] one;\n"
         + "}"
     );
@@ -66,9 +65,8 @@ public class BindArrayTest {
   @Test public void intArray() throws Exception {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
-        + "import android.app.Activity;\n"
         + "import butterknife.BindArray;\n"
-        + "public class Test extends Activity {\n"
+        + "public class Test {\n"
         + "  @BindArray(1) int[] one;\n"
         + "}"
     );
@@ -119,9 +117,8 @@ public class BindArrayTest {
   @Test public void textArray() throws Exception {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
-        + "import android.app.Activity;\n"
         + "import butterknife.BindArray;\n"
-        + "public class Test extends Activity {\n"
+        + "public class Test {\n"
         + "  @BindArray(1) CharSequence[] one;\n"
         + "}"
     );
@@ -172,10 +169,9 @@ public class BindArrayTest {
   @Test public void typedArray() throws Exception {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
-        + "import android.app.Activity;\n"
         + "import butterknife.BindArray;\n"
         + "import android.content.res.TypedArray;\n"
-        + "public class Test extends Activity {\n"
+        + "public class Test {\n"
         + "  @BindArray(1) TypedArray one;\n"
         + "}"
     );
@@ -226,9 +222,8 @@ public class BindArrayTest {
   @Test public void typeMustBeSupported() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
-        + "import android.app.Activity;\n"
         + "import butterknife.BindArray;\n"
-        + "public class Test extends Activity {\n"
+        + "public class Test {\n"
         + "  @BindArray(1) String one;\n"
         + "}"
     );
@@ -239,6 +234,6 @@ public class BindArrayTest {
         .withErrorContaining(
             "@BindArray field type must be one of: String[], int[], CharSequence[], "
                 + "android.content.res.TypedArray. (test.Test.one)")
-        .in(source).onLine(5);
+        .in(source).onLine(4);
   }
 }

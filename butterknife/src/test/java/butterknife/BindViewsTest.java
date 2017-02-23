@@ -16,11 +16,10 @@ public class BindViewsTest {
   @Test public void fieldVisibility() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
-        + "import android.app.Activity;\n"
         + "import android.view.View;\n"
         + "import butterknife.BindViews;\n"
         + "import java.util.List;\n"
-        + "public class Test extends Activity {\n"
+        + "public class Test {\n"
         + "  @BindViews(1) public List<View> thing1;\n"
         + "  @BindViews(2) List<View> thing2;\n"
         + "  @BindViews(3) protected List<View> thing3;\n"
@@ -36,10 +35,9 @@ public class BindViewsTest {
   @Test public void bindingArray() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
-        + "import android.app.Activity;\n"
         + "import android.view.View;\n"
         + "import butterknife.BindViews;\n"
-        + "public class Test extends Activity {\n"
+        + "public class Test {\n"
         + "    @BindViews({1, 2, 3}) View[] thing;\n"
         + "}"
     );
@@ -85,10 +83,9 @@ public class BindViewsTest {
   @Test public void bindingArrayWithGenerics() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
-        + "import android.app.Activity;\n"
         + "import android.view.View;\n"
         + "import butterknife.BindViews;\n"
-        + "public class Test<T extends View> extends Activity {\n"
+        + "public class Test<T extends View> {\n"
         + "    @BindViews({1, 2, 3}) T[] thing;\n"
         + "}"
     );
@@ -136,10 +133,9 @@ public class BindViewsTest {
   @Test public void bindingArrayWithCast() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
-        + "import android.app.Activity;\n"
         + "import android.widget.TextView;\n"
         + "import butterknife.BindViews;\n"
-        + "public class Test extends Activity {\n"
+        + "public class Test {\n"
         + "    @BindViews({1, 2, 3}) TextView[] thing;\n"
         + "}"
     );
@@ -186,11 +182,10 @@ public class BindViewsTest {
   @Test public void bindingList() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
-        + "import android.app.Activity;\n"
         + "import android.view.View;\n"
         + "import butterknife.BindViews;\n"
         + "import java.util.List;\n"
-        + "public class Test extends Activity {\n"
+        + "public class Test {\n"
         + "    @BindViews({1, 2, 3}) List<View> thing;\n"
         + "}"
     );
@@ -237,11 +232,10 @@ public class BindViewsTest {
   @Test public void bindingGeneratedView() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
-        + "import android.app.Activity;\n"
         + "import butterknife.BindViews;\n"
         + "import java.util.List;\n"
         + "@PerformGeneration\n"
-        + "public class Test extends Activity {\n"
+        + "public class Test {\n"
         + "    @BindViews({1, 2}) List<GeneratedView> things;\n"
         + "}"
     );
@@ -274,7 +268,6 @@ public class BindViewsTest {
   @Test public void bindingListOfInterface() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
-        + "import android.app.Activity;\n"
         + "import butterknife.BindViews;\n"
         + "import java.util.List;\n"
         + "public class Test {\n"
@@ -324,11 +317,10 @@ public class BindViewsTest {
   @Test public void bindingListWithGenerics() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
-        + "import android.app.Activity;\n"
         + "import android.view.View;\n"
         + "import butterknife.BindViews;\n"
         + "import java.util.List;\n"
-        + "public class Test<T extends View> extends Activity {\n"
+        + "public class Test<T extends View> {\n"
         + "    @BindViews({1, 2, 3}) List<T> thing;\n"
         + "}"
     );
@@ -376,11 +368,10 @@ public class BindViewsTest {
   @Test public void nullableList() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
-        + "import android.app.Activity;\n"
         + "import android.view.View;\n"
         + "import butterknife.BindViews;\n"
         + "import java.util.List;\n"
-        + "public class Test extends Activity {\n"
+        + "public class Test {\n"
         + "    @interface Nullable {}\n"
         + "    @Nullable @BindViews({1, 2, 3}) List<View> thing;\n"
         + "}"
@@ -480,29 +471,10 @@ public class BindViewsTest {
   @Test public void failsIfGenericNotView() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
-        + "import android.app.Activity;\n"
         + "import butterknife.BindViews;\n"
         + "import java.util.List;\n"
-        + "public class Test extends Activity {\n"
+        + "public class Test {\n"
         + "  @BindViews(1) List<String> thing;\n"
-        + "}"
-    );
-
-    assertAbout(javaSource()).that(source)
-        .processedWith(new ButterKnifeProcessor())
-        .failsToCompile()
-        .withErrorContaining(
-            "@BindViews List or array type must extend from View or be an interface. (test.Test.thing)")
-        .in(source).onLine(6);
-  }
-
-  @Test public void failsIfArrayNotView() {
-    JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
-        + "package test;\n"
-        + "import android.app.Activity;\n"
-        + "import butterknife.BindViews;\n"
-        + "public class Test extends Activity {\n"
-        + "  @BindViews(1) String[] thing;\n"
         + "}"
     );
 
@@ -514,14 +486,30 @@ public class BindViewsTest {
         .in(source).onLine(5);
   }
 
+  @Test public void failsIfArrayNotView() {
+    JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
+        + "package test;\n"
+        + "import butterknife.BindViews;\n"
+        + "public class Test {\n"
+        + "  @BindViews(1) String[] thing;\n"
+        + "}"
+    );
+
+    assertAbout(javaSource()).that(source)
+        .processedWith(new ButterKnifeProcessor())
+        .failsToCompile()
+        .withErrorContaining(
+            "@BindViews List or array type must extend from View or be an interface. (test.Test.thing)")
+        .in(source).onLine(4);
+  }
+
   @Test public void failsIfContainsDuplicateIds() throws Exception {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
-        + "import android.app.Activity;\n"
         + "import android.view.View;\n"
         + "import butterknife.BindViews;\n"
         + "import java.util.List;\n"
-        + "public class Test extends Activity {\n"
+        + "public class Test {\n"
         + "    @BindViews({1, 1}) List<View> thing;\n"
         + "}"
     );
@@ -530,6 +518,6 @@ public class BindViewsTest {
         .processedWith(new ButterKnifeProcessor())
         .failsToCompile()
         .withErrorContaining("@BindViews annotation contains duplicate ID 1. (test.Test.thing)")
-        .in(source).onLine(7);
+        .in(source).onLine(6);
   }
 }

@@ -1,5 +1,6 @@
 package butterknife.compiler;
 
+import butterknife.OnTouch;
 import butterknife.internal.ListenerClass;
 import butterknife.internal.ListenerMethod;
 import com.google.common.collect.ImmutableList;
@@ -23,8 +24,12 @@ import java.util.Map;
 import java.util.Set;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.type.TypeMirror;
 
+import static butterknife.compiler.ButterKnifeProcessor.ACTIVITY_TYPE;
+import static butterknife.compiler.ButterKnifeProcessor.DIALOG_TYPE;
 import static butterknife.compiler.ButterKnifeProcessor.VIEW_TYPE;
+import static butterknife.compiler.ButterKnifeProcessor.isSubtypeOfType;
 import static com.google.auto.common.MoreElements.getPackage;
 import static java.util.Collections.singletonList;
 import static javax.lang.model.element.Modifier.FINAL;
@@ -41,6 +46,8 @@ final class BindingSet {
       ClassName.get("android.support.annotation", "UiThread");
   private static final ClassName CALL_SUPER =
       ClassName.get("android.support.annotation", "CallSuper");
+  private static final ClassName SUPPRESS_LINT =
+      ClassName.get("android.annotation", "SuppressLint");
   private static final ClassName UNBINDER = ClassName.get("butterknife", "Unbinder");
   static final ClassName BITMAP_FACTORY = ClassName.get("android.graphics", "BitmapFactory");
   static final ClassName CONTEXT_COMPAT =
@@ -49,18 +56,24 @@ final class BindingSet {
   private final TypeName targetTypeName;
   private final ClassName bindingClassName;
   private final boolean isFinal;
+  private final boolean isView;
+  private final boolean isActivity;
+  private final boolean isDialog;
   private final ImmutableList<ViewBinding> viewBindings;
   private final ImmutableList<FieldCollectionViewBinding> collectionBindings;
   private final ImmutableList<ResourceBinding> resourceBindings;
   private final BindingSet parentBinding;
 
   private BindingSet(TypeName targetTypeName, ClassName bindingClassName, boolean isFinal,
-      ImmutableList<ViewBinding> viewBindings,
+      boolean isView, boolean isActivity, boolean isDialog, ImmutableList<ViewBinding> viewBindings,
       ImmutableList<FieldCollectionViewBinding> collectionBindings,
       ImmutableList<ResourceBinding> resourceBindings, BindingSet parentBinding) {
     this.isFinal = isFinal;
     this.targetTypeName = targetTypeName;
     this.bindingClassName = bindingClassName;
+    this.isView = isView;
+    this.isActivity = isActivity;
+    this.isDialog = isDialog;
     this.viewBindings = viewBindings;
     this.collectionBindings = collectionBindings;
     this.resourceBindings = resourceBindings;
@@ -90,42 +103,88 @@ final class BindingSet {
       result.addField(targetTypeName, "target", PRIVATE);
     }
 
+    if (isView) {
+      result.addMethod(createBindingConstructorForView());
+    } else if (isActivity) {
+      result.addMethod(createBindingConstructorForActivity());
+    } else if (isDialog) {
+      result.addMethod(createBindingConstructorForDialog());
+    }
     if (!constructorNeedsView()) {
       // Add a delegating constructor with a target type + view signature for reflective use.
-      result.addMethod(createBindingViewDelegateConstructor(targetTypeName));
+      result.addMethod(createBindingViewDelegateConstructor());
     }
-    result.addMethod(createBindingConstructor(targetTypeName, sdk));
+    result.addMethod(createBindingConstructor(sdk));
 
     if (hasViewBindings() || parentBinding == null) {
-      result.addMethod(createBindingUnbindMethod(result, targetTypeName));
+      result.addMethod(createBindingUnbindMethod(result));
     }
 
     return result.build();
   }
 
-  private MethodSpec createBindingViewDelegateConstructor(TypeName targetType) {
+  private MethodSpec createBindingViewDelegateConstructor() {
     return MethodSpec.constructorBuilder()
         .addJavadoc("@deprecated Use {@link #$T($T, $T)} for direct creation.\n    "
                 + "Only present for runtime invocation through {@code ButterKnife.bind()}.\n",
-            bindingClassName, targetType, CONTEXT)
+            bindingClassName, targetTypeName, CONTEXT)
         .addAnnotation(Deprecated.class)
         .addAnnotation(UI_THREAD)
         .addModifiers(PUBLIC)
-        .addParameter(targetType, "target")
+        .addParameter(targetTypeName, "target")
         .addParameter(VIEW, "source")
         .addStatement(("this(target, source.getContext())"))
         .build();
   }
 
-  private MethodSpec createBindingConstructor(TypeName targetType, int sdk) {
+  private MethodSpec createBindingConstructorForView() {
+    MethodSpec.Builder builder = MethodSpec.constructorBuilder()
+        .addAnnotation(UI_THREAD)
+        .addModifiers(PUBLIC)
+        .addParameter(targetTypeName, "target");
+    if (constructorNeedsView()) {
+      builder.addStatement("this(target, target)");
+    } else {
+      builder.addStatement("this(target, target.getContext())");
+    }
+    return builder.build();
+  }
+
+  private MethodSpec createBindingConstructorForActivity() {
+    MethodSpec.Builder builder = MethodSpec.constructorBuilder()
+        .addAnnotation(UI_THREAD)
+        .addModifiers(PUBLIC)
+        .addParameter(targetTypeName, "target");
+    if (constructorNeedsView()) {
+      builder.addStatement("this(target, target.getWindow().getDecorView())");
+    } else {
+      builder.addStatement("this(target, target)");
+    }
+    return builder.build();
+  }
+
+  private MethodSpec createBindingConstructorForDialog() {
+    MethodSpec.Builder builder = MethodSpec.constructorBuilder()
+        .addAnnotation(UI_THREAD)
+        .addModifiers(PUBLIC)
+        .addParameter(targetTypeName, "target");
+    if (constructorNeedsView()) {
+      builder.addStatement("this(target, target.getWindow().getDecorView())");
+    } else {
+      builder.addStatement("this(target, target.getContext())");
+    }
+    return builder.build();
+  }
+
+  private MethodSpec createBindingConstructor(int sdk) {
     MethodSpec.Builder constructor = MethodSpec.constructorBuilder()
         .addAnnotation(UI_THREAD)
         .addModifiers(PUBLIC);
 
     if (hasMethodBindings()) {
-      constructor.addParameter(targetType, "target", FINAL);
+      constructor.addParameter(targetTypeName, "target", FINAL);
     } else {
-      constructor.addParameter(targetType, "target");
+      constructor.addParameter(targetTypeName, "target");
     }
 
     if (constructorNeedsView()) {
@@ -138,6 +197,12 @@ final class BindingSet {
       // Aapt can change IDs out from underneath us, just suppress since all will work at runtime.
       constructor.addAnnotation(AnnotationSpec.builder(SuppressWarnings.class)
           .addMember("value", "$S", "ResourceType")
+          .build());
+    }
+
+    if (hasOnTouchMethodBindings()) {
+      constructor.addAnnotation(AnnotationSpec.builder(SUPPRESS_LINT)
+          .addMember("value", "$S", "ClickableViewAccessibility")
           .build());
     }
 
@@ -188,8 +253,7 @@ final class BindingSet {
     return constructor.build();
   }
 
-  private MethodSpec createBindingUnbindMethod(TypeSpec.Builder bindingClass,
-      TypeName targetType) {
+  private MethodSpec createBindingUnbindMethod(TypeSpec.Builder bindingClass) {
     MethodSpec.Builder result = MethodSpec.methodBuilder("unbind")
         .addAnnotation(Override.class)
         .addModifiers(PUBLIC);
@@ -199,7 +263,7 @@ final class BindingSet {
 
     if (hasTargetField()) {
       if (hasFieldBindings()) {
-        result.addStatement("$T target = this.target", targetType);
+        result.addStatement("$T target = this.target", targetTypeName);
       }
       result.addStatement("if (target == null) throw new $T($S)", IllegalStateException.class,
           "Bindings already cleared.");
@@ -542,6 +606,16 @@ final class BindingSet {
     return false;
   }
 
+  private boolean hasOnTouchMethodBindings() {
+    for (ViewBinding bindings : viewBindings) {
+      if (bindings.getMethodBindings()
+          .containsKey(OnTouch.class.getAnnotation(ListenerClass.class))) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   private boolean hasFieldBindings() {
     for (ViewBinding bindings : viewBindings) {
       if (bindings.getFieldBinding() != null) {
@@ -579,7 +653,13 @@ final class BindingSet {
   }
 
   static Builder newBuilder(TypeElement enclosingElement) {
-    TypeName targetType = TypeName.get(enclosingElement.asType());
+    TypeMirror typeMirror = enclosingElement.asType();
+
+    boolean isView = isSubtypeOfType(typeMirror, VIEW_TYPE);
+    boolean isActivity = isSubtypeOfType(typeMirror, ACTIVITY_TYPE);
+    boolean isDialog = isSubtypeOfType(typeMirror, DIALOG_TYPE);
+
+    TypeName targetType = TypeName.get(typeMirror);
     if (targetType instanceof ParameterizedTypeName) {
       targetType = ((ParameterizedTypeName) targetType).rawType;
     }
@@ -590,13 +670,16 @@ final class BindingSet {
     ClassName bindingClassName = ClassName.get(packageName, className + "_ViewBinding");
 
     boolean isFinal = enclosingElement.getModifiers().contains(Modifier.FINAL);
-    return new Builder(targetType, bindingClassName, isFinal);
+    return new Builder(targetType, bindingClassName, isFinal, isView, isActivity, isDialog);
   }
 
   static final class Builder {
     private final TypeName targetTypeName;
     private final ClassName bindingClassName;
     private final boolean isFinal;
+    private final boolean isView;
+    private final boolean isActivity;
+    private final boolean isDialog;
 
     private BindingSet parentBinding;
 
@@ -605,10 +688,14 @@ final class BindingSet {
         ImmutableList.builder();
     private final ImmutableList.Builder<ResourceBinding> resourceBindings = ImmutableList.builder();
 
-    private Builder(TypeName targetTypeName, ClassName bindingClassName, boolean isFinal) {
+    private Builder(TypeName targetTypeName, ClassName bindingClassName, boolean isFinal,
+        boolean isView, boolean isActivity, boolean isDialog) {
       this.targetTypeName = targetTypeName;
       this.bindingClassName = bindingClassName;
       this.isFinal = isFinal;
+      this.isView = isView;
+      this.isActivity = isActivity;
+      this.isDialog = isDialog;
     }
 
     void addField(Id id, FieldViewBinding binding) {
@@ -666,8 +753,9 @@ final class BindingSet {
       for (ViewBinding.Builder builder : viewIdMap.values()) {
         viewBindings.add(builder.build());
       }
-      return new BindingSet(targetTypeName, bindingClassName, isFinal, viewBindings.build(),
-          collectionBindings.build(), resourceBindings.build(), parentBinding);
+      return new BindingSet(targetTypeName, bindingClassName, isFinal, isView, isActivity, isDialog,
+          viewBindings.build(), collectionBindings.build(), resourceBindings.build(),
+          parentBinding);
     }
   }
 }
