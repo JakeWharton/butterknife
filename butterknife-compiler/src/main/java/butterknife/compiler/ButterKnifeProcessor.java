@@ -1264,7 +1264,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
     for (Map.Entry<String, Set<String>> packageNameToRClassSet : scanner.getRClasses().entrySet()) {
       String respectivePackageName = packageNameToRClassSet.getKey();
-      for (String rClass: packageNameToRClassSet.getValue()) {
+      for (String rClass : packageNameToRClassSet.getValue()) {
         parseRClass(respectivePackageName, rClass);
       }
     }
@@ -1281,8 +1281,8 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
     JCTree tree = (JCTree) trees.getTree(element);
     if (tree != null) { // tree can be null if the references are compiled types and not source
-      IdScanner idScanner = new IdScanner(symbols, elementUtils.getPackageOf(element).getQualifiedName().toString(),
-              respectivePackageName);
+      IdScanner idScanner = new IdScanner(symbols, elementUtils.getPackageOf(element)
+          .getQualifiedName().toString(), respectivePackageName);
       tree.accept(idScanner);
     } else {
       parseCompiledR(respectivePackageName, (TypeElement) element);
