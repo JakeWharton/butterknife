@@ -1370,9 +1370,8 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     private final ClassName className;
     private final String respectivePackageName;
 
-    private VarScanner(Map<QualifiedId, Id> ids,
-                       ClassName className,
-                       String respectivePackageName) {
+    private VarScanner(Map<QualifiedId, Id> ids, ClassName className,
+        String respectivePackageName) {
       this.ids = ids;
       this.className = className;
       this.respectivePackageName = respectivePackageName;
