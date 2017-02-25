@@ -10,25 +10,15 @@ final class QualifiedId {
   }
 
   @Override public String toString() {
-    return "QualifiedId{"
-        + "packageName='"
-        + packageName
-        + '\''
-        + ", id="
-        + id
-        + '}';
+    return "QualifiedId{packageName='" + packageName + "', id=" + id + '}';
   }
 
   @Override public boolean equals(Object o) {
     if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
-
-    QualifiedId that = (QualifiedId) o;
-
-    if (id != that.id) return false;
-    if (!packageName.equals(that.packageName)) return false;
-
-    return true;
+    if (!(o instanceof QualifiedId)) return false;
+    QualifiedId other = (QualifiedId) o;
+    return id == other.id
+        && packageName.equals(other.packageName);
   }
 
   @Override public int hashCode() {
