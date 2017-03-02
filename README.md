@@ -14,8 +14,8 @@ code for you.
 
 ```java
 class ExampleActivity extends Activity {
-  @BindView(R.id.user) EditText username;
-  @BindView(R.id.pass) EditText password;
+  @BindView(R2.id.user) EditText username;
+  @BindView(R2.id.pass) EditText password;
 
   @BindString(R.string.login_error) String loginErrorMessage;
 
