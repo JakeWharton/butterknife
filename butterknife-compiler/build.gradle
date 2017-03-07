@@ -14,9 +14,9 @@ for (File file : sdkHandler.sdkLoader.repositories) {
 
 dependencies {
   compile project(':butterknife-annotations')
-  compile deps.autoservice
   compile deps.autocommon
   compile deps.javapoet
+  compileOnly deps.autoservice
   compileOnly files(org.gradle.internal.jvm.Jvm.current().getToolsJar())
 
   testCompile deps.junit
