@@ -226,7 +226,7 @@ public final class ButterKnife {
       return null;
     }
     try {
-      Class<?> bindingClass = Class.forName(clsName + "_ViewBinding");
+      Class<?> bindingClass = cls.getClassLoader().loadClass(clsName + "_ViewBinding");
       //noinspection unchecked
       bindingCtor = (Constructor<? extends Unbinder>) bindingClass.getConstructor(cls, View.class);
       if (debug) Log.d(TAG, "HIT: Loaded binding class and constructor.");
