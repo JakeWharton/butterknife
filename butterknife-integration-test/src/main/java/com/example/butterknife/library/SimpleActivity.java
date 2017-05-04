@@ -9,6 +9,9 @@ import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import butterknife.BindBean;
+import butterknife.BindBeanText;
 import butterknife.BindString;
 import butterknife.BindView;
 import butterknife.BindViews;
@@ -21,7 +24,7 @@ import com.example.butterknife.R;
 import java.util.List;
 
 import static android.widget.Toast.LENGTH_SHORT;
-
+@BindBean(SimpleActivity.Bean.class)
 public class SimpleActivity extends Activity {
   private static final ButterKnife.Action<View> ALPHA_FADE = new ButterKnife.Action<View>() {
     @Override public void apply(@NonNull View view, int index) {
@@ -41,7 +44,11 @@ public class SimpleActivity extends Activity {
   @BindString(R.string.app_name) String butterKnife;
   @BindString(R.string.field_method) String fieldMethod;
   @BindString(R.string.by_jake_wharton) String byJakeWharton;
-  @BindString(R.string.say_hello) String sayHello;
+  public static class Bean{
+    String id="Fuck u";
+  }
+  @BindBeanText(id=R.id.footer,value = "id")
+  TextView ggg;
 
   @BindViews({ R.id.title, R.id.subtitle, R.id.hello }) List<View> headerViews;
 
@@ -70,7 +77,6 @@ public class SimpleActivity extends Activity {
     title.setText(butterKnife);
     subtitle.setText(fieldMethod);
     footer.setText(byJakeWharton);
-    hello.setText(sayHello);
 
     adapter = new SimpleAdapter(this);
     listOfThings.setAdapter(adapter);
