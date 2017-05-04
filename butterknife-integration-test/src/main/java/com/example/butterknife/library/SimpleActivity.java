@@ -1,6 +1,7 @@
 package com.example.butterknife.library;
 
 import android.app.Activity;
+import android.app.Fragment;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.view.View;
@@ -26,6 +27,8 @@ import java.util.List;
 import static android.widget.Toast.LENGTH_SHORT;
 @BindBean(SimpleActivity.Bean.class)
 public class SimpleActivity extends Activity {
+
+
   private static final ButterKnife.Action<View> ALPHA_FADE = new ButterKnife.Action<View>() {
     @Override public void apply(@NonNull View view, int index) {
       AlphaAnimation alphaAnimation = new AlphaAnimation(0, 1);
@@ -40,10 +43,15 @@ public class SimpleActivity extends Activity {
   @BindView(R.id.subtitle) TextView subtitle;
   @BindView(R.id.hello) Button hello;
   @BindView(R.id.list_of_things) ListView listOfThings;
-  @BindView(R.id.footer) TextView footer;
   @BindString(R.string.app_name) String butterKnife;
   @BindString(R.string.field_method) String fieldMethod;
   @BindString(R.string.by_jake_wharton) String byJakeWharton;
+
+  @BindBean(Bean.class)
+  public static class TestBean extends Fragment{
+    @BindBeanText(id=R.id.footer,value = "id")
+    TextView ggg;
+  }
   public static class Bean{
     String id="Fuck u";
   }
@@ -76,7 +84,6 @@ public class SimpleActivity extends Activity {
     // Contrived code to use the bound fields.
     title.setText(butterKnife);
     subtitle.setText(fieldMethod);
-    footer.setText(byJakeWharton);
 
     adapter = new SimpleAdapter(this);
     listOfThings.setAdapter(adapter);

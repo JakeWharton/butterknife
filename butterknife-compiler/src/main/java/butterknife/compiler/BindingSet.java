@@ -136,7 +136,9 @@ final class BindingSet {
     }
 
     //--// TODO: 17-5-4 inner
-    result.addMethod(createApplyForBean(sdk));
+    MethodSpec apply = createApplyForBean(sdk);
+    if(apply!=null)
+        result.addMethod(apply);
 
     return result.build();
   }
@@ -194,16 +196,18 @@ final class BindingSet {
     return builder.build();
   }
   private MethodSpec createApplyForBean(int sdk) {
-    MethodSpec.Builder beanApply = MethodSpec.methodBuilder("apply")
-            .addAnnotation(UI_THREAD)
-            .addModifiers(PUBLIC)
-            .returns(TypeName.VOID)
-            //.addTypeVariable(TypeVariableName.get(beanTypeName))
-            .addParameter(TypeVariableName.get(beanTypeName), "bean");
-    for (ResourceBinding binding : beanBindings) {
-      beanApply.addStatement("$L", binding.render(sdk));
+    if(beanTypeName!=null) {
+      MethodSpec.Builder beanApply = MethodSpec.methodBuilder("apply")
+              .addAnnotation(UI_THREAD)
+              .addModifiers(PUBLIC)
+              .returns(TypeName.VOID)
+              .addParameter(TypeVariableName.get(beanTypeName), "bean");
+      for (ResourceBinding binding : beanBindings) {
+        beanApply.addStatement("$L", binding.render(sdk));
+      }
+      return beanApply.build();
     }
-    return beanApply.build();
+    return null;
   }
   private MethodSpec createBindingConstructor(int sdk) {
     MethodSpec.Builder constructor = MethodSpec.constructorBuilder()
