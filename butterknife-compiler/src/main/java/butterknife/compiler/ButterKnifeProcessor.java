@@ -3,7 +3,6 @@ package butterknife.compiler;
 import butterknife.BindArray;
 import butterknife.BindBeanClass;
 import butterknife.BindBeanFunc;
-import butterknife.BindBeanImage;
 import butterknife.BindBean;
 import butterknife.BindBitmap;
 import butterknife.BindBool;
@@ -296,8 +295,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
         annotations.addAll(LISTENERS);
 
         annotations.add(BindBean.class);
-        annotations.add(BindBeanImage.class);
-        annotations.add(BindBeanFunc.class);
+        //annotations.add(BindBeanFunc.class);
         annotations.add(BindBeanClass.class);
 
         return annotations;
@@ -454,15 +452,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
                 logParsingError(element, BindBean.class, e);
             }
         }
-        // Process each @BindBeanText element.
-        for (Element element : env.getElementsAnnotatedWith(BindBeanImage.class)) {
-            if (!SuperficialValidation.validateElement(element)) continue;
-            try {
-                parseBindImage(element, builderMap, erasedTargetNames);
-            } catch (Exception e) {
-                logParsingError(element, BindBeanImage.class, e);
-            }
-        }
+
 
         // Process each @BindBeanFunc element.
         for (Element element : env.getElementsAnnotatedWith(BindBeanFunc.class)) {
@@ -628,11 +618,11 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
         String name = element.getSimpleName().toString();
         boolean required = isFieldRequired(element);
         BindBean bean = element.getAnnotation(BindBean.class);
-        BindFunc     func=bean.annotationType().getAnnotation(BindFunc.class);
+        //BindFunc     func=bean.annotationType().getAnnotation(BindFunc.class);
 
         QualifiedId qualifiedId = elementToQualifiedId(element, bean.id());
         BindingSet.Builder builder = getOrCreateBindingBuilder(builderMap, enclosingElement);
-        builder.addBeanBinding(new FieldBeanBinding(getId(qualifiedId), name, bean.value(),func));
+        builder.addBeanBinding(new FieldBeanBinding(getId(qualifiedId), name, bean.value(),null));
 
 
         BindingSet.Builder binder = getOrCreateBindingBuilder(builderMap, enclosingElement);
@@ -640,25 +630,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
         erasedTargetNames.add(enclosingElement);
     }
-    private void parseBindImage(Element element, Map<TypeElement, BindingSet.Builder> builderMap, Set<TypeElement> erasedTargetNames) {
-        TypeElement enclosingElement = (TypeElement) element.getEnclosingElement();
 
-        TypeName type = TypeName.get(element.asType());
-        String name = element.getSimpleName().toString();
-        boolean required = isFieldRequired(element);
-        BindBeanImage bean = element.getAnnotation(BindBeanImage.class);
-        BindFunc     func=bean.annotationType().getAnnotation(BindFunc.class);
-
-        QualifiedId qualifiedId = elementToQualifiedId(element, bean.id());
-        BindingSet.Builder builder = getOrCreateBindingBuilder(builderMap, enclosingElement);
-        builder.addBeanBinding(new FieldBeanBinding(getId(qualifiedId), name, bean.value(),func));
-
-
-        BindingSet.Builder binder = getOrCreateBindingBuilder(builderMap, enclosingElement);
-        binder.addField(getId(qualifiedId), new FieldViewBinding(name, type, required));
-
-        erasedTargetNames.add(enclosingElement);
-    }
     private void parseBindFunc(Element element, Map<TypeElement, BindingSet.Builder> builderMap, Set<TypeElement> erasedTargetNames) {
         TypeElement enclosingElement = (TypeElement) element.getEnclosingElement();
 

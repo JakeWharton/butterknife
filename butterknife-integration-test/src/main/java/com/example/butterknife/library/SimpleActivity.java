@@ -13,7 +13,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import butterknife.BindBeanClass;
-import butterknife.BindBeanImage;
 import butterknife.BindBean;
 import butterknife.BindString;
 import butterknife.BindView;
@@ -53,7 +52,7 @@ public class SimpleActivity extends Activity {
 
   @BindBeanClass(Bean.class)
   public static class TestBean extends Fragment{
-    @BindBeanImage(id=R.id.footer,value = "id()")
+    @BindBean(id=R.id.footer,value = "id()")
     ImageView image;
     void x(){
 
