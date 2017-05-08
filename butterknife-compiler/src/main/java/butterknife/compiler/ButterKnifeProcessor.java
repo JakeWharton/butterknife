@@ -2,6 +2,8 @@ package butterknife.compiler;
 
 import butterknife.BindArray;
 import butterknife.BindBean;
+import butterknife.BindBeanFunc;
+import butterknife.BindBeanImage;
 import butterknife.BindBeanText;
 import butterknife.BindBitmap;
 import butterknife.BindBool;
@@ -25,6 +27,7 @@ import butterknife.OnPageChange;
 import butterknife.OnTextChanged;
 import butterknife.OnTouch;
 import butterknife.Optional;
+import butterknife.BindFunc;
 import butterknife.internal.ListenerClass;
 import butterknife.internal.ListenerMethod;
 
@@ -115,6 +118,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
             OnTextChanged.class, //
             OnTouch.class //
     );
+
 
     private static final List<String> SUPPORTED_TYPES = Arrays.asList(
             "array", "attr", "bool", "color", "dimen", "drawable", "id", "integer", "string"
@@ -289,9 +293,12 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
         annotations.add(BindString.class);
         annotations.add(BindView.class);
         annotations.add(BindViews.class);
-        annotations.add(BindBeanText.class);
-        annotations.add(BindBean.class);
         annotations.addAll(LISTENERS);
+
+        annotations.add(BindBeanText.class);
+        annotations.add(BindBeanImage.class);
+        annotations.add(BindBeanFunc.class);
+        annotations.add(BindBean.class);
 
         return annotations;
     }
@@ -319,15 +326,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
         Set<TypeElement> erasedTargetNames = new LinkedHashSet<>();
 
         scanForRClasses(env);
-        // Process each @BindBean element.
-        for (Element element : env.getElementsAnnotatedWith(BindBeanText.class)) {
-            if (!SuperficialValidation.validateElement(element)) continue;
-            try {
-                parseBindBeans(element, builderMap, erasedTargetNames);
-            } catch (Exception e) {
-                logParsingError(element, BindBeanText.class, e);
-            }
-        }
+
         // Process each @BindArray element.
         for (Element element : env.getElementsAnnotatedWith(BindArray.class)) {
             if (!SuperficialValidation.validateElement(element)) continue;
@@ -443,6 +442,36 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
         // Process each annotation that corresponds to a listener.
         for (Class<? extends Annotation> listener : LISTENERS) {
             findAndParseListener(env, listener, builderMap, erasedTargetNames);
+        }
+
+
+        // Process each @BindBeanText element.
+        for (Element element : env.getElementsAnnotatedWith(BindBeanText.class)) {
+            if (!SuperficialValidation.validateElement(element)) continue;
+            try {
+                parseBindText(element, builderMap, erasedTargetNames);
+            } catch (Exception e) {
+                logParsingError(element, BindBeanText.class, e);
+            }
+        }
+        // Process each @BindBeanText element.
+        for (Element element : env.getElementsAnnotatedWith(BindBeanImage.class)) {
+            if (!SuperficialValidation.validateElement(element)) continue;
+            try {
+                parseBindImage(element, builderMap, erasedTargetNames);
+            } catch (Exception e) {
+                logParsingError(element, BindBeanImage.class, e);
+            }
+        }
+
+        // Process each @BindBeanFunc element.
+        for (Element element : env.getElementsAnnotatedWith(BindBeanFunc.class)) {
+            if (!SuperficialValidation.validateElement(element)) continue;
+            try {
+                parseBindFunc(element, builderMap, erasedTargetNames);
+            } catch (Exception e) {
+                logParsingError(element, BindBeanFunc.class, e);
+            }
         }
 
         // Associate superclass binders with their subclass binders. This is a queue-based tree walk
@@ -592,46 +621,62 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
         erasedTargetNames.add(enclosingElement);
     }
 
-    private void parseBindBeans(Element element, Map<TypeElement, BindingSet.Builder> builderMap, Set<TypeElement> erasedTargetNames) {
-        boolean hasError = false;
+    private void parseBindText(Element element, Map<TypeElement, BindingSet.Builder> builderMap, Set<TypeElement> erasedTargetNames) {
         TypeElement enclosingElement = (TypeElement) element.getEnclosingElement();
 
-        // Verify that the target type is bool.
-//    if (element.asType().getKind() != TypeKind.BOOLEAN) {
-//      error(element, "@%s field type must be 'boolean'. (%s.%s)",
-//              BindBean.class.getSimpleName(), enclosingElement.getQualifiedName(),
-//              element.getSimpleName());
-//      hasError = true;
-//    }
-
-        // Verify common generated code restrictions.
-//    hasError |= isInaccessibleViaGeneratedCode(BindBean.class, "fields", element);
-//    hasError |= isBindingInWrongPackage(BindBean.class, element);
-//
-//    if (hasError) {
-//      return;
-//    }
-
-        String name = element.getSimpleName().toString();
         TypeName type = TypeName.get(element.asType());
+        String name = element.getSimpleName().toString();
         boolean required = isFieldRequired(element);
         BindBeanText bean = element.getAnnotation(BindBeanText.class);
-        QualifiedId qualifiedId = elementToQualifiedId(element, bean.id());
+        BindFunc     func=bean.annotationType().getAnnotation(BindFunc.class);
 
+        QualifiedId qualifiedId = elementToQualifiedId(element, bean.id());
         BindingSet.Builder builder = getOrCreateBindingBuilder(builderMap, enclosingElement);
-        builder.addBeanBinding(
-                new FieldBeanBinding(getId(qualifiedId), name, bean.value(), FieldBeanBinding.Type.NAME));
+        builder.addBeanBinding(new FieldBeanBinding(getId(qualifiedId), name, bean.value(),func));
 
 
         BindingSet.Builder binder = getOrCreateBindingBuilder(builderMap, enclosingElement);
         binder.addField(getId(qualifiedId), new FieldViewBinding(name, type, required));
-        // Assemble information on the field.
-
-
 
         erasedTargetNames.add(enclosingElement);
     }
+    private void parseBindImage(Element element, Map<TypeElement, BindingSet.Builder> builderMap, Set<TypeElement> erasedTargetNames) {
+        TypeElement enclosingElement = (TypeElement) element.getEnclosingElement();
 
+        TypeName type = TypeName.get(element.asType());
+        String name = element.getSimpleName().toString();
+        boolean required = isFieldRequired(element);
+        BindBeanImage bean = element.getAnnotation(BindBeanImage.class);
+        BindFunc     func=bean.annotationType().getAnnotation(BindFunc.class);
+
+        QualifiedId qualifiedId = elementToQualifiedId(element, bean.id());
+        BindingSet.Builder builder = getOrCreateBindingBuilder(builderMap, enclosingElement);
+        builder.addBeanBinding(new FieldBeanBinding(getId(qualifiedId), name, bean.value(),func));
+
+
+        BindingSet.Builder binder = getOrCreateBindingBuilder(builderMap, enclosingElement);
+        binder.addField(getId(qualifiedId), new FieldViewBinding(name, type, required));
+
+        erasedTargetNames.add(enclosingElement);
+    }
+    private void parseBindFunc(Element element, Map<TypeElement, BindingSet.Builder> builderMap, Set<TypeElement> erasedTargetNames) {
+        TypeElement enclosingElement = (TypeElement) element.getEnclosingElement();
+
+        TypeName type = TypeName.get(element.asType());
+        String name = element.getSimpleName().toString();
+        boolean required = isFieldRequired(element);
+        BindBeanFunc bean = element.getAnnotation(BindBeanFunc.class);
+
+        QualifiedId qualifiedId = elementToQualifiedId(element, bean.id());
+        BindingSet.Builder builder = getOrCreateBindingBuilder(builderMap, enclosingElement);
+        builder.addBeanBinding(new FieldBeanBinding(getId(qualifiedId), name, bean.value(),bean.func()));
+
+
+        BindingSet.Builder binder = getOrCreateBindingBuilder(builderMap, enclosingElement);
+        binder.addField(getId(qualifiedId), new FieldViewBinding(name, type, required));
+
+        erasedTargetNames.add(enclosingElement);
+    }
     private  QualifiedId elementToQualifiedId(Element element, int id) {
         return new QualifiedId(elementUtils.getPackageOf(element).getQualifiedName().toString(), id);
     }

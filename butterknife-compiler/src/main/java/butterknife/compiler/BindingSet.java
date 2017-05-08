@@ -53,13 +53,13 @@ final class BindingSet {
       ClassName.get("android.support.annotation", "CallSuper");
   private static final ClassName SUPPRESS_LINT =
       ClassName.get("android.annotation", "SuppressLint");
-  private static final ClassName UNBINDER = ClassName.get("butterknife", "Unbinder");
+
   static final ClassName BITMAP_FACTORY = ClassName.get("android.graphics", "BitmapFactory");
   static final ClassName CONTEXT_COMPAT =
       ClassName.get("android.support.v4.content", "ContextCompat");
 
 
-  private final TypeMirror beanTypeName;
+  private final TypeName beanTypeName;
   private final TypeName targetTypeName;
   private final ClassName bindingClassName;
   private final boolean isFinal;
@@ -73,7 +73,7 @@ final class BindingSet {
   private final ImmutableList<ResourceBinding> resourceBindings;
   private final BindingSet parentBinding;
 
-  private BindingSet(TypeName targetTypeName,TypeMirror beanTypeName ,ClassName bindingClassName, boolean isFinal,
+  private BindingSet(TypeName targetTypeName,TypeName beanTypeName ,ClassName bindingClassName, boolean isFinal,
       boolean isView, boolean isActivity, boolean isDialog,
                      ImmutableList<FieldBeanBinding> beanBindings,
                      ImmutableList<ViewBinding> viewBindings,
@@ -111,6 +111,8 @@ final class BindingSet {
     if (parentBinding != null) {
       result.superclass(parentBinding.bindingClassName);
     } else {
+      ParameterizedTypeName UNBINDER = ParameterizedTypeName.get(ClassName.get("butterknife", "Unbinder"), beanTypeName);
+      //ClassName.get("butterknife", "Unbinder");
       result.addSuperinterface(UNBINDER);
     }
 
@@ -201,7 +203,7 @@ final class BindingSet {
               .addAnnotation(UI_THREAD)
               .addModifiers(PUBLIC)
               .returns(TypeName.VOID)
-              .addParameter(TypeVariableName.get(beanTypeName), "bean");
+              .addParameter(beanTypeName,"bean");
       for (ResourceBinding binding : beanBindings) {
         beanApply.addStatement("$L", binding.render(sdk));
       }
@@ -702,7 +704,9 @@ final class BindingSet {
         packageName.length() + 1).replace('.', '$');
     ClassName bindingClassName = ClassName.get(packageName, className + "_ViewBinding");
     TypeMirror beanTypeMirror=null;
+
     BindBean bean = enclosingElement.getAnnotation(BindBean.class);
+    TypeName type=null;
     if(bean!=null) {
         System.out.println("check bean");
         try
@@ -712,16 +716,21 @@ final class BindingSet {
         catch( MirroredTypeException mte )
         {
           beanTypeMirror=mte.getTypeMirror();
+          type= TypeName.get(beanTypeMirror);
           System.out.println(mte.getTypeMirror());
         }
+    }else {
+
+      type=ClassName.get("java.lang","Void");
     }
+
     boolean isFinal = enclosingElement.getModifiers().contains(Modifier.FINAL);
-    return new Builder(targetType, beanTypeMirror,bindingClassName, isFinal, isView, isActivity, isDialog);
+    return new Builder(targetType,type ,bindingClassName, isFinal, isView, isActivity, isDialog);
   }
 
   static final class Builder {
     private final TypeName targetTypeName;
-    private final TypeMirror beanTypeName;
+    private final TypeName beanTypeName;
     private final ClassName bindingClassName;
     private final boolean isFinal;
     private final boolean isView;
@@ -737,7 +746,7 @@ final class BindingSet {
         ImmutableList.builder();
     private final ImmutableList.Builder<ResourceBinding> resourceBindings = ImmutableList.builder();
 
-    private Builder(TypeName targetTypeName,TypeMirror beanTypeName, ClassName bindingClassName, boolean isFinal,
+    private Builder(TypeName targetTypeName,TypeName beanTypeName, ClassName bindingClassName, boolean isFinal,
         boolean isView, boolean isActivity, boolean isDialog) {
       this.targetTypeName = targetTypeName;
       this.beanTypeName=beanTypeName;

@@ -2,16 +2,19 @@ package com.example.butterknife.library;
 
 import android.app.Activity;
 import android.app.Fragment;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.view.View;
 import android.view.animation.AlphaAnimation;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import butterknife.BindBean;
+import butterknife.BindBeanImage;
 import butterknife.BindBeanText;
 import butterknife.BindString;
 import butterknife.BindView;
@@ -20,6 +23,8 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 import butterknife.OnItemClick;
 import butterknife.OnLongClick;
+import butterknife.Unbinder;
+
 import com.example.butterknife.R;
 
 import java.util.List;
@@ -49,11 +54,15 @@ public class SimpleActivity extends Activity {
 
   @BindBean(Bean.class)
   public static class TestBean extends Fragment{
-    @BindBeanText(id=R.id.footer,value = "id")
-    TextView ggg;
+    @BindBeanImage(id=R.id.footer,value = "id()")
+    ImageView ggg;
+    void x(){
+
+    }
   }
   public static class Bean{
-    String id="Fuck u";
+    public String id="";
+    public Uri id(){return Uri.parse("Fuck u");};
   }
   @BindBeanText(id=R.id.footer,value = "id")
   TextView ggg;
@@ -79,8 +88,10 @@ public class SimpleActivity extends Activity {
   @Override protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.simple_activity);
-    ButterKnife.bind(this);
-
+    Unbinder binder = ButterKnife.bind(this);
+    binder.unbind();
+    Bean bean=null;
+    binder.apply(bean);
     // Contrived code to use the bound fields.
     title.setText(butterKnife);
     subtitle.setText(fieldMethod);

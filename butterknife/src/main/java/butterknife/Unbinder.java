@@ -3,10 +3,14 @@ package butterknife;
 import android.support.annotation.UiThread;
 
 /** An unbinder contract that will unbind views when called. */
-public interface Unbinder {
+public interface Unbinder<T> {
   @UiThread void unbind();
-
-  Unbinder EMPTY = new Unbinder() {
+  void apply(T bean);
+  Unbinder EMPTY = new Unbinder<Void>() {
     @Override public void unbind() { }
+    @Override
+    public  void apply(Void bean) {
+
+    }
   };
 }
