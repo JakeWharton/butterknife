@@ -1,6 +1,6 @@
 buildscript {
   dependencies {
-    classpath 'com.jakewharton:butterknife-gradle-plugin:8.4.0'
+    classpath "com.jakewharton:butterknife-gradle-plugin:${versions.release}"
   }
 }
 
@@ -8,17 +8,17 @@ apply plugin: 'com.android.library'
 apply plugin: 'com.jakewharton.butterknife'
 
 android {
-  compileSdkVersion rootProject.ext.compileSdkVersion
-  buildToolsVersion rootProject.ext.buildToolsVersion
+  compileSdkVersion versions.compileSdk
+  buildToolsVersion versions.buildTools
 
   defaultConfig {
-    minSdkVersion rootProject.ext.minSdkVersion
+    minSdkVersion versions.minSdk
   }
 }
 
 dependencies {
-  compile deps.butterknife
-  annotationProcessor deps.butterknifeCompiler
+  compile deps.release.runtime
+  annotationProcessor deps.release.compiler
 
   testCompile deps.junit
   testCompile deps.truth

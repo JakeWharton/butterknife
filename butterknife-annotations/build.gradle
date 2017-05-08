@@ -9,8 +9,8 @@ for (File file : sdkHandler.sdkLoader.repositories) {
   }
 }
 
-sourceCompatibility = rootProject.ext.sourceCompatibilityVersion
-targetCompatibility = rootProject.ext.targetCompatibilityVersion
+sourceCompatibility = JavaVersion.VERSION_1_7
+targetCompatibility = JavaVersion.VERSION_1_7
 
 checkstyle {
   configFile rootProject.file('checkstyle.xml')
@@ -18,8 +18,8 @@ checkstyle {
 }
 
 dependencies {
-  compileOnly deps.android
-  compile deps.supportAnnotations
+  compileOnly deps.android.runtime
+  compile deps.support.annotations
 }
 
 apply from: rootProject.file('gradle/gradle-mvn-push.gradle')
