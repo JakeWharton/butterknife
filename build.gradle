@@ -7,6 +7,7 @@ buildscript {
       'supportLibrary': '25.1.0',
       'androidPlugin': '2.2.0',
       'androidTools': '25.2.0',
+      'kotlin': '1.1.2-3',
 
       'release': '8.4.0',
   ]
@@ -44,6 +45,9 @@ buildscript {
           'runtime': "com.jakewharton:butterknife:${versions.release}",
           'compiler': "com.jakewharton:butterknife-compiler:${versions.release}"
       ],
+      'kotlin': [
+          'stdLibJre8': "org.jetbrains.kotlin:kotlin-stdlib-jre8:${versions.kotlin}",
+      ]
   ]
 }
 
@@ -87,6 +91,7 @@ subprojects { project ->
     }
     dependencies {
       classpath deps.android.gradlePlugin
+      classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${versions.kotlin}"
       classpath 'gradle.plugin.com.kageiit:lintrules:1.1.2'
     }
   }
