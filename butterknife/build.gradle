@@ -2,11 +2,11 @@ apply plugin: 'com.android.library'
 apply plugin: 'com.kageiit.lintrules'
 
 android {
-  compileSdkVersion rootProject.ext.compileSdkVersion
-  buildToolsVersion rootProject.ext.buildToolsVersion
+  compileSdkVersion versions.compileSdk
+  buildToolsVersion versions.buildTools
 
   defaultConfig {
-    minSdkVersion rootProject.ext.minSdkVersion
+    minSdkVersion versions.minSdk
 
     consumerProguardFiles 'proguard-rules.txt'
 
@@ -21,14 +21,14 @@ android {
 
 dependencies {
   compile project(':butterknife-annotations')
-  compile deps.supportAnnotations
-  compile deps.supportCompat
+  compile deps.support.annotations
+  compile deps.support.compat
 
   lintRules project(':butterknife-lint')
 
   androidTestCompile deps.junit
   androidTestCompile deps.truth
-  androidTestCompile deps.supportTestRunner
+  androidTestCompile deps.support.test.runner
 
   testCompile deps.junit
   testCompile deps.truth

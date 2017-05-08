@@ -1,8 +1,8 @@
 apply plugin: 'java'
 apply plugin: 'checkstyle'
 
-sourceCompatibility = rootProject.ext.sourceCompatibilityVersion
-targetCompatibility = rootProject.ext.targetCompatibilityVersion
+sourceCompatibility = JavaVersion.VERSION_1_7
+targetCompatibility = JavaVersion.VERSION_1_7
 
 def logger = new com.android.build.gradle.internal.LoggerWrapper(project.logger)
 def sdkHandler = new com.android.build.gradle.internal.SdkHandler(project, logger)
@@ -14,9 +14,9 @@ for (File file : sdkHandler.sdkLoader.repositories) {
 
 dependencies {
   compile project(':butterknife-annotations')
-  compile deps.autocommon
+  compile deps.auto.common
   compile deps.javapoet
-  compileOnly deps.autoservice
+  compileOnly deps.auto.service
   compileOnly files(org.gradle.internal.jvm.Jvm.current().getToolsJar())
 
   testCompile deps.junit

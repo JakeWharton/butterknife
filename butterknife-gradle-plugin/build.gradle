@@ -8,19 +8,19 @@ for (File file : sdkHandler.sdkLoader.repositories) {
   }
 }
 
-sourceCompatibility = rootProject.ext.sourceCompatibilityVersion
-targetCompatibility = rootProject.ext.targetCompatibilityVersion
+sourceCompatibility = JavaVersion.VERSION_1_8
+targetCompatibility = JavaVersion.VERSION_1_8
 
 dependencies {
   compile gradleApi()
 
-  compile deps.androidGradle
+  compile deps.android.gradlePlugin
   compile deps.javaparser
   compile deps.javapoet
 
   testCompile deps.junit
   testCompile deps.truth
-  testCompile deps.supportAnnotations
+  testCompile deps.support.annotations
   testCompile deps.compiletesting
 }
 
