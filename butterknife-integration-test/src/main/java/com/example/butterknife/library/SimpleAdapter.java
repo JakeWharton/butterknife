@@ -58,7 +58,7 @@ public class SimpleAdapter extends BaseAdapter {
     @BindView(R.id.position) TextView position;
 
     ViewHolder(View view) {
-      ButterKnife.bind(this, view);
+      ButterKnife.bind(this, view,null);
     }
   }
 }

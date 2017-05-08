@@ -14,7 +14,7 @@ public class G extends E {
 
   public G(View view) {
     super(view);
-    ButterKnife.bind(this, view);
+    ButterKnife.bind(this, view,null);
   }
 
   @OnClick(android.R.id.content) public void onClick() {

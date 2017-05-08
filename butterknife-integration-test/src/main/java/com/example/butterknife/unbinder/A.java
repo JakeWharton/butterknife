@@ -10,6 +10,6 @@ public class A {
   @BindColor(android.R.color.black) @ColorInt int blackColor;
 
   public A(View view) {
-    ButterKnife.bind(this, view);
+    ButterKnife.bind(this, view,null);
   }
 }

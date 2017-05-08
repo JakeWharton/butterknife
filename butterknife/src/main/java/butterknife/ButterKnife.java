@@ -119,9 +119,9 @@ public final class ButterKnife {
    * @param target Target activity for view binding.
    */
   @NonNull @UiThread
-  public static Unbinder bind(@NonNull Activity target) {
+  public static Unbinder bind(@NonNull Activity target,Binder binder) {
     View sourceView = target.getWindow().getDecorView();
-    return createBinding(target, sourceView);
+    return createBinding(target, sourceView,binder);
   }
 
   /**
@@ -131,8 +131,8 @@ public final class ButterKnife {
    * @param target Target view for view binding.
    */
   @NonNull @UiThread
-  public static Unbinder bind(@NonNull View target) {
-    return createBinding(target, target);
+  public static Unbinder bind(@NonNull View target,Binder binder) {
+    return createBinding(target, target,binder);
   }
 
   /**
@@ -142,9 +142,9 @@ public final class ButterKnife {
    * @param target Target dialog for view binding.
    */
   @NonNull @UiThread
-  public static Unbinder bind(@NonNull Dialog target) {
+  public static Unbinder bind(@NonNull Dialog target,Binder binder) {
     View sourceView = target.getWindow().getDecorView();
-    return createBinding(target, sourceView);
+    return createBinding(target, sourceView,binder);
   }
 
   /**
@@ -155,9 +155,9 @@ public final class ButterKnife {
    * @param source Activity on which IDs will be looked up.
    */
   @NonNull @UiThread
-  public static Unbinder bind(@NonNull Object target, @NonNull Activity source) {
+  public static Unbinder bind(@NonNull Object target, @NonNull Activity source,Binder binder) {
     View sourceView = source.getWindow().getDecorView();
-    return createBinding(target, sourceView);
+    return createBinding(target, sourceView,binder);
   }
 
   /**
@@ -168,8 +168,8 @@ public final class ButterKnife {
    * @param source View root on which IDs will be looked up.
    */
   @NonNull @UiThread
-  public static Unbinder bind(@NonNull Object target, @NonNull View source) {
-    return createBinding(target, source);
+  public static Unbinder bind(@NonNull Object target, @NonNull View source,Binder binder) {
+    return createBinding(target, source,binder);
   }
 
   /**
@@ -180,12 +180,12 @@ public final class ButterKnife {
    * @param source Dialog on which IDs will be looked up.
    */
   @NonNull @UiThread
-  public static Unbinder bind(@NonNull Object target, @NonNull Dialog source) {
+  public static Unbinder bind(@NonNull Object target, @NonNull Dialog source,Binder binder) {
     View sourceView = source.getWindow().getDecorView();
-    return createBinding(target, sourceView);
+    return createBinding(target, sourceView,binder);
   }
 
-  private static Unbinder createBinding(@NonNull Object target, @NonNull View source) {
+  private static Unbinder createBinding(@NonNull Object target, @NonNull View source,Binder binder) {
     Class<?> targetClass = target.getClass();
     if (debug) Log.d(TAG, "Looking up binding for " + targetClass.getName());
     Constructor<? extends Unbinder> constructor = findBindingConstructorForClass(targetClass);
@@ -196,7 +196,7 @@ public final class ButterKnife {
 
     //noinspection TryWithIdenticalCatches Resolves to API 19+ only type.
     try {
-      return constructor.newInstance(target, source);
+      return constructor.newInstance(target, source,binder);
     } catch (IllegalAccessException e) {
       throw new RuntimeException("Unable to invoke " + constructor, e);
     } catch (InstantiationException e) {
@@ -228,7 +228,7 @@ public final class ButterKnife {
     try {
       Class<?> bindingClass = cls.getClassLoader().loadClass(clsName + "_ViewBinding");
       //noinspection unchecked
-      bindingCtor = (Constructor<? extends Unbinder>) bindingClass.getConstructor(cls, View.class);
+      bindingCtor = (Constructor<? extends Unbinder>) bindingClass.getConstructor(cls, View.class,Binder.class);
       if (debug) Log.d(TAG, "HIT: Loaded binding class and constructor.");
     } catch (ClassNotFoundException e) {
       if (debug) Log.d(TAG, "Not found. Trying superclass " + cls.getSuperclass().getName());

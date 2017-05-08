@@ -11,6 +11,6 @@ public class E extends C {
 
   public E(View view) {
     super(view);
-    ButterKnife.bind(this, view);
+    ButterKnife.bind(this, view,null);
   }
 }

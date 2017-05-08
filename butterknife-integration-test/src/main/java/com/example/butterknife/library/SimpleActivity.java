@@ -87,10 +87,9 @@ public class SimpleActivity extends Activity {
   @Override protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.simple_activity);
-    Unbinder binder = ButterKnife.bind(this);
+    Unbinder binder = ButterKnife.bind(this,null);
     Bean bean=new Bean();
     binder.apply(bean);
-    binder.unbind();
     // Contrived code to use the bound fields.
     title.setText(butterKnife);
     subtitle.setText(fieldMethod);
