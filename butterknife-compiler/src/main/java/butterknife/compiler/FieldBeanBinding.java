@@ -72,6 +72,6 @@ final class FieldBeanBinding implements ResourceBinding{
 
   @Override public CodeBlock render(int sdk) {
     //BeanMethod method = type.methodForSdk(sdk);
-    return CodeBlock.of("target.$L.$L(bean.$L)", name, func.value(),filed);
+    return CodeBlock.of("this.binder.apply(target.$L,bean.$L)", name,filed);
   }
 }

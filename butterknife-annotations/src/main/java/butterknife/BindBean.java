@@ -4,8 +4,6 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
 import static java.lang.annotation.ElementType.FIELD;
-import static java.lang.annotation.ElementType.METHOD;
-import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.CLASS;
 
 /**
@@ -14,8 +12,9 @@ import static java.lang.annotation.RetentionPolicy.CLASS;
  * {@literal @}BindString(R.string.username_error) String usernameErrorText;
  * </code></pre>
  */
-@Retention(CLASS) @Target(TYPE)
+@Retention(CLASS) @Target({FIELD})
+@BindFunc("setText")
 public @interface BindBean {
-  /** String resource ID to which the field will be bound. */
-   Class<?> value();
+    int id();
+    String value();
 }

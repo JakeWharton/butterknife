@@ -1,6 +1,6 @@
 package butterknife.compiler;
 
-import butterknife.BindBean;
+import butterknife.BindBeanClass;
 import butterknife.OnTouch;
 import butterknife.internal.ListenerClass;
 import butterknife.internal.ListenerMethod;
@@ -13,11 +13,8 @@ import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
-import com.squareup.javapoet.TypeVariableName;
 import com.squareup.javapoet.WildcardTypeName;
 import java.lang.reflect.Field;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -57,6 +54,7 @@ final class BindingSet {
   static final ClassName BITMAP_FACTORY = ClassName.get("android.graphics", "BitmapFactory");
   static final ClassName CONTEXT_COMPAT =
       ClassName.get("android.support.v4.content", "ContextCompat");
+  private static final TypeName BINDER = ClassName.get("butterknife","Binder");
 
 
   private final TypeName beanTypeName;
@@ -112,12 +110,12 @@ final class BindingSet {
       result.superclass(parentBinding.bindingClassName);
     } else {
       ParameterizedTypeName UNBINDER = ParameterizedTypeName.get(ClassName.get("butterknife", "Unbinder"), beanTypeName);
-      //ClassName.get("butterknife", "Unbinder");
       result.addSuperinterface(UNBINDER);
     }
 
     if (hasTargetField()) {
       result.addField(targetTypeName, "target", PRIVATE);
+      result.addField(BINDER, "binder", PRIVATE);
     }
 
     if (isView) {
@@ -155,7 +153,8 @@ final class BindingSet {
         .addModifiers(PUBLIC)
         .addParameter(targetTypeName, "target")
         .addParameter(VIEW, "source")
-        .addStatement(("this(target, source.getContext())"))
+        .addParameter(BINDER, "binder")
+        .addStatement(("this(target, source.getContext(),binder)"))
         .build();
   }
 
@@ -163,11 +162,12 @@ final class BindingSet {
     MethodSpec.Builder builder = MethodSpec.constructorBuilder()
         .addAnnotation(UI_THREAD)
         .addModifiers(PUBLIC)
-        .addParameter(targetTypeName, "target");
+        .addParameter(targetTypeName, "target")
+        .addParameter(BINDER, "binder");
     if (constructorNeedsView()) {
-      builder.addStatement("this(target, target)");
+      builder.addStatement("this(target, target,binder)");
     } else {
-      builder.addStatement("this(target, target.getContext())");
+      builder.addStatement("this(target, target.getContext(),binder)");
     }
     return builder.build();
   }
@@ -176,11 +176,12 @@ final class BindingSet {
     MethodSpec.Builder builder = MethodSpec.constructorBuilder()
         .addAnnotation(UI_THREAD)
         .addModifiers(PUBLIC)
-        .addParameter(targetTypeName, "target");
+        .addParameter(targetTypeName, "target")
+        .addParameter(BINDER, "binder");
     if (constructorNeedsView()) {
-      builder.addStatement("this(target, target.getWindow().getDecorView())");
+      builder.addStatement("this(target, target.getWindow().getDecorView(),binder)");
     } else {
-      builder.addStatement("this(target, target)");
+      builder.addStatement("this(target, target,binder)");
     }
     return builder.build();
   }
@@ -189,11 +190,12 @@ final class BindingSet {
     MethodSpec.Builder builder = MethodSpec.constructorBuilder()
         .addAnnotation(UI_THREAD)
         .addModifiers(PUBLIC)
-        .addParameter(targetTypeName, "target");
+        .addParameter(targetTypeName, "target")
+        .addParameter(BINDER, "binder");
     if (constructorNeedsView()) {
-      builder.addStatement("this(target, target.getWindow().getDecorView())");
+      builder.addStatement("this(target, target.getWindow().getDecorView(),binder)");
     } else {
-      builder.addStatement("this(target, target.getContext())");
+      builder.addStatement("this(target, target.getContext(),binder)");
     }
     return builder.build();
   }
@@ -227,7 +229,7 @@ final class BindingSet {
     } else {
       constructor.addParameter(CONTEXT, "context");
     }
-
+    constructor.addParameter(BINDER, "binder");
     if (hasUnqualifiedResourceBindings()) {
       // Aapt can change IDs out from underneath us, just suppress since all will work at runtime.
       constructor.addAnnotation(AnnotationSpec.builder(SuppressWarnings.class)
@@ -243,16 +245,18 @@ final class BindingSet {
 
     if (parentBinding != null) {
       if (parentBinding.constructorNeedsView()) {
-        constructor.addStatement("super(target, source)");
+        constructor.addStatement("super(target, source,binder)");
       } else if (constructorNeedsView()) {
-        constructor.addStatement("super(target, source.getContext())");
+        constructor.addStatement("super(target, source.getContext(),binder)");
       } else {
-        constructor.addStatement("super(target, context)");
+        constructor.addStatement("super(target, context,binder)");
       }
       constructor.addCode("\n");
     }
     if (hasTargetField()) {
       constructor.addStatement("this.target = target");
+      constructor.addStatement("if(binder ==null)binder=new Binder.Default()");
+      constructor.addStatement("this.binder = binder");
       constructor.addCode("\n");
     }
 
@@ -705,7 +709,7 @@ final class BindingSet {
     ClassName bindingClassName = ClassName.get(packageName, className + "_ViewBinding");
     TypeMirror beanTypeMirror=null;
 
-    BindBean bean = enclosingElement.getAnnotation(BindBean.class);
+    BindBeanClass bean = enclosingElement.getAnnotation(BindBeanClass.class);
     TypeName type=null;
     if(bean!=null) {
         System.out.println("check bean");

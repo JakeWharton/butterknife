@@ -1,10 +1,10 @@
 package butterknife.compiler;
 
 import butterknife.BindArray;
-import butterknife.BindBean;
+import butterknife.BindBeanClass;
 import butterknife.BindBeanFunc;
 import butterknife.BindBeanImage;
-import butterknife.BindBeanText;
+import butterknife.BindBean;
 import butterknife.BindBitmap;
 import butterknife.BindBool;
 import butterknife.BindColor;
@@ -295,10 +295,10 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
         annotations.add(BindViews.class);
         annotations.addAll(LISTENERS);
 
-        annotations.add(BindBeanText.class);
+        annotations.add(BindBean.class);
         annotations.add(BindBeanImage.class);
         annotations.add(BindBeanFunc.class);
-        annotations.add(BindBean.class);
+        annotations.add(BindBeanClass.class);
 
         return annotations;
     }
@@ -446,12 +446,12 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
 
         // Process each @BindBeanText element.
-        for (Element element : env.getElementsAnnotatedWith(BindBeanText.class)) {
+        for (Element element : env.getElementsAnnotatedWith(BindBean.class)) {
             if (!SuperficialValidation.validateElement(element)) continue;
             try {
                 parseBindText(element, builderMap, erasedTargetNames);
             } catch (Exception e) {
-                logParsingError(element, BindBeanText.class, e);
+                logParsingError(element, BindBean.class, e);
             }
         }
         // Process each @BindBeanText element.
@@ -627,7 +627,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
         TypeName type = TypeName.get(element.asType());
         String name = element.getSimpleName().toString();
         boolean required = isFieldRequired(element);
-        BindBeanText bean = element.getAnnotation(BindBeanText.class);
+        BindBean bean = element.getAnnotation(BindBean.class);
         BindFunc     func=bean.annotationType().getAnnotation(BindFunc.class);
 
         QualifiedId qualifiedId = elementToQualifiedId(element, bean.id());

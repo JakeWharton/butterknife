@@ -7,15 +7,14 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.view.View;
 import android.view.animation.AlphaAnimation;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import butterknife.BindBean;
+import butterknife.BindBeanClass;
 import butterknife.BindBeanImage;
-import butterknife.BindBeanText;
+import butterknife.BindBean;
 import butterknife.BindString;
 import butterknife.BindView;
 import butterknife.BindViews;
@@ -30,7 +29,7 @@ import com.example.butterknife.R;
 import java.util.List;
 
 import static android.widget.Toast.LENGTH_SHORT;
-@BindBean(SimpleActivity.Bean.class)
+@BindBeanClass(SimpleActivity.Bean.class)
 public class SimpleActivity extends Activity {
 
 
@@ -46,27 +45,28 @@ public class SimpleActivity extends Activity {
 
   @BindView(R.id.title) TextView title;
   @BindView(R.id.subtitle) TextView subtitle;
-  @BindView(R.id.hello) Button hello;
+
   @BindView(R.id.list_of_things) ListView listOfThings;
   @BindString(R.string.app_name) String butterKnife;
   @BindString(R.string.field_method) String fieldMethod;
   @BindString(R.string.by_jake_wharton) String byJakeWharton;
 
-  @BindBean(Bean.class)
+  @BindBeanClass(Bean.class)
   public static class TestBean extends Fragment{
     @BindBeanImage(id=R.id.footer,value = "id()")
-    ImageView ggg;
+    ImageView image;
     void x(){
 
     }
   }
   public static class Bean{
     public String id="";
-    public Uri id(){return Uri.parse("Fuck u");};
+    public Uri id(){return Uri.parse("http://a.png");};
   }
-  @BindBeanText(id=R.id.footer,value = "id")
+  @BindBean(id=R.id.footer,value = "id")
   TextView ggg;
-
+  @BindBean(id=R.id.hello,value = "id()")
+  TextView hello;
   @BindViews({ R.id.title, R.id.subtitle, R.id.hello }) List<View> headerViews;
 
   private SimpleAdapter adapter;
@@ -89,9 +89,9 @@ public class SimpleActivity extends Activity {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.simple_activity);
     Unbinder binder = ButterKnife.bind(this);
-    binder.unbind();
-    Bean bean=null;
+    Bean bean=new Bean();
     binder.apply(bean);
+    binder.unbind();
     // Contrived code to use the bound fields.
     title.setText(butterKnife);
     subtitle.setText(fieldMethod);
