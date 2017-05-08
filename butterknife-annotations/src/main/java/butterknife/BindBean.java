@@ -13,8 +13,9 @@ import static java.lang.annotation.RetentionPolicy.CLASS;
  * </code></pre>
  */
 @Retention(CLASS) @Target({FIELD})
-@BindFunc("setText")
+//@BindFunc("setText")
 public @interface BindBean {
     int id();
     String value();
+    String func() default "";
 }

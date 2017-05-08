@@ -54,8 +54,8 @@ final class FieldBeanBinding implements ResourceBinding{
   private final Id id;
   private final String name;
   private final String filed;
-  private final BindFunc func;
-  FieldBeanBinding(Id id, String name, String filed, BindFunc func) {
+  private final String func;
+  FieldBeanBinding(Id id, String name, String filed, String func) {
     this.id = id;
     this.name = name;
     this.filed = filed;
@@ -72,6 +72,10 @@ final class FieldBeanBinding implements ResourceBinding{
 
   @Override public CodeBlock render(int sdk) {
     //BeanMethod method = type.methodForSdk(sdk);
-    return CodeBlock.of("this.binder.apply(target.$L,bean.$L)", name,filed);
+    if(func==null||func.length()==0) {
+      return CodeBlock.of("this.binder.apply(target.$L,bean.$L)", name, filed);
+    }else {
+      return CodeBlock.of("this.binder.apply(target.$L,$L(bean.$L))", name, func,filed);
+    }
   }
 }
