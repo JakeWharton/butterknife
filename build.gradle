@@ -53,7 +53,7 @@ ext {
 }
 
 def androidToolsVersion = '25.2.0'
-def supportLibraryVersion = '25.0.1'
+def supportLibraryVersion = '25.1.0'
 def butterknifeLatestReleaseVersion = '8.4.0'
 
 ext.deps = [
