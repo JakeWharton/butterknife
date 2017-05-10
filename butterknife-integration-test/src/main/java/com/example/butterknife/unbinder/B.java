@@ -11,6 +11,6 @@ public class B extends A {
 
   public B(View view) {
     super(view);
-    ButterKnife.bind(this, view);
+    ButterKnife.bind(this, view,null);
   }
 }

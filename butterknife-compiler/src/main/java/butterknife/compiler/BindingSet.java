@@ -1,5 +1,6 @@
 package butterknife.compiler;
 
+import butterknife.BindBeanClass;
 import butterknife.OnTouch;
 import butterknife.internal.ListenerClass;
 import butterknife.internal.ListenerMethod;
@@ -24,6 +25,7 @@ import java.util.Map;
 import java.util.Set;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.type.MirroredTypeException;
 import javax.lang.model.type.TypeMirror;
 
 import static butterknife.compiler.ButterKnifeProcessor.ACTIVITY_TYPE;
@@ -48,11 +50,14 @@ final class BindingSet {
       ClassName.get("android.support.annotation", "CallSuper");
   private static final ClassName SUPPRESS_LINT =
       ClassName.get("android.annotation", "SuppressLint");
-  private static final ClassName UNBINDER = ClassName.get("butterknife", "Unbinder");
+
   static final ClassName BITMAP_FACTORY = ClassName.get("android.graphics", "BitmapFactory");
   static final ClassName CONTEXT_COMPAT =
       ClassName.get("android.support.v4.content", "ContextCompat");
+  private static final TypeName BINDER = ClassName.get("butterknife","Binder");
 
+
+  private final TypeName beanTypeName;
   private final TypeName targetTypeName;
   private final ClassName bindingClassName;
   private final boolean isFinal;
@@ -60,16 +65,22 @@ final class BindingSet {
   private final boolean isActivity;
   private final boolean isDialog;
   private final ImmutableList<ViewBinding> viewBindings;
+  //--// TODO: 17-5-4
+  private final ImmutableList<FieldBeanBinding> beanBindings;
   private final ImmutableList<FieldCollectionViewBinding> collectionBindings;
   private final ImmutableList<ResourceBinding> resourceBindings;
   private final BindingSet parentBinding;
 
-  private BindingSet(TypeName targetTypeName, ClassName bindingClassName, boolean isFinal,
-      boolean isView, boolean isActivity, boolean isDialog, ImmutableList<ViewBinding> viewBindings,
+  private BindingSet(TypeName targetTypeName,TypeName beanTypeName ,ClassName bindingClassName, boolean isFinal,
+      boolean isView, boolean isActivity, boolean isDialog,
+                     ImmutableList<FieldBeanBinding> beanBindings,
+                     ImmutableList<ViewBinding> viewBindings,
       ImmutableList<FieldCollectionViewBinding> collectionBindings,
       ImmutableList<ResourceBinding> resourceBindings, BindingSet parentBinding) {
+
     this.isFinal = isFinal;
     this.targetTypeName = targetTypeName;
+    this.beanTypeName=beanTypeName;
     this.bindingClassName = bindingClassName;
     this.isView = isView;
     this.isActivity = isActivity;
@@ -78,9 +89,11 @@ final class BindingSet {
     this.collectionBindings = collectionBindings;
     this.resourceBindings = resourceBindings;
     this.parentBinding = parentBinding;
+    this.beanBindings=beanBindings;
   }
 
   JavaFile brewJava(int sdk) {
+
     return JavaFile.builder(bindingClassName.packageName(), createType(sdk))
         .addFileComment("Generated code from Butter Knife. Do not modify!")
         .build();
@@ -96,11 +109,13 @@ final class BindingSet {
     if (parentBinding != null) {
       result.superclass(parentBinding.bindingClassName);
     } else {
+      ParameterizedTypeName UNBINDER = ParameterizedTypeName.get(ClassName.get("butterknife", "Unbinder"), beanTypeName);
       result.addSuperinterface(UNBINDER);
     }
 
     if (hasTargetField()) {
       result.addField(targetTypeName, "target", PRIVATE);
+      result.addField(BINDER, "binder", PRIVATE);
     }
 
     if (isView) {
@@ -120,6 +135,11 @@ final class BindingSet {
       result.addMethod(createBindingUnbindMethod(result));
     }
 
+    //--// TODO: 17-5-4 inner
+    MethodSpec apply = createApplyForBean(sdk);
+    if(apply!=null)
+        result.addMethod(apply);
+
     return result.build();
   }
 
@@ -133,7 +153,8 @@ final class BindingSet {
         .addModifiers(PUBLIC)
         .addParameter(targetTypeName, "target")
         .addParameter(VIEW, "source")
-        .addStatement(("this(target, source.getContext())"))
+        .addParameter(BINDER, "binder")
+        .addStatement(("this(target, source.getContext(),binder)"))
         .build();
   }
 
@@ -141,11 +162,12 @@ final class BindingSet {
     MethodSpec.Builder builder = MethodSpec.constructorBuilder()
         .addAnnotation(UI_THREAD)
         .addModifiers(PUBLIC)
-        .addParameter(targetTypeName, "target");
+        .addParameter(targetTypeName, "target")
+        .addParameter(BINDER, "binder");
     if (constructorNeedsView()) {
-      builder.addStatement("this(target, target)");
+      builder.addStatement("this(target, target,binder)");
     } else {
-      builder.addStatement("this(target, target.getContext())");
+      builder.addStatement("this(target, target.getContext(),binder)");
     }
     return builder.build();
   }
@@ -154,11 +176,12 @@ final class BindingSet {
     MethodSpec.Builder builder = MethodSpec.constructorBuilder()
         .addAnnotation(UI_THREAD)
         .addModifiers(PUBLIC)
-        .addParameter(targetTypeName, "target");
+        .addParameter(targetTypeName, "target")
+        .addParameter(BINDER, "binder");
     if (constructorNeedsView()) {
-      builder.addStatement("this(target, target.getWindow().getDecorView())");
+      builder.addStatement("this(target, target.getWindow().getDecorView(),binder)");
     } else {
-      builder.addStatement("this(target, target)");
+      builder.addStatement("this(target, target,binder)");
     }
     return builder.build();
   }
@@ -167,15 +190,29 @@ final class BindingSet {
     MethodSpec.Builder builder = MethodSpec.constructorBuilder()
         .addAnnotation(UI_THREAD)
         .addModifiers(PUBLIC)
-        .addParameter(targetTypeName, "target");
+        .addParameter(targetTypeName, "target")
+        .addParameter(BINDER, "binder");
     if (constructorNeedsView()) {
-      builder.addStatement("this(target, target.getWindow().getDecorView())");
+      builder.addStatement("this(target, target.getWindow().getDecorView(),binder)");
     } else {
-      builder.addStatement("this(target, target.getContext())");
+      builder.addStatement("this(target, target.getContext(),binder)");
     }
     return builder.build();
   }
-
+  private MethodSpec createApplyForBean(int sdk) {
+    if(beanTypeName!=null) {
+      MethodSpec.Builder beanApply = MethodSpec.methodBuilder("apply")
+              .addAnnotation(UI_THREAD)
+              .addModifiers(PUBLIC)
+              .returns(TypeName.VOID)
+              .addParameter(beanTypeName,"bean");
+      for (ResourceBinding binding : beanBindings) {
+        beanApply.addStatement("$L", binding.render(sdk));
+      }
+      return beanApply.build();
+    }
+    return null;
+  }
   private MethodSpec createBindingConstructor(int sdk) {
     MethodSpec.Builder constructor = MethodSpec.constructorBuilder()
         .addAnnotation(UI_THREAD)
@@ -192,7 +229,7 @@ final class BindingSet {
     } else {
       constructor.addParameter(CONTEXT, "context");
     }
-
+    constructor.addParameter(BINDER, "binder");
     if (hasUnqualifiedResourceBindings()) {
       // Aapt can change IDs out from underneath us, just suppress since all will work at runtime.
       constructor.addAnnotation(AnnotationSpec.builder(SuppressWarnings.class)
@@ -208,16 +245,18 @@ final class BindingSet {
 
     if (parentBinding != null) {
       if (parentBinding.constructorNeedsView()) {
-        constructor.addStatement("super(target, source)");
+        constructor.addStatement("super(target, source,binder)");
       } else if (constructorNeedsView()) {
-        constructor.addStatement("super(target, source.getContext())");
+        constructor.addStatement("super(target, source.getContext(),binder)");
       } else {
-        constructor.addStatement("super(target, context)");
+        constructor.addStatement("super(target, context,binder)");
       }
       constructor.addCode("\n");
     }
     if (hasTargetField()) {
       constructor.addStatement("this.target = target");
+      constructor.addStatement("if(binder ==null)binder=new Binder.DefaultBinder()");
+      constructor.addStatement("this.binder = binder");
       constructor.addCode("\n");
     }
 
@@ -668,13 +707,34 @@ final class BindingSet {
     String className = enclosingElement.getQualifiedName().toString().substring(
         packageName.length() + 1).replace('.', '$');
     ClassName bindingClassName = ClassName.get(packageName, className + "_ViewBinding");
+    TypeMirror beanTypeMirror=null;
+
+    BindBeanClass bean = enclosingElement.getAnnotation(BindBeanClass.class);
+    TypeName type=null;
+    if(bean!=null) {
+        System.out.println("check bean");
+        try
+        {
+          bean.value();
+        }
+        catch( MirroredTypeException mte )
+        {
+          beanTypeMirror=mte.getTypeMirror();
+          type= TypeName.get(beanTypeMirror);
+          System.out.println(mte.getTypeMirror());
+        }
+    }else {
+
+      type=ClassName.get("java.lang","Void");
+    }
 
     boolean isFinal = enclosingElement.getModifiers().contains(Modifier.FINAL);
-    return new Builder(targetType, bindingClassName, isFinal, isView, isActivity, isDialog);
+    return new Builder(targetType,type ,bindingClassName, isFinal, isView, isActivity, isDialog);
   }
 
   static final class Builder {
     private final TypeName targetTypeName;
+    private final TypeName beanTypeName;
     private final ClassName bindingClassName;
     private final boolean isFinal;
     private final boolean isView;
@@ -684,13 +744,16 @@ final class BindingSet {
     private BindingSet parentBinding;
 
     private final Map<Id, ViewBinding.Builder> viewIdMap = new LinkedHashMap<>();
+    private final ImmutableList.Builder<FieldBeanBinding> beanBindings =
+            ImmutableList.builder();
     private final ImmutableList.Builder<FieldCollectionViewBinding> collectionBindings =
         ImmutableList.builder();
     private final ImmutableList.Builder<ResourceBinding> resourceBindings = ImmutableList.builder();
 
-    private Builder(TypeName targetTypeName, ClassName bindingClassName, boolean isFinal,
+    private Builder(TypeName targetTypeName,TypeName beanTypeName, ClassName bindingClassName, boolean isFinal,
         boolean isView, boolean isActivity, boolean isDialog) {
       this.targetTypeName = targetTypeName;
+      this.beanTypeName=beanTypeName;
       this.bindingClassName = bindingClassName;
       this.isFinal = isFinal;
       this.isView = isView;
@@ -698,6 +761,9 @@ final class BindingSet {
       this.isDialog = isDialog;
     }
 
+    public void addBeanBinding(FieldBeanBinding beanBinding) {
+        beanBindings.add(beanBinding);
+    }
     void addField(Id id, FieldViewBinding binding) {
       getOrCreateViewBindings(id).setFieldBinding(binding);
     }
@@ -753,9 +819,13 @@ final class BindingSet {
       for (ViewBinding.Builder builder : viewIdMap.values()) {
         viewBindings.add(builder.build());
       }
-      return new BindingSet(targetTypeName, bindingClassName, isFinal, isView, isActivity, isDialog,
+      return new BindingSet(targetTypeName,
+              beanTypeName,
+              bindingClassName, isFinal, isView, isActivity, isDialog,
+              beanBindings.build(),
           viewBindings.build(), collectionBindings.build(), resourceBindings.build(),
           parentBinding);
     }
+
   }
 }

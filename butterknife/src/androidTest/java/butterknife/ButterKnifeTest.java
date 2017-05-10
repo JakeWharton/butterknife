@@ -234,14 +234,14 @@ public class ButterKnifeTest {
     }
 
     Example example = new Example();
-    assertThat(ButterKnife.bind(example, (View) null)).isSameAs(Unbinder.EMPTY);
+    assertThat(ButterKnife.bind(example,(View)null,null)).isSameAs(Unbinder.EMPTY);
   }
 
   @Test public void bindingKnownPackagesIsNoOp() {
     View view = new View(context);
     ButterKnife.bind(view);
     assertThat(ButterKnife.BINDINGS).isEmpty();
-    ButterKnife.bind(new Object(), view);
+    ButterKnife.bind(new Object(), view,null);
     assertThat(ButterKnife.BINDINGS).isEmpty();
   }
 }

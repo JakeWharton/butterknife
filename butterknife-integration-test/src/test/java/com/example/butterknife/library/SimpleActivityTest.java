@@ -15,7 +15,7 @@ public class SimpleActivityTest {
   @Test public void verifyContentViewBinding() {
     SimpleActivity activity = Robolectric.buildActivity(SimpleActivity.class).create().get();
 
-    Unbinder unbinder = ButterKnife.bind(activity);
+    Unbinder unbinder = ButterKnife.bind(activity,null);
     verifySimpleActivityBound(activity);
     unbinder.unbind();
     verifySimpleActivityUnbound(activity);
@@ -26,7 +26,6 @@ public class SimpleActivityTest {
     assertThat(activity.subtitle.getId()).isEqualTo(R.id.subtitle);
     assertThat(activity.hello.getId()).isEqualTo(R.id.hello);
     assertThat(activity.listOfThings.getId()).isEqualTo(R.id.list_of_things);
-    assertThat(activity.footer.getId()).isEqualTo(R.id.footer);
   }
 
   protected static void verifySimpleActivityUnbound(SimpleActivity activity) {
@@ -34,6 +33,5 @@ public class SimpleActivityTest {
     assertThat(activity.subtitle).isNull();
     assertThat(activity.hello).isNull();
     assertThat(activity.listOfThings).isNull();
-    assertThat(activity.footer).isNull();
   }
 }

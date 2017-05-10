@@ -11,6 +11,6 @@ public final class F extends D {
 
   public F(View view) {
     super(view);
-    ButterKnife.bind(this, view);
+    ButterKnife.bind(this, view,null);
   }
 }
