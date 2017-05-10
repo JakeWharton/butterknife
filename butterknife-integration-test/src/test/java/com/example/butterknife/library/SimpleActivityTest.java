@@ -15,7 +15,7 @@ public class SimpleActivityTest {
   @Test public void verifyContentViewBinding() {
     SimpleActivity activity = Robolectric.buildActivity(SimpleActivity.class).create().get();
 
-    Unbinder unbinder = ButterKnife.bind(activity);
+    Unbinder unbinder = ButterKnife.bind(activity,null);
     verifySimpleActivityBound(activity);
     unbinder.unbind();
     verifySimpleActivityUnbound(activity);

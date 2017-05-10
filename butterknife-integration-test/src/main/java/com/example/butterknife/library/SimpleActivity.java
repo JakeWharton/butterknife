@@ -87,7 +87,7 @@ public class SimpleActivity extends Activity {
   @Override protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.simple_activity);
-    Unbinder binder = ButterKnife.bind(this,null);
+    Unbinder binder = ButterKnife.bind(this);
     Bean bean=new Bean();
     binder.apply(bean);
     // Contrived code to use the bound fields.

@@ -255,7 +255,7 @@ final class BindingSet {
     }
     if (hasTargetField()) {
       constructor.addStatement("this.target = target");
-      constructor.addStatement("if(binder ==null)binder=new Binder.Default()");
+      constructor.addStatement("if(binder ==null)binder=new Binder.DefaultBinder()");
       constructor.addStatement("this.binder = binder");
       constructor.addCode("\n");
     }

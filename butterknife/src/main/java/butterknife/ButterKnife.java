@@ -123,7 +123,11 @@ public final class ButterKnife {
     View sourceView = target.getWindow().getDecorView();
     return createBinding(target, sourceView,binder);
   }
-
+  @NonNull @UiThread
+  public static Unbinder bind(@NonNull Activity target) {
+    View sourceView = target.getWindow().getDecorView();
+    return createBinding(target, sourceView,null);
+  }
   /**
    * BindView annotated fields and methods in the specified {@link View}. The view and its children
    * are used as the view root.
@@ -134,7 +138,10 @@ public final class ButterKnife {
   public static Unbinder bind(@NonNull View target,Binder binder) {
     return createBinding(target, target,binder);
   }
-
+  @NonNull @UiThread
+  public static Unbinder bind(@NonNull View target) {
+    return createBinding(target, target,null);
+  }
   /**
    * BindView annotated fields and methods in the specified {@link Dialog}. The current content
    * view is used as the view root.
@@ -146,7 +153,11 @@ public final class ButterKnife {
     View sourceView = target.getWindow().getDecorView();
     return createBinding(target, sourceView,binder);
   }
-
+  @NonNull @UiThread
+  public static Unbinder bind(@NonNull Dialog target) {
+    View sourceView = target.getWindow().getDecorView();
+    return createBinding(target, sourceView,null);
+  }
   /**
    * BindView annotated fields and methods in the specified {@code target} using the {@code source}
    * {@link Activity} as the view root.
@@ -159,7 +170,11 @@ public final class ButterKnife {
     View sourceView = source.getWindow().getDecorView();
     return createBinding(target, sourceView,binder);
   }
-
+  @NonNull @UiThread
+  public static Unbinder bind(@NonNull Object target, @NonNull Activity source) {
+    View sourceView = source.getWindow().getDecorView();
+    return createBinding(target, sourceView,null);
+  }
   /**
    * BindView annotated fields and methods in the specified {@code target} using the {@code source}
    * {@link View} as the view root.
@@ -171,7 +186,10 @@ public final class ButterKnife {
   public static Unbinder bind(@NonNull Object target, @NonNull View source,Binder binder) {
     return createBinding(target, source,binder);
   }
-
+  @NonNull @UiThread
+  public static Unbinder bind(@NonNull Object target, @NonNull View source) {
+    return createBinding(target, source,null);
+  }
   /**
    * BindView annotated fields and methods in the specified {@code target} using the {@code source}
    * {@link Dialog} as the view root.
@@ -183,6 +201,11 @@ public final class ButterKnife {
   public static Unbinder bind(@NonNull Object target, @NonNull Dialog source,Binder binder) {
     View sourceView = source.getWindow().getDecorView();
     return createBinding(target, sourceView,binder);
+  }
+  @NonNull @UiThread
+  public static Unbinder bind(@NonNull Object target, @NonNull Dialog source) {
+    View sourceView = source.getWindow().getDecorView();
+    return createBinding(target, sourceView,null);
   }
 
   private static Unbinder createBinding(@NonNull Object target, @NonNull View source,Binder binder) {
