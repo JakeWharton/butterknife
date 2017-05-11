@@ -75,7 +75,7 @@ final class ViewBinding {
         new LinkedHashMap<>();
     FieldViewBinding fieldBinding;
 
-    public Builder(Id id) {
+    Builder(Id id) {
       this.id = id;
     }
 
