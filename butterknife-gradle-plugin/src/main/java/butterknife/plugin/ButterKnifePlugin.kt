@@ -28,7 +28,7 @@ class ButterKnifePlugin : Plugin<Project> {
         val processResources = output.processResources
         // TODO proper task registered as source-generating?
         processResources.doLast {
-          val pathToR = processResources.packageForR.replace(',', File.separatorChar)
+          val pathToR = processResources.packageForR.replace('.', File.separatorChar)
           val rFile = processResources.sourceOutputDir.resolve(pathToR).resolve("R.java")
 
           FinalRClassBuilder.brewJava(rFile, processResources.sourceOutputDir,
