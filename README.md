@@ -1,5 +1,6 @@
 Butter Knife
 ============
+[![Badge](http://www.libtastic.com/static/osbadges/5.png)](http://www.libtastic.com/technology/5/)
 
 ![Logo](website/static/logo.png)
 
