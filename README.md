@@ -34,7 +34,7 @@ class ExampleActivity extends Activity {
 
 For documentation and additional information see [the website][3].
 
-__Remember: A butter knife is like [a dagger][1] only infinitely less sharp.__
+__Remember: A butter knife is like [a dagger][1] only a quantifiable sum less sharp.__
 
 
 
