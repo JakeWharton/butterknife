@@ -5,7 +5,7 @@ buildscript {
       'buildTools': '25.0.2',
 
       'supportLibrary': '25.1.0',
-      'androidPlugin': '2.2.0',
+      'androidPlugin': '3.0.0-alpha1',
       'androidTools': '25.2.0',
       'kotlin': '1.1.2-3',
 
@@ -60,6 +60,7 @@ subprojects { project ->
     maven {
       url "https://plugins.gradle.org/m2/"
     }
+    maven { url 'https://maven.google.com' }
   }
 
   if (!project.name.equals('butterknife-gradle-plugin')) {
@@ -88,6 +89,7 @@ subprojects { project ->
       maven {
         url "https://plugins.gradle.org/m2/"
       }
+      maven { url 'https://maven.google.com' }
     }
     dependencies {
       classpath deps.android.gradlePlugin
