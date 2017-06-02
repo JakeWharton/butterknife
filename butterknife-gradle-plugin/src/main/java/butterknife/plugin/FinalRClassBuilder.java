@@ -12,8 +12,6 @@ import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.TypeSpec;
 import java.io.File;
-import java.util.Arrays;
-import java.util.List;
 
 import static javax.lang.model.element.Modifier.FINAL;
 import static javax.lang.model.element.Modifier.PUBLIC;
@@ -25,9 +23,6 @@ import static javax.lang.model.element.Modifier.STATIC;
  */
 public final class FinalRClassBuilder {
   private static final String SUPPORT_ANNOTATION_PACKAGE = "android.support.annotation";
-  private static final String[] SUPPORTED_TYPES = {
-      "array", "attr", "bool", "color", "dimen", "drawable", "id", "integer", "string"
-  };
 
   private FinalRClassBuilder() { }
 
@@ -41,7 +36,7 @@ public final class FinalRClassBuilder {
 
     for (Node node : resourceClass.getChildrenNodes()) {
       if (node instanceof TypeDeclaration) {
-        addResourceType(Arrays.asList(SUPPORTED_TYPES), result, (TypeDeclaration) node);
+        addResourceType(result, (TypeDeclaration) node);
       }
     }
 
@@ -52,12 +47,7 @@ public final class FinalRClassBuilder {
     finalR.writeTo(outputDir);
   }
 
-  private static void addResourceType(List<String> supportedTypes, TypeSpec.Builder result,
-      TypeDeclaration node) {
-    if (!supportedTypes.contains(node.getName())) {
-      return;
-    }
-
+  private static void addResourceType(TypeSpec.Builder result, TypeDeclaration node) {
     String type = node.getName();
     TypeSpec.Builder resourceType = TypeSpec.classBuilder(type).addModifiers(PUBLIC, STATIC, FINAL);
 
