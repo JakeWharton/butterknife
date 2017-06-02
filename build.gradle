@@ -4,12 +4,12 @@ buildscript {
       'compileSdk': 25,
       'buildTools': '25.0.2',
 
-      'supportLibrary': '25.1.0',
-      'androidPlugin': '2.2.0',
-      'androidTools': '25.2.0',
-      'kotlin': '1.1.2-3',
+      'supportLibrary': '25.3.0',
+      'androidPlugin': '2.3.2',
+      'androidTools': '25.3.0',
+      'kotlin': '1.1.2-4',
 
-      'release': '8.4.0',
+      'release': '8.6.0',
   ]
 
   ext.deps = [
@@ -33,12 +33,12 @@ buildscript {
       javapoet: 'com.squareup:javapoet:1.8.0',
       javaparser: 'com.github.javaparser:javaparser-core:2.4.0',
       junit: 'junit:junit:4.12',
-      truth: 'com.google.truth:truth:0.28',
+      truth: 'com.google.truth:truth:0.33',
       robolectric: 'org.robolectric:robolectric:3.1.2',
       openglApi: 'org.khronos:opengl-api:gl1.1-android-2.1_r1',
-      compiletesting: 'com.google.testing.compile:compile-testing:0.9',
+      compiletesting: 'com.google.testing.compile:compile-testing:0.11',
       'auto': [
-          'service': 'com.google.auto.service:auto-service:1.0-rc2',
+          'service': 'com.google.auto.service:auto-service:1.0-rc3',
           'common': 'com.google.auto:auto-common:0.6',
       ],
       'release': [
@@ -57,6 +57,7 @@ subprojects { project ->
 
   repositories {
     mavenCentral()
+    google()
     maven {
       url "https://plugins.gradle.org/m2/"
     }
@@ -85,6 +86,7 @@ subprojects { project ->
   buildscript {
     repositories {
       mavenCentral()
+      google()
       maven {
         url "https://plugins.gradle.org/m2/"
       }
