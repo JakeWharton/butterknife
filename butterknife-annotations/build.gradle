@@ -1,14 +1,6 @@
 apply plugin: 'java'
 apply plugin: 'checkstyle'
 
-def logger = new com.android.build.gradle.internal.LoggerWrapper(project.logger)
-def sdkHandler = new com.android.build.gradle.internal.SdkHandler(project, logger)
-for (File file : sdkHandler.sdkLoader.repositories) {
-  repositories.maven {
-    url = file.toURI()
-  }
-}
-
 sourceCompatibility = JavaVersion.VERSION_1_7
 targetCompatibility = JavaVersion.VERSION_1_7
 
