@@ -6,6 +6,13 @@
               android:orientation="vertical"
               android:padding="8dp"
               tools:ignore="SelectableText">
+
+    <ImageView
+            android:id="@+id/image"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:contentDescription="@string/tinted_drawable" />
     <TextView
             android:id="@+id/title"
             android:layout_width="match_parent"
