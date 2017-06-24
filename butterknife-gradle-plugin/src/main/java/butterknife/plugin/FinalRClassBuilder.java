@@ -3,10 +3,13 @@ package butterknife.plugin;
 import com.github.javaparser.JavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.Node;
+import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.body.BodyDeclaration;
+import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.body.TypeDeclaration;
 import com.github.javaparser.ast.body.VariableDeclarator;
+import com.github.javaparser.ast.expr.Expression;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.JavaFile;
@@ -14,6 +17,7 @@ import com.squareup.javapoet.TypeSpec;
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 import static javax.lang.model.element.Modifier.FINAL;
 import static javax.lang.model.element.Modifier.PUBLIC;
@@ -39,9 +43,9 @@ public final class FinalRClassBuilder {
     TypeSpec.Builder result =
         TypeSpec.classBuilder(className).addModifiers(PUBLIC).addModifiers(FINAL);
 
-    for (Node node : resourceClass.getChildrenNodes()) {
-      if (node instanceof TypeDeclaration) {
-        addResourceType(Arrays.asList(SUPPORTED_TYPES), result, (TypeDeclaration) node);
+    for (Node node : resourceClass.getChildNodes()) {
+      if (node instanceof ClassOrInterfaceDeclaration) {
+        addResourceType(Arrays.asList(SUPPORTED_TYPES), result, (ClassOrInterfaceDeclaration) node);
       }
     }
 
@@ -53,12 +57,12 @@ public final class FinalRClassBuilder {
   }
 
   private static void addResourceType(List<String> supportedTypes, TypeSpec.Builder result,
-      TypeDeclaration node) {
-    if (!supportedTypes.contains(node.getName())) {
+      ClassOrInterfaceDeclaration node) {
+    if (!supportedTypes.contains(node.getNameAsString())) {
       return;
     }
 
-    String type = node.getName();
+    String type = node.getNameAsString();
     TypeSpec.Builder resourceType = TypeSpec.classBuilder(type).addModifiers(PUBLIC, STATIC, FINAL);
 
     for (BodyDeclaration field : node.getMembers()) {
@@ -73,8 +77,8 @@ public final class FinalRClassBuilder {
 
   private static void addResourceField(TypeSpec.Builder resourceType, VariableDeclarator variable,
       ClassName annotation) {
-    String fieldName = variable.getId().getName();
-    String fieldValue = variable.getInit().toString();
+    String fieldName = variable.getNameAsString();
+    String fieldValue = variable.getInitializer().map(Node::toString).orElse(null);
     FieldSpec.Builder fieldSpecBuilder = FieldSpec.builder(int.class, fieldName)
         .addModifiers(PUBLIC, STATIC, FINAL)
         .initializer(fieldValue);

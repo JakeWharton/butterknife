@@ -41,5 +41,4 @@ dependencies {
   testCompile deps.junit
   testCompile deps.truth
   testCompile deps.robolectric
-  testCompile deps.openglApi
 }
