@@ -3,13 +3,19 @@ package butterknife;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.Dialog;
-import android.content.Context;
 import android.os.Build;
+import android.support.annotation.CheckResult;
+import android.support.annotation.IdRes;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.support.annotation.RequiresApi;
+import android.support.annotation.UiThread;
+import android.support.annotation.VisibleForTesting;
 import android.util.Log;
 import android.util.Property;
 import android.view.View;
-
-import java.util.Arrays;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,8 +27,8 @@ import java.util.Map;
  * Finding views from your activity is as easy as:
  * <pre><code>
  * public class ExampleActivity extends Activity {
- *   {@literal @}Bind(R.id.title) EditText titleView;
- *   {@literal @}Bind(R.id.subtitle) EditText subtitleView;
+ *   {@literal @}BindView(R.id.title) EditText titleView;
+ *   {@literal @}BindView(R.id.subtitle) EditText subtitleView;
  *
  *   {@literal @}Override protected void onCreate(Bundle savedInstanceState) {
  *     super.onCreate(savedInstanceState);
@@ -39,7 +45,7 @@ import java.util.Map;
  * <p>
  * Group multiple views together into a {@link List} or array.
  * <pre><code>
- * {@literal @}Bind({R.id.first_name, R.id.middle_name, R.id.last_name})
+ * {@literal @}BindView({R.id.first_name, R.id.middle_name, R.id.last_name})
  * List<EditText> nameViews;
  * </code></pre>
  * There are three convenience methods for working with view collections:
@@ -63,10 +69,11 @@ import java.util.Map;
  * </code></pre>
  * <p>
  * Be default, views are required to be present in the layout for both field and method bindings.
- * If a view is optional add a {@code @Nullable} annotation such as the one in the
- * <a href="http://tools.android.com/tech-docs/support-annotations">support-annotations</a> library.
+ * If a view is optional add a {@code @Nullable} annotation for fields (such as the one in the
+ * <a href="http://tools.android.com/tech-docs/support-annotations">support-annotations</a> library)
+ * or the {@code @Optional} annotation for methods.
  * <pre><code>
- * {@literal @}Nullable @Bind(R.id.title) TextView subtitleView;
+ * {@literal @}Nullable @BindView(R.id.title) TextView subtitleView;
  * </code></pre>
  * Resources can also be bound to fields to simplify programmatically working with views:
  * <pre><code>
@@ -80,156 +87,25 @@ public final class ButterKnife {
     throw new AssertionError("No instances.");
   }
 
-  /** DO NOT USE: Exposed for generated code. */
-  @SuppressWarnings("UnusedDeclaration") // Used by generated code.
-  public enum Finder {
-    VIEW {
-      @Override protected View findView(Object source, int id) {
-        return ((View) source).findViewById(id);
-      }
-
-      @Override public Context getContext(Object source) {
-        return ((View) source).getContext();
-      }
-
-      @Override protected String getResourceEntryName(Object source, int id) {
-        final View view = (View) source;
-        // In edit mode, getResourceEntryName() is unsupported due to use of BridgeResources
-        if (view.isInEditMode()) {
-          return "<unavailable while editing>";
-        }
-        return super.getResourceEntryName(source, id);
-      }
-    },
-    ACTIVITY {
-      @Override protected View findView(Object source, int id) {
-        return ((Activity) source).findViewById(id);
-      }
-
-      @Override public Context getContext(Object source) {
-        return (Activity) source;
-      }
-    },
-    DIALOG {
-      @Override protected View findView(Object source, int id) {
-        return ((Dialog) source).findViewById(id);
-      }
-
-      @Override public Context getContext(Object source) {
-        return ((Dialog) source).getContext();
-      }
-    };
-
-    private static <T> T[] filterNull(T[] views) {
-      int end = 0;
-      for (int i = 0; i < views.length; i++) {
-        T view = views[i];
-        if (view != null) {
-          views[end++] = view;
-        }
-      }
-      return Arrays.copyOfRange(views, 0, end);
-    }
-
-    public static <T> T[] arrayOf(T... views) {
-      return filterNull(views);
-    }
-
-    public static <T> List<T> listOf(T... views) {
-      return new ImmutableList<>(filterNull(views));
-    }
-
-    public <T> T findRequiredView(Object source, int id, String who) {
-      T view = findOptionalView(source, id, who);
-      if (view == null) {
-        String name = getResourceEntryName(source, id);
-        throw new IllegalStateException("Required view '"
-            + name
-            + "' with ID "
-            + id
-            + " for "
-            + who
-            + " was not found. If this view is optional add '@Nullable' annotation.");
-      }
-      return view;
-    }
-
-    public <T> T findOptionalView(Object source, int id, String who) {
-      View view = findView(source, id);
-      return castView(view, id, who);
-    }
-
-    @SuppressWarnings("unchecked") // That's the point.
-    public <T> T castView(View view, int id, String who) {
-      try {
-        return (T) view;
-      } catch (ClassCastException e) {
-        if (who == null) {
-          throw new AssertionError();
-        }
-        String name = getResourceEntryName(view, id);
-        throw new IllegalStateException("View '"
-            + name
-            + "' with ID "
-            + id
-            + " for "
-            + who
-            + " was of the wrong type. See cause for more info.", e);
-      }
-    }
-
-    @SuppressWarnings("unchecked") // That's the point.
-    public <T> T castParam(Object value, String from, int fromPosition, String to, int toPosition) {
-      try {
-        return (T) value;
-      } catch (ClassCastException e) {
-        throw new IllegalStateException("Parameter #"
-            + (fromPosition + 1)
-            + " of method '"
-            + from
-            + "' was of the wrong type for parameter #"
-            + (toPosition + 1)
-            + " of method '"
-            + to
-            + "'. See cause for more info.", e);
-      }
-    }
-
-    protected String getResourceEntryName(Object source, int id) {
-      return getContext(source).getResources().getResourceEntryName(id);
-    }
-
-    protected abstract View findView(Object source, int id);
-
-    public abstract Context getContext(Object source);
-  }
-
-  /** DO NOT USE: Exposed for generated code. */
-  public interface ViewBinder<T> {
-    void bind(Finder finder, T target, Object source);
-    void unbind(T target);
-  }
-
   /** An action that can be applied to a list of views. */
   public interface Action<T extends View> {
     /** Apply the action on the {@code view} which is at {@code index} in the list. */
-    void apply(T view, int index);
+    @UiThread
+    void apply(@NonNull T view, int index);
   }
 
   /** A setter that can apply a value to a list of views. */
   public interface Setter<T extends View, V> {
     /** Set the {@code value} on the {@code view} which is at {@code index} in the list. */
-    void set(T view, V value, int index);
+    @UiThread
+    void set(@NonNull T view, V value, int index);
   }
 
   private static final String TAG = "ButterKnife";
   private static boolean debug = false;
 
-  static final Map<Class<?>, ViewBinder<Object>> BINDERS = new LinkedHashMap<>();
-  static final ViewBinder<Object> NOP_VIEW_BINDER = new ViewBinder<Object>() {
-    @Override public void bind(Finder finder, Object target, Object source) { }
-    @Override public void unbind(Object target) { }
-  };
+  @VisibleForTesting
+  static final Map<Class<?>, Constructor<? extends Unbinder>> BINDINGS = new LinkedHashMap<>();
 
   /** Control whether debug logging is enabled. */
   public static void setDebug(boolean debug) {
@@ -237,167 +113,267 @@ public final class ButterKnife {
   }
 
   /**
-   * Bind annotated fields and methods in the specified {@link Activity}. The current content
+   * BindView annotated fields and methods in the specified {@link Activity}. The current content
    * view is used as the view root.
    *
    * @param target Target activity for view binding.
    */
-  public static void bind(Activity target) {
-    bind(target, target, Finder.ACTIVITY);
+  @NonNull @UiThread
+  public static Unbinder bind(@NonNull Activity target) {
+    View sourceView = target.getWindow().getDecorView();
+    return createBinding(target, sourceView);
   }
 
   /**
-   * Bind annotated fields and methods in the specified {@link View}. The view and its children
+   * BindView annotated fields and methods in the specified {@link View}. The view and its children
    * are used as the view root.
    *
    * @param target Target view for view binding.
    */
-  public static void bind(View target) {
-    bind(target, target, Finder.VIEW);
+  @NonNull @UiThread
+  public static Unbinder bind(@NonNull View target) {
+    return createBinding(target, target);
   }
 
   /**
-   * Bind annotated fields and methods in the specified {@link Dialog}. The current content
+   * BindView annotated fields and methods in the specified {@link Dialog}. The current content
    * view is used as the view root.
    *
    * @param target Target dialog for view binding.
    */
-  public static void bind(Dialog target) {
-    bind(target, target, Finder.DIALOG);
+  @NonNull @UiThread
+  public static Unbinder bind(@NonNull Dialog target) {
+    View sourceView = target.getWindow().getDecorView();
+    return createBinding(target, sourceView);
   }
 
   /**
-   * Bind annotated fields and methods in the specified {@code target} using the {@code source}
+   * BindView annotated fields and methods in the specified {@code target} using the {@code source}
    * {@link Activity} as the view root.
    *
    * @param target Target class for view binding.
    * @param source Activity on which IDs will be looked up.
    */
-  public static void bind(Object target, Activity source) {
-    bind(target, source, Finder.ACTIVITY);
+  @NonNull @UiThread
+  public static Unbinder bind(@NonNull Object target, @NonNull Activity source) {
+    View sourceView = source.getWindow().getDecorView();
+    return createBinding(target, sourceView);
   }
 
   /**
-   * Bind annotated fields and methods in the specified {@code target} using the {@code source}
+   * BindView annotated fields and methods in the specified {@code target} using the {@code source}
    * {@link View} as the view root.
    *
    * @param target Target class for view binding.
    * @param source View root on which IDs will be looked up.
    */
-  public static void bind(Object target, View source) {
-    bind(target, source, Finder.VIEW);
+  @NonNull @UiThread
+  public static Unbinder bind(@NonNull Object target, @NonNull View source) {
+    return createBinding(target, source);
   }
 
   /**
-   * Bind annotated fields and methods in the specified {@code target} using the {@code source}
+   * BindView annotated fields and methods in the specified {@code target} using the {@code source}
    * {@link Dialog} as the view root.
    *
    * @param target Target class for view binding.
    * @param source Dialog on which IDs will be looked up.
    */
-  public static void bind(Object target, Dialog source) {
-    bind(target, source, Finder.DIALOG);
+  @NonNull @UiThread
+  public static Unbinder bind(@NonNull Object target, @NonNull Dialog source) {
+    View sourceView = source.getWindow().getDecorView();
+    return createBinding(target, sourceView);
   }
 
-  /**
-   * Reset fields annotated with {@link Bind @Bind} to {@code null}.
-   * <p>
-   * This should only be used in the {@code onDestroyView} method of a fragment.
-   *
-   * @param target Target class for field unbind.
-   */
-  public static void unbind(Object target) {
+  private static Unbinder createBinding(@NonNull Object target, @NonNull View source) {
     Class<?> targetClass = target.getClass();
+    if (debug) Log.d(TAG, "Looking up binding for " + targetClass.getName());
+    Constructor<? extends Unbinder> constructor = findBindingConstructorForClass(targetClass);
+
+    if (constructor == null) {
+      return Unbinder.EMPTY;
+    }
+
+    //noinspection TryWithIdenticalCatches Resolves to API 19+ only type.
     try {
-      if (debug) Log.d(TAG, "Looking up view binder for " + targetClass.getName());
-      ViewBinder<Object> viewBinder = findViewBinderForClass(targetClass);
-      if (viewBinder != null) {
-        viewBinder.unbind(target);
+      return constructor.newInstance(target, source);
+    } catch (IllegalAccessException e) {
+      throw new RuntimeException("Unable to invoke " + constructor, e);
+    } catch (InstantiationException e) {
+      throw new RuntimeException("Unable to invoke " + constructor, e);
+    } catch (InvocationTargetException e) {
+      Throwable cause = e.getCause();
+      if (cause instanceof RuntimeException) {
+        throw (RuntimeException) cause;
       }
-    } catch (Exception e) {
-      throw new RuntimeException("Unable to unbind views for " + targetClass.getName(), e);
+      if (cause instanceof Error) {
+        throw (Error) cause;
+      }
+      throw new RuntimeException("Unable to create binding instance.", cause);
     }
   }
 
-  static void bind(Object target, Object source, Finder finder) {
-    Class<?> targetClass = target.getClass();
-    try {
-      if (debug) Log.d(TAG, "Looking up view binder for " + targetClass.getName());
-      ViewBinder<Object> viewBinder = findViewBinderForClass(targetClass);
-      if (viewBinder != null) {
-        viewBinder.bind(finder, target, source);
-      }
-    } catch (Exception e) {
-      throw new RuntimeException("Unable to bind views for " + targetClass.getName(), e);
-    }
-  }
-
-  private static ViewBinder<Object> findViewBinderForClass(Class<?> cls)
-      throws IllegalAccessException, InstantiationException {
-    ViewBinder<Object> viewBinder = BINDERS.get(cls);
-    if (viewBinder != null) {
-      if (debug) Log.d(TAG, "HIT: Cached in view binder map.");
-      return viewBinder;
+  @Nullable @CheckResult @UiThread
+  private static Constructor<? extends Unbinder> findBindingConstructorForClass(Class<?> cls) {
+    Constructor<? extends Unbinder> bindingCtor = BINDINGS.get(cls);
+    if (bindingCtor != null) {
+      if (debug) Log.d(TAG, "HIT: Cached in binding map.");
+      return bindingCtor;
     }
     String clsName = cls.getName();
     if (clsName.startsWith("android.") || clsName.startsWith("java.")) {
       if (debug) Log.d(TAG, "MISS: Reached framework class. Abandoning search.");
-      return NOP_VIEW_BINDER;
+      return null;
     }
     try {
-      Class<?> viewBindingClass = Class.forName(clsName + "$$ViewBinder");
+      Class<?> bindingClass = cls.getClassLoader().loadClass(clsName + "_ViewBinding");
       //noinspection unchecked
-      viewBinder = (ViewBinder<Object>) viewBindingClass.newInstance();
-      if (debug) Log.d(TAG, "HIT: Loaded view binder class.");
+      bindingCtor = (Constructor<? extends Unbinder>) bindingClass.getConstructor(cls, View.class);
+      if (debug) Log.d(TAG, "HIT: Loaded binding class and constructor.");
     } catch (ClassNotFoundException e) {
       if (debug) Log.d(TAG, "Not found. Trying superclass " + cls.getSuperclass().getName());
-      viewBinder = findViewBinderForClass(cls.getSuperclass());
+      bindingCtor = findBindingConstructorForClass(cls.getSuperclass());
+    } catch (NoSuchMethodException e) {
+      throw new RuntimeException("Unable to find binding constructor for " + clsName, e);
     }
-    BINDERS.put(cls, viewBinder);
-    return viewBinder;
+    BINDINGS.put(cls, bindingCtor);
+    return bindingCtor;
+  }
+
+  /** Apply the specified {@code actions} across the {@code list} of views. */
+  @UiThread
+  @SafeVarargs public static <T extends View> void apply(@NonNull List<T> list,
+      @NonNull Action<? super T>... actions) {
+    for (int i = 0, count = list.size(); i < count; i++) {
+      for (Action<? super T> action : actions) {
+        action.apply(list.get(i), i);
+      }
+    }
+  }
+
+  /** Apply the specified {@code actions} across the {@code array} of views. */
+  @UiThread
+  @SafeVarargs public static <T extends View> void apply(@NonNull T[] array,
+      @NonNull Action<? super T>... actions) {
+    for (int i = 0, count = array.length; i < count; i++) {
+      for (Action<? super T> action : actions) {
+        action.apply(array[i], i);
+      }
+    }
   }
 
   /** Apply the specified {@code action} across the {@code list} of views. */
-  public static <T extends View> void apply(List<T> list, Action<? super T> action) {
+  @UiThread
+  public static <T extends View> void apply(@NonNull List<T> list,
+      @NonNull Action<? super T> action) {
     for (int i = 0, count = list.size(); i < count; i++) {
       action.apply(list.get(i), i);
     }
   }
 
+  /** Apply the specified {@code action} across the {@code array} of views. */
+  @UiThread
+  public static <T extends View> void apply(@NonNull T[] array, @NonNull Action<? super T> action) {
+    for (int i = 0, count = array.length; i < count; i++) {
+      action.apply(array[i], i);
+    }
+  }
+
+  /** Apply {@code actions} to {@code view}. */
+  @UiThread
+  @SafeVarargs public static <T extends View> void apply(@NonNull T view,
+      @NonNull Action<? super T>... actions) {
+    for (Action<? super T> action : actions) {
+      action.apply(view, 0);
+    }
+  }
+
+  /** Apply {@code action} to {@code view}. */
+  @UiThread
+  public static <T extends View> void apply(@NonNull T view, @NonNull Action<? super T> action) {
+    action.apply(view, 0);
+  }
+
   /** Set the {@code value} using the specified {@code setter} across the {@code list} of views. */
-  public static <T extends View, V> void apply(List<T> list, Setter<? super T, V> setter, V value) {
+  @UiThread
+  public static <T extends View, V> void apply(@NonNull List<T> list,
+      @NonNull Setter<? super T, V> setter, V value) {
     for (int i = 0, count = list.size(); i < count; i++) {
       setter.set(list.get(i), value, i);
     }
   }
 
+  /** Set the {@code value} using the specified {@code setter} across the {@code array} of views. */
+  @UiThread
+  public static <T extends View, V> void apply(@NonNull T[] array,
+      @NonNull Setter<? super T, V> setter, V value) {
+    for (int i = 0, count = array.length; i < count; i++) {
+      setter.set(array[i], value, i);
+    }
+  }
+
+  /** Set {@code value} on {@code view} using {@code setter}. */
+  @UiThread
+  public static <T extends View, V> void apply(@NonNull T view,
+      @NonNull Setter<? super T, V> setter, V value) {
+    setter.set(view, value, 0);
+  }
+
   /**
    * Apply the specified {@code value} across the {@code list} of views using the {@code property}.
    */
-  @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
-  public static <T extends View, V> void apply(List<T> list, Property<? super T, V> setter,
-      V value) {
+  @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH) // http://b.android.com/213630
+  @RequiresApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
+  @UiThread
+  public static <T extends View, V> void apply(@NonNull List<T> list,
+      @NonNull Property<? super T, V> setter, V value) {
     //noinspection ForLoopReplaceableByForEach
     for (int i = 0, count = list.size(); i < count; i++) {
       setter.set(list.get(i), value);
     }
   }
 
+  /**
+   * Apply the specified {@code value} across the {@code array} of views using the {@code property}.
+   */
+  @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH) // http://b.android.com/213630
+  @RequiresApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
+  @UiThread
+  public static <T extends View, V> void apply(@NonNull T[] array,
+      @NonNull Property<? super T, V> setter, V value) {
+    //noinspection ForLoopReplaceableByForEach
+    for (int i = 0, count = array.length; i < count; i++) {
+      setter.set(array[i], value);
+    }
+  }
+
+  /** Apply {@code value} to {@code view} using {@code property}. */
+  @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH) // http://b.android.com/213630
+  @RequiresApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
+  @UiThread
+  public static <T extends View, V> void apply(@NonNull T view,
+      @NonNull Property<? super T, V> setter, V value) {
+    setter.set(view, value);
+  }
+
   /** Simpler version of {@link View#findViewById(int)} which infers the target type. */
   @SuppressWarnings({ "unchecked", "UnusedDeclaration" }) // Checked by runtime cast. Public API.
-  public static <T extends View> T findById(View view, int id) {
+  @CheckResult
+  public static <T extends View> T findById(@NonNull View view, @IdRes int id) {
     return (T) view.findViewById(id);
   }
 
   /** Simpler version of {@link Activity#findViewById(int)} which infers the target type. */
   @SuppressWarnings({ "unchecked", "UnusedDeclaration" }) // Checked by runtime cast. Public API.
-  public static <T extends View> T findById(Activity activity, int id) {
+  @CheckResult
+  public static <T extends View> T findById(@NonNull Activity activity, @IdRes int id) {
     return (T) activity.findViewById(id);
   }
 
   /** Simpler version of {@link Dialog#findViewById(int)} which infers the target type. */
   @SuppressWarnings({ "unchecked", "UnusedDeclaration" }) // Checked by runtime cast. Public API.
-  public static <T extends View> T findById(Dialog dialog, int id) {
+  @CheckResult
+  public static <T extends View> T findById(@NonNull Dialog dialog, @IdRes int id) {
     return (T) dialog.findViewById(id);
   }
 }

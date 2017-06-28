@@ -1,0 +1,99 @@
+buildscript {
+  ext.versions = [
+      'minSdk': 9,
+      'compileSdk': 25,
+      'buildTools': '25.0.2',
+
+      'supportLibrary': '25.3.0',
+      'androidPlugin': '2.3.3',
+      'androidTools': '25.3.0',
+      'kotlin': '1.1.2-4',
+
+      'release': '8.6.0',
+  ]
+
+  ext.deps = [
+      android: [
+          'runtime': 'com.google.android:android:4.1.1.4',
+          'gradlePlugin': "com.android.tools.build:gradle:${versions.androidPlugin}",
+      ],
+      'support': [
+          'compat': "com.android.support:support-compat:${versions.supportLibrary}",
+          'annotations': "com.android.support:support-annotations:${versions.supportLibrary}",
+          'test': [
+              'runner': 'com.android.support.test:runner:0.5',
+          ],
+      ],
+      'lint': [
+          'core': "com.android.tools.lint:lint:${versions.androidTools}",
+          'api': "com.android.tools.lint:lint-api:${versions.androidTools}",
+          'checks': "com.android.tools.lint:lint-checks:${versions.androidTools}",
+          'tests': "com.android.tools.lint:lint-tests:${versions.androidTools}",
+      ],
+      javapoet: 'com.squareup:javapoet:1.9.0',
+      javaparser: 'com.github.javaparser:javaparser-core:3.2.8',
+      junit: 'junit:junit:4.12',
+      truth: 'com.google.truth:truth:0.34',
+      robolectric: 'org.robolectric:robolectric:3.4-rc2',
+      compiletesting: 'com.google.testing.compile:compile-testing:0.11',
+      'auto': [
+          'service': 'com.google.auto.service:auto-service:1.0-rc3',
+          'common': 'com.google.auto:auto-common:0.8',
+      ],
+      'release': [
+          'runtime': "com.jakewharton:butterknife:${versions.release}",
+          'compiler': "com.jakewharton:butterknife-compiler:${versions.release}"
+      ],
+      'kotlin': [
+          'stdLibJre8': "org.jetbrains.kotlin:kotlin-stdlib-jre8:${versions.kotlin}",
+      ]
+  ]
+}
+
+subprojects { project ->
+  group = GROUP
+  version = VERSION_NAME
+
+  repositories {
+    mavenCentral()
+    google()
+    maven {
+      url "https://plugins.gradle.org/m2/"
+    }
+  }
+
+  if (!project.name.equals('butterknife-gradle-plugin')) {
+    apply plugin: 'checkstyle'
+
+    task checkstyle(type: Checkstyle) {
+      configFile rootProject.file('checkstyle.xml')
+      source 'src/main/java'
+      ignoreFailures false
+      showViolations true
+      include '**/*.java'
+
+      classpath = files()
+    }
+
+    afterEvaluate {
+      if (project.tasks.findByName('check')) {
+        check.dependsOn('checkstyle')
+      }
+    }
+  }
+
+  buildscript {
+    repositories {
+      mavenCentral()
+      google()
+      maven {
+        url "https://plugins.gradle.org/m2/"
+      }
+    }
+    dependencies {
+      classpath deps.android.gradlePlugin
+      classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${versions.kotlin}"
+      classpath 'gradle.plugin.com.kageiit:lintrules:1.1.2'
+    }
+  }
+}

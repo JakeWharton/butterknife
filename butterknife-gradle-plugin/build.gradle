@@ -1,0 +1,21 @@
+apply plugin: 'java'
+apply plugin: 'kotlin'
+
+sourceCompatibility = JavaVersion.VERSION_1_8
+targetCompatibility = JavaVersion.VERSION_1_8
+
+dependencies {
+  compileOnly gradleApi()
+
+  compile deps.android.gradlePlugin
+  compile deps.javaparser
+  compile deps.javapoet
+  compile deps.kotlin.stdLibJre8
+
+  testCompile deps.junit
+  testCompile deps.truth
+  testCompile deps.support.annotations
+  testCompile deps.compiletesting
+}
+
+apply from: rootProject.file('gradle/gradle-mvn-push.gradle')

@@ -1,0 +1,17 @@
+apply plugin: 'java'
+apply plugin: 'checkstyle'
+
+sourceCompatibility = JavaVersion.VERSION_1_7
+targetCompatibility = JavaVersion.VERSION_1_7
+
+checkstyle {
+  configFile rootProject.file('checkstyle.xml')
+  showViolations true
+}
+
+dependencies {
+  compileOnly deps.android.runtime
+  compile deps.support.annotations
+}
+
+apply from: rootProject.file('gradle/gradle-mvn-push.gradle')

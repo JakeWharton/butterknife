@@ -9,10 +9,6 @@ build
 out
 lib
 
-target
-pom.xml.*
-release.properties
-
 .idea
 *.iml
 classes
@@ -20,3 +16,10 @@ classes
 obj
 
 .DS_Store
+
+# Gradle
+.gradle
+jniLibs
+build
+local.properties
+reports

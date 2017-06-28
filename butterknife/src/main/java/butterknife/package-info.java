@@ -4,7 +4,7 @@
  * <p>
  * <ul>
  * <li>Eliminate {@link android.view.View#findViewById findViewById} calls by using
- * {@link butterknife.Bind @Bind} on fields.</li>
+ * {@link butterknife.BindView @BindView} on fields.</li>
  * <li>Group multiple views in a {@linkplain java.util.List list} or array.
  * Operate on all of them at once with
  * {@linkplain butterknife.ButterKnife#apply(java.util.List, butterknife.ButterKnife.Action)
