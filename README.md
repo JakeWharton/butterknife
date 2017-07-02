@@ -43,8 +43,8 @@ Download
 
 ```groovy
 dependencies {
-  compile 'com.jakewharton:butterknife:8.5.1'
-  annotationProcessor 'com.jakewharton:butterknife-compiler:8.5.1'
+  compile 'com.jakewharton:butterknife:8.6.0'
+  annotationProcessor 'com.jakewharton:butterknife-compiler:8.6.0'
 }
 ```
 
@@ -63,7 +63,7 @@ buildscript {
     mavenCentral()
    }
   dependencies {
-    classpath 'com.jakewharton:butterknife-gradle-plugin:8.5.1'
+    classpath 'com.jakewharton:butterknife-gradle-plugin:8.6.0'
   }
 }
 ```

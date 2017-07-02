@@ -1,6 +1,14 @@
 Change Log
 ==========
 
+Version 8.6.0 *(2017-05-16)*
+----------------------------
+
+ * Plugin was ported to Kotlin and updated to support future Android Gradle plugin versions.
+ * Fix: Properly handle multiple library modules using Butter Knife and defining the same ID.
+ * Fix: Use the same classloader of the binding target to load the generated view binding class.
+
+
 Version 8.5.1 *(2017-01-24)*
 ----------------------------
 

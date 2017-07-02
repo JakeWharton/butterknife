@@ -50,6 +50,7 @@ import java.util.Deque;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import javax.annotation.processing.AbstractProcessor;
@@ -62,6 +63,7 @@ import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
+import javax.lang.model.element.Name;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.ArrayType;
@@ -119,7 +121,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
   private Trees trees;
   private int sdk = 1;
 
-  private final Map<Integer, Id> symbols = new LinkedHashMap<>();
+  private final Map<QualifiedId, Id> symbols = new LinkedHashMap<>();
 
   @Override public synchronized void init(ProcessingEnvironment env) {
     super.init(env);
@@ -419,16 +421,16 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
       TypeVariable typeVariable = (TypeVariable) elementType;
       elementType = typeVariable.getUpperBound();
     }
+    Name qualifiedName = enclosingElement.getQualifiedName();
+    Name simpleName = element.getSimpleName();
     if (!isSubtypeOfType(elementType, VIEW_TYPE) && !isInterface(elementType)) {
       if (elementType.getKind() == TypeKind.ERROR) {
         note(element, "@%s field with unresolved type (%s) "
                 + "must elsewhere be generated as a View or interface. (%s.%s)",
-            BindView.class.getSimpleName(), elementType, enclosingElement.getQualifiedName(),
-            element.getSimpleName());
+            BindView.class.getSimpleName(), elementType, qualifiedName, simpleName);
       } else {
         error(element, "@%s fields must extend from View or be an interface. (%s.%s)",
-            BindView.class.getSimpleName(), enclosingElement.getQualifiedName(),
-            element.getSimpleName());
+            BindView.class.getSimpleName(), qualifiedName, simpleName);
         hasError = true;
       }
     }
@@ -441,8 +443,9 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     int id = element.getAnnotation(BindView.class).value();
 
     BindingSet.Builder builder = builderMap.get(enclosingElement);
+    QualifiedId qualifiedId = elementToQualifiedId(element, id);
     if (builder != null) {
-      String existingBindingName = builder.findExistingBindingName(getId(id));
+      String existingBindingName = builder.findExistingBindingName(getId(qualifiedId));
       if (existingBindingName != null) {
         error(element, "Attempt to use @%s for an already bound ID %d on '%s'. (%s.%s)",
             BindView.class.getSimpleName(), id, existingBindingName,
@@ -453,14 +456,18 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
       builder = getOrCreateBindingBuilder(builderMap, enclosingElement);
     }
 
-    String name = element.getSimpleName().toString();
+    String name = simpleName.toString();
     TypeName type = TypeName.get(elementType);
     boolean required = isFieldRequired(element);
 
-    builder.addField(getId(id), new FieldViewBinding(name, type, required));
+    builder.addField(getId(qualifiedId), new FieldViewBinding(name, type, required));
 
     // Add the type-erased version to the valid binding targets set.
     erasedTargetNames.add(enclosingElement);
+  }
+
+  private QualifiedId elementToQualifiedId(Element element, int id) {
+    return new QualifiedId(elementUtils.getPackageOf(element).getQualifiedName().toString(), id);
   }
 
   private void parseBindViews(Element element, Map<TypeElement, BindingSet.Builder> builderMap,
@@ -544,7 +551,8 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
     List<Id> idVars = new ArrayList<>();
     for (int id : ids) {
-      idVars.add(getId(id));
+      QualifiedId qualifiedId = elementToQualifiedId(element, id);
+      idVars.add(getId(qualifiedId));
     }
 
     BindingSet.Builder builder = getOrCreateBindingBuilder(builderMap, enclosingElement);
@@ -577,9 +585,10 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     // Assemble information on the field.
     String name = element.getSimpleName().toString();
     int id = element.getAnnotation(BindBool.class).value();
-
+    QualifiedId qualifiedId = elementToQualifiedId(element, id);
     BindingSet.Builder builder = getOrCreateBindingBuilder(builderMap, enclosingElement);
-    builder.addResource(new FieldResourceBinding(getId(id), name, FieldResourceBinding.Type.BOOL));
+    builder.addResource(
+        new FieldResourceBinding(getId(qualifiedId), name, FieldResourceBinding.Type.BOOL));
 
     erasedTargetNames.add(enclosingElement);
   }
@@ -612,9 +621,9 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     // Assemble information on the field.
     String name = element.getSimpleName().toString();
     int id = element.getAnnotation(BindColor.class).value();
-
+    QualifiedId qualifiedId = elementToQualifiedId(element, id);
     BindingSet.Builder builder = getOrCreateBindingBuilder(builderMap, enclosingElement);
-    builder.addResource(new FieldResourceBinding(getId(id), name,
+    builder.addResource(new FieldResourceBinding(getId(qualifiedId), name,
         isColorStateList ? FieldResourceBinding.Type.COLOR_STATE_LIST
             : FieldResourceBinding.Type.COLOR));
 
@@ -649,9 +658,9 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     // Assemble information on the field.
     String name = element.getSimpleName().toString();
     int id = element.getAnnotation(BindDimen.class).value();
-
+    QualifiedId qualifiedId = elementToQualifiedId(element, id);
     BindingSet.Builder builder = getOrCreateBindingBuilder(builderMap, enclosingElement);
-    builder.addResource(new FieldResourceBinding(getId(id), name,
+    builder.addResource(new FieldResourceBinding(getId(qualifiedId), name,
         isInt ? FieldResourceBinding.Type.DIMEN_AS_INT : FieldResourceBinding.Type.DIMEN_AS_FLOAT));
 
     erasedTargetNames.add(enclosingElement);
@@ -681,10 +690,10 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     // Assemble information on the field.
     String name = element.getSimpleName().toString();
     int id = element.getAnnotation(BindBitmap.class).value();
-
+    QualifiedId qualifiedId = elementToQualifiedId(element, id);
     BindingSet.Builder builder = getOrCreateBindingBuilder(builderMap, enclosingElement);
     builder.addResource(
-        new FieldResourceBinding(getId(id), name, FieldResourceBinding.Type.BITMAP));
+        new FieldResourceBinding(getId(qualifiedId), name, FieldResourceBinding.Type.BITMAP));
 
     erasedTargetNames.add(enclosingElement);
   }
@@ -714,9 +723,10 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     String name = element.getSimpleName().toString();
     int id = element.getAnnotation(BindDrawable.class).value();
     int tint = element.getAnnotation(BindDrawable.class).tint();
-
+    QualifiedId qualifiedId = elementToQualifiedId(element, id);
+    QualifiedId qualifiedTint = elementToQualifiedId(element, tint);
     BindingSet.Builder builder = getOrCreateBindingBuilder(builderMap, enclosingElement);
-    builder.addResource(new FieldDrawableBinding(getId(id), name, getId(tint)));
+    builder.addResource(new FieldDrawableBinding(getId(qualifiedId), name, getId(qualifiedTint)));
 
     erasedTargetNames.add(enclosingElement);
   }
@@ -745,9 +755,10 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     // Assemble information on the field.
     String name = element.getSimpleName().toString();
     int id = element.getAnnotation(BindFloat.class).value();
-
+    QualifiedId qualifiedId = elementToQualifiedId(element, id);
     BindingSet.Builder builder = getOrCreateBindingBuilder(builderMap, enclosingElement);
-    builder.addResource(new FieldResourceBinding(getId(id), name, FieldResourceBinding.Type.FLOAT));
+    builder.addResource(
+        new FieldResourceBinding(getId(qualifiedId), name, FieldResourceBinding.Type.FLOAT));
 
     erasedTargetNames.add(enclosingElement);
   }
@@ -775,9 +786,10 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     // Assemble information on the field.
     String name = element.getSimpleName().toString();
     int id = element.getAnnotation(BindInt.class).value();
-
+    QualifiedId qualifiedId = elementToQualifiedId(element, id);
     BindingSet.Builder builder = getOrCreateBindingBuilder(builderMap, enclosingElement);
-    builder.addResource(new FieldResourceBinding(getId(id), name, FieldResourceBinding.Type.INT));
+    builder.addResource(
+        new FieldResourceBinding(getId(qualifiedId), name, FieldResourceBinding.Type.INT));
 
     erasedTargetNames.add(enclosingElement);
   }
@@ -806,10 +818,10 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     // Assemble information on the field.
     String name = element.getSimpleName().toString();
     int id = element.getAnnotation(BindString.class).value();
-
+    QualifiedId qualifiedId = elementToQualifiedId(element, id);
     BindingSet.Builder builder = getOrCreateBindingBuilder(builderMap, enclosingElement);
     builder.addResource(
-        new FieldResourceBinding(getId(id), name, FieldResourceBinding.Type.STRING));
+        new FieldResourceBinding(getId(qualifiedId), name, FieldResourceBinding.Type.STRING));
 
     erasedTargetNames.add(enclosingElement);
   }
@@ -840,9 +852,9 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     // Assemble information on the field.
     String name = element.getSimpleName().toString();
     int id = element.getAnnotation(BindArray.class).value();
-
+    QualifiedId qualifiedId = elementToQualifiedId(element, id);
     BindingSet.Builder builder = getOrCreateBindingBuilder(builderMap, enclosingElement);
-    builder.addResource(new FieldResourceBinding(getId(id), name, type));
+    builder.addResource(new FieldResourceBinding(getId(qualifiedId), name, type));
 
     erasedTargetNames.add(enclosingElement);
   }
@@ -1089,7 +1101,8 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     MethodViewBinding binding = new MethodViewBinding(name, Arrays.asList(parameters), required);
     BindingSet.Builder builder = getOrCreateBindingBuilder(builderMap, enclosingElement);
     for (int id : ids) {
-      if (!builder.addMethod(getId(id), listener, method, binding)) {
+      QualifiedId qualifiedId = elementToQualifiedId(element, id);
+      if (!builder.addMethod(getId(qualifiedId), listener, method, binding)) {
         error(element, "Multiple listener methods with return value specified for ID %d. (%s.%s)",
             id, enclosingElement.getQualifiedName(), element.getSimpleName());
         return;
@@ -1222,11 +1235,11 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     return null;
   }
 
-  private Id getId(int id) {
-    if (symbols.get(id) == null) {
-      symbols.put(id, new Id(id));
+  private Id getId(QualifiedId qualifiedId) {
+    if (symbols.get(qualifiedId) == null) {
+      symbols.put(qualifiedId, new Id(qualifiedId.id));
     }
-    return symbols.get(id);
+    return symbols.get(qualifiedId);
   }
 
   private void scanForRClasses(RoundEnvironment env) {
@@ -1238,17 +1251,23 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
       for (Element element : env.getElementsAnnotatedWith(annotation)) {
         JCTree tree = (JCTree) trees.getTree(element, getMirror(element, annotation));
         if (tree != null) { // tree can be null if the references are compiled types and not source
+          String respectivePackageName =
+              elementUtils.getPackageOf(element).getQualifiedName().toString();
+          scanner.setCurrentPackageName(respectivePackageName);
           tree.accept(scanner);
         }
       }
     }
 
-    for (String rClass : scanner.getRClasses()) {
-      parseRClass(rClass);
+    for (Map.Entry<String, Set<String>> packageNameToRClassSet : scanner.getRClasses().entrySet()) {
+      String respectivePackageName = packageNameToRClassSet.getKey();
+      for (String rClass : packageNameToRClassSet.getValue()) {
+        parseRClass(respectivePackageName, rClass);
+      }
     }
   }
 
-  private void parseRClass(String rClass) {
+  private void parseRClass(String respectivePackageName, String rClass) {
     Element element;
 
     try {
@@ -1259,15 +1278,15 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
     JCTree tree = (JCTree) trees.getTree(element);
     if (tree != null) { // tree can be null if the references are compiled types and not source
-      IdScanner idScanner =
-          new IdScanner(symbols, elementUtils.getPackageOf(element).getQualifiedName().toString());
+      IdScanner idScanner = new IdScanner(symbols, elementUtils.getPackageOf(element)
+          .getQualifiedName().toString(), respectivePackageName);
       tree.accept(idScanner);
     } else {
-      parseCompiledR((TypeElement) element);
+      parseCompiledR(respectivePackageName, (TypeElement) element);
     }
   }
 
-  private void parseCompiledR(TypeElement rClass) {
+  private void parseCompiledR(String respectivePackageName, TypeElement rClass) {
     for (Element element : rClass.getEnclosedElements()) {
       String innerClassName = element.getSimpleName().toString();
       if (SUPPORTED_TYPES.contains(innerClassName)) {
@@ -1282,7 +1301,8 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
                   ClassName.get(elementUtils.getPackageOf(variableElement).toString(), "R",
                       innerClassName);
               String resourceName = variableElement.getSimpleName().toString();
-              symbols.put(id, new Id(id, rClassName, resourceName));
+              QualifiedId qualifiedId = new QualifiedId(respectivePackageName, id);
+              symbols.put(qualifiedId, new Id(id, rClassName, resourceName));
             }
           }
         }
@@ -1291,7 +1311,9 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
   }
 
   private static class RClassScanner extends TreeScanner {
-    private final Set<String> rClasses = new LinkedHashSet<>();
+    // Maps the currently evaulated rPackageName to R Classes
+    private final Map<String, Set<String>> rClasses = new LinkedHashMap<>();
+    private String currentPackageName;
 
     @Override public void visitSelect(JCTree.JCFieldAccess jcFieldAccess) {
       Symbol symbol = jcFieldAccess.sym;
@@ -1299,22 +1321,33 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
           && symbol.getEnclosingElement() != null
           && symbol.getEnclosingElement().getEnclosingElement() != null
           && symbol.getEnclosingElement().getEnclosingElement().enclClass() != null) {
-        rClasses.add(symbol.getEnclosingElement().getEnclosingElement().enclClass().className());
+        Set<String> rClassSet = rClasses.get(currentPackageName);
+        if (rClassSet == null) {
+          rClassSet = new HashSet<>();
+          rClasses.put(currentPackageName, rClassSet);
+        }
+        rClassSet.add(symbol.getEnclosingElement().getEnclosingElement().enclClass().className());
       }
     }
 
-    Set<String> getRClasses() {
+    Map<String, Set<String>> getRClasses() {
       return rClasses;
+    }
+
+    void setCurrentPackageName(String respectivePackageName) {
+      this.currentPackageName = respectivePackageName;
     }
   }
 
   private static class IdScanner extends TreeScanner {
-    private final Map<Integer, Id> ids;
-    private final String packageName;
+    private final Map<QualifiedId, Id> ids;
+    private final String rPackageName;
+    private final String respectivePackageName;
 
-    IdScanner(Map<Integer, Id> ids, String packageName) {
+    IdScanner(Map<QualifiedId, Id> ids, String rPackageName, String respectivePackageName) {
       this.ids = ids;
-      this.packageName = packageName;
+      this.rPackageName = rPackageName;
+      this.respectivePackageName = respectivePackageName;
     }
 
     @Override public void visitClassDef(JCTree.JCClassDecl jcClassDecl) {
@@ -1323,8 +1356,8 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
           ClassTree classTree = (ClassTree) tree;
           String className = classTree.getSimpleName().toString();
           if (SUPPORTED_TYPES.contains(className)) {
-            ClassName rClassName = ClassName.get(packageName, "R", className);
-            VarScanner scanner = new VarScanner(ids, rClassName);
+            ClassName rClassName = ClassName.get(rPackageName, "R", className);
+            VarScanner scanner = new VarScanner(ids, rClassName, respectivePackageName);
             ((JCTree) classTree).accept(scanner);
           }
         }
@@ -1333,19 +1366,23 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
   }
 
   private static class VarScanner extends TreeScanner {
-    private final Map<Integer, Id> ids;
+    private final Map<QualifiedId, Id> ids;
     private final ClassName className;
+    private final String respectivePackageName;
 
-    private VarScanner(Map<Integer, Id> ids, ClassName className) {
+    private VarScanner(Map<QualifiedId, Id> ids, ClassName className,
+        String respectivePackageName) {
       this.ids = ids;
       this.className = className;
+      this.respectivePackageName = respectivePackageName;
     }
 
     @Override public void visitVarDef(JCTree.JCVariableDecl jcVariableDecl) {
       if ("int".equals(jcVariableDecl.getType().toString())) {
         int id = Integer.valueOf(jcVariableDecl.getInitializer().toString());
         String resourceName = jcVariableDecl.getName().toString();
-        ids.put(id, new Id(id, className, resourceName));
+        QualifiedId qualifiedId = new QualifiedId(respectivePackageName, id);
+        ids.put(qualifiedId, new Id(id, className, resourceName));
       }
     }
   }

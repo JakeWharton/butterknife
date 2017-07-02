@@ -1,16 +1,16 @@
 apply plugin: 'java'
 apply plugin: 'checkstyle'
 
-sourceCompatibility = rootProject.ext.sourceCompatibilityVersion
-targetCompatibility = rootProject.ext.targetCompatibilityVersion
+sourceCompatibility = JavaVersion.VERSION_1_8
+targetCompatibility = JavaVersion.VERSION_1_8
 
 dependencies {
-  compile deps.lintApi
-  compile deps.lintChecks
+  compile deps.lint.api
+  compile deps.lint.checks
 
   testCompile deps.junit
-  testCompile deps.lint
-  testCompile deps.lintTests
+  testCompile deps.lint.core
+  testCompile deps.lint.tests
   testCompile(deps.truth) {
     exclude group: 'com.google.guava', module: 'guava'
   }
