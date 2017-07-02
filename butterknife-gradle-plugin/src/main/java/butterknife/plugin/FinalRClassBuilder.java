@@ -10,6 +10,8 @@ import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.body.TypeDeclaration;
 import com.github.javaparser.ast.body.VariableDeclarator;
 import com.github.javaparser.ast.expr.Expression;
+import com.github.javaparser.ast.type.PrimitiveType;
+import com.github.javaparser.ast.type.Type;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.JavaFile;
@@ -30,7 +32,8 @@ import static javax.lang.model.element.Modifier.STATIC;
 public final class FinalRClassBuilder {
   private static final String SUPPORT_ANNOTATION_PACKAGE = "android.support.annotation";
   private static final String[] SUPPORTED_TYPES = {
-      "array", "attr", "bool", "color", "dimen", "drawable", "id", "integer", "string"
+      "anim", "array", "attr", "bool", "color", "dimen", "drawable", "id", "integer", "layout", "menu", "plurals",
+      "string", "style", "styleable"
   };
 
   private FinalRClassBuilder() { }
@@ -67,12 +70,23 @@ public final class FinalRClassBuilder {
 
     for (BodyDeclaration field : node.getMembers()) {
       if (field instanceof FieldDeclaration) {
-        addResourceField(resourceType, ((FieldDeclaration) field).getVariables().get(0),
-            getSupportAnnotationClass(type));
+        FieldDeclaration declaration = (FieldDeclaration) field;
+        // Check that the field is an Int because styleable also contains Int arrays which can't be
+        // used in annotations.
+        if (isInt(declaration)) {
+          addResourceField(resourceType, declaration.getVariables().get(0),
+                  getSupportAnnotationClass(type));
+        }
       }
     }
 
     result.addType(resourceType.build());
+  }
+
+  private static boolean isInt(FieldDeclaration field) {
+    Type type = field.getType();
+    return type instanceof PrimitiveType
+        && ((PrimitiveType) type).getType() == PrimitiveType.Primitive.Int;
   }
 
   private static void addResourceField(TypeSpec.Builder resourceType, VariableDeclarator variable,
