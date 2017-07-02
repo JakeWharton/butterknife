@@ -1,5 +1,6 @@
 package butterknife.compiler;
 
+import butterknife.BindAnim;
 import butterknife.BindArray;
 import butterknife.BindBitmap;
 import butterknife.BindBool;
@@ -92,6 +93,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
   static final String DIALOG_TYPE = "android.app.Dialog";
   private static final String COLOR_STATE_LIST_TYPE = "android.content.res.ColorStateList";
   private static final String BITMAP_TYPE = "android.graphics.Bitmap";
+  private static final String ANIMATION_TYPE = "android.view.animation.Animation";
   private static final String DRAWABLE_TYPE = "android.graphics.drawable.Drawable";
   private static final String TYPED_ARRAY_TYPE = "android.content.res.TypedArray";
   private static final String NULLABLE_ANNOTATION_NAME = "Nullable";
@@ -162,6 +164,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
   private Set<Class<? extends Annotation>> getSupportedAnnotations() {
     Set<Class<? extends Annotation>> annotations = new LinkedHashSet<>();
 
+    annotations.add(BindAnim.class);
     annotations.add(BindArray.class);
     annotations.add(BindBitmap.class);
     annotations.add(BindBool.class);
@@ -201,6 +204,16 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     Set<TypeElement> erasedTargetNames = new LinkedHashSet<>();
 
     scanForRClasses(env);
+
+    // Process each @BindAnim element.
+    for (Element element : env.getElementsAnnotatedWith(BindAnim.class)) {
+      if (!SuperficialValidation.validateElement(element)) continue;
+      try {
+        parseResourceAnimation(element, builderMap, erasedTargetNames);
+      } catch (Exception e) {
+        logParsingError(element, BindAnim.class, e);
+      }
+    }
 
     // Process each @BindArray element.
     for (Element element : env.getElementsAnnotatedWith(BindArray.class)) {
@@ -557,6 +570,37 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
     BindingSet.Builder builder = getOrCreateBindingBuilder(builderMap, enclosingElement);
     builder.addFieldCollection(new FieldCollectionViewBinding(name, type, kind, idVars, required));
+
+    erasedTargetNames.add(enclosingElement);
+  }
+
+  private void parseResourceAnimation(Element element,
+      Map<TypeElement, BindingSet.Builder> builderMap, Set<TypeElement> erasedTargetNames) {
+    boolean hasError = false;
+    TypeElement enclosingElement = (TypeElement) element.getEnclosingElement();
+
+    // Verify that the target type is Animation.
+    if (!ANIMATION_TYPE.equals(element.asType().toString())) {
+      error(element, "@%s field type must be 'Animation'. (%s.%s)",
+          BindAnim.class.getSimpleName(), enclosingElement.getQualifiedName(),
+          element.getSimpleName());
+      hasError = true;
+    }
+
+    // Verify common generated code restrictions.
+    hasError |= isInaccessibleViaGeneratedCode(BindAnim.class, "fields", element);
+    hasError |= isBindingInWrongPackage(BindAnim.class, element);
+
+    if (hasError) {
+      return;
+    }
+
+    // Assemble information on the field.
+    String name = element.getSimpleName().toString();
+    int id = element.getAnnotation(BindAnim.class).value();
+    QualifiedId qualifiedId = elementToQualifiedId(element, id);
+    BindingSet.Builder builder = getOrCreateBindingBuilder(builderMap, enclosingElement);
+    builder.addResource(new FieldAnimationBinding(getId(qualifiedId), name));
 
     erasedTargetNames.add(enclosingElement);
   }
