@@ -13,7 +13,6 @@ import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.TypeSpec;
-
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
@@ -69,7 +68,7 @@ public final class FinalRClassBuilder {
       if (field instanceof FieldDeclaration) {
         FieldDeclaration declaration = (FieldDeclaration) field;
         // Check that the field is an Int because styleable also contains Int arrays which can't be
-        // used in annotations
+        // used in annotations.
         if (isInt(declaration)) {
           addResourceField(resourceType, declaration.getVariables().get(0),
                   getSupportAnnotationClass(type));
@@ -83,7 +82,7 @@ public final class FinalRClassBuilder {
   private static boolean isInt(FieldDeclaration field) {
     Type type = field.getType();
     return type instanceof PrimitiveType
-            && ((PrimitiveType) type).getType() == PrimitiveType.Primitive.Int;
+        && ((PrimitiveType) type).getType() == PrimitiveType.Primitive.Int;
   }
 
   private static void addResourceField(TypeSpec.Builder resourceType, VariableDeclarator variable,
