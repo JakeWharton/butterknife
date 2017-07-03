@@ -3,13 +3,11 @@ package butterknife.plugin;
 import com.github.javaparser.JavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.Node;
-import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.body.BodyDeclaration;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.body.TypeDeclaration;
 import com.github.javaparser.ast.body.VariableDeclarator;
-import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.type.PrimitiveType;
 import com.github.javaparser.ast.type.Type;
 import com.squareup.javapoet.ClassName;
@@ -19,7 +17,6 @@ import com.squareup.javapoet.TypeSpec;
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 
 import static javax.lang.model.element.Modifier.FINAL;
 import static javax.lang.model.element.Modifier.PUBLIC;
@@ -84,9 +81,9 @@ public final class FinalRClassBuilder {
   }
 
   private static boolean isInt(FieldDeclaration field) {
-    Type type = field.getType();
+    Type type = field.getElementType();
     return type instanceof PrimitiveType
-        && ((PrimitiveType) type).getType() == PrimitiveType.Primitive.Int;
+        && ((PrimitiveType) type).getType() == PrimitiveType.Primitive.INT;
   }
 
   private static void addResourceField(TypeSpec.Builder resourceType, VariableDeclarator variable,
