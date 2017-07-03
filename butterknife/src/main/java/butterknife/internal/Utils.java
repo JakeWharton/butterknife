@@ -120,10 +120,10 @@ public final class Utils {
     }
   }
 
-  public static <T> T castParam(Object value, String from, int fromPos, String to, int toPos,
-      Class<T> cls) {
+  @SuppressWarnings("unchecked") // That's the point.
+  public static <T> T castParam(Object value, String from, int fromPos, String to, int toPos) {
     try {
-      return cls.cast(value);
+      return (T) value;
     } catch (ClassCastException e) {
       throw new IllegalStateException("Parameter #"
           + (fromPos + 1)

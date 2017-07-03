@@ -464,9 +464,8 @@ final class BindingSet {
               int listenerPosition = parameter.getListenerPosition();
 
               if (parameter.requiresCast(listenerParameters[listenerPosition])) {
-                builder.add("$T.castParam(p$L, $S, $L, $S, $L, $T.class)",
-                    UTILS, listenerPosition, method.name(), listenerPosition,
-                    methodBinding.getName(), i, parameter.getType());
+                builder.add("$T.<$T>castParam(p$L, $S, $L, $S, $L)", UTILS, parameter.getType(),
+                    listenerPosition, method.name(), listenerPosition, methodBinding.getName(), i);
               } else {
                 builder.add("p$L", listenerPosition);
               }
