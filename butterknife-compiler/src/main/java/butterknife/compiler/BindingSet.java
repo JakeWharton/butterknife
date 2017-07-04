@@ -52,6 +52,8 @@ final class BindingSet {
   static final ClassName BITMAP_FACTORY = ClassName.get("android.graphics", "BitmapFactory");
   static final ClassName CONTEXT_COMPAT =
       ClassName.get("android.support.v4.content", "ContextCompat");
+  static final ClassName RESOURCES_COMPAT =
+      ClassName.get("android.support.v4.content.res", "ResourcesCompat");
   static final ClassName ANIMATION_UTILS =
           ClassName.get("android.view.animation", "AnimationUtils");
 

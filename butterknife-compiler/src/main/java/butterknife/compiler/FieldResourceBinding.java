@@ -20,6 +20,8 @@ final class FieldResourceBinding implements ResourceBinding {
     DIMEN_AS_INT("getDimensionPixelSize"),
     DIMEN_AS_FLOAT("getDimension"),
     FLOAT(new ResourceMethod(BindingSet.UTILS, "getFloat", false, 1)),
+    FONT(new ResourceMethod(BindingSet.RESOURCES_COMPAT, "getFont", false, 1),
+        new ResourceMethod(null, "getFont", true, 26)),
     INT("getInteger"),
     INT_ARRAY("getIntArray"),
     STRING("getString"),

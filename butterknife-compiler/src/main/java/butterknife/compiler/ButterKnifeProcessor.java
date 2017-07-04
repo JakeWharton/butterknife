@@ -8,6 +8,7 @@ import butterknife.BindColor;
 import butterknife.BindDimen;
 import butterknife.BindDrawable;
 import butterknife.BindFloat;
+import butterknife.BindFont;
 import butterknife.BindInt;
 import butterknife.BindString;
 import butterknife.BindView;
@@ -96,6 +97,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
   private static final String ANIMATION_TYPE = "android.view.animation.Animation";
   private static final String DRAWABLE_TYPE = "android.graphics.drawable.Drawable";
   private static final String TYPED_ARRAY_TYPE = "android.content.res.TypedArray";
+  private static final String TYPEFACE_TYPE = "android.graphics.Typeface";
   private static final String NULLABLE_ANNOTATION_NAME = "Nullable";
   private static final String STRING_TYPE = "java.lang.String";
   private static final String LIST_TYPE = List.class.getCanonicalName();
@@ -172,6 +174,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     annotations.add(BindDimen.class);
     annotations.add(BindDrawable.class);
     annotations.add(BindFloat.class);
+    annotations.add(BindFont.class);
     annotations.add(BindInt.class);
     annotations.add(BindString.class);
     annotations.add(BindView.class);
@@ -282,6 +285,16 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
         parseResourceFloat(element, builderMap, erasedTargetNames);
       } catch (Exception e) {
         logParsingError(element, BindFloat.class, e);
+      }
+    }
+
+    // Process each @BindFont element.
+    for (Element element : env.getElementsAnnotatedWith(BindFont.class)) {
+      if (!SuperficialValidation.validateElement(element)) continue;
+      try {
+        parseResourceFont(element, builderMap, erasedTargetNames);
+      } catch (Exception e) {
+        logParsingError(element, BindFont.class, e);
       }
     }
 
@@ -803,6 +816,38 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     BindingSet.Builder builder = getOrCreateBindingBuilder(builderMap, enclosingElement);
     builder.addResource(
         new FieldResourceBinding(getId(qualifiedId), name, FieldResourceBinding.Type.FLOAT));
+
+    erasedTargetNames.add(enclosingElement);
+  }
+
+  private void parseResourceFont(Element element,
+      Map<TypeElement, BindingSet.Builder> builderMap, Set<TypeElement> erasedTargetNames) {
+    boolean hasError = false;
+    TypeElement enclosingElement = (TypeElement) element.getEnclosingElement();
+
+    // Verify that the target type is a Typeface.
+    if (!TYPEFACE_TYPE.equals(element.asType().toString())) {
+      error(element, "@%s field type must be 'Typeface'. (%s.%s)",
+          BindFont.class.getSimpleName(), enclosingElement.getQualifiedName(),
+          element.getSimpleName());
+      hasError = true;
+    }
+
+    // Verify common generated code restrictions.
+    hasError |= isInaccessibleViaGeneratedCode(BindFont.class, "fields", element);
+    hasError |= isBindingInWrongPackage(BindFont.class, element);
+
+    if (hasError) {
+      return;
+    }
+
+    // Assemble information on the field.
+    String name = element.getSimpleName().toString();
+    int id = element.getAnnotation(BindFont.class).value();
+    QualifiedId qualifiedId = elementToQualifiedId(element, id);
+    BindingSet.Builder builder = getOrCreateBindingBuilder(builderMap, enclosingElement);
+    builder.addResource(
+        new FieldResourceBinding(getId(qualifiedId), name, FieldResourceBinding.Type.FONT));
 
     erasedTargetNames.add(enclosingElement);
   }
