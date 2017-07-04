@@ -81,7 +81,7 @@ public final class FinalRClassBuilder {
   }
 
   private static boolean isInt(FieldDeclaration field) {
-    Type type = field.getElementType();
+    Type type = field.getCommonType();
     return type instanceof PrimitiveType
         && ((PrimitiveType) type).getType() == PrimitiveType.Primitive.INT;
   }
