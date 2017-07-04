@@ -57,6 +57,16 @@ public final class UtilsTest {
     }
   }
 
+  @Test public void testCastParam() {
+    try {
+      Utils.castParam("abc", "Foo", 3, "foo()", 4, Integer.class);
+      fail();
+    } catch (IllegalStateException ise) {
+      assertThat(ise.getMessage()).isEqualTo(
+          "Parameter #4 of method 'Foo' was of the wrong type for parameter #5 of method 'foo()'. See cause for more info.");
+    }
+  }
+
   static final class EditModeView extends View {
     EditModeView(Context context) {
       super(context);
