@@ -1,8 +1,8 @@
 buildscript {
   ext.versions = [
       'minSdk': 9,
-      'compileSdk': 25,
-      'buildTools': '25.0.2',
+      'compileSdk': 26,
+      'buildTools': '26.0.0',
 
       'supportLibrary': '25.3.0',
       'androidPlugin': '2.3.3',
