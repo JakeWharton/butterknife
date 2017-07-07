@@ -25,6 +25,7 @@ import butterknife.OnPageChange;
 import butterknife.OnTextChanged;
 import butterknife.OnTouch;
 import butterknife.Optional;
+import butterknife.compiler.FieldTypefaceBinding.TypefaceStyles;
 import butterknife.internal.ListenerClass;
 import butterknife.internal.ListenerMethod;
 import com.google.auto.common.SuperficialValidation;
@@ -837,17 +838,25 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     hasError |= isInaccessibleViaGeneratedCode(BindFont.class, "fields", element);
     hasError |= isBindingInWrongPackage(BindFont.class, element);
 
+    // Assemble information on the field.
+    String name = element.getSimpleName().toString();
+    BindFont bindFont = element.getAnnotation(BindFont.class);
+
+    int styleValue = bindFont.style();
+    TypefaceStyles style = TypefaceStyles.fromValue(styleValue);
+    if (style == null) {
+      error(element, "@%s style must be NORMAL, BOLD, ITALIC, or BOLD_ITALIC. (%s.%s)",
+          BindFont.class.getSimpleName(), enclosingElement.getQualifiedName(), name);
+      hasError = true;
+    }
+
     if (hasError) {
       return;
     }
 
-    // Assemble information on the field.
-    String name = element.getSimpleName().toString();
-    int id = element.getAnnotation(BindFont.class).value();
-    QualifiedId qualifiedId = elementToQualifiedId(element, id);
     BindingSet.Builder builder = getOrCreateBindingBuilder(builderMap, enclosingElement);
-    builder.addResource(
-        new FieldResourceBinding(getId(qualifiedId), name, FieldResourceBinding.Type.FONT));
+    QualifiedId qualifiedId = elementToQualifiedId(element, bindFont.value());
+    builder.addResource(new FieldTypefaceBinding(getId(qualifiedId), name, style));
 
     erasedTargetNames.add(enclosingElement);
   }
