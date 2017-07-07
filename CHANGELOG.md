@@ -1,6 +1,16 @@
 Change Log
 ==========
 
+Version 8.7.0 *(2017-07-07)*
+----------------------------
+
+ * New: `@BindFont` annotation binds `Typeface` instances with an optional style. Requires support libraries
+   26.0.0-beta1 or newer.
+ * New: `@BindAnim` annotation binds `Animation` instances.
+ * New: Generate `R2` constants for animation, layout, menu, plurals, styles, and styleables.
+ * Fix: Properly catch and re-throw type cast exceptions when method binding arguments do not match.
+
+
 Version 8.6.0 *(2017-05-16)*
 ----------------------------
 
