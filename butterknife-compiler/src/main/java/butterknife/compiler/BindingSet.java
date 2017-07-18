@@ -82,13 +82,13 @@ final class BindingSet {
     this.parentBinding = parentBinding;
   }
 
-  JavaFile brewJava(int sdk) {
-    return JavaFile.builder(bindingClassName.packageName(), createType(sdk))
+  JavaFile brewJava(int sdk, boolean debuggable) {
+    return JavaFile.builder(bindingClassName.packageName(), createType(sdk, debuggable))
         .addFileComment("Generated code from Butter Knife. Do not modify!")
         .build();
   }
 
-  private TypeSpec createType(int sdk) {
+  private TypeSpec createType(int sdk, boolean debuggable) {
     TypeSpec.Builder result = TypeSpec.classBuilder(bindingClassName.simpleName())
         .addModifiers(PUBLIC);
     if (isFinal) {
@@ -116,7 +116,7 @@ final class BindingSet {
       // Add a delegating constructor with a target type + view signature for reflective use.
       result.addMethod(createBindingViewDelegateConstructor());
     }
-    result.addMethod(createBindingConstructor(sdk));
+    result.addMethod(createBindingConstructor(sdk, debuggable));
 
     if (hasViewBindings() || parentBinding == null) {
       result.addMethod(createBindingUnbindMethod(result));
@@ -178,7 +178,7 @@ final class BindingSet {
     return builder.build();
   }
 
-  private MethodSpec createBindingConstructor(int sdk) {
+  private MethodSpec createBindingConstructor(int sdk, boolean debuggable) {
     MethodSpec.Builder constructor = MethodSpec.constructorBuilder()
         .addAnnotation(UI_THREAD)
         .addModifiers(PUBLIC);
@@ -229,10 +229,10 @@ final class BindingSet {
         constructor.addStatement("$T view", VIEW);
       }
       for (ViewBinding binding : viewBindings) {
-        addViewBinding(constructor, binding);
+        addViewBinding(constructor, binding, debuggable);
       }
       for (FieldCollectionViewBinding binding : collectionBindings) {
-        constructor.addStatement("$L", binding.render());
+        constructor.addStatement("$L", binding.render(debuggable));
       }
 
       if (!resourceBindings.isEmpty()) {
@@ -350,7 +350,7 @@ final class BindingSet {
         : listenerClass.setter();
   }
 
-  private void addViewBinding(MethodSpec.Builder result, ViewBinding binding) {
+  private void addViewBinding(MethodSpec.Builder result, ViewBinding binding, boolean debuggable) {
     if (binding.isSingleFieldBinding()) {
       // Optimize the common case where there's a single binding directly to a field.
       FieldViewBinding fieldBinding = binding.getFieldBinding();
@@ -358,7 +358,7 @@ final class BindingSet {
           .add("target.$L = ", fieldBinding.getName());
 
       boolean requiresCast = requiresCast(fieldBinding.getType());
-      if (!requiresCast && !fieldBinding.isRequired()) {
+      if (!debuggable || (!requiresCast && !fieldBinding.isRequired())) {
         builder.add("source.findViewById($L)", binding.getId().code);
       } else {
         builder.add("$T.find", UTILS);
@@ -380,31 +380,37 @@ final class BindingSet {
     }
 
     List<MemberViewBinding> requiredBindings = binding.getRequiredBindings();
-    if (requiredBindings.isEmpty()) {
+    if (!debuggable || requiredBindings.isEmpty()) {
       result.addStatement("view = source.findViewById($L)", binding.getId().code);
     } else if (!binding.isBoundToRoot()) {
       result.addStatement("view = $T.findRequiredView(source, $L, $S)", UTILS,
           binding.getId().code, asHumanDescription(requiredBindings));
     }
 
-    addFieldBinding(result, binding);
-    addMethodBindings(result, binding);
+    addFieldBinding(result, binding, debuggable);
+    addMethodBindings(result, binding, debuggable);
   }
 
-  private void addFieldBinding(MethodSpec.Builder result, ViewBinding binding) {
+  private void addFieldBinding(MethodSpec.Builder result, ViewBinding binding, boolean debuggable) {
     FieldViewBinding fieldBinding = binding.getFieldBinding();
     if (fieldBinding != null) {
       if (requiresCast(fieldBinding.getType())) {
-        result.addStatement("target.$L = $T.castView(view, $L, $S, $T.class)",
-            fieldBinding.getName(), UTILS, binding.getId().code,
-            asHumanDescription(singletonList(fieldBinding)), fieldBinding.getRawType());
+        if (debuggable) {
+          result.addStatement("target.$L = $T.castView(view, $L, $S, $T.class)",
+              fieldBinding.getName(), UTILS, binding.getId().code,
+              asHumanDescription(singletonList(fieldBinding)), fieldBinding.getRawType());
+        } else {
+          result.addStatement("target.$L = ($T) view", fieldBinding.getName(),
+              fieldBinding.getType());
+        }
       } else {
         result.addStatement("target.$L = view", fieldBinding.getName());
       }
     }
   }
 
-  private void addMethodBindings(MethodSpec.Builder result, ViewBinding binding) {
+  private void addMethodBindings(MethodSpec.Builder result, ViewBinding binding,
+      boolean debuggable) {
     Map<ListenerClass, Map<ListenerMethod, Set<MethodViewBinding>>> classMethodBindings =
         binding.getMethodBindings();
     if (classMethodBindings.isEmpty()) {
@@ -464,9 +470,13 @@ final class BindingSet {
               int listenerPosition = parameter.getListenerPosition();
 
               if (parameter.requiresCast(listenerParameters[listenerPosition])) {
-                builder.add("$T.castParam(p$L, $S, $L, $S, $L, $T.class)",
-                    UTILS, listenerPosition, method.name(), listenerPosition,
-                    methodBinding.getName(), i, parameter.getType());
+                if (debuggable) {
+                  builder.add("$T.castParam(p$L, $S, $L, $S, $L, $T.class)", UTILS,
+                      listenerPosition, method.name(), listenerPosition, methodBinding.getName(), i,
+                      parameter.getType());
+                } else {
+                  builder.add("($T) p$L", parameter.getType(), listenerPosition);
+                }
               } else {
                 builder.add("p$L", listenerPosition);
               }
