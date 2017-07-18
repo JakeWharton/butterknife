@@ -30,6 +30,7 @@ import butterknife.internal.ListenerClass;
 import butterknife.internal.ListenerMethod;
 import com.google.auto.common.SuperficialValidation;
 import com.google.auto.service.AutoService;
+import com.google.common.collect.ImmutableSet;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.TypeName;
@@ -48,7 +49,6 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
-import java.util.Collections;
 import java.util.Deque;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -89,6 +89,7 @@ import static javax.lang.model.element.Modifier.STATIC;
 public final class ButterKnifeProcessor extends AbstractProcessor {
   // TODO remove when http://b.android.com/187527 is released.
   private static final String OPTION_SDK_INT = "butterknife.minSdk";
+  private static final String OPTION_DEBUGGABLE = "butterknife.debuggable";
   static final Id NO_ID = new Id(-1);
   static final String VIEW_TYPE = "android.view.View";
   static final String ACTIVITY_TYPE = "android.app.Activity";
@@ -124,7 +125,9 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
   private Types typeUtils;
   private Filer filer;
   private Trees trees;
+
   private int sdk = 1;
+  private boolean debuggable = true;
 
   private final Map<QualifiedId, Id> symbols = new LinkedHashMap<>();
 
@@ -143,6 +146,8 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
       }
     }
 
+    debuggable = !"false".equals(env.getOptions().get(OPTION_DEBUGGABLE));
+
     elementUtils = env.getElementUtils();
     typeUtils = env.getTypeUtils();
     filer = env.getFiler();
@@ -153,7 +158,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
   }
 
   @Override public Set<String> getSupportedOptions() {
-    return Collections.singleton(OPTION_SDK_INT);
+    return ImmutableSet.of(OPTION_SDK_INT, OPTION_DEBUGGABLE);
   }
 
   @Override public Set<String> getSupportedAnnotationTypes() {
@@ -192,7 +197,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
       TypeElement typeElement = entry.getKey();
       BindingSet binding = entry.getValue();
 
-      JavaFile javaFile = binding.brewJava(sdk);
+      JavaFile javaFile = binding.brewJava(sdk, debuggable);
       try {
         javaFile.writeTo(filer);
       } catch (IOException e) {

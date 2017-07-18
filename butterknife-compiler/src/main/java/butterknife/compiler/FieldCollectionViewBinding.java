@@ -35,7 +35,7 @@ final class FieldCollectionViewBinding {
     this.required = required;
   }
 
-  CodeBlock render() {
+  CodeBlock render(boolean debuggable) {
     CodeBlock.Builder builder = CodeBlock.builder()
         .add("target.$L = $T.$L(", name, UTILS, kind.factoryName);
     for (int i = 0; i < ids.size(); i++) {
@@ -44,16 +44,22 @@ final class FieldCollectionViewBinding {
       }
       builder.add("\n");
 
+      Id id = ids.get(i);
       boolean requiresCast = requiresCast(type);
-      if (!requiresCast && !required) {
-        builder.add("source.findViewById($L)", ids.get(i).code);
+      if (!debuggable) {
+        if (requiresCast) {
+          builder.add("($T) ", type);
+        }
+        builder.add("source.findViewById($L)", id.code);
+      } else if (!requiresCast && !required) {
+        builder.add("source.findViewById($L)", id.code);
       } else {
         builder.add("$T.find", UTILS);
         builder.add(required ? "RequiredView" : "OptionalView");
         if (requiresCast) {
           builder.add("AsType");
         }
-        builder.add("(source, $L, \"field '$L'\"", ids.get(i).code, name);
+        builder.add("(source, $L, \"field '$L'\"", id.code, name);
         if (requiresCast) {
           TypeName rawType = type;
           if (rawType instanceof ParameterizedTypeName) {

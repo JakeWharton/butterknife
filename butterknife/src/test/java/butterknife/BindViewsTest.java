@@ -179,6 +179,103 @@ public class BindViewsTest {
         .generatesSources(bindingSource);
   }
 
+  @Test public void bindingArrayNonDebuggable() {
+    JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
+        + "package test;\n"
+        + "import android.view.View;\n"
+        + "import butterknife.BindViews;\n"
+        + "public class Test {\n"
+        + "    @BindViews({1, 2, 3}) View[] thing;\n"
+        + "}"
+    );
+
+    JavaFileObject bindingSource = JavaFileObjects.forSourceString("test/Test_ViewBinding", ""
+        + "package test;\n"
+        + "import android.support.annotation.CallSuper;\n"
+        + "import android.support.annotation.UiThread;\n"
+        + "import android.view.View;\n"
+        + "import butterknife.Unbinder;\n"
+        + "import butterknife.internal.Utils;\n"
+        + "import java.lang.IllegalStateException;\n"
+        + "import java.lang.Override;\n"
+        + "public class Test_ViewBinding implements Unbinder {\n"
+        + "  private Test target;\n"
+        + "  @UiThread\n"
+        + "  public Test_ViewBinding(Test target, View source) {\n"
+        + "    this.target = target;\n"
+        + "    target.thing = Utils.arrayOf(\n"
+        + "        source.findViewById(1), \n"
+        + "        source.findViewById(2), \n"
+        + "        source.findViewById(3));\n"
+        + "  }\n"
+        + "  @Override\n"
+        + "  @CallSuper\n"
+        + "  public void unbind() {\n"
+        + "    Test target = this.target;\n"
+        + "    if (target == null) throw new IllegalStateException(\"Bindings already cleared.\");\n"
+        + "    this.target = null;\n"
+        + "    target.thing = null;\n"
+        + "  }\n"
+        + "}"
+    );
+
+    assertAbout(javaSource()).that(source)
+        .withCompilerOptions("-Xlint:-processing", "-Abutterknife.debuggable=false")
+        .processedWith(new ButterKnifeProcessor())
+        .compilesWithoutWarnings()
+        .and()
+        .generatesSources(bindingSource);
+  }
+
+  @Test public void bindingArrayWithCastNonDebuggable() {
+    JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
+        + "package test;\n"
+        + "import android.widget.TextView;\n"
+        + "import butterknife.BindViews;\n"
+        + "public class Test {\n"
+        + "    @BindViews({1, 2, 3}) TextView[] thing;\n"
+        + "}"
+    );
+
+    JavaFileObject bindingSource = JavaFileObjects.forSourceString("test/Test_ViewBinding", ""
+        + "package test;\n"
+        + "import android.support.annotation.CallSuper;\n"
+        + "import android.support.annotation.UiThread;\n"
+        + "import android.view.View;\n"
+        + "import android.widget.TextView;\n"
+        + "import butterknife.Unbinder;\n"
+        + "import butterknife.internal.Utils;\n"
+        + "import java.lang.IllegalStateException;\n"
+        + "import java.lang.Override;\n"
+        + "public class Test_ViewBinding implements Unbinder {\n"
+        + "  private Test target;\n"
+        + "  @UiThread\n"
+        + "  public Test_ViewBinding(Test target, View source) {\n"
+        + "    this.target = target;\n"
+        + "    target.thing = Utils.arrayOf(\n"
+        + "        (TextView) source.findViewById(1), \n"
+        + "        (TextView) source.findViewById(2), \n"
+        + "        (TextView) source.findViewById(3));\n"
+        + "  }\n"
+        + "  @Override\n"
+        + "  @CallSuper\n"
+        + "  public void unbind() {\n"
+        + "    Test target = this.target;\n"
+        + "    if (target == null) throw new IllegalStateException(\"Bindings already cleared.\");\n"
+        + "    this.target = null;\n"
+        + "    target.thing = null;\n"
+        + "  }\n"
+        + "}"
+    );
+
+    assertAbout(javaSource()).that(source)
+        .withCompilerOptions("-Xlint:-processing", "-Abutterknife.debuggable=false")
+        .processedWith(new ButterKnifeProcessor())
+        .compilesWithoutWarnings()
+        .and()
+        .generatesSources(bindingSource);
+  }
+
   @Test public void bindingList() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
