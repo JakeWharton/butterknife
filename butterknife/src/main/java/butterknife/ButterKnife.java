@@ -356,24 +356,24 @@ public final class ButterKnife {
     setter.set(view, value);
   }
 
-  /** Simpler version of {@link View#findViewById(int)} which infers the target type. */
-  @SuppressWarnings({ "unchecked", "UnusedDeclaration" }) // Checked by runtime cast. Public API.
-  @CheckResult
+  /** @deprecated Compile against API 26 and use {@link View#findViewById(int)}. */
+  @SuppressWarnings("UnusedDeclaration") // Public API.
+  @CheckResult @Deprecated
   public static <T extends View> T findById(@NonNull View view, @IdRes int id) {
-    return (T) view.findViewById(id);
+    return view.findViewById(id);
   }
 
-  /** Simpler version of {@link Activity#findViewById(int)} which infers the target type. */
-  @SuppressWarnings({ "unchecked", "UnusedDeclaration" }) // Checked by runtime cast. Public API.
-  @CheckResult
+  /** @deprecated Compile against API 26 and use {@link Activity#findViewById(int)}. */
+  @SuppressWarnings("UnusedDeclaration") // Public API.
+  @CheckResult @Deprecated
   public static <T extends View> T findById(@NonNull Activity activity, @IdRes int id) {
-    return (T) activity.findViewById(id);
+    return activity.findViewById(id);
   }
 
-  /** Simpler version of {@link Dialog#findViewById(int)} which infers the target type. */
-  @SuppressWarnings({ "unchecked", "UnusedDeclaration" }) // Checked by runtime cast. Public API.
-  @CheckResult
+  /** @deprecated Compile against API 26 and use {@link Dialog#findViewById(int)}. */
+  @SuppressWarnings("UnusedDeclaration") // Public API.
+  @CheckResult @Deprecated
   public static <T extends View> T findById(@NonNull Dialog dialog, @IdRes int id) {
-    return (T) dialog.findViewById(id);
+    return dialog.findViewById(id);
   }
 }
