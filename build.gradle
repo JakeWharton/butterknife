@@ -1,3 +1,5 @@
+apply plugin: 'com.github.ben-manes.versions'
+
 buildscript {
   ext.versions = [
       'minSdk': 9,
@@ -60,6 +62,7 @@ buildscript {
   dependencies {
     classpath deps.android.gradlePlugin
     classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${versions.kotlin}"
+    classpath 'com.github.ben-manes:gradle-versions-plugin:0.15.0'
     classpath 'gradle.plugin.com.kageiit:lintrules:1.1.2'
   }
 }
