@@ -48,6 +48,20 @@ buildscript {
           'stdLibJre8': "org.jetbrains.kotlin:kotlin-stdlib-jre8:${versions.kotlin}",
       ]
   ]
+
+  repositories {
+    mavenCentral()
+    google()
+    maven {
+      url "https://plugins.gradle.org/m2/"
+    }
+  }
+
+  dependencies {
+    classpath deps.android.gradlePlugin
+    classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${versions.kotlin}"
+    classpath 'gradle.plugin.com.kageiit:lintrules:1.1.2'
+  }
 }
 
 subprojects { project ->
@@ -79,21 +93,6 @@ subprojects { project ->
       if (project.tasks.findByName('check')) {
         check.dependsOn('checkstyle')
       }
-    }
-  }
-
-  buildscript {
-    repositories {
-      mavenCentral()
-      google()
-      maven {
-        url "https://plugins.gradle.org/m2/"
-      }
-    }
-    dependencies {
-      classpath deps.android.gradlePlugin
-      classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${versions.kotlin}"
-      classpath 'gradle.plugin.com.kageiit:lintrules:1.1.2'
     }
   }
 }
