@@ -30,13 +30,13 @@ android {
 }
 
 dependencies {
-  compile deps.release.runtime
+  implementation deps.release.runtime
   annotationProcessor deps.release.compiler
 
-  compile project(':sample:library')
+  implementation project(':sample:library')
 
-  testCompile deps.junit
-  testCompile deps.truth
+  testImplementation deps.junit
+  testImplementation deps.truth
 }
 
 afterEvaluate {

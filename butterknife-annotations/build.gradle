@@ -1,4 +1,4 @@
-apply plugin: 'java'
+apply plugin: 'java-library'
 apply plugin: 'checkstyle'
 
 sourceCompatibility = JavaVersion.VERSION_1_7
@@ -11,7 +11,7 @@ checkstyle {
 
 dependencies {
   compileOnly deps.android.runtime
-  compile deps.support.annotations
+  api deps.support.annotations
 }
 
 apply from: rootProject.file('gradle/gradle-mvn-push.gradle')

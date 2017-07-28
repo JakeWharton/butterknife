@@ -24,7 +24,7 @@ class ButterKnifePlugin : Plugin<Project> {
 
   private fun applyPlugin(variants: DomainObjectSet<out BaseVariant>) {
     variants.all { variant ->
-      variant.outputs.forEach { output ->
+      variant.outputs.all { output ->
         val processResources = output.processResources
         // TODO proper task registered as source-generating?
         processResources.doLast {
