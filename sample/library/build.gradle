@@ -1,4 +1,9 @@
 buildscript {
+  repositories {
+    mavenCentral()
+    jcenter()
+  }
+
   dependencies {
     classpath "com.jakewharton:butterknife-gradle-plugin:${versions.release}"
   }

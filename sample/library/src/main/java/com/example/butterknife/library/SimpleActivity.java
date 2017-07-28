@@ -1,5 +1,6 @@
 package com.example.butterknife.library;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -54,6 +55,7 @@ public class SimpleActivity extends Activity {
     Toast.makeText(this, "You clicked: " + adapter.getItem(position), LENGTH_SHORT).show();
   }
 
+  @SuppressLint("SetTextI18n") //
   @Override protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.simple_activity);
