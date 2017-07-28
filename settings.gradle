@@ -5,7 +5,7 @@ include ':butterknife-gradle-plugin'
 include ':butterknife-lint'
 include ':butterknife-integration-test'
 
-include ':sample:app'
-include ':sample:library'
+//include ':sample:app'
+//include ':sample:library'
 
 rootProject.name = 'butterknife-parent'

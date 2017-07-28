@@ -11,6 +11,12 @@ android {
     consumerProguardFiles 'proguard-rules.txt'
 
     testInstrumentationRunner 'android.support.test.runner.AndroidJUnitRunner'
+
+    javaCompileOptions {
+      annotationProcessorOptions {
+        includeCompileClasspath = true
+      }
+    }
   }
 
   lintOptions {
@@ -20,22 +26,22 @@ android {
 }
 
 dependencies {
-  compile project(':butterknife-annotations')
-  compile deps.support.annotations
-  compile deps.support.compat
+  api project(':butterknife-annotations')
+  implementation deps.support.annotations
+  api deps.support.compat
 
   lintRules project(':butterknife-lint')
 
-  androidTestCompile deps.junit
-  androidTestCompile deps.truth
-  androidTestCompile deps.support.test.runner
+  androidTestImplementation deps.junit
+  androidTestImplementation deps.truth
+  androidTestImplementation deps.support.test.runner
 
-  testCompile deps.junit
-  testCompile deps.truth
-  testCompile deps.compiletesting
-  testCompile files(getRuntimeJar())
-  testCompile files(org.gradle.internal.jvm.Jvm.current().getToolsJar())
-  testCompile project(':butterknife-compiler')
+  testImplementation deps.junit
+  testImplementation deps.truth
+  testImplementation deps.compiletesting
+  testImplementation files(getRuntimeJar())
+  testImplementation files(org.gradle.internal.jvm.Jvm.current().getToolsJar())
+  testImplementation project(':butterknife-compiler')
 }
 
 def getRuntimeJar() {

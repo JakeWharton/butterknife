@@ -1,4 +1,4 @@
-apply plugin: 'java'
+apply plugin: 'java-library'
 apply plugin: 'checkstyle'
 
 sourceCompatibility = JavaVersion.VERSION_1_7
@@ -13,14 +13,14 @@ for (File file : sdkHandler.sdkLoader.repositories) {
 }
 
 dependencies {
-  compile project(':butterknife-annotations')
-  compile deps.auto.common
-  compile deps.javapoet
+  implementation project(':butterknife-annotations')
+  implementation deps.auto.common
+  api deps.javapoet
   compileOnly deps.auto.service
   compileOnly files(org.gradle.internal.jvm.Jvm.current().getToolsJar())
 
-  testCompile deps.junit
-  testCompile deps.truth
+  testImplementation deps.junit
+  testImplementation deps.truth
 }
 
 checkstyle {

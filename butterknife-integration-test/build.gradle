@@ -32,13 +32,19 @@ android {
       proguardFile getDefaultProguardFile('proguard-android.txt')
     }
   }
+
+  testOptions {
+    unitTests {
+      includeAndroidResources = true
+    }
+  }
 }
 
 dependencies {
-  compile project(':butterknife')
+  implementation project(':butterknife')
   annotationProcessor project(':butterknife-compiler')
 
-  testCompile deps.junit
-  testCompile deps.truth
-  testCompile deps.robolectric
+  testImplementation deps.junit
+  testImplementation deps.truth
+  testImplementation deps.robolectric
 }
