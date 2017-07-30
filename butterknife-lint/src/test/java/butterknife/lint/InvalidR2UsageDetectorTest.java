@@ -1,15 +1,13 @@
 package butterknife.lint;
 
-import com.android.tools.lint.checks.infrastructure.LintDetectorTest;
-import com.android.tools.lint.checks.infrastructure.TestFiles;
-import com.android.tools.lint.detector.api.Detector;
-import com.android.tools.lint.detector.api.Issue;
-import com.google.common.collect.ImmutableList;
-import java.util.List;
+import com.android.tools.lint.checks.infrastructure.TestFile;
+import org.junit.Test;
 
-public final class InvalidR2UsageDetectorTest extends LintDetectorTest {
-  private static final String NO_WARNINGS = "No warnings.";
-  private static final TestFile BIND_TEST = TestFiles.java(""
+import static com.android.tools.lint.checks.infrastructure.TestFiles.java;
+import static com.android.tools.lint.checks.infrastructure.TestLintTask.lint;
+
+public final class InvalidR2UsageDetectorTest {
+  private static final TestFile BIND_TEST = java(""
       + "package sample.r2;\n"
       + "\n"
       + "import java.lang.annotation.ElementType;\n"
@@ -21,7 +19,8 @@ public final class InvalidR2UsageDetectorTest extends LintDetectorTest {
       + "public @interface BindTest {\n"
       + "  int value();\n"
       + "}\n");
-  private static final TestFile R2 = TestFiles.java(""
+
+  private static final TestFile R2 = java(""
       + "package sample.r2;\n"
       + "\n"
       + "public final class R2 {\n"
@@ -62,72 +61,77 @@ public final class InvalidR2UsageDetectorTest extends LintDetectorTest {
       + "  }\n"
       + "}");
 
-  @Override protected Detector getDetector() {
-    return new InvalidR2UsageDetector();
+  @Test public void noR2Usage() {
+    lint() //
+        .files(R2, //
+            java("" //
+                + "package sample;\n" //
+                + "class NoR2Usage {}\n")) //
+        .issues(InvalidR2UsageDetector.ISSUE) //
+        .run() //
+        .expectClean();
   }
 
-  @Override protected List<Issue> getIssues() {
-    return ImmutableList.of(InvalidR2UsageDetector.ISSUE);
+  @Test public void usesR2InAnnotations() {
+    lint() //
+        .files(R2, BIND_TEST, //
+            java(""
+                + "package sample.r2;\n"
+                + "\n"
+                + "public class R2UsageInAnnotations {\n"
+                + "\n"
+                + "  @BindTest(sample.r2.R2.string.res) String test;\n"
+                + "\n"
+                + "  @BindTest(R2.id.res) public void foo() {}\n"
+                + "}\n") //
+        ) //
+        .issues(InvalidR2UsageDetector.ISSUE) //
+        .run() //
+        .expectClean();
   }
 
-  public void testNoR2Usage() throws Exception {
-    TestFile file = TestFiles.java(""
-        + "package sample;\n"
-        + "\n"
-        + "class NoR2Usage {\n"
-        + "}\n");
-    assertSame(NO_WARNINGS, lintFiles(R2, file));
+  @Test public void usesR2OutsideAnnotations() {
+    lint() //
+        .files(R2, //
+            java(""
+                + "package sample.r2;\n"
+                + "\n"
+                + "public class R2UsageOutsideAnnotations {\n"
+                + "\n"
+                + "  int array = sample.r2.R2.array.res;\n"
+                + "\n"
+                + "  public void foo(int color) {}\n"
+                + "\n"
+                + "  public void bar() {\n"
+                + "    foo(R2.color.res);\n"
+                + "  }\n"
+                + "}\n" //
+            )) //
+        .issues(InvalidR2UsageDetector.ISSUE) //
+        .run() //
+        .expectErrorCount(2) //
+        .expectWarningCount(0);
   }
 
-  public void testR2UsageInAnnotations() throws Exception {
-    TestFile file = TestFiles.java(""
-        + "package sample.r2;\n"
-        + "\n"
-        + "public class R2UsageInAnnotations {\n"
-        + "\n"
-        + "  @BindTest(sample.r2.R2.string.res) String test;\n"
-        + "\n"
-        + "  @BindTest(R2.id.res) public void foo() { }\n"
-        + "}\n");
-    assertSame(NO_WARNINGS, lintFiles(file, BIND_TEST, R2));
-  }
-
-  public void testR2UsageOutsideAnnotations() throws Exception {
-    TestFile file = TestFiles.java(""
-        + "package sample.r2;\n"
-        + "\n"
-        + "public class R2UsageOutsideAnnotations {\n"
-        + "\n"
-        + "  int array = sample.r2.R2.array.res;\n"
-        + "\n"
-        + "  public void foo(int color) {}\n"
-        + "\n"
-        + "  public void bar() {\n"
-        + "    foo(R2.color.res);\n"
-        + "  }\n"
-        + "}\n");
-    String lintOutput = lintFiles(file, R2);
-    assertNotSame(NO_WARNINGS, lintOutput);
-    assertTrue(lintOutput.contains("2 errors, 0 warnings"));
-  }
-
-  public void testR2UsageWithSuppression() throws Exception {
-    TestFile file = TestFiles.java(""
-        + "package sample.r2;\n"
-        + "\n"
-        + "public class R2UsageWithSuppression {\n"
-        + "\n"
-        + "  @SuppressWarnings(\"InvalidR2Usage\")\n"
-        + "  int bool = sample.r2.R2.bool.res;\n"
-        + "\n"
-        + "  public void foo(int attr) {}\n"
-        + "\n"
-        + "  @SuppressWarnings(\"InvalidR2Usage\")\n"
-        + "  public void bar() {\n"
-        + "    foo(R2.attr.res);\n"
-        + "  }\n"
-        + "}\n");
-    String lintOutput = lintFiles(file, R2);
-    assertSame(NO_WARNINGS, lintOutput);
+  @Test public void usesR2WithSuppression() {
+    lint() //
+        .files(R2, java(""
+            + "package sample.r2;\n"
+            + "\n"
+            + "public class R2UsageWithSuppression {\n"
+            + "\n"
+            + "  @SuppressWarnings(\"InvalidR2Usage\")\n"
+            + "  int bool = sample.r2.R2.bool.res;\n"
+            + "\n"
+            + "  public void foo(int attr) {}\n"
+            + "\n"
+            + "  @SuppressWarnings(\"InvalidR2Usage\")\n"
+            + "  public void bar() {\n"
+            + "    foo(R2.attr.res);\n"
+            + "  }\n"
+            + "}\n")) //
+        .issues(InvalidR2UsageDetector.ISSUE) //
+        .run() //
+        .expectClean();
   }
 }

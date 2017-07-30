@@ -1,5 +1,6 @@
 package butterknife.lint;
 
+import com.android.tools.lint.client.api.UElementHandler;
 import com.android.tools.lint.detector.api.Category;
 import com.android.tools.lint.detector.api.Detector;
 import com.android.tools.lint.detector.api.Implementation;
@@ -9,22 +10,22 @@ import com.android.tools.lint.detector.api.LintUtils;
 import com.android.tools.lint.detector.api.Scope;
 import com.android.tools.lint.detector.api.Severity;
 import com.google.common.collect.ImmutableSet;
-import com.intellij.psi.JavaElementVisitor;
-import com.intellij.psi.JavaRecursiveElementVisitor;
-import com.intellij.psi.PsiAnnotation;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiExpression;
-import com.intellij.psi.PsiReferenceExpression;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import org.jetbrains.uast.UAnnotation;
+import org.jetbrains.uast.UClass;
+import org.jetbrains.uast.UElement;
+import org.jetbrains.uast.UExpression;
+import org.jetbrains.uast.UFile;
+import org.jetbrains.uast.UQualifiedReferenceExpression;
+import org.jetbrains.uast.USimpleNameReferenceExpression;
+import org.jetbrains.uast.visitor.AbstractUastVisitor;
 
 /**
  * Custom lint rule to make sure that generated R2 is not referenced outside annotations.
  */
-public class InvalidR2UsageDetector extends Detector implements Detector.JavaPsiScanner {
+public class InvalidR2UsageDetector extends Detector implements Detector.UastScanner {
   private static final String LINT_ERROR_BODY = "R2 should only be used inside annotations";
   private static final String LINT_ERROR_TITLE = "Invalid usage of R2";
   private static final String ISSUE_ID = "InvalidR2Usage";
@@ -38,39 +39,48 @@ public class InvalidR2UsageDetector extends Detector implements Detector.JavaPsi
 
   private static final String R2 = "R2";
 
-  @Override public List<Class<? extends PsiElement>> getApplicablePsiTypes() {
-    return Collections.<Class<? extends PsiElement>>singletonList(PsiClass.class);
+  @Override public List<Class<? extends UElement>> getApplicableUastTypes() {
+    return Collections.singletonList(UClass.class);
   }
 
-  @Override public JavaElementVisitor createPsiVisitor(final JavaContext context) {
-    return new JavaElementVisitor() {
-      @Override public void visitClass(PsiClass node) {
+  @Override public UElementHandler createUastHandler(final JavaContext context) {
+    return new UElementHandler() {
+      @Override public void visitClass(UClass node) {
         node.accept(new R2UsageVisitor(context));
       }
     };
   }
 
-  private static class R2UsageVisitor extends JavaRecursiveElementVisitor {
+  private static class R2UsageVisitor extends AbstractUastVisitor {
     private final JavaContext context;
 
     R2UsageVisitor(JavaContext context) {
       this.context = context;
     }
 
-    @Override public void visitAnnotation(PsiAnnotation annotation) {
+    @Override public boolean visitAnnotation(UAnnotation annotation) {
       // skip annotations
+      return true;
     }
 
-    @Override public void visitReferenceExpression(PsiReferenceExpression expression) {
-      detectR2(context, expression);
-      super.visitReferenceExpression(expression);
+    @Override public boolean visitQualifiedReferenceExpression(UQualifiedReferenceExpression node) {
+      detectR2(context, node);
+      return super.visitQualifiedReferenceExpression(node);
     }
 
-    private static void detectR2(JavaContext context, PsiElement node) {
-      PsiClass[] classes = context.getJavaFile().getClasses();
-      if (classes.length > 0 && classes[0].getName() != null) {
-        String qualifiedName = classes[0].getName();
-        if (qualifiedName.contains("_ViewBinder") || qualifiedName.contains("_ViewBinding")
+    @Override
+    public boolean visitSimpleNameReferenceExpression(USimpleNameReferenceExpression node) {
+      detectR2(context, node);
+      return super.visitSimpleNameReferenceExpression(node);
+    }
+
+    private static void detectR2(JavaContext context, UElement node) {
+      UFile sourceFile = context.getUastFile();
+      List<UClass> classes = sourceFile.getClasses();
+      if (!classes.isEmpty() && classes.get(0).getName() != null) {
+        String qualifiedName = classes.get(0).getName();
+        if (qualifiedName.contains("_ViewBinder")
+            || qualifiedName.contains("_ViewBinding")
             || qualifiedName.equals(R2)) {
           // skip generated files and R2
           return;
@@ -82,15 +92,16 @@ public class InvalidR2UsageDetector extends Detector implements Detector.JavaPsi
       }
     }
 
-    private static boolean isR2Expression(PsiElement node) {
-      if (node.getParent() == null) {
+    private static boolean isR2Expression(UElement node) {
+      UElement parentNode = node.getUastParent();
+      if (parentNode == null) {
         return false;
       }
-      String text = node.getText();
-      PsiElement parent = LintUtils.skipParentheses(node.getParent());
+      String text = node.asSourceString();
+      UElement parent = LintUtils.skipParentheses(parentNode);
       return (text.equals(R2) || text.contains(".R2"))
-          && parent instanceof PsiExpression
-          && endsWithAny(parent.getText(), SUPPORTED_TYPES);
+          && parent instanceof UExpression
+          && endsWithAny(parent.asSourceString(), SUPPORTED_TYPES);
     }
 
     private static boolean endsWithAny(String text, Set<String> possibleValues) {
