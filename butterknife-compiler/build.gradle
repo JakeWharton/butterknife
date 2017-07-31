@@ -4,14 +4,6 @@ apply plugin: 'checkstyle'
 sourceCompatibility = JavaVersion.VERSION_1_7
 targetCompatibility = JavaVersion.VERSION_1_7
 
-def logger = new com.android.build.gradle.internal.LoggerWrapper(project.logger)
-def sdkHandler = new com.android.build.gradle.internal.SdkHandler(project, logger)
-for (File file : sdkHandler.sdkLoader.repositories) {
-  repositories.maven {
-    url = file.toURI()
-  }
-}
-
 dependencies {
   implementation project(':butterknife-annotations')
   implementation deps.auto.common
