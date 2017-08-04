@@ -1,6 +1,19 @@
 Change Log
 ==========
 
+Version 8.8.0 *(2017-08-04)*
+----------------------------
+
+ * New: Processor option `butterknife.debuggable` controls whether debug information is generated. When
+   specified as `false`, checks for required views being non-null are elided and casts are no longer guarded
+   with user-friendly error messages. This reduces the amount of generated code for release builds at the
+   expense of less friendly exceptions when something breaks.
+ * Deprecate the `findById` methods. Compile against API 26 and use the normal `findViewById` for the same
+   functionality.
+ * Fix: Correct `@BindFont` code generation on pre-API 26 builds to pass a `Context` (not a `Resources`) to
+   `ResourceCompat`.
+
+
 Version 8.7.0 *(2017-07-07)*
 ----------------------------
 
