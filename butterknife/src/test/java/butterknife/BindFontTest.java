@@ -10,7 +10,6 @@ import static com.google.common.truth.Truth.assertAbout;
 import static com.google.testing.compile.JavaSourceSubjectFactory.javaSource;
 
 public class BindFontTest {
-  @Ignore("Won't compile until we depend on support library 26.0.0")
   @Test public void simpleTypeface() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
@@ -116,7 +115,6 @@ public class BindFontTest {
         .generatesSources(bindingSource);
   }
 
-  @Ignore("Won't compile until we depend on support library 26.0.0")
   @Test public void style() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
@@ -153,7 +151,7 @@ public class BindFontTest {
         + "  @UiThread\n"
         + "  @SuppressWarnings(\"ResourceType\")\n"
         + "  public Test_ViewBinding(Test target, Context context) {\n"
-        + "    target.one = ResourcesCompat.getFont(context, Typeface.BOLD);\n"
+        + "    target.one = Typeface.create(ResourcesCompat.getFont(context, 1), Typeface.BOLD);\n"
         + "  }\n"
         + "  @Override\n"
         + "  @CallSuper\n"
