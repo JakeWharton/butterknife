@@ -5,7 +5,6 @@ import android.app.Activity;
 import android.app.Dialog;
 import android.os.Build;
 import android.support.annotation.CheckResult;
-import android.support.annotation.IdRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
@@ -354,26 +353,5 @@ public final class ButterKnife {
   public static <T extends View, V> void apply(@NonNull T view,
       @NonNull Property<? super T, V> setter, V value) {
     setter.set(view, value);
-  }
-
-  /** @deprecated Compile against API 26 and use {@link View#findViewById(int)}. */
-  @SuppressWarnings("UnusedDeclaration") // Public API.
-  @CheckResult @Deprecated
-  public static <T extends View> T findById(@NonNull View view, @IdRes int id) {
-    return view.findViewById(id);
-  }
-
-  /** @deprecated Compile against API 26 and use {@link Activity#findViewById(int)}. */
-  @SuppressWarnings("UnusedDeclaration") // Public API.
-  @CheckResult @Deprecated
-  public static <T extends View> T findById(@NonNull Activity activity, @IdRes int id) {
-    return activity.findViewById(id);
-  }
-
-  /** @deprecated Compile against API 26 and use {@link Dialog#findViewById(int)}. */
-  @SuppressWarnings("UnusedDeclaration") // Public API.
-  @CheckResult @Deprecated
-  public static <T extends View> T findById(@NonNull Dialog dialog, @IdRes int id) {
-    return dialog.findViewById(id);
   }
 }
