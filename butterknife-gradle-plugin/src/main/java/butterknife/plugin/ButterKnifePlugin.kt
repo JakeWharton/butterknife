@@ -2,6 +2,8 @@ package butterknife.plugin
 
 import com.android.build.gradle.AppExtension
 import com.android.build.gradle.AppPlugin
+import com.android.build.gradle.FeatureExtension
+import com.android.build.gradle.FeaturePlugin
 import com.android.build.gradle.LibraryExtension
 import com.android.build.gradle.LibraryPlugin
 import com.android.build.gradle.api.BaseVariant
@@ -16,6 +18,12 @@ class ButterKnifePlugin : Plugin<Project> {
   override fun apply(project: Project) {
     project.plugins.all {
       when (it) {
+        is FeaturePlugin -> {
+          project.extensions[FeatureExtension::class].run {
+            applyPlugin(featureVariants)
+            applyPlugin(libraryVariants)
+          }
+        }
         is LibraryPlugin -> applyPlugin(project.extensions[LibraryExtension::class].libraryVariants)
         is AppPlugin -> applyPlugin(project.extensions[AppExtension::class].applicationVariants)
       }
