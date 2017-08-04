@@ -2,7 +2,6 @@ buildscript {
   repositories {
     mavenCentral()
     jcenter()
-    google()
   }
 
   dependencies {
@@ -23,14 +22,6 @@ android {
 }
 
 dependencies {
-  implementation deps.release.runtime
-  implementation project(':sample:base-library')
-
-  //TODO this change is just to demonstrate that the new compiler works well
-  //but should be reversed when the new version is released
-  //annotationProcessor deps.release.compiler
-  annotationProcessor project(':butterknife-compiler')
-
-  testImplementation deps.junit
-  testImplementation deps.truth
+  compile deps.release.runtime
+  annotationProcessor deps.release.compiler
 }
