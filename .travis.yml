@@ -10,15 +10,21 @@ android:
 jdk:
   - oraclejdk8
 
-before_script:
+before_install:
   # Install SDK license so Android Gradle plugin can install deps.
   - mkdir "$ANDROID_HOME/licenses" || true
   - echo "8933bad161af4178b1185d1a37fbf41ea5269c55" > "$ANDROID_HOME/licenses/android-sdk-license"
-  # Create and start an emulator for instrumentation tests.
+  # Create and start emulator for the script. Meant to race the install task.
   - echo no | android create avd --force -n test -t android-18 --abi armeabi-v7a
   - emulator -avd test -no-audio -no-window &
+
+install: ./gradlew clean assemble assembleAndroidTest --stacktrace
+
+before_script:
   - android-wait-for-emulator
   - adb shell input keyevent 82
+
+script: ./gradlew check connectedCheck --stacktrace
 
 after_success:
   - .buildscript/deploy_snapshot.sh
