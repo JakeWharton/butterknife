@@ -47,13 +47,13 @@ final class FieldTypefaceBinding implements ResourceBinding {
   }
 
   @Override public boolean requiresResources(int sdk) {
-    return true;
+    return sdk >= 26;
   }
 
   @Override public CodeBlock render(int sdk) {
     CodeBlock typeface = sdk >= 26
         ? CodeBlock.of("res.getFont($L)", id.code)
-        : CodeBlock.of("$T.getFont(res, $L)", RESOURCES_COMPAT, id.code);
+        : CodeBlock.of("$T.getFont(context, $L)", RESOURCES_COMPAT, id.code);
     if (style != TypefaceStyles.NORMAL) {
       typeface = CodeBlock.of("$1T.create($2L, $1T.$3L)", TYPEFACE, typeface, style);
     }
