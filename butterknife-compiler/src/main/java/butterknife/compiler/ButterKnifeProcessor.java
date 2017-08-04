@@ -371,7 +371,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
         BindingSet parentBinding = bindingMap.get(parentType);
 
         // parent binding is null, let's try to find a previouly generated binding
-        if(parentBinding == null && hasViewBinder(parentType)) {
+        if (parentBinding == null && hasViewBinder(parentType)) {
           parentBinding = createStubBindingSet(parentType);
         }
 
@@ -391,7 +391,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
   @NonNull private BindingSet createStubBindingSet(TypeElement parentType) {
     BindingSet parentBinding;
     BindingSet.Builder parentBuilder = BindingSet.newBuilder(parentType);
-    if(hasViewBindings(parentType)) {
+    if (hasViewBindings(parentType)) {
       //add a fake field to the parent class so that it will indicate it has a view bindings.
       //this is required for the subclass to generate a proper view binder
       parentBuilder.addField(new Id(-1), new FieldViewBinding("", null, false));
@@ -402,7 +402,8 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
   private boolean hasViewBindings(TypeElement parentType) {
     for (VariableElement fieldElement : ElementFilter.fieldsIn(parentType.getEnclosedElements())) {
-      if (fieldElement.getAnnotation(BindView.class) != null || fieldElement.getAnnotation(BindViews.class) != null) {
+      if (fieldElement.getAnnotation(BindView.class) != null
+              || fieldElement.getAnnotation(BindViews.class) != null) {
         return true;
       }
     }
@@ -410,11 +411,11 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
   }
 
   private boolean hasViewBinder(TypeElement typeElement) {
-        final String viewBindingClassName = typeElement.getQualifiedName().toString() + "_ViewBinding";
-        return elementUtils.getTypeElement(viewBindingClassName) != null;
-    }
+    final String viewBindingClassName = typeElement.getQualifiedName().toString() + "_ViewBinding";
+    return elementUtils.getTypeElement(viewBindingClassName) != null;
+  }
 
-    private void logParsingError(Element element, Class<? extends Annotation> annotation,
+  private void logParsingError(Element element, Class<? extends Annotation> annotation,
       Exception e) {
     StringWriter stackTrace = new StringWriter();
     e.printStackTrace(new PrintWriter(stackTrace));
