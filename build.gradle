@@ -7,8 +7,8 @@ buildscript {
       'buildTools': '26.0.0',
 
       'supportLibrary': '26.0.0',
-      'androidPlugin': '3.0.0-alpha8',
-      'androidTools': '26.0.0-alpha8',
+      'androidPlugin': '3.0.0-alpha9',
+      'androidTools': '26.0.0-alpha9',
       'kotlin': '1.1.3-2',
 
       'release': '8.7.0',
