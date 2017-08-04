@@ -1,5 +1,6 @@
 package butterknife.compiler;
 
+import android.support.annotation.NonNull;
 import butterknife.BindAnim;
 import butterknife.BindArray;
 import butterknife.BindBitmap;
@@ -50,10 +51,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Deque;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import javax.annotation.processing.AbstractProcessor;
@@ -75,6 +76,7 @@ import javax.lang.model.type.MirroredTypeException;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.type.TypeVariable;
+import javax.lang.model.util.ElementFilter;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 import javax.tools.Diagnostic.Kind;
@@ -367,6 +369,12 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
         bindingMap.put(type, builder.build());
       } else {
         BindingSet parentBinding = bindingMap.get(parentType);
+
+        // parent binding is null, let's try to find a previouly generated binding
+        if(parentBinding == null && hasViewBinder(parentType)) {
+          parentBinding = createStubBindingSet(parentType);
+        }
+
         if (parentBinding != null) {
           builder.setParent(parentBinding);
           bindingMap.put(type, builder.build());
@@ -380,7 +388,33 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     return bindingMap;
   }
 
-  private void logParsingError(Element element, Class<? extends Annotation> annotation,
+  @NonNull private BindingSet createStubBindingSet(TypeElement parentType) {
+    BindingSet parentBinding;
+    BindingSet.Builder parentBuilder = BindingSet.newBuilder(parentType);
+    if(hasViewBindings(parentType)) {
+      //add a fake field to the parent class so that it will indicate it has a view bindings.
+      //this is required for the subclass to generate a proper view binder
+      parentBuilder.addField(new Id(-1), new FieldViewBinding("", null, false));
+    }
+    parentBinding = parentBuilder.build();
+    return parentBinding;
+  }
+
+  private boolean hasViewBindings(TypeElement parentType) {
+    for (VariableElement fieldElement : ElementFilter.fieldsIn(parentType.getEnclosedElements())) {
+      if (fieldElement.getAnnotation(BindView.class) != null || fieldElement.getAnnotation(BindViews.class) != null) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private boolean hasViewBinder(TypeElement typeElement) {
+        final String viewBindingClassName = typeElement.getQualifiedName().toString() + "_ViewBinding";
+        return elementUtils.getTypeElement(viewBindingClassName) != null;
+    }
+
+    private void logParsingError(Element element, Class<? extends Annotation> annotation,
       Exception e) {
     StringWriter stackTrace = new StringWriter();
     e.printStackTrace(new PrintWriter(stackTrace));
@@ -1284,7 +1318,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
         return null;
       }
       typeElement = (TypeElement) ((DeclaredType) type).asElement();
-      if (parents.contains(typeElement)) {
+      if (parents.contains(typeElement) || hasViewBinder(typeElement)) {
         return typeElement;
       }
     }
