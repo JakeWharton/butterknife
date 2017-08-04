@@ -153,7 +153,7 @@ public class BindFontTest {
         + "  @UiThread\n"
         + "  @SuppressWarnings(\"ResourceType\")\n"
         + "  public Test_ViewBinding(Test target, Context context) {\n"
-        + "    target.one = ResourcesCompat.getFont(context, Typeface.BOLD);\n"
+        + "    target.one = Typeface.create(ResourcesCompat.getFont(context, 1), Typeface.BOLD);\n"
         + "  }\n"
         + "  @Override\n"
         + "  @CallSuper\n"
