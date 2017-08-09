@@ -102,6 +102,51 @@ public class BindViewTest {
         .generatesSources(bindingSource);
   }
 
+  @Test public void bindingViewSubclassNonDebuggable() {
+    JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
+        + "package test;\n"
+        + "import android.widget.TextView;\n"
+        + "import butterknife.BindView;\n"
+        + "public class Test {\n"
+        + "    @BindView(1) TextView thing;\n"
+        + "}"
+    );
+
+    JavaFileObject bindingSource = JavaFileObjects.forSourceString("test/Test_ViewBinding", ""
+        + "package test;\n"
+        + "import android.support.annotation.CallSuper;\n"
+        + "import android.support.annotation.UiThread;\n"
+        + "import android.view.View;\n"
+        + "import android.widget.TextView;\n"
+        + "import butterknife.Unbinder;\n"
+        + "import java.lang.IllegalStateException;\n"
+        + "import java.lang.Override;\n"
+        + "public class Test_ViewBinding implements Unbinder {\n"
+        + "  private Test target;\n"
+        + "  @UiThread\n"
+        + "  public Test_ViewBinding(Test target, View source) {\n"
+        + "    this.target = target;\n"
+        + "    target.thing = (TextView) source.findViewById(1);\n"
+        + "  }\n"
+        + "  @Override\n"
+        + "  @CallSuper\n"
+        + "  public void unbind() {\n"
+        + "    Test target = this.target;\n"
+        + "    if (target == null) throw new IllegalStateException(\"Bindings already cleared.\");\n"
+        + "    this.target = null;\n"
+        + "    target.thing = null;\n"
+        + "  }\n"
+        + "}"
+    );
+
+    assertAbout(javaSource()).that(source)
+        .withCompilerOptions("-Xlint:-processing", "-Abutterknife.debuggable=false")
+        .processedWith(new ButterKnifeProcessor())
+        .compilesWithoutWarnings()
+        .and()
+        .generatesSources(bindingSource);
+  }
+
   @Test public void bindingGeneratedView() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"

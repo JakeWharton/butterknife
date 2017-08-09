@@ -359,6 +359,9 @@ final class BindingSet {
 
       boolean requiresCast = requiresCast(fieldBinding.getType());
       if (!debuggable || (!requiresCast && !fieldBinding.isRequired())) {
+        if (requiresCast) {
+          builder.add("($T) ", fieldBinding.getType());
+        }
         builder.add("source.findViewById($L)", binding.getId().code);
       } else {
         builder.add("$T.find", UTILS);
