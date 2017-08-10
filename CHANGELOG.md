@@ -1,6 +1,12 @@
 Change Log
 ==========
 
+Version 8.8.1 *(2017-08-09)*
+----------------------------
+
+ * Fix: Properly emit casts for single-bound view subtypes when `butterknife.debuggable` is set to `false`.
+
+
 Version 8.8.0 *(2017-08-04)*
 ----------------------------
 
