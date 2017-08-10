@@ -11,6 +11,11 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.example.butterknife.R;
+
+import java.util.List;
+
 import butterknife.BindDrawable;
 import butterknife.BindString;
 import butterknife.BindView;
@@ -19,9 +24,6 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 import butterknife.OnItemClick;
 import butterknife.OnLongClick;
-import com.example.butterknife.R;
-
-import java.util.List;
 
 import static android.widget.Toast.LENGTH_SHORT;
 
@@ -46,7 +48,7 @@ public class SimpleActivity extends Activity {
   @BindString(R.string.field_method) String fieldMethod;
   @BindString(R.string.by_jake_wharton) String byJakeWharton;
   @BindString(R.string.say_hello) String sayHello;
-  @BindDrawable(value = R.drawable.ic_android, tint = android.R.color.darker_gray) Drawable drawable;
+  @BindDrawable(value = R.drawable.ic_adb, tint = android.R.color.darker_gray) Drawable drawable;
 
   @BindViews({ R.id.title, R.id.subtitle, R.id.hello }) List<View> headerViews;
 
