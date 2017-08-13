@@ -36,7 +36,7 @@ buildscript {
       javaparser: 'com.github.javaparser:javaparser-core:3.3.0',
       junit: 'junit:junit:4.12',
       truth: 'com.google.truth:truth:0.34',
-      robolectric: 'org.robolectric:robolectric:3.4',
+      robolectric: 'org.robolectric:robolectric:3.4.2',
       compiletesting: 'com.google.testing.compile:compile-testing:0.11',
       'auto': [
           'service': 'com.google.auto.service:auto-service:1.0-rc3',
