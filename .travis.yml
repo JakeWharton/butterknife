@@ -1,5 +1,7 @@
 language: android
 
+dist: precise
+
 android:
   components:
     # Update tools and then platform-tools explicitly so lint gets an updated database. Can be removed once 3.0 is out.
