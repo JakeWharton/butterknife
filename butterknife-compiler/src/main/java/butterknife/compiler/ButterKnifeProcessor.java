@@ -67,6 +67,7 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.Name;
+import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.ArrayType;
@@ -499,7 +500,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
   }
 
   private QualifiedId elementToQualifiedId(Element element, int id) {
-    return new QualifiedId(elementUtils.getPackageOf(element).getQualifiedName().toString(), id);
+    return new QualifiedId(elementUtils.getPackageOf(element), id);
   }
 
   private void parseBindViews(Element element, Map<TypeElement, BindingSet.Builder> builderMap,
@@ -1354,58 +1355,65 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
       for (Element element : env.getElementsAnnotatedWith(annotation)) {
         JCTree tree = (JCTree) trees.getTree(element, getMirror(element, annotation));
         if (tree != null) { // tree can be null if the references are compiled types and not source
-          String respectivePackageName =
-              elementUtils.getPackageOf(element).getQualifiedName().toString();
-          scanner.setCurrentPackageName(respectivePackageName);
+          scanner.setCurrentPackage(elementUtils.getPackageOf(element));
           tree.accept(scanner);
         }
       }
     }
 
-    for (Map.Entry<String, Set<String>> packageNameToRClassSet : scanner.getRClasses().entrySet()) {
-      String respectivePackageName = packageNameToRClassSet.getKey();
-      for (String rClass : packageNameToRClassSet.getValue()) {
-        parseRClass(respectivePackageName, rClass);
+    for (Map.Entry<PackageElement, Set<Symbol.ClassSymbol>> packageNameToRClassSet
+          : scanner.getRClasses().entrySet()) {
+      PackageElement respectivePackageName = packageNameToRClassSet.getKey();
+      for (Symbol.ClassSymbol rClass : packageNameToRClassSet.getValue()) {
+        parseRClass(respectivePackageName, rClass, scanner.getReferenced());
       }
     }
   }
 
-  private void parseRClass(String respectivePackageName, String rClass) {
-    Element element;
+  private void parseRClass(PackageElement respectivePackageName,
+          Symbol.ClassSymbol rClass,
+          Set<String> referenced) {
+    TypeElement element;
 
     try {
-      element = elementUtils.getTypeElement(rClass);
+      element = rClass;
     } catch (MirroredTypeException mte) {
-      element = typeUtils.asElement(mte.getTypeMirror());
+      element = (TypeElement) typeUtils.asElement(mte.getTypeMirror());
     }
 
     JCTree tree = (JCTree) trees.getTree(element);
     if (tree != null) { // tree can be null if the references are compiled types and not source
-      IdScanner idScanner = new IdScanner(symbols, elementUtils.getPackageOf(element)
-          .getQualifiedName().toString(), respectivePackageName);
+      IdScanner idScanner = new IdScanner(symbols,
+              elementUtils.getPackageOf(element),
+              respectivePackageName,
+              referenced);
       tree.accept(idScanner);
     } else {
-      parseCompiledR(respectivePackageName, (TypeElement) element);
+      parseCompiledR(respectivePackageName, element, referenced);
     }
   }
 
-  private void parseCompiledR(String respectivePackageName, TypeElement rClass) {
+  private void parseCompiledR(PackageElement respectivePackageName, TypeElement rClass,
+          Set<String> referenced) {
     for (Element element : rClass.getEnclosedElements()) {
       String innerClassName = element.getSimpleName().toString();
       if (SUPPORTED_TYPES.contains(innerClassName)) {
         for (Element enclosedElement : element.getEnclosedElements()) {
           if (enclosedElement instanceof VariableElement) {
-            VariableElement variableElement = (VariableElement) enclosedElement;
-            Object value = variableElement.getConstantValue();
+            String fqName = element.toString() + "." + enclosedElement.toString();
+            if (referenced.contains(fqName)) {
+              VariableElement variableElement = (VariableElement) enclosedElement;
+              Object value = variableElement.getConstantValue();
 
-            if (value instanceof Integer) {
-              int id = (Integer) value;
-              ClassName rClassName =
-                  ClassName.get(elementUtils.getPackageOf(variableElement).toString(), "R",
-                      innerClassName);
-              String resourceName = variableElement.getSimpleName().toString();
-              QualifiedId qualifiedId = new QualifiedId(respectivePackageName, id);
-              symbols.put(qualifiedId, new Id(id, rClassName, resourceName));
+              if (value instanceof Integer) {
+                int id = (Integer) value;
+                ClassName rClassName =
+                        ClassName.get(elementUtils.getPackageOf(variableElement).toString(), "R",
+                                innerClassName);
+                String resourceName = variableElement.getSimpleName().toString();
+                QualifiedId qualifiedId = new QualifiedId(respectivePackageName, id);
+                symbols.put(qualifiedId, new Id(id, rClassName, resourceName));
+              }
             }
           }
         }
@@ -1414,9 +1422,10 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
   }
 
   private static class RClassScanner extends TreeScanner {
-    // Maps the currently evaulated rPackageName to R Classes
-    private final Map<String, Set<String>> rClasses = new LinkedHashMap<>();
-    private String currentPackageName;
+    // Maps the currently evaluated rPackageName to R Classes
+    private final Map<PackageElement, Set<Symbol.ClassSymbol>> rClasses = new LinkedHashMap<>();
+    private PackageElement currentPackage;
+    private Set<String> referenced = new HashSet<>();
 
     @Override public void visitSelect(JCTree.JCFieldAccess jcFieldAccess) {
       Symbol symbol = jcFieldAccess.sym;
@@ -1424,33 +1433,48 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
           && symbol.getEnclosingElement() != null
           && symbol.getEnclosingElement().getEnclosingElement() != null
           && symbol.getEnclosingElement().getEnclosingElement().enclClass() != null) {
-        Set<String> rClassSet = rClasses.get(currentPackageName);
+        Set<Symbol.ClassSymbol> rClassSet = rClasses.get(currentPackage);
         if (rClassSet == null) {
           rClassSet = new HashSet<>();
-          rClasses.put(currentPackageName, rClassSet);
+          rClasses.put(currentPackage, rClassSet);
         }
-        rClassSet.add(symbol.getEnclosingElement().getEnclosingElement().enclClass().className());
+        referenced.add(
+                symbol.packge().getQualifiedName().toString()
+                        + ".R."
+                        + symbol.enclClass().name.toString()
+                        + "."
+                        + symbol.name.toString());
+        rClassSet.add(symbol.getEnclosingElement().getEnclosingElement().enclClass());
       }
     }
 
-    Map<String, Set<String>> getRClasses() {
+    Map<PackageElement, Set<Symbol.ClassSymbol>> getRClasses() {
       return rClasses;
     }
 
-    void setCurrentPackageName(String respectivePackageName) {
-      this.currentPackageName = respectivePackageName;
+    Set<String> getReferenced() {
+      return referenced;
+    }
+
+    void setCurrentPackage(PackageElement packageElement) {
+      this.currentPackage = packageElement;
     }
   }
 
   private static class IdScanner extends TreeScanner {
     private final Map<QualifiedId, Id> ids;
-    private final String rPackageName;
-    private final String respectivePackageName;
+    private final PackageElement rPackageName;
+    private final PackageElement respectivePackageName;
+    private final Set<String> referenced;
 
-    IdScanner(Map<QualifiedId, Id> ids, String rPackageName, String respectivePackageName) {
+    IdScanner(Map<QualifiedId, Id> ids,
+            PackageElement rPackageName,
+            PackageElement respectivePackageName,
+            Set<String> referenced) {
       this.ids = ids;
       this.rPackageName = rPackageName;
       this.respectivePackageName = respectivePackageName;
+      this.referenced = referenced;
     }
 
     @Override public void visitClassDef(JCTree.JCClassDecl jcClassDecl) {
@@ -1459,8 +1483,9 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
           ClassTree classTree = (ClassTree) tree;
           String className = classTree.getSimpleName().toString();
           if (SUPPORTED_TYPES.contains(className)) {
-            ClassName rClassName = ClassName.get(rPackageName, "R", className);
-            VarScanner scanner = new VarScanner(ids, rClassName, respectivePackageName);
+            ClassName rClassName = ClassName.get(rPackageName.getQualifiedName().toString(), "R",
+                    className);
+            VarScanner scanner = new VarScanner(ids, rClassName, respectivePackageName, referenced);
             ((JCTree) classTree).accept(scanner);
           }
         }
@@ -1471,21 +1496,28 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
   private static class VarScanner extends TreeScanner {
     private final Map<QualifiedId, Id> ids;
     private final ClassName className;
-    private final String respectivePackageName;
+    private final PackageElement respectivePackageName;
+    private final Set<String> referenced;
 
-    private VarScanner(Map<QualifiedId, Id> ids, ClassName className,
-        String respectivePackageName) {
+    private VarScanner(Map<QualifiedId, Id> ids,
+            ClassName className,
+            PackageElement respectivePackageName,
+            Set<String> referenced) {
       this.ids = ids;
       this.className = className;
       this.respectivePackageName = respectivePackageName;
+      this.referenced = referenced;
     }
 
     @Override public void visitVarDef(JCTree.JCVariableDecl jcVariableDecl) {
       if ("int".equals(jcVariableDecl.getType().toString())) {
-        int id = Integer.valueOf(jcVariableDecl.getInitializer().toString());
         String resourceName = jcVariableDecl.getName().toString();
-        QualifiedId qualifiedId = new QualifiedId(respectivePackageName, id);
-        ids.put(qualifiedId, new Id(id, className, resourceName));
+        String fqName = className.toString() + "." + resourceName;
+        if (referenced.contains(fqName)) {
+          int id = Integer.valueOf(jcVariableDecl.getInitializer().toString());
+          QualifiedId qualifiedId = new QualifiedId(respectivePackageName, id);
+          ids.put(qualifiedId, new Id(id, className, resourceName));
+        }
       }
     }
   }
