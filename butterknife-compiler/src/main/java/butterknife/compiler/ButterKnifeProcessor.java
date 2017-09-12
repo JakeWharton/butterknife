@@ -1399,10 +1399,10 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
         for (Element enclosedElement : element.getEnclosedElements()) {
           if (enclosedElement instanceof VariableElement) {
             String fqName = elementUtils.getPackageOf(enclosedElement).getQualifiedName().toString()
-                    + ".R."
-                    + innerClassName
-                    + "."
-                    + enclosedElement.toString();
+                + ".R."
+                + innerClassName
+                + "."
+                + enclosedElement.toString();
             if (referenced.contains(fqName)) {
               VariableElement variableElement = (VariableElement) enclosedElement;
               Object value = variableElement.getConstantValue();
@@ -1516,9 +1516,9 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
   private static String getFqName(Symbol rSymbol) {
     return rSymbol.packge().getQualifiedName().toString()
-            + ".R."
-            + rSymbol.enclClass().name.toString()
-            + "."
-            + rSymbol.name.toString();
+        + ".R."
+        + rSymbol.enclClass().name.toString()
+        + "."
+        + rSymbol.name.toString();
   }
 }
