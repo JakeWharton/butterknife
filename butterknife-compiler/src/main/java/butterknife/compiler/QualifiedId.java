@@ -1,10 +1,12 @@
 package butterknife.compiler;
 
+import javax.lang.model.element.PackageElement;
+
 final class QualifiedId {
-  final String packageName;
+  final PackageElement packageName;
   final int id;
 
-  QualifiedId(String packageName, int id) {
+  QualifiedId(PackageElement packageName, int id) {
     this.packageName = packageName;
     this.id = id;
   }
