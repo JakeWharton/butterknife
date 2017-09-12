@@ -1398,7 +1398,11 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
       if (SUPPORTED_TYPES.contains(innerClassName)) {
         for (Element enclosedElement : element.getEnclosedElements()) {
           if (enclosedElement instanceof VariableElement) {
-            String fqName = element.toString() + "." + enclosedElement.toString();
+            String fqName = elementUtils.getPackageOf(enclosedElement).getQualifiedName().toString()
+                + ".R."
+                + innerClassName
+                + "."
+                + enclosedElement.toString();
             if (referenced.contains(fqName)) {
               VariableElement variableElement = (VariableElement) enclosedElement;
               Object value = variableElement.getConstantValue();
@@ -1436,11 +1440,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
           rClassSet = new HashSet<>();
           rClasses.put(currentPackage, rClassSet);
         }
-        referenced.add(symbol.packge().getQualifiedName().toString()
-            + ".R."
-            + symbol.enclClass().name.toString()
-            + "."
-            + symbol.name.toString());
+        referenced.add(getFqName(symbol));
         rClassSet.add(symbol.getEnclosingElement().getEnclosingElement().enclClass());
       }
     }
@@ -1505,13 +1505,20 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     @Override public void visitVarDef(JCTree.JCVariableDecl jcVariableDecl) {
       if ("int".equals(jcVariableDecl.getType().toString())) {
         String resourceName = jcVariableDecl.getName().toString();
-        String fqName = className.toString() + "." + resourceName;
-        if (referenced.contains(fqName)) {
+        if (referenced.contains(getFqName(jcVariableDecl.sym))) {
           int id = Integer.valueOf(jcVariableDecl.getInitializer().toString());
           QualifiedId qualifiedId = new QualifiedId(respectivePackageName, id);
           ids.put(qualifiedId, new Id(id, className, resourceName));
         }
       }
     }
+  }
+
+  private static String getFqName(Symbol rSymbol) {
+    return rSymbol.packge().getQualifiedName().toString()
+        + ".R."
+        + rSymbol.enclClass().name.toString()
+        + "."
+        + rSymbol.name.toString();
   }
 }
