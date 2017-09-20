@@ -1,5 +1,4 @@
 apply plugin: 'com.android.library'
-apply plugin: 'com.kageiit.lintrules'
 
 android {
   compileSdkVersion versions.compileSdk
@@ -32,7 +31,7 @@ dependencies {
   implementation deps.support.annotations
   api deps.support.compat
 
-  lintRules project(':butterknife-lint')
+  lintChecks project(':butterknife-lint')
 
   androidTestImplementation deps.junit
   androidTestImplementation deps.truth
