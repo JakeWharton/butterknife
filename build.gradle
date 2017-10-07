@@ -41,6 +41,7 @@ buildscript {
           'service': 'com.google.auto.service:auto-service:1.0-rc3',
           'common': 'com.google.auto:auto-common:0.8',
       ],
+      'guava': 'com.google.guava:guava:23.0',
       'release': [
           'runtime': "com.jakewharton:butterknife:${versions.release}",
           'compiler': "com.jakewharton:butterknife-compiler:${versions.release}"
