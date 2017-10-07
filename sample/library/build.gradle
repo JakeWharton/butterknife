@@ -15,7 +15,6 @@ apply plugin: 'com.jakewharton.butterknife'
 
 android {
   compileSdkVersion versions.compileSdk
-  buildToolsVersion versions.buildTools
 
   defaultConfig {
     minSdkVersion versions.minSdk
