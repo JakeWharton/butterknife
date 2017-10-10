@@ -48,6 +48,8 @@ dependencies {
 }
 ```
 
+If you are using Kotlin, replace `annotationProcessor` with `kapt`.
+
 Snapshots of the development version are available in [Sonatype's `snapshots` repository][snap].
 
 
