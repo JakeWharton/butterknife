@@ -11,8 +11,7 @@ jdk:
 
 before_install:
   # Install SDK license so Android Gradle plugin can install deps.
-  - mkdir "$ANDROID_HOME/licenses" || true
-  - echo "d56f5187479451eabf01fb78af6dfcb131a6481e" > "$ANDROID_HOME/licenses/android-sdk-license"
+  - yes | sdkmanager --licenses
   # Install the rest of tools (e.g., avdmanager)
   - sdkmanager tools
   # Install the system image
