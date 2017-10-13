@@ -1,0 +1,18 @@
+<resources>
+  <bool name="just_true">true</bool>
+  <color name="red">#ffff0000</color>
+  <integer name="twelve">12</integer>
+  <dimen name="twelve_point_two_dp">12.2dp</dimen>
+  <item name="twelve_point_two" format="float" type="dimen">12.2</item>
+  <string name="hey">Hey</string>
+  <string-array name="string_one_two_three">
+    <item>One</item>
+    <item>Two</item>
+    <item>Three</item>
+  </string-array>
+  <integer-array name="int_one_two_three">
+    <item>1</item>
+    <item>2</item>
+    <item>3</item>
+  </integer-array>
+</resources>

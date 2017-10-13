@@ -35,6 +35,7 @@ dependencies {
   androidTestImplementation deps.junit
   androidTestImplementation deps.truth
   androidTestImplementation deps.support.test.runner
+  androidTestAnnotationProcessor project(':butterknife-compiler')
 
   testImplementation deps.junit
   testImplementation deps.truth
