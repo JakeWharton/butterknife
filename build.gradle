@@ -5,9 +5,9 @@ buildscript {
       'minSdk': 14,
       'compileSdk': 26,
 
-      'supportLibrary': '26.0.2',
-      'androidPlugin': '3.0.0-beta7',
-      'androidTools': '26.0.0-beta7',
+      'supportLibrary': '27.0.0',
+      'androidPlugin': '3.0.0',
+      'androidTools': '26.0.0',
       'kotlin': '1.1.51',
 
       'release': '8.8.1',
@@ -32,10 +32,10 @@ buildscript {
           'tests': "com.android.tools.lint:lint-tests:${versions.androidTools}",
       ],
       javapoet: 'com.squareup:javapoet:1.9.0',
-      javaparser: 'com.github.javaparser:javaparser-core:3.3.5',
+      javaparser: 'com.github.javaparser:javaparser-core:3.5.0',
       junit: 'junit:junit:4.12',
-      truth: 'com.google.truth:truth:0.35',
-      robolectric: 'org.robolectric:robolectric:3.4.2',
+      truth: 'com.google.truth:truth:0.36',
+      robolectric: 'org.robolectric:robolectric:3.5',
       compiletesting: 'com.google.testing.compile:compile-testing:0.12',
       'auto': [
           'service': 'com.google.auto.service:auto-service:1.0-rc3',
@@ -60,7 +60,7 @@ buildscript {
   dependencies {
     classpath deps.android.gradlePlugin
     classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${versions.kotlin}"
-    classpath 'com.github.ben-manes:gradle-versions-plugin:0.15.0'
+    classpath 'com.github.ben-manes:gradle-versions-plugin:0.17.0'
   }
 }
 
