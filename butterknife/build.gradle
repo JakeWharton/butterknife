@@ -27,7 +27,6 @@ android {
 
 dependencies {
   api project(':butterknife-annotations')
-  implementation deps.support.annotations
   api deps.support.compat
 
   lintChecks project(':butterknife-lint')
