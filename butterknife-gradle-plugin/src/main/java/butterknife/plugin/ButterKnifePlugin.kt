@@ -56,7 +56,7 @@ class ButterKnifePlugin : Plugin<Project> {
         // Though there might be multiple outputs, their R files are all the same. Thus, we only
         // need to configure the task once with the R.java input and action.
         if (once.compareAndSet(false, true)) {
-          val rPackage = processResources.packageForR
+          val rPackage = processResources.originalApplicationId
           val pathToR = rPackage.replace('.', File.separatorChar)
           val rFile = processResources.sourceOutputDir.resolve(pathToR).resolve("R.java")
 
