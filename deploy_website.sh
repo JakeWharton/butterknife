@@ -2,7 +2,7 @@
 
 set -ex
 
-REPO="git@github.com:JakeWharton/butterknife.git"
+rton/butterknife.git"
 GROUP_ID="com.jakewharton"
 ARTIFACT_ID="butterknife"
 
