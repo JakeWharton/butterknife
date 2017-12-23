@@ -3,12 +3,12 @@ apply plugin: 'com.github.ben-manes.versions'
 buildscript {
   ext.versions = [
       'minSdk': 14,
-      'compileSdk': 26,
+      'compileSdk': 27,
 
-      'supportLibrary': '27.0.0',
-      'androidPlugin': '3.0.0',
-      'androidTools': '26.0.0',
-      'kotlin': '1.1.51',
+      'supportLibrary': '27.0.2',
+      'androidPlugin': '3.0.1',
+      'androidTools': '26.0.1',
+      'kotlin': '1.2.10',
 
       'release': '8.8.1',
   ]
@@ -32,16 +32,16 @@ buildscript {
           'tests': "com.android.tools.lint:lint-tests:${versions.androidTools}",
       ],
       javapoet: 'com.squareup:javapoet:1.9.0',
-      javaparser: 'com.github.javaparser:javaparser-core:3.5.0',
+      javaparser: 'com.github.javaparser:javaparser-core:3.5.7',
       junit: 'junit:junit:4.12',
-      truth: 'com.google.truth:truth:0.36',
-      robolectric: 'org.robolectric:robolectric:3.5',
-      compiletesting: 'com.google.testing.compile:compile-testing:0.12',
+      truth: 'com.google.truth:truth:0.37',
+      robolectric: 'org.robolectric:robolectric:3.6.1',
+      compiletesting: 'com.google.testing.compile:compile-testing:0.15',
       'auto': [
-          'service': 'com.google.auto.service:auto-service:1.0-rc3',
-          'common': 'com.google.auto:auto-common:0.8',
+          'service': 'com.google.auto.service:auto-service:1.0-rc4',
+          'common': 'com.google.auto:auto-common:0.9',
       ],
-      'guava': 'com.google.guava:guava:23.0',
+      'guava': 'com.google.guava:guava:23.6-jre',
       'release': [
           'runtime': "com.jakewharton:butterknife:${versions.release}",
           'compiler': "com.jakewharton:butterknife-compiler:${versions.release}"
