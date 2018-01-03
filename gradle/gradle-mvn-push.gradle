@@ -97,6 +97,9 @@ afterEvaluate { project ->
 
   if (project.getPlugins().hasPlugin('com.android.application') ||
       project.getPlugins().hasPlugin('com.android.library')) {
+    def releaseVariants = project.android.libraryVariants.findAll {
+      it.buildType.name.equalsIgnoreCase('release')
+    }
     task install(type: Upload, dependsOn: assemble) {
       repositories.mavenInstaller {
         configuration = configurations.archives
@@ -135,9 +138,17 @@ afterEvaluate { project ->
       }
     }
 
-    task androidJavadocs(type: Javadoc) {
+    task androidJavadocs(type: Javadoc, dependsOn: javaPreCompileRelease) {
       source = android.sourceSets.main.java.source
       classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+      doFirst {
+        classpath += files(releaseVariants.collect { it.javaCompile.classpath.files })
+      }
+      options {
+        jFlags '-Xmx128M'
+        addStringOption 'Xmaxwarns', '1000'
+        addStringOption 'Xmaxerrs', '1000'
+      }
     }
 
     task androidJavadocsJar(type: Jar, dependsOn: androidJavadocs) {
