@@ -140,7 +140,7 @@ afterEvaluate { project ->
 
     task androidJavadocs(type: Javadoc, dependsOn: javaPreCompileRelease) {
       source = android.sourceSets.main.java.source
-      classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+      classpath += project.files(android.bootClasspath.join(File.pathSeparator))
       doFirst {
         classpath += files(releaseVariants.collect { it.javaCompile.classpath.files })
       }

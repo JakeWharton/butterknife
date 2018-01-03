@@ -44,7 +44,8 @@ buildscript {
       'guava': 'com.google.guava:guava:23.6-jre',
       'release': [
           'runtime': "com.jakewharton:butterknife:${versions.release}",
-          'compiler': "com.jakewharton:butterknife-compiler:${versions.release}"
+          'compiler': "com.jakewharton:butterknife-compiler:${versions.release}",
+          'gradlePlugin': "com.jakewharton:butterknife-gradle-plugin:${versions.release}"
       ],
       'kotlin': [
           'stdLibJre8': "org.jetbrains.kotlin:kotlin-stdlib-jre8:${versions.kotlin}",
@@ -75,7 +76,7 @@ subprojects { project ->
     google()
   }
 
-  if (!project.name.equals('butterknife-gradle-plugin')) {
+  if (project.name != 'butterknife-gradle-plugin') {
     apply plugin: 'checkstyle'
 
     task checkstyle(type: Checkstyle) {

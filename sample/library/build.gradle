@@ -6,7 +6,7 @@ buildscript {
   }
 
   dependencies {
-    classpath "com.jakewharton:butterknife-gradle-plugin:${versions.release}"
+    classpath deps.release.gradlePlugin
   }
 }
 
