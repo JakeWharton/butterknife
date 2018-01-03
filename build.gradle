@@ -110,4 +110,11 @@ subprojects { project ->
       ])
     }
   }
+
+  project.tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile) {
+    kotlinOptions {
+      verbose = true
+      allWarningsAsErrors = true
+    }
+  }
 }
