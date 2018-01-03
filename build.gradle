@@ -95,4 +95,12 @@ subprojects { project ->
       }
     }
   }
+
+  project.tasks.withType(JavaCompile) {
+    it.options.with {
+      setCompilerArgs(getCompilerArgs() + [
+        '-Xlint:-options'
+      ])
+    }
+  }
 }
