@@ -42,6 +42,7 @@ dependencies {
   testImplementation files(getRuntimeJar())
   testImplementation files(org.gradle.internal.jvm.Jvm.current().getToolsJar())
   testImplementation project(':butterknife-compiler')
+  testCompileOnly deps.javapoet
 }
 
 def getRuntimeJar() {
