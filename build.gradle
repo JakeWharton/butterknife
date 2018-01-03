@@ -99,7 +99,14 @@ subprojects { project ->
   project.tasks.withType(JavaCompile) {
     it.options.with {
       setCompilerArgs(getCompilerArgs() + [
-        '-Xlint:-options'
+        // strict compilation, treat all warnings as errors
+        '-Werror',
+        // enable all warnings
+        '-Xlint:all',
+        // hide warning: [options] bootstrap class path not set in conjunction with -source 1.7
+        '-Xlint:-options',
+        // hide warning: No processor claimed any of these annotations: android.support.annotation.Nullable
+        '-Xlint:-processing'
       ])
     }
   }

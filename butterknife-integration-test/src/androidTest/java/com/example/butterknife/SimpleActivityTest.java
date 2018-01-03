@@ -1,9 +1,10 @@
 package com.example.butterknife;
 
-import android.test.ActivityInstrumentationTestCase2;
 import com.example.butterknife.library.SimpleActivity;
 
-public final class SimpleActivityTest extends ActivityInstrumentationTestCase2<SimpleActivity> {
+@SuppressWarnings("deprecation") // ignore, simple test is simple, Espresso is too heavy for this
+public final class SimpleActivityTest
+        extends android.test.ActivityInstrumentationTestCase2<SimpleActivity> {
   public SimpleActivityTest() {
     super(SimpleActivity.class);
   }

@@ -45,6 +45,20 @@ dependencies {
   testCompileOnly deps.javapoet
 }
 
+project.tasks.all {
+  if (it.name =~ /AndroidTestJavaWithJavac$/) {
+    it.options.with {
+      setCompilerArgs(getCompilerArgs() + [
+              // runner-1.0.1.aar\1fdddc98585f7e7ee30d9c2c44d0ee7f\jars\classes.jar
+              // (android/support/test/InstrumentationRegistry.class):
+              // warning: [classfile] MethodParameters attribute
+              // introduced in version 52.0 class files is ignored in version 51.0 class files
+              '-Xlint:-classfile'
+      ])
+    }
+  }
+}
+
 static def getRuntimeJar() {
   final javaBase = new File(System.properties.'java.home').canonicalFile
   [ 'lib/rt.jar', 'jre/lib/rt.jar' ]
