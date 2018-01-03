@@ -20,6 +20,7 @@ dependencies {
   implementation deps.javaparser
   implementation deps.javapoet
   implementation deps.kotlin.stdLibJre8
+  configurations.all.each { it.resolutionStrategy.force deps.kotlin.reflect }
 
   testImplementation deps.junit
   testImplementation deps.truth

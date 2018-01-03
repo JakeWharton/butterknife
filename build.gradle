@@ -48,6 +48,7 @@ buildscript {
       ],
       'kotlin': [
           'stdLibJre8': "org.jetbrains.kotlin:kotlin-stdlib-jre8:${versions.kotlin}",
+          'reflect': "org.jetbrains.kotlin:kotlin-reflect:${versions.kotlin}"
       ]
   ]
 
