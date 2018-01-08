@@ -6,7 +6,7 @@ buildscript {
       'compileSdk': 27,
 
       'supportLibrary': '27.0.2',
-      'androidPlugin': '3.0.1',
+      'androidPlugin': '3.1.0-alpha07',
       'androidTools': '26.0.1',
       'kotlin': '1.2.10',
 
