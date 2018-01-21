@@ -304,7 +304,10 @@ final class BindingSet {
       return;
     }
 
-    String fieldName = bindings.isBoundToRoot() ? "viewSource" : "view" + bindings.getId().value;
+    String fieldName =
+        bindings.isBoundToRoot()
+            ? "viewSource"
+            : "view" + Integer.toHexString(bindings.getId().value);
     result.addField(VIEW, fieldName, PRIVATE);
 
     // We only need to emit the null check if there are zero required bindings.
@@ -430,7 +433,7 @@ final class BindingSet {
     String fieldName = "viewSource";
     String bindName = "source";
     if (!binding.isBoundToRoot()) {
-      fieldName = "view" + binding.getId().value;
+      fieldName = "view" + Integer.toHexString(binding.getId().value);
       bindName = "view";
     }
     result.addStatement("$L = $N", fieldName, bindName);
