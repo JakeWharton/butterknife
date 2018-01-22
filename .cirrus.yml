@@ -1,0 +1,20 @@
+container:
+  image: cirrusci/android-sdk:18
+  cpu: 4
+  memory: 12G
+
+check_task:
+  create_device_script: >
+    echo no | avdmanager create avd --force \
+        -n test \
+        -k "system-images;android-18;default;armeabi-v7a"
+  start_emulator_background_script: >
+    $ANDROID_HOME/emulator/emulator \
+        -avd test \
+        -no-audio \
+        -no-window
+  assemble_script: ./gradlew assemble assembleAndroidTest
+  wait_for_emulator_script:
+    - adb wait-for-device
+    - adb shell input keyevent 82
+  check_script: ./gradlew check connectedCheck --stacktrace
