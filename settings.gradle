@@ -9,3 +9,17 @@ include ':butterknife-integration-test'
 //include ':sample:library'
 
 rootProject.name = 'butterknife-parent'
+
+ext.isCiServer = System.getenv().containsKey("CI")
+ext.isMasterBranch = System.getenv()["CIRRUS_BRANCH"] == "master"
+
+buildCache {
+    local {
+        enabled = !isCiServer
+    }
+    remote(HttpBuildCache) {
+        url = 'http://' + System.getenv().getOrDefault("CIRRUS_HTTP_CACHE_HOST", "localhost:12321") + "/"
+        enabled = isCiServer
+        push = isMasterBranch
+    }
+}
