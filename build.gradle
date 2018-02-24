@@ -6,9 +6,9 @@ buildscript {
       'compileSdk': 27,
 
       'supportLibrary': '27.0.2',
-      'androidPlugin': '3.0.1',
-      'androidTools': '26.0.1',
-      'kotlin': '1.2.10',
+      'androidPlugin': '3.1.0-alpha09',
+      'androidTools': '26.1.0-alpha09',
+      'kotlin': '1.2.21',
 
       'release': '8.8.1',
   ]
@@ -31,17 +31,17 @@ buildscript {
           'checks': "com.android.tools.lint:lint-checks:${versions.androidTools}",
           'tests': "com.android.tools.lint:lint-tests:${versions.androidTools}",
       ],
-      javapoet: 'com.squareup:javapoet:1.9.0',
-      javaparser: 'com.github.javaparser:javaparser-core:3.5.7',
+      javapoet: 'com.squareup:javapoet:1.10.0',
+      javaparser: 'com.github.javaparser:javaparser-core:3.5.14',
       junit: 'junit:junit:4.12',
-      truth: 'com.google.truth:truth:0.37',
-      robolectric: 'org.robolectric:robolectric:3.6.1',
+      truth: 'com.google.truth:truth:0.39',
+      robolectric: 'org.robolectric:robolectric:3.7.1',
       compiletesting: 'com.google.testing.compile:compile-testing:0.15',
       'auto': [
           'service': 'com.google.auto.service:auto-service:1.0-rc4',
-          'common': 'com.google.auto:auto-common:0.9',
+          'common': 'com.google.auto:auto-common:0.10',
       ],
-      'guava': 'com.google.guava:guava:23.6-jre',
+      'guava': 'com.google.guava:guava:24.0-jre',
       'release': [
           'runtime': "com.jakewharton:butterknife:${versions.release}",
           'compiler': "com.jakewharton:butterknife-compiler:${versions.release}"
