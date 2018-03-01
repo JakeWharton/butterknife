@@ -161,7 +161,8 @@ public final class Utils {
     }
   }
 
-  private static void findViewGroup(ViewGroup viewGroup, Set<Integer> ids, Map<Integer, View> viewMap) {
+  private static void findViewGroup(ViewGroup viewGroup, Set<Integer> ids,
+                                    Map<Integer, View> viewMap) {
     int len = ids.size();
     if (len == 0) {
       return;
@@ -197,7 +198,8 @@ public final class Utils {
     }
   }
 
-  public static View findRequiredViewFromMap(View source, @IdRes int id, String who, Map<Integer, View> viewMap){
+  public static View findRequiredViewFromMap(View source, @IdRes int id, String who,
+                                             Map<Integer, View> viewMap) {
     View cacheView = viewMap.get(id);
     if (cacheView == null) {
       String name = getResourceEntryName(source, id);
@@ -214,7 +216,8 @@ public final class Utils {
     return cacheView;
   }
 
-  public static View findOptionalViewFromMap(View source, @IdRes int id, String who, Map<Integer, View> viewMap){
+  public static View findOptionalViewFromMap(View source, @IdRes int id, String who,
+                                             Map<Integer, View> viewMap) {
     View cacheView = viewMap.get(id);
     if (cacheView == null) {
       cacheView = source.findViewById(id);
@@ -223,14 +226,14 @@ public final class Utils {
     return cacheView;
   }
 
-  public static <T> T findRequiredViewFromMapAsType(View source, @IdRes int id, String who, Map<Integer, View> viewMap,
-                                                    Class<T> cls) {
+  public static <T> T findRequiredViewFromMapAsType(View source, @IdRes int id, String who,
+                                                    Map<Integer, View> viewMap, Class<T> cls) {
     View view = findRequiredViewFromMap(source, id, who, viewMap);
     return castView(view, id, who, cls);
   }
 
-  public static <T> T findOptionalViewFromTypeAsType(View source, @IdRes int id, String who,Map<Integer, View> viewMap,
-                                                     Class<T> cls) {
+  public static <T> T findOptionalViewFromTypeAsType(View source, @IdRes int id, String who,
+                                                     Map<Integer, View> viewMap, Class<T> cls) {
     View view = findOptionalViewFromMap(source, id, who, viewMap);
     return castView(view, id, who, cls);
   }
