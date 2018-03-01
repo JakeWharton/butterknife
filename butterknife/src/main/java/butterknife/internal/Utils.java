@@ -225,13 +225,13 @@ public final class Utils {
 
   public static <T> T findRequiredViewFromMapAsType(View source, @IdRes int id, String who, Map<Integer, View> viewMap,
                                                     Class<T> cls) {
-    View view = findRequiredViewFromMap(source, id, who,viewMap);
+    View view = findRequiredViewFromMap(source, id, who, viewMap);
     return castView(view, id, who, cls);
   }
 
   public static <T> T findOptionalViewFromTypeAsType(View source, @IdRes int id, String who,Map<Integer, View> viewMap,
                                                      Class<T> cls) {
-    View view = findOptionalViewFromMap(source,id,who,viewMap);
+    View view = findOptionalViewFromMap(source, id, who, viewMap);
     return castView(view, id, who, cls);
   }
 }
