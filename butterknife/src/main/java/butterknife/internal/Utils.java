@@ -155,7 +155,7 @@ public final class Utils {
     if (view instanceof ViewGroup) {
       findViewGroup((ViewGroup) view, ids, viewMap);
     } else {
-      if (view.getId() > 0) {
+      if (view.getId() != View.NO_ID) {
         viewMap.put(view.getId(), view);
       }
     }
@@ -168,7 +168,7 @@ public final class Utils {
       return;
     }
 
-    if (viewGroup.getId() > 0) {
+    if (viewGroup.getId() != View.NO_ID) {
       viewMap.put(viewGroup.getId(), viewGroup);
       if (ids.remove(viewGroup.getId())) {
         len--;
@@ -182,7 +182,7 @@ public final class Utils {
 
     for (int i = 0; i < childCount; i++) {
       View view = viewGroup.getChildAt(i);
-      if (view.getId() > 0) {
+      if (view.getId() != View.NO_ID) {
         viewMap.put(view.getId(), view);
         if (ids.remove(view.getId())) {
           len--;
