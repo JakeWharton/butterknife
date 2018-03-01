@@ -7,6 +7,7 @@ import com.google.common.collect.ImmutableList;
 import com.squareup.javapoet.AnnotationSpec;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
+import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
@@ -54,6 +55,12 @@ final class BindingSet {
       ClassName.get("android.support.v4.content", "ContextCompat");
   static final ClassName ANIMATION_UTILS =
           ClassName.get("android.view.animation", "AnimationUtils");
+
+  private static final ClassName ARRAY_MAP = ClassName.get("android.support.v4.util","ArrayMap");
+  private static final ClassName HASH_SET = ClassName.get("java.util","HashSet");
+  private static final ClassName CLASS_INTEGER = ClassName.get("java.lang","Integer");
+
+  private static final int PARTITION_POINT = 1<<3;
 
   private final TypeName targetTypeName;
   private final ClassName bindingClassName;
@@ -116,6 +123,11 @@ final class BindingSet {
       // Add a delegating constructor with a target type + view signature for reflective use.
       result.addMethod(createBindingViewDelegateConstructor());
     }
+
+    if (needCacheMap()) {
+      result.addField(createCacheMap());
+    }
+
     result.addMethod(createBindingConstructor(sdk, debuggable));
 
     if (hasViewBindings() || parentBinding == null) {
@@ -123,6 +135,11 @@ final class BindingSet {
     }
 
     return result.build();
+  }
+
+  private FieldSpec createCacheMap() {
+    TypeName map = ParameterizedTypeName.get(ARRAY_MAP, CLASS_INTEGER, VIEW);
+    return FieldSpec.builder(map, "mViewMap", Modifier.PRIVATE).build();
   }
 
   private MethodSpec createBindingViewDelegateConstructor() {
@@ -220,19 +237,31 @@ final class BindingSet {
     }
     if (hasTargetField()) {
       constructor.addStatement("this.target = target");
+      if (needCacheMap()){
+        constructor.addStatement("this.mViewMap = new $T<>()",ARRAY_MAP);
+      }
       constructor.addCode("\n");
     }
 
     if (hasViewBindings()) {
-      if (hasViewLocal()) {
+      if (hasViewLocal()||needCacheMap()) {
         // Local variable in which all views will be temporarily stored.
         constructor.addStatement("$T view", VIEW);
       }
-      for (ViewBinding binding : viewBindings) {
-        addViewBinding(constructor, binding, debuggable);
-      }
-      for (FieldCollectionViewBinding binding : collectionBindings) {
-        constructor.addStatement("$L", binding.render(debuggable));
+      if (needCacheMap()){
+        addViewBinding(constructor, viewBindings, debuggable);
+
+        for (FieldCollectionViewBinding binding : collectionBindings) {
+          constructor.addStatement("$L", binding.render(debuggable,true));
+        }
+      }else {
+        for (ViewBinding binding : viewBindings) {
+          addViewBinding(constructor, binding, debuggable);
+        }
+
+        for (FieldCollectionViewBinding binding : collectionBindings) {
+          constructor.addStatement("$L", binding.render(debuggable,false));
+        }
       }
 
       if (!resourceBindings.isEmpty()) {
@@ -271,6 +300,15 @@ final class BindingSet {
           "Bindings already cleared.");
       result.addStatement("$N = null", hasFieldBindings() ? "this.target" : "target");
       result.addCode("\n");
+
+      if (needCacheMap()){
+        result.addStatement("if (mViewMap != null) {\n" +
+                "mViewMap.clear();\n" +
+                "mViewMap = null;\n" +
+                "}");
+        result.addCode("\n");
+      }
+
       for (ViewBinding binding : viewBindings) {
         if (binding.getFieldBinding() != null) {
           result.addStatement("target.$L = null", binding.getFieldBinding().getName());
@@ -395,6 +433,39 @@ final class BindingSet {
 
     addFieldBinding(result, binding, debuggable);
     addMethodBindings(result, binding, debuggable);
+  }
+
+  private void addViewBinding(MethodSpec.Builder result, List<ViewBinding> bindings, boolean debuggable){
+    //collect view to map first
+    TypeName idSet = ParameterizedTypeName.get(HASH_SET, CLASS_INTEGER);
+    result.addStatement("$T ids = new $T<>()", idSet, HASH_SET);
+    for (ViewBinding viewBinding:bindings){
+      result.addStatement("ids.add($L)", viewBinding.getId().code);
+    }
+
+    for (FieldCollectionViewBinding viewBinding : collectionBindings) {
+      for (Id id : viewBinding.getIds()) {
+        result.addStatement("ids.add($L)", id.code);
+      }
+    }
+    result.addStatement("$T.findToMap(source, ids, mViewMap)",UTILS);
+
+    for(ViewBinding binding:bindings){
+      List<MemberViewBinding> requiredBindings = binding.getRequiredBindings();
+      if (!debuggable || requiredBindings.isEmpty()) {
+        result.addStatement("view = $T.findOptionalViewFromMap(source, $L, $S, mViewMap)", UTILS,binding.getId().code, asHumanDescription(requiredBindings));
+      } else if (!binding.isBoundToRoot()) {
+        if (binding.getFieldBinding().isRequired()){
+          result.addStatement("view = $T.findRequiredViewFromMap(source, $L, $S, mViewMap)", UTILS,binding.getId().code, asHumanDescription(requiredBindings));
+        }else {
+          result.addStatement("view = $T.findOptionalViewFromMap(source, $L, $S, mViewMap)", UTILS,binding.getId().code, asHumanDescription(requiredBindings));
+        }
+      }
+
+      addFieldBinding(result, binding, debuggable);
+      addMethodBindings(result, binding, debuggable);
+    }
+
   }
 
   private void addFieldBinding(MethodSpec.Builder result, ViewBinding binding, boolean debuggable) {
@@ -655,6 +726,18 @@ final class BindingSet {
       }
     }
     return false;
+  }
+
+  private int collViewLen = -1;
+
+  private boolean needCacheMap() {
+    if (collViewLen == -1) {
+      collViewLen = 0;
+      for (FieldCollectionViewBinding viewBinding : collectionBindings) {
+        collViewLen += viewBinding.getIds().size();
+      }
+    }
+    return hasViewBindings() && viewBindings.size() + collViewLen >= PARTITION_POINT;
   }
 
   /** True if this binding requires a view. Otherwise only a context is needed. */
