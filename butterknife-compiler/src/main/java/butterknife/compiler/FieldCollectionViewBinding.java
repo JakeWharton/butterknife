@@ -35,9 +35,9 @@ final class FieldCollectionViewBinding {
     this.required = required;
   }
 
-  CodeBlock render(boolean debuggable) {
+  CodeBlock render(boolean debuggable, boolean needViewMap) {
     CodeBlock.Builder builder = CodeBlock.builder()
-        .add("target.$L = $T.$L(", name, UTILS, kind.factoryName);
+            .add("target.$L = $T.$L(", name, UTILS, kind.factoryName);
     for (int i = 0; i < ids.size(); i++) {
       if (i > 0) {
         builder.add(", ");
@@ -50,16 +50,36 @@ final class FieldCollectionViewBinding {
         if (requiresCast) {
           builder.add("($T) ", type);
         }
-        builder.add("source.findViewById($L)", id.code);
+
+        if (needViewMap) {
+          builder.add("$T.findOptionalViewFromMap(source, $L, $S, mViewMap)", UTILS, id.code, name);
+        } else {
+          builder.add("source.findViewById($L)", id.code);
+        }
       } else if (!requiresCast && !required) {
-        builder.add("source.findViewById($L)", id.code);
+        if (needViewMap) {
+          builder.add("$T.findOptionalViewFromMap(source, $L, $S, mViewMap)", UTILS, id.code, name);
+        } else {
+          builder.add("source.findViewById($L)", id.code);
+        }
       } else {
         builder.add("$T.find", UTILS);
         builder.add(required ? "RequiredView" : "OptionalView");
+
+        if (needViewMap) {
+          builder.add("FromMap");
+        }
+
         if (requiresCast) {
           builder.add("AsType");
         }
+
         builder.add("(source, $L, \"field '$L'\"", id.code, name);
+
+        if (needViewMap) {
+          builder.add(", mViewMap");
+        }
+
         if (requiresCast) {
           TypeName rawType = type;
           if (rawType instanceof ParameterizedTypeName) {
@@ -71,5 +91,9 @@ final class FieldCollectionViewBinding {
       }
     }
     return builder.add(")").build();
+  }
+
+  public List<Id> getIds() {
+    return ids;
   }
 }

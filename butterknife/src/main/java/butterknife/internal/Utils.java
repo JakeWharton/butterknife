@@ -12,8 +12,11 @@ import android.support.v4.content.ContextCompat;
 import android.support.v4.graphics.drawable.DrawableCompat;
 import android.util.TypedValue;
 import android.view.View;
+import android.view.ViewGroup;
 import java.lang.reflect.Array;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 @SuppressWarnings("WeakerAccess") // Used by generated code.
 public final class Utils {
@@ -146,5 +149,92 @@ public final class Utils {
 
   private Utils() {
     throw new AssertionError("No instances.");
+  }
+
+  public static void findToMap(View view, Set<Integer> ids, Map<Integer, View> viewMap) {
+    if (view instanceof ViewGroup) {
+      findViewGroup((ViewGroup) view, ids, viewMap);
+    } else {
+      if (view.getId() != View.NO_ID) {
+        viewMap.put(view.getId(), view);
+      }
+    }
+  }
+
+  private static void findViewGroup(ViewGroup viewGroup, Set<Integer> ids,
+                                    Map<Integer, View> viewMap) {
+    int len = ids.size();
+    if (len == 0) {
+      return;
+    }
+
+    if (viewGroup.getId() != View.NO_ID) {
+      viewMap.put(viewGroup.getId(), viewGroup);
+      if (ids.remove(viewGroup.getId())) {
+        len--;
+        if (len <= 0) {
+          return;
+        }
+      }
+    }
+
+    int childCount = viewGroup.getChildCount();
+
+    for (int i = 0; i < childCount; i++) {
+      View view = viewGroup.getChildAt(i);
+      if (view.getId() != View.NO_ID) {
+        viewMap.put(view.getId(), view);
+        if (ids.remove(view.getId())) {
+          len--;
+          if (len <= 0) {
+            return;
+          }
+        }
+      }
+
+      if (view instanceof ViewGroup) {
+        findViewGroup((ViewGroup) view, ids, viewMap);
+      }
+    }
+  }
+
+  public static View findRequiredViewFromMap(View source, @IdRes int id, String who,
+                                             Map<Integer, View> viewMap) {
+    View cacheView = viewMap.get(id);
+    if (cacheView == null) {
+      String name = getResourceEntryName(source, id);
+      throw new IllegalStateException("Required view '"
+              + name
+              + "' with ID "
+              + id
+              + " for "
+              + who
+              + " was not found. If this view is optional add '@Nullable' (fields) or '@Optional'"
+              + " (methods) annotation.");
+    }
+    viewMap.put(id, cacheView);
+    return cacheView;
+  }
+
+  public static View findOptionalViewFromMap(View source, @IdRes int id, String who,
+                                             Map<Integer, View> viewMap) {
+    View cacheView = viewMap.get(id);
+    if (cacheView == null) {
+      cacheView = source.findViewById(id);
+    }
+    viewMap.put(id, cacheView);
+    return cacheView;
+  }
+
+  public static <T> T findRequiredViewFromMapAsType(View source, @IdRes int id, String who,
+                                                    Map<Integer, View> viewMap, Class<T> cls) {
+    View view = findRequiredViewFromMap(source, id, who, viewMap);
+    return castView(view, id, who, cls);
+  }
+
+  public static <T> T findOptionalViewFromTypeAsType(View source, @IdRes int id, String who,
+                                                     Map<Integer, View> viewMap, Class<T> cls) {
+    View view = findOptionalViewFromMap(source, id, who, viewMap);
+    return castView(view, id, who, cls);
   }
 }
