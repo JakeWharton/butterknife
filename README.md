@@ -43,7 +43,7 @@ Download
 
 ```groovy
 dependencies {
-  compile 'com.jakewharton:butterknife:8.8.1'
+  implementation 'com.jakewharton:butterknife:8.8.1'
   annotationProcessor 'com.jakewharton:butterknife-compiler:8.8.1'
 }
 ```
