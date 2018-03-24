@@ -3,15 +3,22 @@ package butterknife;
 import butterknife.compiler.ButterKnifeProcessor;
 import com.google.common.collect.ImmutableList;
 import com.google.testing.compile.JavaFileObjects;
+
+import javax.lang.model.element.Element;
 import javax.tools.JavaFileObject;
 import javax.tools.StandardLocation;
+
 import org.junit.Test;
 
 import static butterknife.TestStubs.ANDROIDX_CONTEXT_COMPAT;
+import java.util.List;
+import java.util.Map;
+
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.testing.compile.JavaSourceSubjectFactory.javaSource;
 import static com.google.testing.compile.JavaSourcesSubjectFactory.javaSources;
 import static java.util.Arrays.asList;
+import static junit.framework.Assert.assertEquals;
 
 public class BindViewTest {
   @Test public void bindingView() {
@@ -51,12 +58,21 @@ public class BindViewTest {
         + "}"
     );
 
+    ButterKnifeProcessor butterKnifeProcessor = new ButterKnifeProcessor();
     assertAbout(javaSource()).that(source)
         .withCompilerOptions("-Xlint:-processing")
-        .processedWith(new ButterKnifeProcessor())
+        .processedWith(butterKnifeProcessor)
         .compilesWithoutWarnings()
         .and()
         .generatesSources(bindingSource);
+
+    Map<String, List<Element>> map = butterKnifeProcessor.getMapGeneratedFileToOriginatingElements();
+    assertEquals(1, map.size());
+    Map.Entry<String, List<Element>> entry = map.entrySet().iterator().next();
+    assertEquals("test/Test_ViewBinding.java", entry.getKey());
+    List<Element> elements = entry.getValue();
+    assertEquals(1, elements.size());
+    assertEquals("test.Test", elements.get(0).asType().toString());
   }
 
   @Test public void bindingViewAndroidX() {

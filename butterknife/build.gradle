@@ -31,11 +31,45 @@ android {
 
 dependencies {
   api project(':butterknife-runtime')
+/*
+  compile project(':butterknife-annotations')
+  compile deps.support.annotations
+  compile deps.support.compat
+
+  lintRules project(':butterknife-lint')
+
+  androidTestCompile deps.junit
+  androidTestCompile deps.truth
+  androidTestCompile deps.support.test.runner
+*/
+
+  testImplementation deps.junit
+  testImplementation deps.truth
+  testImplementation deps.compiletesting
+  testImplementation deps.auto.common
+  testImplementation files(getRuntimeJar())
+  testImplementation files(org.gradle.internal.jvm.Jvm.current().getToolsJar())
+  testImplementation project(':butterknife-compiler')
+  testAnnotationProcessor project(':butterknife-compiler')
 
   androidTestImplementation deps.junit
   androidTestImplementation deps.truth
   androidTestImplementation deps.support.test.runner
   androidTestAnnotationProcessor project(':butterknife-compiler')
+}
+
+def getRuntimeJar() {
+  try {
+    final File javaBase = new File(System.getProperty("java.home")).getCanonicalFile();
+    File runtimeJar = new File(javaBase, "lib/rt.jar");
+    if (runtimeJar.exists()) {
+      return runtimeJar;
+    }
+    runtimeJar = new File(javaBase, "jre/lib/rt.jar");
+    return runtimeJar.exists() ? runtimeJar : null;
+  } catch (IOException e) {
+    throw new RuntimeException(e);
+  }
 }
 
 apply from: rootProject.file('gradle/gradle-mvn-push.gradle')
