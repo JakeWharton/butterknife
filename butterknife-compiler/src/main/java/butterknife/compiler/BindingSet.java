@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nullable;
+import javax.lang.model.element.Element;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeMirror;
@@ -84,14 +85,14 @@ final class BindingSet {
     this.parentBinding = parentBinding;
   }
 
-  JavaFile brewJava(int sdk, boolean debuggable) {
-    TypeSpec bindingConfiguration = createType(sdk, debuggable);
+  JavaFile brewJava(int sdk, boolean debuggable, Element originatingElement) {
+    TypeSpec bindingConfiguration = createType(sdk, debuggable, originatingElement);
     return JavaFile.builder(bindingClassName.packageName(), bindingConfiguration)
         .addFileComment("Generated code from Butter Knife. Do not modify!")
         .build();
   }
 
-  private TypeSpec createType(int sdk, boolean debuggable) {
+  private TypeSpec createType(int sdk, boolean debuggable, Element originatingElement) {
     TypeSpec.Builder result = TypeSpec.classBuilder(bindingClassName.simpleName())
         .addModifiers(PUBLIC);
     if (isFinal) {
@@ -124,6 +125,8 @@ final class BindingSet {
     if (hasViewBindings() || parentBinding == null) {
       result.addMethod(createBindingUnbindMethod(result));
     }
+
+    result.addOriginatingElement(originatingElement);
 
     return result.build();
   }

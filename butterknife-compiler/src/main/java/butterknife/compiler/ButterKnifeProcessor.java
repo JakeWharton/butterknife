@@ -48,6 +48,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Deque;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -72,6 +73,8 @@ import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.type.TypeVariable;
+import javax.lang.model.util.ElementFilter;
+import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 import javax.tools.Diagnostic.Kind;
 
@@ -117,6 +120,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
   );
 
   private Types typeUtils;
+  private Elements elementUtils;
   private Filer filer;
   private @Nullable Trees trees;
 
@@ -124,6 +128,8 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
   private boolean debuggable = true;
 
   private final RScanner rScanner = new RScanner();
+  private HashMap<String, List<Element>> mapGeneratedFileToOriginatingElements
+      = new LinkedHashMap<>();
 
   @Override public synchronized void init(ProcessingEnvironment env) {
     super.init(env);
@@ -143,6 +149,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     debuggable = !"false".equals(env.getOptions().get(OPTION_DEBUGGABLE));
 
     typeUtils = env.getTypeUtils();
+    elementUtils = env.getElementUtils();
     filer = env.getFiler();
     try {
       trees = Trees.instance(processingEnv);
@@ -190,15 +197,21 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
       TypeElement typeElement = entry.getKey();
       BindingSet binding = entry.getValue();
 
-      JavaFile javaFile = binding.brewJava(sdk, debuggable);
+      JavaFile javaFile = binding.brewJava(sdk, debuggable, typeElement);
       try {
         javaFile.writeTo(filer);
+        mapGeneratedFileToOriginatingElements.put(javaFile.toJavaFileObject().getName(),
+                                                  javaFile.typeSpec.originatingElements);
       } catch (IOException e) {
         error(typeElement, "Unable to write binding for type %s: %s", typeElement, e.getMessage());
       }
     }
 
     return false;
+  }
+
+  public HashMap<String, List<Element>> getMapGeneratedFileToOriginatingElements() {
+    return mapGeneratedFileToOriginatingElements;
   }
 
   private Map<TypeElement, BindingSet> findAndParseTargets(RoundEnvironment env) {
@@ -354,10 +367,19 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
       BindingSet.Builder builder = entry.getValue();
 
       TypeElement parentType = findParentType(type, erasedTargetNames);
+      System.out.println(type + " parent type: " + parentType);
       if (parentType == null) {
         bindingMap.put(type, builder.build());
       } else {
         BindingSet parentBinding = bindingMap.get(parentType);
+
+        // parent binding is null, let's try to find a previouly generated binding
+        System.out.println(type + " parent binding: " + parentBinding);
+        System.out.println(type + " parent has view binder: " + hasViewBinder(parentType));
+        if (parentBinding == null && hasViewBinder(parentType)) {
+          parentBinding = createStubBindingSet(parentType);
+        }
+
         if (parentBinding != null) {
           builder.setParent(parentBinding);
           bindingMap.put(type, builder.build());
@@ -369,6 +391,33 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     }
 
     return bindingMap;
+  }
+
+  private BindingSet createStubBindingSet(TypeElement parentType) {
+    BindingSet parentBinding;
+    BindingSet.Builder parentBuilder = BindingSet.newBuilder(parentType);
+    if (hasViewBindings(parentType)) {
+      //add a fake field to the parent class so that it will indicate it has a view bindings.
+      //this is required for the subclass to generate a proper view binder
+      parentBuilder.addField(new Id(-1), new FieldViewBinding("", null, false));
+    }
+    parentBinding = parentBuilder.build();
+    return parentBinding;
+  }
+
+  private boolean hasViewBindings(TypeElement parentType) {
+    for (VariableElement fieldElement : ElementFilter.fieldsIn(parentType.getEnclosedElements())) {
+      if (fieldElement.getAnnotation(BindView.class) != null
+              || fieldElement.getAnnotation(BindViews.class) != null) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private boolean hasViewBinder(TypeElement typeElement) {
+    final String viewBindingClassName = typeElement.getQualifiedName().toString() + "_ViewBinding";
+    return elementUtils.getTypeElement(viewBindingClassName) != null;
   }
 
   private void logParsingError(Element element, Class<? extends Annotation> annotation,
@@ -1266,11 +1315,12 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     TypeMirror type;
     while (true) {
       type = typeElement.getSuperclass();
+      System.out.println("super type: " + type);
       if (type.getKind() == TypeKind.NONE) {
         return null;
       }
       typeElement = (TypeElement) ((DeclaredType) type).asElement();
-      if (parents.contains(typeElement)) {
+      if (parents.contains(typeElement) || hasViewBinder(typeElement)) {
         return typeElement;
       }
     }
