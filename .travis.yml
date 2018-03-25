@@ -10,9 +10,9 @@ before_install:
   # Install the rest of tools (e.g., avdmanager)
   - sdkmanager tools
   # Install the system image
-  - sdkmanager "system-images;android-18;default;armeabi-v7a"
+  - sdkmanager "system-images;android-25;google_apis;armeabi-v7a"
   # Create and start emulator for the script. Meant to race the install task.
-  - echo no | avdmanager create avd --force -n test -k "system-images;android-18;default;armeabi-v7a"
+  - echo no | avdmanager create avd --force -n test -k "system-images;android-25;google_apis;armeabi-v7a"
   - $ANDROID_HOME/emulator/emulator -avd test -no-audio -no-window &
 
 install: ./gradlew clean assemble assembleAndroidTest --stacktrace
