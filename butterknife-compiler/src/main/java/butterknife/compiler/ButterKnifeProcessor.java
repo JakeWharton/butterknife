@@ -393,7 +393,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     boolean hasError = false;
     TypeElement enclosingElement = (TypeElement) element.getEnclosingElement();
 
-    // Verify method modifiers.
+    // Verify field or method modifiers.
     Set<Modifier> modifiers = element.getModifiers();
     if (modifiers.contains(PRIVATE) || modifiers.contains(STATIC)) {
       error(element, "@%s %s must not be private or static. (%s.%s)",
