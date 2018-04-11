@@ -1,12 +1,14 @@
 package com.example.butterknife.library;
 
-import butterknife.ButterKnife;
-import butterknife.Unbinder;
 import com.example.butterknife.R;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
+
+import butterknife.ButterKnife;
+import butterknife.Unbinder;
 
 import static com.google.common.truth.Truth.assertThat;
 
@@ -22,6 +24,7 @@ public class SimpleActivityTest {
   }
 
   protected static void verifySimpleActivityBound(SimpleActivity activity) {
+    assertThat(activity.image.getId()).isEqualTo(R.id.image);
     assertThat(activity.title.getId()).isEqualTo(R.id.title);
     assertThat(activity.subtitle.getId()).isEqualTo(R.id.subtitle);
     assertThat(activity.hello.getId()).isEqualTo(R.id.hello);
@@ -30,6 +33,7 @@ public class SimpleActivityTest {
   }
 
   protected static void verifySimpleActivityUnbound(SimpleActivity activity) {
+    assertThat(activity.image).isNull();
     assertThat(activity.title).isNull();
     assertThat(activity.subtitle).isNull();
     assertThat(activity.hello).isNull();

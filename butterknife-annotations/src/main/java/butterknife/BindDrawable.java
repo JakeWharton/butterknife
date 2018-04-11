@@ -1,6 +1,7 @@
 package butterknife;
 
 import android.support.annotation.AttrRes;
+import android.support.annotation.ColorRes;
 import android.support.annotation.DrawableRes;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
@@ -23,5 +24,5 @@ public @interface BindDrawable {
   @DrawableRes int value();
 
   /** Color attribute resource ID that is used to tint the drawable. */
-  @AttrRes int tint() default 0;
+  @ColorRes @AttrRes int tint() default 0;
 }

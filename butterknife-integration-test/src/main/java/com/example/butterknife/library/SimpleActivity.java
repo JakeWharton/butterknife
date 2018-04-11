@@ -1,14 +1,22 @@
 package com.example.butterknife.library;
 
 import android.app.Activity;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.view.View;
 import android.view.animation.AlphaAnimation;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.example.butterknife.R;
+
+import java.util.List;
+
+import butterknife.BindDrawable;
 import butterknife.BindString;
 import butterknife.BindView;
 import butterknife.BindViews;
@@ -16,9 +24,6 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 import butterknife.OnItemClick;
 import butterknife.OnLongClick;
-import com.example.butterknife.R;
-
-import java.util.List;
 
 import static android.widget.Toast.LENGTH_SHORT;
 
@@ -38,10 +43,12 @@ public class SimpleActivity extends Activity {
   @BindView(R.id.hello) Button hello;
   @BindView(R.id.list_of_things) ListView listOfThings;
   @BindView(R.id.footer) TextView footer;
+  @BindView(R.id.image) ImageView image;
   @BindString(R.string.app_name) String butterKnife;
   @BindString(R.string.field_method) String fieldMethod;
   @BindString(R.string.by_jake_wharton) String byJakeWharton;
   @BindString(R.string.say_hello) String sayHello;
+  @BindDrawable(value = R.drawable.ic_adb, tint = android.R.color.darker_gray) Drawable drawable;
 
   @BindViews({ R.id.title, R.id.subtitle, R.id.hello }) List<View> headerViews;
 
@@ -67,6 +74,7 @@ public class SimpleActivity extends Activity {
     ButterKnife.bind(this);
 
     // Contrived code to use the bound fields.
+    image.setImageDrawable(drawable);
     title.setText(butterKnife);
     subtitle.setText(fieldMethod);
     footer.setText(byJakeWharton);

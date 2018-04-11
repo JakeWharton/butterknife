@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.drawable.Drawable;
 import android.support.annotation.AttrRes;
+import android.support.annotation.ColorRes;
 import android.support.annotation.DimenRes;
 import android.support.annotation.DrawableRes;
 import android.support.annotation.IdRes;
@@ -21,13 +22,17 @@ public final class Utils {
 
   @UiThread // Implicit synchronization for use of shared resource VALUE.
   public static Drawable getTintedDrawable(Context context,
-      @DrawableRes int id, @AttrRes int tintAttrId) {
-    boolean attributeFound = context.getTheme().resolveAttribute(tintAttrId, VALUE, true);
+      @DrawableRes int id, @ColorRes @AttrRes int tintId) {
+    boolean attributeFound = context.getTheme().resolveAttribute(tintId, VALUE, true);
     if (!attributeFound) {
+      VALUE.resourceId = tintId;
+    }
+
+    if (VALUE.resourceId == 0) {
       throw new Resources.NotFoundException("Required tint color attribute with name "
-          + context.getResources().getResourceEntryName(tintAttrId)
-          + " and attribute ID "
-          + tintAttrId
+          + context.getResources().getResourceEntryName(tintId)
+          + " and attribute- or color resource-ID "
+          + tintId
           + " was not found.");
     }
 
