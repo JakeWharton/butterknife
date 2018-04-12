@@ -1292,27 +1292,27 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
   private Id elementToId(Element element, Class<? extends Annotation> annotation, int value) {
     JCTree tree = (JCTree) trees.getTree(element, getMirror(element, annotation));
     if (tree != null) { // tree can be null if the references are compiled types and not source
+      rScanner.reset();
       tree.accept(rScanner);
-      return new Id(value, rScanner.rSymbol);
+      return rScanner.resourceIds.values().iterator().next();
     }
     return new Id(value);
   }
 
   private Map<Integer, Id> elementToIds(Element element, Class<? extends Annotation> annotation,
       int[] values) {
-    Map<Integer, Id> resourceIds = new LinkedHashMap<>();
     JCTree tree = (JCTree) trees.getTree(element, getMirror(element, annotation));
     if (tree != null) { // tree can be null if the references are compiled types and not source
-      for (int value : values) {
-        tree.accept(rScanner);
-        resourceIds.put(value, new Id(value, rScanner.rSymbol));
-      }
+      rScanner.reset();
+      tree.accept(rScanner);
+      return rScanner.resourceIds;
     } else {
+      Map<Integer, Id> resourceIds = new LinkedHashMap<>();
       for (int value : values) {
         resourceIds.put(value, new Id(value));
       }
+      return resourceIds;
     }
-    return resourceIds;
   }
 
   private static boolean hasAnnotationWithName(Element element, String simpleName) {
@@ -1344,18 +1344,27 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
   }
 
   private static class RScanner extends TreeScanner {
-    Symbol rSymbol;
+    Map<Integer, Id> resourceIds = new LinkedHashMap<>();
 
     @Override public void visitSelect(JCTree.JCFieldAccess jcFieldAccess) {
       Symbol symbol = jcFieldAccess.sym;
-      if (symbol != null
-          && symbol.getEnclosingElement() != null
+      int value = (Integer) ((Symbol.VarSymbol) symbol).getConstantValue();
+      if (symbol.getEnclosingElement() != null
           && symbol.getEnclosingElement().getEnclosingElement() != null
           && symbol.getEnclosingElement().getEnclosingElement().enclClass() != null) {
-        rSymbol = symbol;
+        resourceIds.put(value, new Id(value, symbol));
       } else {
-        rSymbol = null;
+        resourceIds.put(value, new Id(value));
       }
+    }
+
+    @Override public void visitLiteral(JCTree.JCLiteral jcLiteral) {
+      int value = (Integer) jcLiteral.value;
+      resourceIds.put(value, new Id(value));
+    }
+
+    void reset() {
+      resourceIds.clear();
     }
   }
 }

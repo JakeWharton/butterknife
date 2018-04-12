@@ -617,4 +617,101 @@ public class BindViewsTest {
         .withErrorContaining("@BindViews annotation contains duplicate ID 1. (test.Test.thing)")
         .in(source).onLine(6);
   }
+
+  @Test public void bindingArrayWithRScanner() {
+    JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
+        + "package test;\n"
+        + "import android.R;\n"
+        + "import android.view.View;\n"
+        + "import butterknife.BindViews;\n"
+        + "public class Test {\n"
+        + "    @BindViews({R.color.black, R.color.white}) View[] thing;\n"
+        + "}"
+    );
+
+    JavaFileObject bindingSource = JavaFileObjects.forSourceString("test/Test_ViewBinding", ""
+        + "package test;\n"
+        + "import android.support.annotation.CallSuper;\n"
+        + "import android.support.annotation.UiThread;\n"
+        + "import android.view.View;\n"
+        + "import butterknife.Unbinder;\n"
+        + "import butterknife.internal.Utils;\n"
+        + "import java.lang.IllegalStateException;\n"
+        + "import java.lang.Override;\n"
+        + "public class Test_ViewBinding implements Unbinder {\n"
+        + "  private Test target;\n"
+        + "  @UiThread\n"
+        + "  public Test_ViewBinding(Test target, View source) {\n"
+        + "    this.target = target;\n"
+        + "    target.thing = Utils.arrayOf(\n"
+        + "        Utils.findRequiredView(source, android.R.color.black, \"field 'thing'\"), \n"
+        + "        Utils.findRequiredView(source, android.R.color.white, \"field 'thing'\"));\n"
+        + "  }\n"
+        + "  @Override\n"
+        + "  @CallSuper\n"
+        + "  public void unbind() {\n"
+        + "    Test target = this.target;\n"
+        + "    if (target == null) throw new IllegalStateException(\"Bindings already cleared.\");\n"
+        + "    this.target = null;\n"
+        + "    target.thing = null;\n"
+        + "  }\n"
+        + "}"
+    );
+
+    assertAbout(javaSource()).that(source)
+        .withCompilerOptions("-Xlint:-processing")
+        .processedWith(new ButterKnifeProcessor())
+        .compilesWithoutWarnings()
+        .and()
+        .generatesSources(bindingSource);
+  }
+
+  @Test public void bindingArrayWithMixedRAndLiteral() {
+    JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
+        + "package test;\n"
+        + "import android.R;\n"
+        + "import android.view.View;\n"
+        + "import butterknife.BindViews;\n"
+        + "public class Test {\n"
+        + "    @BindViews({R.color.black, 2, R.color.white}) View[] thing;\n"
+        + "}"
+    );
+
+    JavaFileObject bindingSource = JavaFileObjects.forSourceString("test/Test_ViewBinding", ""
+        + "package test;\n"
+        + "import android.support.annotation.CallSuper;\n"
+        + "import android.support.annotation.UiThread;\n"
+        + "import android.view.View;\n"
+        + "import butterknife.Unbinder;\n"
+        + "import butterknife.internal.Utils;\n"
+        + "import java.lang.IllegalStateException;\n"
+        + "import java.lang.Override;\n"
+        + "public class Test_ViewBinding implements Unbinder {\n"
+        + "  private Test target;\n"
+        + "  @UiThread\n"
+        + "  public Test_ViewBinding(Test target, View source) {\n"
+        + "    this.target = target;\n"
+        + "    target.thing = Utils.arrayOf(\n"
+        + "        Utils.findRequiredView(source, android.R.color.black, \"field 'thing'\"), \n"
+        + "        Utils.findRequiredView(source, 2, \"field 'thing'\"), \n"
+        + "        Utils.findRequiredView(source, android.R.color.white, \"field 'thing'\"));\n"
+        + "  }\n"
+        + "  @Override\n"
+        + "  @CallSuper\n"
+        + "  public void unbind() {\n"
+        + "    Test target = this.target;\n"
+        + "    if (target == null) throw new IllegalStateException(\"Bindings already cleared.\");\n"
+        + "    this.target = null;\n"
+        + "    target.thing = null;\n"
+        + "  }\n"
+        + "}"
+    );
+
+    assertAbout(javaSource()).that(source)
+        .withCompilerOptions("-Xlint:-processing")
+        .processedWith(new ButterKnifeProcessor())
+        .compilesWithoutWarnings()
+        .and()
+        .generatesSources(bindingSource);
+  }
 }
