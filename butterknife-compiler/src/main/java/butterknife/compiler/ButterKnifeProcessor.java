@@ -1307,14 +1307,22 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     if (tree != null) { // tree can be null if the references are compiled types and not source
       rScanner.reset();
       tree.accept(rScanner);
-      return rScanner.resourceIds;
-    } else {
-      Map<Integer, Id> resourceIds = new LinkedHashMap<>();
-      for (int value : values) {
-        resourceIds.put(value, new Id(value));
+      if (!rScanner.resourceIds.isEmpty()) {
+        return rScanner.resourceIds;
+      } else {
+        return valuesToResourceIds(values);
       }
-      return resourceIds;
+    } else {
+      return valuesToResourceIds(values);
     }
+  }
+
+  private Map<Integer, Id> valuesToResourceIds(int[] values) {
+    Map<Integer, Id> resourceIds = new LinkedHashMap<>();
+    for (int value : values) {
+      resourceIds.put(value, new Id(value));
+    }
+    return resourceIds;
   }
 
   private static boolean hasAnnotationWithName(Element element, String simpleName) {
