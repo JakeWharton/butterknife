@@ -74,6 +74,8 @@ import javax.lang.model.type.TypeVariable;
 import javax.lang.model.util.Types;
 import javax.tools.Diagnostic.Kind;
 
+import static butterknife.internal.Constants.NO_RES_ID;
+
 import static javax.lang.model.element.ElementKind.CLASS;
 import static javax.lang.model.element.ElementKind.INTERFACE;
 import static javax.lang.model.element.ElementKind.METHOD;
@@ -85,7 +87,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
   // TODO remove when http://b.android.com/187527 is released.
   private static final String OPTION_SDK_INT = "butterknife.minSdk";
   private static final String OPTION_DEBUGGABLE = "butterknife.debuggable";
-  static final Id NO_ID = new Id(-1);
+  static final Id NO_ID = new Id(NO_RES_ID);
   static final String VIEW_TYPE = "android.view.View";
   static final String ACTIVITY_TYPE = "android.app.Activity";
   static final String DIALOG_TYPE = "android.app.Dialog";
@@ -767,7 +769,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     Map<Integer, Id> resourceIds = elementToIds(element, BindDrawable.class, new int[] {id, tint});
 
     BindingSet.Builder builder = getOrCreateBindingBuilder(builderMap, enclosingElement);
-    builder.addResource(new FieldDrawableBinding(resourceIds.get(id), name, tint == -1 ? NO_ID : resourceIds.get(tint)));
+    builder.addResource(new FieldDrawableBinding(resourceIds.get(id), name, tint == NO_RES_ID ? NO_ID : resourceIds.get(tint)));
 
     erasedTargetNames.add(enclosingElement);
   }
