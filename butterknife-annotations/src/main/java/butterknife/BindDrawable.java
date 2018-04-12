@@ -23,5 +23,5 @@ public @interface BindDrawable {
   @DrawableRes int value();
 
   /** Color attribute resource ID that is used to tint the drawable. */
-  @AttrRes int tint() default 0;
+  @AttrRes int tint() default -1;
 }

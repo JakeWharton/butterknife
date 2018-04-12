@@ -767,7 +767,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     Map<Integer, Id> resourceIds = elementToIds(element, BindDrawable.class, new int[] {id, tint});
 
     BindingSet.Builder builder = getOrCreateBindingBuilder(builderMap, enclosingElement);
-    builder.addResource(new FieldDrawableBinding(resourceIds.get(id), name, resourceIds.get(tint)));
+    builder.addResource(new FieldDrawableBinding(resourceIds.get(id), name, tint == -1 ? NO_ID : resourceIds.get(tint)));
 
     erasedTargetNames.add(enclosingElement);
   }

@@ -25,7 +25,7 @@ final class FieldDrawableBinding implements ResourceBinding {
   }
 
   @Override public CodeBlock render(int sdk) {
-    if (tintAttributeId.value != 0) {
+    if (tintAttributeId.value != -1) {
       return CodeBlock.of("target.$L = $T.getTintedDrawable(context, $L, $L)", name, UTILS, id.code,
           tintAttributeId.code);
     }
