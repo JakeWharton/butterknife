@@ -769,8 +769,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     Map<Integer, Id> resourceIds = elementToIds(element, BindDrawable.class, new int[] {id, tint});
 
     BindingSet.Builder builder = getOrCreateBindingBuilder(builderMap, enclosingElement);
-    builder.addResource(new FieldDrawableBinding(resourceIds.get(id), name,
-        tint == NO_RES_ID ? NO_ID : resourceIds.get(tint)));
+    builder.addResource(new FieldDrawableBinding(resourceIds.get(id), name, resourceIds.get(tint)));
 
     erasedTargetNames.add(enclosingElement);
   }
@@ -1304,24 +1303,19 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
   private Map<Integer, Id> elementToIds(Element element, Class<? extends Annotation> annotation,
       int[] values) {
+    Map<Integer, Id> resourceIds;
     JCTree tree = (JCTree) trees.getTree(element, getMirror(element, annotation));
     if (tree != null) { // tree can be null if the references are compiled types and not source
       rScanner.reset();
       tree.accept(rScanner);
-      if (!rScanner.resourceIds.isEmpty()) {
-        return rScanner.resourceIds;
-      } else {
-        return valuesToResourceIds(values);
-      }
+      resourceIds = rScanner.resourceIds;
     } else {
-      return valuesToResourceIds(values);
+      resourceIds = new LinkedHashMap<>();
     }
-  }
 
-  private Map<Integer, Id> valuesToResourceIds(int[] values) {
-    Map<Integer, Id> resourceIds = new LinkedHashMap<>();
+    // Every value looked up should have an Id
     for (int value : values) {
-      resourceIds.put(value, new Id(value));
+      resourceIds.putIfAbsent(value, new Id(value));
     }
     return resourceIds;
   }
