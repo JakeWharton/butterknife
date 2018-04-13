@@ -74,6 +74,8 @@ import javax.lang.model.type.TypeVariable;
 import javax.lang.model.util.Types;
 import javax.tools.Diagnostic.Kind;
 
+import static butterknife.internal.Constants.NO_RES_ID;
+
 import static javax.lang.model.element.ElementKind.CLASS;
 import static javax.lang.model.element.ElementKind.INTERFACE;
 import static javax.lang.model.element.ElementKind.METHOD;
@@ -85,7 +87,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
   // TODO remove when http://b.android.com/187527 is released.
   private static final String OPTION_SDK_INT = "butterknife.minSdk";
   private static final String OPTION_DEBUGGABLE = "butterknife.debuggable";
-  static final Id NO_ID = new Id(-1);
+  static final Id NO_ID = new Id(NO_RES_ID);
   static final String VIEW_TYPE = "android.view.View";
   static final String ACTIVITY_TYPE = "android.app.Activity";
   static final String DIALOG_TYPE = "android.app.Dialog";
@@ -767,7 +769,8 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     Map<Integer, Id> resourceIds = elementToIds(element, BindDrawable.class, new int[] {id, tint});
 
     BindingSet.Builder builder = getOrCreateBindingBuilder(builderMap, enclosingElement);
-    builder.addResource(new FieldDrawableBinding(resourceIds.get(id), name, resourceIds.get(tint)));
+    builder.addResource(new FieldDrawableBinding(resourceIds.get(id), name,
+        tint == NO_RES_ID ? NO_ID : resourceIds.get(tint)));
 
     erasedTargetNames.add(enclosingElement);
   }
@@ -1292,25 +1295,33 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
   private Id elementToId(Element element, Class<? extends Annotation> annotation, int value) {
     JCTree tree = (JCTree) trees.getTree(element, getMirror(element, annotation));
     if (tree != null) { // tree can be null if the references are compiled types and not source
+      rScanner.reset();
       tree.accept(rScanner);
-      return new Id(value, rScanner.rSymbol);
+      return rScanner.resourceIds.values().iterator().next();
     }
     return new Id(value);
   }
 
   private Map<Integer, Id> elementToIds(Element element, Class<? extends Annotation> annotation,
       int[] values) {
-    Map<Integer, Id> resourceIds = new LinkedHashMap<>();
     JCTree tree = (JCTree) trees.getTree(element, getMirror(element, annotation));
     if (tree != null) { // tree can be null if the references are compiled types and not source
-      for (int value : values) {
-        tree.accept(rScanner);
-        resourceIds.put(value, new Id(value, rScanner.rSymbol));
+      rScanner.reset();
+      tree.accept(rScanner);
+      if (!rScanner.resourceIds.isEmpty()) {
+        return rScanner.resourceIds;
+      } else {
+        return valuesToResourceIds(values);
       }
     } else {
-      for (int value : values) {
-        resourceIds.put(value, new Id(value));
-      }
+      return valuesToResourceIds(values);
+    }
+  }
+
+  private Map<Integer, Id> valuesToResourceIds(int[] values) {
+    Map<Integer, Id> resourceIds = new LinkedHashMap<>();
+    for (int value : values) {
+      resourceIds.put(value, new Id(value));
     }
     return resourceIds;
   }
@@ -1344,18 +1355,27 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
   }
 
   private static class RScanner extends TreeScanner {
-    Symbol rSymbol;
+    Map<Integer, Id> resourceIds = new LinkedHashMap<>();
 
     @Override public void visitSelect(JCTree.JCFieldAccess jcFieldAccess) {
       Symbol symbol = jcFieldAccess.sym;
-      if (symbol != null
-          && symbol.getEnclosingElement() != null
+      int value = (Integer) ((Symbol.VarSymbol) symbol).getConstantValue();
+      if (symbol.getEnclosingElement() != null
           && symbol.getEnclosingElement().getEnclosingElement() != null
           && symbol.getEnclosingElement().getEnclosingElement().enclClass() != null) {
-        rSymbol = symbol;
+        resourceIds.put(value, new Id(value, symbol));
       } else {
-        rSymbol = null;
+        resourceIds.put(value, new Id(value));
       }
+    }
+
+    @Override public void visitLiteral(JCTree.JCLiteral jcLiteral) {
+      int value = (Integer) jcLiteral.value;
+      resourceIds.put(value, new Id(value));
+    }
+
+    void reset() {
+      resourceIds.clear();
     }
   }
 }
