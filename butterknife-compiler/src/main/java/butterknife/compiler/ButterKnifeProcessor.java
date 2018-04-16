@@ -1296,21 +1296,21 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     if (tree != null) { // tree can be null if the references are compiled types and not source
       rScanner.reset();
       tree.accept(rScanner);
-      return rScanner.resourceIds.values().iterator().next();
+      if (!rScanner.resourceIds.isEmpty()) {
+        return rScanner.resourceIds.values().iterator().next();
+      }
     }
     return new Id(value);
   }
 
   private Map<Integer, Id> elementToIds(Element element, Class<? extends Annotation> annotation,
       int[] values) {
-    Map<Integer, Id> resourceIds;
+    Map<Integer, Id> resourceIds = new LinkedHashMap<>();
     JCTree tree = (JCTree) trees.getTree(element, getMirror(element, annotation));
     if (tree != null) { // tree can be null if the references are compiled types and not source
       rScanner.reset();
       tree.accept(rScanner);
       resourceIds = rScanner.resourceIds;
-    } else {
-      resourceIds = new LinkedHashMap<>();
     }
 
     // Every value looked up should have an Id
@@ -1353,19 +1353,21 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
     @Override public void visitSelect(JCTree.JCFieldAccess jcFieldAccess) {
       Symbol symbol = jcFieldAccess.sym;
-      int value = (Integer) ((Symbol.VarSymbol) symbol).getConstantValue();
       if (symbol.getEnclosingElement() != null
           && symbol.getEnclosingElement().getEnclosingElement() != null
           && symbol.getEnclosingElement().getEnclosingElement().enclClass() != null) {
-        resourceIds.put(value, new Id(value, symbol));
-      } else {
-        resourceIds.put(value, new Id(value));
+        try {
+          int value = (Integer) ((Symbol.VarSymbol) symbol).getConstantValue();
+          resourceIds.put(value, new Id(value, symbol));
+        } catch (Exception ignored) { }
       }
     }
 
     @Override public void visitLiteral(JCTree.JCLiteral jcLiteral) {
-      int value = (Integer) jcLiteral.value;
-      resourceIds.put(value, new Id(value));
+      try {
+        int value = (Integer) jcLiteral.value;
+        resourceIds.put(value, new Id(value));
+      } catch (Exception ignored) { }
     }
 
     void reset() {
