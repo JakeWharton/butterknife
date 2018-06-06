@@ -3,6 +3,7 @@ package butterknife.compiler;
 import com.squareup.javapoet.CodeBlock;
 
 import static butterknife.compiler.BindingSet.CONTEXT_COMPAT;
+import static butterknife.compiler.BindingSet.CONTEXT_COMPAT_ANDROIDX;
 import static butterknife.compiler.BindingSet.UTILS;
 import static butterknife.internal.Constants.NO_RES_ID;
 
@@ -10,11 +11,13 @@ final class FieldDrawableBinding implements ResourceBinding {
   private final Id id;
   private final String name;
   private final Id tintAttributeId;
+  private final boolean androidX;
 
-  FieldDrawableBinding(Id id, String name, Id tintAttributeId) {
+  FieldDrawableBinding(Id id, String name, Id tintAttributeId, boolean useAndroidX) {
     this.id = id;
     this.name = name;
     this.tintAttributeId = tintAttributeId;
+    this.androidX = useAndroidX;
   }
 
   @Override public Id id() {
@@ -33,6 +36,7 @@ final class FieldDrawableBinding implements ResourceBinding {
     if (sdk >= 21) {
       return CodeBlock.of("target.$L = context.getDrawable($L)", name, id.code);
     }
-    return CodeBlock.of("target.$L = $T.getDrawable(context, $L)", name, CONTEXT_COMPAT, id.code);
+    return CodeBlock.of("target.$L = $T.getDrawable(context, $L)", name,
+        androidX ? CONTEXT_COMPAT_ANDROIDX : CONTEXT_COMPAT, id.code);
   }
 }
