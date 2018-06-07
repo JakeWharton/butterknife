@@ -202,6 +202,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
   private Map<TypeElement, BindingSet> findAndParseTargets(RoundEnvironment env) {
     Map<TypeElement, BindingSet.Builder> builderMap = new LinkedHashMap<>();
     Set<TypeElement> erasedTargetNames = new LinkedHashSet<>();
+    boolean useAndroidX = hasAndroidX();
 
     // Process each @BindAnim element.
     for (Element element : env.getElementsAnnotatedWith(BindAnim.class)) {
@@ -247,7 +248,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     for (Element element : env.getElementsAnnotatedWith(BindColor.class)) {
       if (!SuperficialValidation.validateElement(element)) continue;
       try {
-        parseResourceColor(element, builderMap, erasedTargetNames);
+        parseResourceColor(element, builderMap, erasedTargetNames, useAndroidX);
       } catch (Exception e) {
         logParsingError(element, BindColor.class, e);
       }
@@ -267,7 +268,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     for (Element element : env.getElementsAnnotatedWith(BindDrawable.class)) {
       if (!SuperficialValidation.validateElement(element)) continue;
       try {
-        parseResourceDrawable(element, builderMap, erasedTargetNames);
+        parseResourceDrawable(element, builderMap, erasedTargetNames, useAndroidX);
       } catch (Exception e) {
         logParsingError(element, BindDrawable.class, e);
       }
@@ -287,7 +288,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     for (Element element : env.getElementsAnnotatedWith(BindFont.class)) {
       if (!SuperficialValidation.validateElement(element)) continue;
       try {
-        parseResourceFont(element, builderMap, erasedTargetNames);
+        parseResourceFont(element, builderMap, erasedTargetNames, useAndroidX);
       } catch (Exception e) {
         logParsingError(element, BindFont.class, e);
       }
@@ -637,7 +638,8 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
   }
 
   private void parseResourceColor(Element element,
-      Map<TypeElement, BindingSet.Builder> builderMap, Set<TypeElement> erasedTargetNames) {
+      Map<TypeElement, BindingSet.Builder> builderMap, Set<TypeElement> erasedTargetNames,
+      boolean useAndroidX) {
     boolean hasError = false;
     TypeElement enclosingElement = (TypeElement) element.getEnclosingElement();
 
@@ -666,9 +668,10 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     int id = element.getAnnotation(BindColor.class).value();
     Id resourceId = elementToId(element, BindColor.class, id);
     BindingSet.Builder builder = getOrCreateBindingBuilder(builderMap, enclosingElement);
-    builder.addResource(new FieldResourceBinding(resourceId, name,
-        isColorStateList ? FieldResourceBinding.Type.COLOR_STATE_LIST
-            : FieldResourceBinding.Type.COLOR));
+    builder.addResource(new FieldResourceBinding(resourceId, name, isColorStateList ? (useAndroidX
+        ? FieldResourceBinding.Type.COLOR_STATE_LIST_ANDROIDX
+        : FieldResourceBinding.Type.COLOR_STATE_LIST) : (useAndroidX
+        ? FieldResourceBinding.Type.COLOR_ANDROIDX : FieldResourceBinding.Type.COLOR)));
 
     erasedTargetNames.add(enclosingElement);
   }
@@ -742,7 +745,8 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
   }
 
   private void parseResourceDrawable(Element element,
-      Map<TypeElement, BindingSet.Builder> builderMap, Set<TypeElement> erasedTargetNames) {
+      Map<TypeElement, BindingSet.Builder> builderMap, Set<TypeElement> erasedTargetNames,
+      boolean useAndroidX) {
     boolean hasError = false;
     TypeElement enclosingElement = (TypeElement) element.getEnclosingElement();
 
@@ -769,7 +773,8 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     Map<Integer, Id> resourceIds = elementToIds(element, BindDrawable.class, new int[] {id, tint});
 
     BindingSet.Builder builder = getOrCreateBindingBuilder(builderMap, enclosingElement);
-    builder.addResource(new FieldDrawableBinding(resourceIds.get(id), name, resourceIds.get(tint)));
+    builder.addResource(new FieldDrawableBinding(resourceIds.get(id), name, resourceIds.get(tint),
+        useAndroidX));
 
     erasedTargetNames.add(enclosingElement);
   }
@@ -807,7 +812,8 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
   }
 
   private void parseResourceFont(Element element,
-      Map<TypeElement, BindingSet.Builder> builderMap, Set<TypeElement> erasedTargetNames) {
+      Map<TypeElement, BindingSet.Builder> builderMap, Set<TypeElement> erasedTargetNames,
+      boolean useAndroidX) {
     boolean hasError = false;
     TypeElement enclosingElement = (TypeElement) element.getEnclosingElement();
 
@@ -841,7 +847,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
     BindingSet.Builder builder = getOrCreateBindingBuilder(builderMap, enclosingElement);
     Id resourceId = elementToId(element, BindFont.class, bindFont.value());
-    builder.addResource(new FieldTypefaceBinding(resourceId, name, style));
+    builder.addResource(new FieldTypefaceBinding(resourceId, name, style, useAndroidX));
 
     erasedTargetNames.add(enclosingElement);
   }
@@ -1346,6 +1352,21 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
       }
     }
     return null;
+  }
+
+  /**
+   * Perform two lookups to see if the androidx annotation and core libraries are on the classpath.
+   * If both aren't present butterknife will leverage support annotations and compat libraries
+   * instead.
+   */
+  static boolean hasAndroidX() {
+    try {
+      Class.forName("androidx.annotation.NonNull");
+      Class.forName("androidx.core.content.ContextCompat");
+    } catch (ClassNotFoundException e) {
+      return false;
+    }
+    return true;
   }
 
   private static class RScanner extends TreeScanner {

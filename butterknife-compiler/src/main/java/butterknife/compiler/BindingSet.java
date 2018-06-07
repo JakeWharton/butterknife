@@ -29,6 +29,7 @@ import javax.lang.model.type.TypeMirror;
 import static butterknife.compiler.ButterKnifeProcessor.ACTIVITY_TYPE;
 import static butterknife.compiler.ButterKnifeProcessor.DIALOG_TYPE;
 import static butterknife.compiler.ButterKnifeProcessor.VIEW_TYPE;
+import static butterknife.compiler.ButterKnifeProcessor.hasAndroidX;
 import static butterknife.compiler.ButterKnifeProcessor.isSubtypeOfType;
 import static com.google.auto.common.MoreElements.getPackage;
 import static java.util.Collections.singletonList;
@@ -44,14 +45,20 @@ final class BindingSet {
   private static final ClassName RESOURCES = ClassName.get("android.content.res", "Resources");
   private static final ClassName UI_THREAD =
       ClassName.get("android.support.annotation", "UiThread");
+  private static final ClassName UI_THREAD_ANDROIDX =
+      ClassName.get("androidx.annotation", "UiThread");
   private static final ClassName CALL_SUPER =
       ClassName.get("android.support.annotation", "CallSuper");
+  private static final ClassName CALL_SUPER_ANDROIDX =
+      ClassName.get("androidx.annotation", "CallSuper");
   private static final ClassName SUPPRESS_LINT =
       ClassName.get("android.annotation", "SuppressLint");
   private static final ClassName UNBINDER = ClassName.get("butterknife", "Unbinder");
   static final ClassName BITMAP_FACTORY = ClassName.get("android.graphics", "BitmapFactory");
   static final ClassName CONTEXT_COMPAT =
       ClassName.get("android.support.v4.content", "ContextCompat");
+  static final ClassName CONTEXT_COMPAT_ANDROIDX =
+      ClassName.get("androidx.core.content", "ContextCompat");
   static final ClassName ANIMATION_UTILS =
           ClassName.get("android.view.animation", "AnimationUtils");
 
@@ -61,13 +68,15 @@ final class BindingSet {
   private final boolean isView;
   private final boolean isActivity;
   private final boolean isDialog;
+  private final boolean useAndroidX;
   private final ImmutableList<ViewBinding> viewBindings;
   private final ImmutableList<FieldCollectionViewBinding> collectionBindings;
   private final ImmutableList<ResourceBinding> resourceBindings;
   private final BindingSet parentBinding;
 
   private BindingSet(TypeName targetTypeName, ClassName bindingClassName, boolean isFinal,
-      boolean isView, boolean isActivity, boolean isDialog, ImmutableList<ViewBinding> viewBindings,
+      boolean isView, boolean isActivity, boolean isDialog, boolean useAndroidX,
+      ImmutableList<ViewBinding> viewBindings,
       ImmutableList<FieldCollectionViewBinding> collectionBindings,
       ImmutableList<ResourceBinding> resourceBindings, BindingSet parentBinding) {
     this.isFinal = isFinal;
@@ -76,6 +85,7 @@ final class BindingSet {
     this.isView = isView;
     this.isActivity = isActivity;
     this.isDialog = isDialog;
+    this.useAndroidX = useAndroidX;
     this.viewBindings = viewBindings;
     this.collectionBindings = collectionBindings;
     this.resourceBindings = resourceBindings;
@@ -131,7 +141,7 @@ final class BindingSet {
                 + "Only present for runtime invocation through {@code ButterKnife.bind()}.\n",
             bindingClassName, targetTypeName, CONTEXT)
         .addAnnotation(Deprecated.class)
-        .addAnnotation(UI_THREAD)
+        .addAnnotation(useAndroidX ? UI_THREAD_ANDROIDX : UI_THREAD)
         .addModifiers(PUBLIC)
         .addParameter(targetTypeName, "target")
         .addParameter(VIEW, "source")
@@ -141,7 +151,7 @@ final class BindingSet {
 
   private MethodSpec createBindingConstructorForView() {
     MethodSpec.Builder builder = MethodSpec.constructorBuilder()
-        .addAnnotation(UI_THREAD)
+        .addAnnotation(useAndroidX ? UI_THREAD_ANDROIDX : UI_THREAD)
         .addModifiers(PUBLIC)
         .addParameter(targetTypeName, "target");
     if (constructorNeedsView()) {
@@ -154,7 +164,7 @@ final class BindingSet {
 
   private MethodSpec createBindingConstructorForActivity() {
     MethodSpec.Builder builder = MethodSpec.constructorBuilder()
-        .addAnnotation(UI_THREAD)
+        .addAnnotation(useAndroidX ? UI_THREAD_ANDROIDX : UI_THREAD)
         .addModifiers(PUBLIC)
         .addParameter(targetTypeName, "target");
     if (constructorNeedsView()) {
@@ -167,7 +177,7 @@ final class BindingSet {
 
   private MethodSpec createBindingConstructorForDialog() {
     MethodSpec.Builder builder = MethodSpec.constructorBuilder()
-        .addAnnotation(UI_THREAD)
+        .addAnnotation(useAndroidX ? UI_THREAD_ANDROIDX : UI_THREAD)
         .addModifiers(PUBLIC)
         .addParameter(targetTypeName, "target");
     if (constructorNeedsView()) {
@@ -180,7 +190,7 @@ final class BindingSet {
 
   private MethodSpec createBindingConstructor(int sdk, boolean debuggable) {
     MethodSpec.Builder constructor = MethodSpec.constructorBuilder()
-        .addAnnotation(UI_THREAD)
+        .addAnnotation(useAndroidX ? UI_THREAD_ANDROIDX : UI_THREAD)
         .addModifiers(PUBLIC);
 
     if (hasMethodBindings()) {
@@ -260,7 +270,7 @@ final class BindingSet {
         .addAnnotation(Override.class)
         .addModifiers(PUBLIC);
     if (!isFinal && parentBinding == null) {
-      result.addAnnotation(CALL_SUPER);
+      result.addAnnotation(useAndroidX ? CALL_SUPER_ANDROIDX : CALL_SUPER);
     }
 
     if (hasTargetField()) {
@@ -678,6 +688,11 @@ final class BindingSet {
     boolean isActivity = isSubtypeOfType(typeMirror, ACTIVITY_TYPE);
     boolean isDialog = isSubtypeOfType(typeMirror, DIALOG_TYPE);
 
+    // To be removed before committing:
+    // Is this call expensive? If so we can pass this as a parameter to newBuilder which requires
+    // passing it around in the processor.
+    boolean useAndroidX = hasAndroidX();
+
     TypeName targetType = TypeName.get(typeMirror);
     if (targetType instanceof ParameterizedTypeName) {
       targetType = ((ParameterizedTypeName) targetType).rawType;
@@ -689,7 +704,8 @@ final class BindingSet {
     ClassName bindingClassName = ClassName.get(packageName, className + "_ViewBinding");
 
     boolean isFinal = enclosingElement.getModifiers().contains(Modifier.FINAL);
-    return new Builder(targetType, bindingClassName, isFinal, isView, isActivity, isDialog);
+    return new Builder(targetType, bindingClassName, isFinal, isView, isActivity, isDialog,
+        useAndroidX);
   }
 
   static final class Builder {
@@ -699,6 +715,7 @@ final class BindingSet {
     private final boolean isView;
     private final boolean isActivity;
     private final boolean isDialog;
+    private final boolean useAndroidX;
 
     private BindingSet parentBinding;
 
@@ -708,13 +725,14 @@ final class BindingSet {
     private final ImmutableList.Builder<ResourceBinding> resourceBindings = ImmutableList.builder();
 
     private Builder(TypeName targetTypeName, ClassName bindingClassName, boolean isFinal,
-        boolean isView, boolean isActivity, boolean isDialog) {
+        boolean isView, boolean isActivity, boolean isDialog, boolean useAndroidX) {
       this.targetTypeName = targetTypeName;
       this.bindingClassName = bindingClassName;
       this.isFinal = isFinal;
       this.isView = isView;
       this.isActivity = isActivity;
       this.isDialog = isDialog;
+      this.useAndroidX = useAndroidX;
     }
 
     void addField(Id id, FieldViewBinding binding) {
@@ -773,7 +791,7 @@ final class BindingSet {
         viewBindings.add(builder.build());
       }
       return new BindingSet(targetTypeName, bindingClassName, isFinal, isView, isActivity, isDialog,
-          viewBindings.build(), collectionBindings.build(), resourceBindings.build(),
+          useAndroidX, viewBindings.build(), collectionBindings.build(), resourceBindings.build(),
           parentBinding);
     }
   }
