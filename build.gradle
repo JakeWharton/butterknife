@@ -69,8 +69,8 @@ subprojects { project ->
   version = VERSION_NAME
 
   repositories {
-    google()
     mavenCentral()
+    google()
     jcenter()
   }
 
