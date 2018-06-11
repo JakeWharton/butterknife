@@ -70,8 +70,8 @@ subprojects { project ->
 
   repositories {
     mavenCentral()
-    jcenter()
     google()
+    jcenter()
   }
 
   if (!project.name.equals('butterknife-gradle-plugin')) {
