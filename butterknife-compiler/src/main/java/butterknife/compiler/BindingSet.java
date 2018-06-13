@@ -29,7 +29,6 @@ import javax.lang.model.type.TypeMirror;
 import static butterknife.compiler.ButterKnifeProcessor.ACTIVITY_TYPE;
 import static butterknife.compiler.ButterKnifeProcessor.DIALOG_TYPE;
 import static butterknife.compiler.ButterKnifeProcessor.VIEW_TYPE;
-import static butterknife.compiler.ButterKnifeProcessor.hasAndroidX;
 import static butterknife.compiler.ButterKnifeProcessor.isSubtypeOfType;
 import static com.google.auto.common.MoreElements.getPackage;
 import static java.util.Collections.singletonList;
@@ -68,15 +67,13 @@ final class BindingSet {
   private final boolean isView;
   private final boolean isActivity;
   private final boolean isDialog;
-  private final boolean useAndroidX;
   private final ImmutableList<ViewBinding> viewBindings;
   private final ImmutableList<FieldCollectionViewBinding> collectionBindings;
   private final ImmutableList<ResourceBinding> resourceBindings;
   private final BindingSet parentBinding;
 
   private BindingSet(TypeName targetTypeName, ClassName bindingClassName, boolean isFinal,
-      boolean isView, boolean isActivity, boolean isDialog, boolean useAndroidX,
-      ImmutableList<ViewBinding> viewBindings,
+      boolean isView, boolean isActivity, boolean isDialog, ImmutableList<ViewBinding> viewBindings,
       ImmutableList<FieldCollectionViewBinding> collectionBindings,
       ImmutableList<ResourceBinding> resourceBindings, BindingSet parentBinding) {
     this.isFinal = isFinal;
@@ -85,20 +82,22 @@ final class BindingSet {
     this.isView = isView;
     this.isActivity = isActivity;
     this.isDialog = isDialog;
-    this.useAndroidX = useAndroidX;
     this.viewBindings = viewBindings;
     this.collectionBindings = collectionBindings;
     this.resourceBindings = resourceBindings;
     this.parentBinding = parentBinding;
   }
 
-  JavaFile brewJava(int sdk, boolean debuggable) {
-    return JavaFile.builder(bindingClassName.packageName(), createType(sdk, debuggable))
+  JavaFile brewJava(int sdk, boolean debuggable, boolean useAndroidX) {
+    return JavaFile.builder(bindingClassName.packageName(), createType(
+        sdk,
+        debuggable,
+        useAndroidX))
         .addFileComment("Generated code from Butter Knife. Do not modify!")
         .build();
   }
 
-  private TypeSpec createType(int sdk, boolean debuggable) {
+  private TypeSpec createType(int sdk, boolean debuggable, boolean useAndroidX) {
     TypeSpec.Builder result = TypeSpec.classBuilder(bindingClassName.simpleName())
         .addModifiers(PUBLIC);
     if (isFinal) {
@@ -116,26 +115,26 @@ final class BindingSet {
     }
 
     if (isView) {
-      result.addMethod(createBindingConstructorForView());
+      result.addMethod(createBindingConstructorForView(useAndroidX));
     } else if (isActivity) {
-      result.addMethod(createBindingConstructorForActivity());
+      result.addMethod(createBindingConstructorForActivity(useAndroidX));
     } else if (isDialog) {
-      result.addMethod(createBindingConstructorForDialog());
+      result.addMethod(createBindingConstructorForDialog(useAndroidX));
     }
     if (!constructorNeedsView()) {
       // Add a delegating constructor with a target type + view signature for reflective use.
-      result.addMethod(createBindingViewDelegateConstructor());
+      result.addMethod(createBindingViewDelegateConstructor(useAndroidX));
     }
-    result.addMethod(createBindingConstructor(sdk, debuggable));
+    result.addMethod(createBindingConstructor(sdk, debuggable, useAndroidX));
 
     if (hasViewBindings() || parentBinding == null) {
-      result.addMethod(createBindingUnbindMethod(result));
+      result.addMethod(createBindingUnbindMethod(result, useAndroidX));
     }
 
     return result.build();
   }
 
-  private MethodSpec createBindingViewDelegateConstructor() {
+  private MethodSpec createBindingViewDelegateConstructor(boolean useAndroidX) {
     return MethodSpec.constructorBuilder()
         .addJavadoc("@deprecated Use {@link #$T($T, $T)} for direct creation.\n    "
                 + "Only present for runtime invocation through {@code ButterKnife.bind()}.\n",
@@ -149,7 +148,7 @@ final class BindingSet {
         .build();
   }
 
-  private MethodSpec createBindingConstructorForView() {
+  private MethodSpec createBindingConstructorForView(boolean useAndroidX) {
     MethodSpec.Builder builder = MethodSpec.constructorBuilder()
         .addAnnotation(useAndroidX ? UI_THREAD_ANDROIDX : UI_THREAD)
         .addModifiers(PUBLIC)
@@ -162,7 +161,7 @@ final class BindingSet {
     return builder.build();
   }
 
-  private MethodSpec createBindingConstructorForActivity() {
+  private MethodSpec createBindingConstructorForActivity(boolean useAndroidX) {
     MethodSpec.Builder builder = MethodSpec.constructorBuilder()
         .addAnnotation(useAndroidX ? UI_THREAD_ANDROIDX : UI_THREAD)
         .addModifiers(PUBLIC)
@@ -175,7 +174,7 @@ final class BindingSet {
     return builder.build();
   }
 
-  private MethodSpec createBindingConstructorForDialog() {
+  private MethodSpec createBindingConstructorForDialog(boolean useAndroidX) {
     MethodSpec.Builder builder = MethodSpec.constructorBuilder()
         .addAnnotation(useAndroidX ? UI_THREAD_ANDROIDX : UI_THREAD)
         .addModifiers(PUBLIC)
@@ -188,7 +187,7 @@ final class BindingSet {
     return builder.build();
   }
 
-  private MethodSpec createBindingConstructor(int sdk, boolean debuggable) {
+  private MethodSpec createBindingConstructor(int sdk, boolean debuggable, boolean useAndroidX) {
     MethodSpec.Builder constructor = MethodSpec.constructorBuilder()
         .addAnnotation(useAndroidX ? UI_THREAD_ANDROIDX : UI_THREAD)
         .addModifiers(PUBLIC);
@@ -265,7 +264,7 @@ final class BindingSet {
     return constructor.build();
   }
 
-  private MethodSpec createBindingUnbindMethod(TypeSpec.Builder bindingClass) {
+  private MethodSpec createBindingUnbindMethod(TypeSpec.Builder bindingClass, boolean useAndroidX) {
     MethodSpec.Builder result = MethodSpec.methodBuilder("unbind")
         .addAnnotation(Override.class)
         .addModifiers(PUBLIC);
@@ -688,11 +687,6 @@ final class BindingSet {
     boolean isActivity = isSubtypeOfType(typeMirror, ACTIVITY_TYPE);
     boolean isDialog = isSubtypeOfType(typeMirror, DIALOG_TYPE);
 
-    // To be removed before committing:
-    // Is this call expensive? If so we can pass this as a parameter to newBuilder which requires
-    // passing it around in the processor.
-    boolean useAndroidX = hasAndroidX(env.getElementUtils());
-
     TypeName targetType = TypeName.get(typeMirror);
     if (targetType instanceof ParameterizedTypeName) {
       targetType = ((ParameterizedTypeName) targetType).rawType;
@@ -704,8 +698,7 @@ final class BindingSet {
     ClassName bindingClassName = ClassName.get(packageName, className + "_ViewBinding");
 
     boolean isFinal = enclosingElement.getModifiers().contains(Modifier.FINAL);
-    return new Builder(targetType, bindingClassName, isFinal, isView, isActivity, isDialog,
-        useAndroidX);
+    return new Builder(targetType, bindingClassName, isFinal, isView, isActivity, isDialog);
   }
 
   static final class Builder {
@@ -715,7 +708,6 @@ final class BindingSet {
     private final boolean isView;
     private final boolean isActivity;
     private final boolean isDialog;
-    private final boolean useAndroidX;
 
     private BindingSet parentBinding;
 
@@ -725,14 +717,13 @@ final class BindingSet {
     private final ImmutableList.Builder<ResourceBinding> resourceBindings = ImmutableList.builder();
 
     private Builder(TypeName targetTypeName, ClassName bindingClassName, boolean isFinal,
-        boolean isView, boolean isActivity, boolean isDialog, boolean useAndroidX) {
+        boolean isView, boolean isActivity, boolean isDialog) {
       this.targetTypeName = targetTypeName;
       this.bindingClassName = bindingClassName;
       this.isFinal = isFinal;
       this.isView = isView;
       this.isActivity = isActivity;
       this.isDialog = isDialog;
-      this.useAndroidX = useAndroidX;
     }
 
     void addField(Id id, FieldViewBinding binding) {
@@ -791,7 +782,7 @@ final class BindingSet {
         viewBindings.add(builder.build());
       }
       return new BindingSet(targetTypeName, bindingClassName, isFinal, isView, isActivity, isDialog,
-          useAndroidX, viewBindings.build(), collectionBindings.build(), resourceBindings.build(),
+          viewBindings.build(), collectionBindings.build(), resourceBindings.build(),
           parentBinding);
     }
   }

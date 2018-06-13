@@ -191,7 +191,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
       TypeElement typeElement = entry.getKey();
       BindingSet binding = entry.getValue();
 
-      JavaFile javaFile = binding.brewJava(sdk, debuggable);
+      JavaFile javaFile = binding.brewJava(sdk, debuggable, useAndroidX);
       try {
         javaFile.writeTo(filer);
       } catch (IOException e) {
@@ -1361,7 +1361,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
    * classpath. If both aren't present butterknife will leverage support annotations and
    * compat libraries instead.
    */
-  static boolean hasAndroidX(Elements elementUtils) {
+  private static boolean hasAndroidX(Elements elementUtils) {
     boolean annotationsPresent
         = elementUtils.getTypeElement("androidx.annotation.NonNull") != null;
     boolean corePresent
