@@ -691,7 +691,7 @@ final class BindingSet {
     // To be removed before committing:
     // Is this call expensive? If so we can pass this as a parameter to newBuilder which requires
     // passing it around in the processor.
-    boolean useAndroidX = hasAndroidX();
+    boolean useAndroidX = hasAndroidX(env.getElementUtils());
 
     TypeName targetType = TypeName.get(typeMirror);
     if (targetType instanceof ParameterizedTypeName) {

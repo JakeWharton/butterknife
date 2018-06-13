@@ -71,6 +71,7 @@ import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.type.TypeVariable;
+import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 import javax.tools.Diagnostic.Kind;
 
@@ -140,7 +141,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     }
 
     debuggable = !"false".equals(env.getOptions().get(OPTION_DEBUGGABLE));
-    useAndroidX = hasAndroidX();
+    useAndroidX = hasAndroidX(env.getElementUtils());
 
     typeUtils = env.getTypeUtils();
     filer = env.getFiler();
@@ -1356,18 +1357,16 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
   }
 
   /**
-   * Perform two lookups to see if the androidx annotation and core libraries are on the classpath.
-   * If both aren't present butterknife will leverage support annotations and compat libraries
-   * instead.
+   * Perform two lookups to see if the androidx annotation and core libraries are on the application
+   * classpath. If both aren't present butterknife will leverage support annotations and
+   * compat libraries instead.
    */
-  static boolean hasAndroidX() {
-    try {
-      Class.forName("androidx.annotation.NonNull");
-      Class.forName("androidx.core.content.ContextCompat");
-    } catch (ClassNotFoundException e) {
-      return false;
-    }
-    return true;
+  static boolean hasAndroidX(Elements elementUtils) {
+    boolean annotationsPresent
+        = elementUtils.getTypeElement("androidx.annotation.NonNull") != null;
+    boolean corePresent
+        = elementUtils.getTypeElement("androidx.core.content.ContextCompat") != null;
+    return annotationsPresent && corePresent;
   }
 
   private static class RScanner extends TreeScanner {
