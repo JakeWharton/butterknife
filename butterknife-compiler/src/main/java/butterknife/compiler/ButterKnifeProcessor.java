@@ -250,7 +250,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     for (Element element : env.getElementsAnnotatedWith(BindColor.class)) {
       if (!SuperficialValidation.validateElement(element)) continue;
       try {
-        parseResourceColor(element, builderMap, erasedTargetNames, useAndroidX);
+        parseResourceColor(element, builderMap, erasedTargetNames);
       } catch (Exception e) {
         logParsingError(element, BindColor.class, e);
       }
@@ -270,7 +270,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     for (Element element : env.getElementsAnnotatedWith(BindDrawable.class)) {
       if (!SuperficialValidation.validateElement(element)) continue;
       try {
-        parseResourceDrawable(element, builderMap, erasedTargetNames, useAndroidX);
+        parseResourceDrawable(element, builderMap, erasedTargetNames);
       } catch (Exception e) {
         logParsingError(element, BindDrawable.class, e);
       }
@@ -290,7 +290,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     for (Element element : env.getElementsAnnotatedWith(BindFont.class)) {
       if (!SuperficialValidation.validateElement(element)) continue;
       try {
-        parseResourceFont(element, builderMap, erasedTargetNames, useAndroidX);
+        parseResourceFont(element, builderMap, erasedTargetNames);
       } catch (Exception e) {
         logParsingError(element, BindFont.class, e);
       }
@@ -640,8 +640,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
   }
 
   private void parseResourceColor(Element element,
-      Map<TypeElement, BindingSet.Builder> builderMap, Set<TypeElement> erasedTargetNames,
-      boolean useAndroidX) {
+      Map<TypeElement, BindingSet.Builder> builderMap, Set<TypeElement> erasedTargetNames) {
     boolean hasError = false;
     TypeElement enclosingElement = (TypeElement) element.getEnclosingElement();
 
@@ -747,8 +746,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
   }
 
   private void parseResourceDrawable(Element element,
-      Map<TypeElement, BindingSet.Builder> builderMap, Set<TypeElement> erasedTargetNames,
-      boolean useAndroidX) {
+      Map<TypeElement, BindingSet.Builder> builderMap, Set<TypeElement> erasedTargetNames) {
     boolean hasError = false;
     TypeElement enclosingElement = (TypeElement) element.getEnclosingElement();
 
@@ -814,8 +812,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
   }
 
   private void parseResourceFont(Element element,
-      Map<TypeElement, BindingSet.Builder> builderMap, Set<TypeElement> erasedTargetNames,
-      boolean useAndroidX) {
+      Map<TypeElement, BindingSet.Builder> builderMap, Set<TypeElement> erasedTargetNames) {
     boolean hasError = false;
     TypeElement enclosingElement = (TypeElement) element.getEnclosingElement();
 
