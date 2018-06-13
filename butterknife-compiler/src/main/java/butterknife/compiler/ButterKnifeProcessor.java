@@ -120,6 +120,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
   private int sdk = 1;
   private boolean debuggable = true;
+  private boolean useAndroidX = false;
 
   private final RScanner rScanner = new RScanner();
 
@@ -139,6 +140,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     }
 
     debuggable = !"false".equals(env.getOptions().get(OPTION_DEBUGGABLE));
+    useAndroidX = hasAndroidX();
 
     typeUtils = env.getTypeUtils();
     filer = env.getFiler();
@@ -202,7 +204,6 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
   private Map<TypeElement, BindingSet> findAndParseTargets(RoundEnvironment env) {
     Map<TypeElement, BindingSet.Builder> builderMap = new LinkedHashMap<>();
     Set<TypeElement> erasedTargetNames = new LinkedHashSet<>();
-    boolean useAndroidX = hasAndroidX();
 
     // Process each @BindAnim element.
     for (Element element : env.getElementsAnnotatedWith(BindAnim.class)) {
