@@ -89,10 +89,8 @@ final class BindingSet {
   }
 
   JavaFile brewJava(int sdk, boolean debuggable, boolean useAndroidX) {
-    return JavaFile.builder(bindingClassName.packageName(), createType(
-        sdk,
-        debuggable,
-        useAndroidX))
+    TypeSpec bindingConfiguration = createType(sdk, debuggable, useAndroidX);
+    return JavaFile.builder(bindingClassName.packageName(), bindingConfiguration)
         .addFileComment("Generated code from Butter Knife. Do not modify!")
         .build();
   }
