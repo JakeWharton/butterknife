@@ -44,14 +44,20 @@ final class BindingSet {
   private static final ClassName RESOURCES = ClassName.get("android.content.res", "Resources");
   private static final ClassName UI_THREAD =
       ClassName.get("android.support.annotation", "UiThread");
+  private static final ClassName UI_THREAD_ANDROIDX =
+      ClassName.get("androidx.annotation", "UiThread");
   private static final ClassName CALL_SUPER =
       ClassName.get("android.support.annotation", "CallSuper");
+  private static final ClassName CALL_SUPER_ANDROIDX =
+      ClassName.get("androidx.annotation", "CallSuper");
   private static final ClassName SUPPRESS_LINT =
       ClassName.get("android.annotation", "SuppressLint");
   private static final ClassName UNBINDER = ClassName.get("butterknife", "Unbinder");
   static final ClassName BITMAP_FACTORY = ClassName.get("android.graphics", "BitmapFactory");
   static final ClassName CONTEXT_COMPAT =
       ClassName.get("android.support.v4.content", "ContextCompat");
+  static final ClassName CONTEXT_COMPAT_ANDROIDX =
+      ClassName.get("androidx.core.content", "ContextCompat");
   static final ClassName ANIMATION_UTILS =
           ClassName.get("android.view.animation", "AnimationUtils");
 
@@ -82,13 +88,14 @@ final class BindingSet {
     this.parentBinding = parentBinding;
   }
 
-  JavaFile brewJava(int sdk, boolean debuggable) {
-    return JavaFile.builder(bindingClassName.packageName(), createType(sdk, debuggable))
+  JavaFile brewJava(int sdk, boolean debuggable, boolean useAndroidX) {
+    TypeSpec bindingConfiguration = createType(sdk, debuggable, useAndroidX);
+    return JavaFile.builder(bindingClassName.packageName(), bindingConfiguration)
         .addFileComment("Generated code from Butter Knife. Do not modify!")
         .build();
   }
 
-  private TypeSpec createType(int sdk, boolean debuggable) {
+  private TypeSpec createType(int sdk, boolean debuggable, boolean useAndroidX) {
     TypeSpec.Builder result = TypeSpec.classBuilder(bindingClassName.simpleName())
         .addModifiers(PUBLIC);
     if (isFinal) {
@@ -106,32 +113,32 @@ final class BindingSet {
     }
 
     if (isView) {
-      result.addMethod(createBindingConstructorForView());
+      result.addMethod(createBindingConstructorForView(useAndroidX));
     } else if (isActivity) {
-      result.addMethod(createBindingConstructorForActivity());
+      result.addMethod(createBindingConstructorForActivity(useAndroidX));
     } else if (isDialog) {
-      result.addMethod(createBindingConstructorForDialog());
+      result.addMethod(createBindingConstructorForDialog(useAndroidX));
     }
     if (!constructorNeedsView()) {
       // Add a delegating constructor with a target type + view signature for reflective use.
-      result.addMethod(createBindingViewDelegateConstructor());
+      result.addMethod(createBindingViewDelegateConstructor(useAndroidX));
     }
-    result.addMethod(createBindingConstructor(sdk, debuggable));
+    result.addMethod(createBindingConstructor(sdk, debuggable, useAndroidX));
 
     if (hasViewBindings() || parentBinding == null) {
-      result.addMethod(createBindingUnbindMethod(result));
+      result.addMethod(createBindingUnbindMethod(result, useAndroidX));
     }
 
     return result.build();
   }
 
-  private MethodSpec createBindingViewDelegateConstructor() {
+  private MethodSpec createBindingViewDelegateConstructor(boolean useAndroidX) {
     return MethodSpec.constructorBuilder()
         .addJavadoc("@deprecated Use {@link #$T($T, $T)} for direct creation.\n    "
                 + "Only present for runtime invocation through {@code ButterKnife.bind()}.\n",
             bindingClassName, targetTypeName, CONTEXT)
         .addAnnotation(Deprecated.class)
-        .addAnnotation(UI_THREAD)
+        .addAnnotation(useAndroidX ? UI_THREAD_ANDROIDX : UI_THREAD)
         .addModifiers(PUBLIC)
         .addParameter(targetTypeName, "target")
         .addParameter(VIEW, "source")
@@ -139,9 +146,9 @@ final class BindingSet {
         .build();
   }
 
-  private MethodSpec createBindingConstructorForView() {
+  private MethodSpec createBindingConstructorForView(boolean useAndroidX) {
     MethodSpec.Builder builder = MethodSpec.constructorBuilder()
-        .addAnnotation(UI_THREAD)
+        .addAnnotation(useAndroidX ? UI_THREAD_ANDROIDX : UI_THREAD)
         .addModifiers(PUBLIC)
         .addParameter(targetTypeName, "target");
     if (constructorNeedsView()) {
@@ -152,9 +159,9 @@ final class BindingSet {
     return builder.build();
   }
 
-  private MethodSpec createBindingConstructorForActivity() {
+  private MethodSpec createBindingConstructorForActivity(boolean useAndroidX) {
     MethodSpec.Builder builder = MethodSpec.constructorBuilder()
-        .addAnnotation(UI_THREAD)
+        .addAnnotation(useAndroidX ? UI_THREAD_ANDROIDX : UI_THREAD)
         .addModifiers(PUBLIC)
         .addParameter(targetTypeName, "target");
     if (constructorNeedsView()) {
@@ -165,9 +172,9 @@ final class BindingSet {
     return builder.build();
   }
 
-  private MethodSpec createBindingConstructorForDialog() {
+  private MethodSpec createBindingConstructorForDialog(boolean useAndroidX) {
     MethodSpec.Builder builder = MethodSpec.constructorBuilder()
-        .addAnnotation(UI_THREAD)
+        .addAnnotation(useAndroidX ? UI_THREAD_ANDROIDX : UI_THREAD)
         .addModifiers(PUBLIC)
         .addParameter(targetTypeName, "target");
     if (constructorNeedsView()) {
@@ -178,9 +185,9 @@ final class BindingSet {
     return builder.build();
   }
 
-  private MethodSpec createBindingConstructor(int sdk, boolean debuggable) {
+  private MethodSpec createBindingConstructor(int sdk, boolean debuggable, boolean useAndroidX) {
     MethodSpec.Builder constructor = MethodSpec.constructorBuilder()
-        .addAnnotation(UI_THREAD)
+        .addAnnotation(useAndroidX ? UI_THREAD_ANDROIDX : UI_THREAD)
         .addModifiers(PUBLIC);
 
     if (hasMethodBindings()) {
@@ -255,12 +262,12 @@ final class BindingSet {
     return constructor.build();
   }
 
-  private MethodSpec createBindingUnbindMethod(TypeSpec.Builder bindingClass) {
+  private MethodSpec createBindingUnbindMethod(TypeSpec.Builder bindingClass, boolean useAndroidX) {
     MethodSpec.Builder result = MethodSpec.methodBuilder("unbind")
         .addAnnotation(Override.class)
         .addModifiers(PUBLIC);
     if (!isFinal && parentBinding == null) {
-      result.addAnnotation(CALL_SUPER);
+      result.addAnnotation(useAndroidX ? CALL_SUPER_ANDROIDX : CALL_SUPER);
     }
 
     if (hasTargetField()) {
