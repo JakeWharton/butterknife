@@ -669,10 +669,17 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     int id = element.getAnnotation(BindColor.class).value();
     Id resourceId = elementToId(element, BindColor.class, id);
     BindingSet.Builder builder = getOrCreateBindingBuilder(builderMap, enclosingElement);
-    builder.addResource(new FieldResourceBinding(resourceId, name, isColorStateList ? (useAndroidX
+
+    FieldResourceBinding.Type colorStateList = useAndroidX
         ? FieldResourceBinding.Type.COLOR_STATE_LIST_ANDROIDX
-        : FieldResourceBinding.Type.COLOR_STATE_LIST) : (useAndroidX
-        ? FieldResourceBinding.Type.COLOR_ANDROIDX : FieldResourceBinding.Type.COLOR)));
+        : FieldResourceBinding.Type.COLOR_STATE_LIST;
+    FieldResourceBinding.Type color = useAndroidX
+        ? FieldResourceBinding.Type.COLOR_ANDROIDX
+        : FieldResourceBinding.Type.COLOR;
+    builder.addResource(new FieldResourceBinding(
+        resourceId,
+        name,
+        isColorStateList ? colorStateList : color));
 
     erasedTargetNames.add(enclosingElement);
   }
