@@ -12,6 +12,7 @@ import org.gradle.api.DomainObjectSet
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.ExtensionContainer
+import org.gradle.api.tasks.PathSensitivity
 import java.io.File
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.reflect.KClass
@@ -58,7 +59,7 @@ class ButterKnifePlugin : Plugin<Project> {
           "generated/source/r2/${variant.dirName}")
 
       val task = project.tasks.create("generate${variant.name.capitalize()}R2")
-      task.outputs.dir(outputDir)
+      task.outputs.dir(outputDir).withPropertyName("output").cacheIf { true }
       variant.registerJavaGeneratingTask(task, outputDir)
 
       val rPackage = getPackageName(variant)
@@ -74,7 +75,7 @@ class ButterKnifePlugin : Plugin<Project> {
           val rFile = processResources.sourceOutputDir.resolve(pathToR).resolve("R.java")
 
           task.apply {
-            inputs.file(rFile)
+            inputs.file(rFile).withPathSensitivity(PathSensitivity.RELATIVE)
 
             doLast {
               FinalRClassBuilder.brewJava(rFile, outputDir, rPackage, "R2")
@@ -86,6 +87,6 @@ class ButterKnifePlugin : Plugin<Project> {
   }
 
   private operator fun <T : Any> ExtensionContainer.get(type: KClass<T>): T {
-    return getByType(type.java)!!
+    return getByType(type.java)
   }
 }
