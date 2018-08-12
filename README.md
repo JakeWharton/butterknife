@@ -52,7 +52,18 @@ If you are using Kotlin, replace `annotationProcessor` with `kapt`.
 
 Snapshots of the development version are available in [Sonatype's `snapshots` repository][snap].
 
+```groovy
+dependencies {
+  implementation 'com.jakewharton:butterknife:9.0.0-SNAPSHOT'
+  annotationProcessor 'com.jakewharton:butterknife-compiler:9.0.0-SNAPSHOT'
+}
+```
 
+```groovy
+allprojects {
+  maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
+}
+```
 
 Library projects
 --------------------
@@ -66,6 +77,19 @@ buildscript {
    }
   dependencies {
     classpath 'com.jakewharton:butterknife-gradle-plugin:8.8.1'
+  }
+}
+```
+
+Snapshots of the development version are available in [Sonatype's `snapshots` repository][snap].
+
+```groovy
+buildscript {
+  repositories {
+    maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
+   }
+  dependencies {
+    classpath 'com.jakewharton:butterknife-gradle-plugin:9.0.0-SNAPSHOT'
   }
 }
 ```
