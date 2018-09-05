@@ -225,9 +225,10 @@ public final class ButterKnife {
       return null;
     }
     try {
-      Class<?> bindingClass = cls.getClassLoader().loadClass(clsName + "_ViewBinding");
-      //noinspection unchecked
-      bindingCtor = (Constructor<? extends Unbinder>) bindingClass.getConstructor(cls, View.class);
+      @SuppressWarnings("unchecked")
+      Class<Unbinder> bindingClass = (Class<Unbinder>)
+              cls.getClassLoader().loadClass(clsName + "_ViewBinding");
+      bindingCtor = bindingClass.getConstructor(cls, View.class);
       if (debug) Log.d(TAG, "HIT: Loaded binding class and constructor.");
     } catch (ClassNotFoundException e) {
       if (debug) Log.d(TAG, "Not found. Trying superclass " + cls.getSuperclass().getName());

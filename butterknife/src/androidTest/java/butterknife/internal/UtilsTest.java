@@ -38,7 +38,7 @@ public final class UtilsTest {
       Utils.findRequiredView(view, android.R.id.button1, "yo mama");
       fail();
     } catch (IllegalStateException e) {
-      assertThat(e).hasMessage("Required view 'button1' with ID "
+      assertThat(e).hasMessageThat().isEqualTo("Required view 'button1' with ID "
           + android.R.id.button1
           + " for yo mama was not found. If this view is optional add '@Nullable' (fields) or '@Optional' (methods) annotation.");
     }
@@ -51,7 +51,7 @@ public final class UtilsTest {
       Utils.findRequiredView(view, android.R.id.button1, "yo mama");
       fail();
     } catch (IllegalStateException e) {
-      assertThat(e).hasMessage("Required view '<unavailable while editing>' "
+      assertThat(e).hasMessageThat().isEqualTo("Required view '<unavailable while editing>' "
           + "with ID " + android.R.id.button1
           + " for yo mama was not found. If this view is optional add '@Nullable' (fields) or '@Optional' (methods) annotation.");
     }
@@ -62,7 +62,7 @@ public final class UtilsTest {
       Utils.castParam("abc", "Foo", 3, "foo()", 4, Integer.class);
       fail();
     } catch (IllegalStateException ise) {
-      assertThat(ise.getMessage()).isEqualTo(
+      assertThat(ise).hasMessageThat().isEqualTo(
           "Parameter #4 of method 'Foo' was of the wrong type for parameter #5 of method 'foo()'. See cause for more info.");
     }
   }

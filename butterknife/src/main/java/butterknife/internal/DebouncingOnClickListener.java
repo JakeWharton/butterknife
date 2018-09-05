@@ -3,8 +3,8 @@ package butterknife.internal;
 import android.view.View;
 
 /**
- * A {@linkplain View.OnClickListener click listener} that debounces multiple clicks posted in the
- * same frame. A click on one button disables all buttons for that frame.
+ * A {@linkplain android.view.View.OnClickListener click listener} that debounces multiple clicks
+ * posted in the same frame. A click on one button disables all buttons for that frame.
  */
 public abstract class DebouncingOnClickListener implements View.OnClickListener {
   static boolean enabled = true;

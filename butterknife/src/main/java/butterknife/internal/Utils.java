@@ -50,11 +50,13 @@ public final class Utils {
   }
 
   @SafeVarargs
+  @SuppressWarnings("varargs")
   public static <T> T[] arrayOf(T... views) {
     return filterNull(views);
   }
 
   @SafeVarargs
+  @SuppressWarnings("varargs")
   public static <T> List<T> listOf(T... views) {
     return new ImmutableList<>(filterNull(views));
   }
@@ -71,7 +73,7 @@ public final class Utils {
     if (end == length) {
       return views;
     }
-    //noinspection unchecked
+    @SuppressWarnings("unchecked")
     T[] newViews = (T[]) Array.newInstance(views.getClass().getComponentType(), end);
     System.arraycopy(views, 0, newViews, 0, end);
     return newViews;

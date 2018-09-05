@@ -8,7 +8,7 @@ dependencies {
   implementation project(':butterknife-annotations')
   implementation deps.auto.common
   implementation deps.guava
-  api deps.javapoet
+  implementation deps.javapoet
   compileOnly deps.auto.service
   compileOnly files(org.gradle.internal.jvm.Jvm.current().getToolsJar())
 

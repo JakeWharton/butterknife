@@ -23,6 +23,7 @@ public final class BindDrawableTest {
 
   @Test public void asDrawable() {
     Target target = new Target();
+    @SuppressWarnings("deprecation")
     Drawable expected = context.getResources().getDrawable(R.drawable.circle);
 
     Unbinder unbinder = new BindDrawableTest$Target_ViewBinding(target, context);

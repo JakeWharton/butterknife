@@ -47,20 +47,29 @@ dependencies {
   testImplementation files(getRuntimeJar())
   testImplementation files(org.gradle.internal.jvm.Jvm.current().getToolsJar())
   testImplementation project(':butterknife-compiler')
+  testCompileOnly deps.javapoet
 }
 
-def getRuntimeJar() {
-  try {
-    final File javaBase = new File(System.getProperty("java.home")).getCanonicalFile();
-    File runtimeJar = new File(javaBase, "lib/rt.jar");
-    if (runtimeJar.exists()) {
-      return runtimeJar;
+project.tasks.all {
+  if (it.name =~ /AndroidTestJavaWithJavac$/) {
+    it.options.with {
+      setCompilerArgs(getCompilerArgs() + [
+              // runner-1.0.1.aar\1fdddc98585f7e7ee30d9c2c44d0ee7f\jars\classes.jar
+              // (android/support/test/InstrumentationRegistry.class):
+              // warning: [classfile] MethodParameters attribute
+              // introduced in version 52.0 class files is ignored in version 51.0 class files
+              '-Xlint:-classfile'
+      ])
     }
-    runtimeJar = new File(javaBase, "jre/lib/rt.jar");
-    return runtimeJar.exists() ? runtimeJar : null;
-  } catch (IOException e) {
-    throw new RuntimeException(e);
   }
+}
+
+static def getRuntimeJar() {
+  final javaBase = new File(System.properties.'java.home').canonicalFile
+  [ 'lib/rt.jar', 'jre/lib/rt.jar' ]
+      .collect { new File(javaBase, it) }
+      .grep { it.exists() }
+      .find()
 }
 
 apply from: rootProject.file('gradle/gradle-mvn-push.gradle')

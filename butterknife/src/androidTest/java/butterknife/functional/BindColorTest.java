@@ -19,6 +19,7 @@ public final class BindColorTest {
 
   @Test public void asInt() {
     IntTarget target = new IntTarget();
+    @SuppressWarnings("deprecation")
     int expected = context.getResources().getColor(R.color.red);
 
     Unbinder unbinder = new BindColorTest$IntTarget_ViewBinding(target, context);
@@ -34,6 +35,7 @@ public final class BindColorTest {
 
   @Test public void asColorStateList() {
     ColorStateListTarget target = new ColorStateListTarget();
+    @SuppressWarnings("deprecation")
     ColorStateList expected = context.getResources().getColorStateList(R.color.colors);
 
     Unbinder unbinder = new BindColorTest$ColorStateListTarget_ViewBinding(target, context);

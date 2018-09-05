@@ -39,7 +39,7 @@ public final class FinalRClassBuilder {
   public static void brewJava(File rFile, File outputDir, String packageName, String className, boolean useAndroidX)
       throws Exception {
     CompilationUnit compilationUnit = JavaParser.parse(rFile);
-    TypeDeclaration resourceClass = compilationUnit.getTypes().get(0);
+    TypeDeclaration<?> resourceClass = compilationUnit.getTypes().get(0);
 
     TypeSpec.Builder result =
         TypeSpec.classBuilder(className).addModifiers(PUBLIC).addModifiers(FINAL);
@@ -66,7 +66,7 @@ public final class FinalRClassBuilder {
     String type = node.getNameAsString();
     TypeSpec.Builder resourceType = TypeSpec.classBuilder(type).addModifiers(PUBLIC, STATIC, FINAL);
 
-    for (BodyDeclaration field : node.getMembers()) {
+    for (BodyDeclaration<?> field : node.getMembers()) {
       if (field instanceof FieldDeclaration) {
         FieldDeclaration declaration = (FieldDeclaration) field;
         // Check that the field is an Int because styleable also contains Int arrays which can't be

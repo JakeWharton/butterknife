@@ -47,10 +47,12 @@ buildscript {
       'guava': 'com.google.guava:guava:24.0-jre',
       'release': [
           'runtime': "com.jakewharton:butterknife:${versions.release}",
-          'compiler': "com.jakewharton:butterknife-compiler:${versions.release}"
+          'compiler': "com.jakewharton:butterknife-compiler:${versions.release}",
+          'gradlePlugin': "com.jakewharton:butterknife-gradle-plugin:${versions.release}"
       ],
       'kotlin': [
           'stdLibJre8': "org.jetbrains.kotlin:kotlin-stdlib-jre8:${versions.kotlin}",
+          'reflect': "org.jetbrains.kotlin:kotlin-reflect:${versions.kotlin}"
       ]
   ]
 
@@ -77,7 +79,7 @@ subprojects { project ->
     jcenter()
   }
 
-  if (!project.name.equals('butterknife-gradle-plugin')) {
+  if (project.name != 'butterknife-gradle-plugin') {
     apply plugin: 'checkstyle'
 
     task checkstyle(type: Checkstyle) {
@@ -94,6 +96,28 @@ subprojects { project ->
       if (project.tasks.findByName('check')) {
         check.dependsOn('checkstyle')
       }
+    }
+  }
+
+  project.tasks.withType(JavaCompile) {
+    it.options.with {
+      setCompilerArgs(getCompilerArgs() + [
+        // strict compilation, treat all warnings as errors
+        '-Werror',
+        // enable all warnings
+        '-Xlint:all',
+        // hide warning: [options] bootstrap class path not set in conjunction with -source 1.7
+        '-Xlint:-options',
+        // hide warning: No processor claimed any of these annotations: android.support.annotation.Nullable
+        '-Xlint:-processing'
+      ])
+    }
+  }
+
+  project.tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile) {
+    kotlinOptions {
+      verbose = true
+      allWarningsAsErrors = true
     }
   }
 }
