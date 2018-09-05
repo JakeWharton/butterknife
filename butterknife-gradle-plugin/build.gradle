@@ -24,6 +24,7 @@ dependencies {
   testImplementation deps.junit
   testImplementation deps.truth
   testImplementation deps.support.annotations
+  testImplementation deps.androidx.annotations
   testImplementation deps.compiletesting
 }
 
