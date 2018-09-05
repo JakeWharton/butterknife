@@ -25,6 +25,9 @@ buildscript {
               'runner': 'com.android.support.test:runner:1.0.1',
           ],
       ],
+      'androidx': [
+          'annotations': "androidx.annotation:annotation:1.0.0-rc02",
+      ],
       'lint': [
           'core': "com.android.tools.lint:lint:${versions.androidTools}",
           'api': "com.android.tools.lint:lint-api:${versions.androidTools}",

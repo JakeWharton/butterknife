@@ -12,7 +12,7 @@ import org.junit.runners.Parameterized
 import org.junit.runners.Parameterized.Parameters
 
 @RunWith(Parameterized::class)
-class FinalRClassBuilderTest(val rFile: String, val r2File: String) {
+class FinalRClassBuilderTest(val rFile: String, val r2File: String, val useAndroidX: Boolean) {
   @Rule @JvmField val tempFolder = TemporaryFolder()
 
   @Test fun brewJava() {
@@ -23,10 +23,13 @@ class FinalRClassBuilderTest(val rFile: String, val r2File: String) {
     }
 
     val outputDir = tempFolder.newFolder()
-    FinalRClassBuilder.brewJava(rFile, outputDir, packageName, "R2")
+    FinalRClassBuilder.brewJava(rFile, outputDir, packageName, "R2", useAndroidX)
 
     val actual = outputDir.resolve("com/butterknife/example/R2.java").readText()
-    val expected = javaClass.getResource("/fixtures/$r2File.java").readText()
+    var expected = javaClass.getResource("/fixtures/$r2File.java").readText()
+    if (useAndroidX) {
+      expected = expected.replace("import android.support.", "import androidx.")
+    }
 
     assertEquals(expected.trim(), actual.trim())
 
@@ -36,8 +39,10 @@ class FinalRClassBuilderTest(val rFile: String, val r2File: String) {
 
   companion object {
     @JvmStatic @Parameters fun data() = listOf(
-        arrayOf<Any>("R", "R2"),
-        arrayOf<Any>("RFinal", "R2")
+        arrayOf<Any>("R", "R2", false),
+        arrayOf<Any>("RFinal", "R2", false),
+        arrayOf<Any>("R", "R2", true),
+        arrayOf<Any>("RFinal", "R2", true)
     )
   }
 }
