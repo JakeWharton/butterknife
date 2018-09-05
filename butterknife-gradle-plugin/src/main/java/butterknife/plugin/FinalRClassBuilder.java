@@ -103,7 +103,7 @@ public final class FinalRClassBuilder {
   }
 
   private static ClassName getSupportAnnotationClass(String type, boolean useAndroidX) {
-    final String supportPackage = useAndroidX ? ANDROIDX_ANNOTATION_PACKAGE : SUPPORT_ANNOTATION_PACKAGE;
+    String supportPackage = useAndroidX ? ANDROIDX_ANNOTATION_PACKAGE : SUPPORT_ANNOTATION_PACKAGE;
     return ClassName.get(supportPackage, capitalize(type) + "Res");
   }
 
