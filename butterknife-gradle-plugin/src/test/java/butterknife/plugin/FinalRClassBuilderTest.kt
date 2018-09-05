@@ -28,7 +28,7 @@ class FinalRClassBuilderTest(val rFile: String, val r2File: String, val useAndro
     val actual = outputDir.resolve("com/butterknife/example/R2.java").readText()
     var expected = javaClass.getResource("/fixtures/$r2File.java").readText()
     if (useAndroidX) {
-        expected = expected.replace("import android.support.", "import androidx.")
+      expected = expected.replace("import android.support.", "import androidx.")
     }
 
     assertEquals(expected.trim(), actual.trim())
