@@ -2,25 +2,25 @@ package butterknife.functional;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
-import butterknife.BindInt;
+import butterknife.BindBool;
 import butterknife.Unbinder;
-import butterknife.test.R;
+import butterknife.runtime.test.R;
 import org.junit.Test;
 
 import static com.google.common.truth.Truth.assertThat;
 
-public final class BindIntTest {
+public final class BindBoolTest {
   private final Context context = InstrumentationRegistry.getContext();
 
   static class Target {
-    @BindInt(R.integer.twelve) int actual;
+    @BindBool(R.bool.just_true) boolean actual;
   }
 
-  @Test public void asInt() {
+  @Test public void asBoolean() {
     Target target = new Target();
-    int expected = context.getResources().getInteger(R.integer.twelve);
+    boolean expected = context.getResources().getBoolean(R.bool.just_true);
 
-    Unbinder unbinder = new BindIntTest$Target_ViewBinding(target, context);
+    Unbinder unbinder = new BindBoolTest$Target_ViewBinding(target, context);
     assertThat(target.actual).isEqualTo(expected);
 
     unbinder.unbind();

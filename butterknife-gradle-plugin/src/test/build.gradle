@@ -51,6 +51,7 @@ android {
 
     sourceSets {
         main.java.srcDirs += '../../../../../butterknife/src/main/java'
+        main.java.srcDirs += '../../../../../butterknife-runtime/src/main/java'
         main.java.srcDirs += '../../../../../butterknife-annotations/src/main/java'
     }
 
