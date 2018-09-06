@@ -1,7 +1,6 @@
 package com.example.butterknife.library;
 
 import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.view.View;
@@ -16,11 +15,12 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 import butterknife.OnItemClick;
 import butterknife.OnLongClick;
+import com.example.butterknife.baselibrary.BaseActivity;
 import java.util.List;
 
 import static android.widget.Toast.LENGTH_SHORT;
 
-public class SimpleActivity extends Activity {
+public class SimpleActivity extends BaseActivity {
   private static final ButterKnife.Action<View> ALPHA_FADE = new ButterKnife.Action<View>() {
     @Override public void apply(@NonNull View view, int index) {
       AlphaAnimation alphaAnimation = new AlphaAnimation(0, 1);
@@ -62,10 +62,10 @@ public class SimpleActivity extends Activity {
     ButterKnife.bind(this);
 
     // Contrived code to use the bound fields.
-    title.setText("Butter Knife");
-    subtitle.setText("Field and method binding for Android views.");
-    footer.setText("by Jake Wharton");
-    hello.setText("Say Hello");
+    title.setText(butterKnife);
+    subtitle.setText(fieldMethod);
+    footer.setText(byJakeWharton);
+    hello.setText(sayHello);
 
     adapter = new SimpleAdapter(this);
     listOfThings.setAdapter(adapter);

@@ -6,6 +6,7 @@ include ':butterknife-lint'
 include ':butterknife-integration-test'
 
 //include ':sample:app'
+//include ':sample:base-library'
 //include ':sample:library'
 
 rootProject.name = 'butterknife-parent'
