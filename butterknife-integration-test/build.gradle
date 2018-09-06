@@ -29,9 +29,22 @@ android {
   }
 
   buildTypes {
-    release {
+    debug {
       minifyEnabled true
-      proguardFile getDefaultProguardFile('proguard-android.txt')
+      proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard.pro'
+    }
+  }
+
+  productFlavors {
+    flavorDimensions 'runtime'
+
+    reflect {
+      dimension 'runtime'
+      applicationIdSuffix '.reflect'
+    }
+    codegen {
+      dimension 'runtime'
+      applicationIdSuffix '.codegen'
     }
   }
 
@@ -43,8 +56,10 @@ android {
 }
 
 dependencies {
-  implementation project(':butterknife')
-  annotationProcessor project(':butterknife-compiler')
+  reflectImplementation project(':butterknife-reflect')
+
+  codegenImplementation project(':butterknife')
+  codegenAnnotationProcessor project(':butterknife-compiler')
 
   testImplementation deps.junit
   testImplementation deps.truth
