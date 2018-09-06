@@ -21,6 +21,7 @@ android {
     textOutput "stdout"
     checkAllWarnings true
     warningsAsErrors true
+    disable 'UnknownNullness'
     showAll true
     explainIssues true
     // We run a full lint analysis as build part in CI, so skip vital checks for assemble tasks.
