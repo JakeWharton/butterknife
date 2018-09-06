@@ -50,16 +50,7 @@ public final class Utils {
   }
 
   @SafeVarargs
-  public static <T> T[] arrayOf(T... views) {
-    return filterNull(views);
-  }
-
-  @SafeVarargs
-  public static <T> List<T> listOf(T... views) {
-    return new ImmutableList<>(filterNull(views));
-  }
-
-  private static <T> T[] filterNull(T[] views) {
+  public static <T> T[] arrayFilteringNull(T... views) {
     int end = 0;
     int length = views.length;
     for (int i = 0; i < length; i++) {
@@ -75,6 +66,11 @@ public final class Utils {
     T[] newViews = (T[]) Array.newInstance(views.getClass().getComponentType(), end);
     System.arraycopy(views, 0, newViews, 0, end);
     return newViews;
+  }
+
+  @SafeVarargs
+  public static <T> List<T> listFilteringNull(T... views) {
+    return new ImmutableList<>(arrayFilteringNull(views));
   }
 
   public static <T> T findOptionalViewAsType(View source, @IdRes int id, String who,
