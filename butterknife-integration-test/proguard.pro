@@ -1,0 +1,2 @@
+-dontoptimize
+-dontobfuscate

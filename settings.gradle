@@ -4,6 +4,7 @@ include ':butterknife-compiler'
 include ':butterknife-gradle-plugin'
 include ':butterknife-integration-test'
 include ':butterknife-lint'
+include ':butterknife-reflect'
 include ':butterknife-runtime'
 
 //include ':sample:app'
