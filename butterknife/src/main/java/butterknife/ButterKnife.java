@@ -97,7 +97,7 @@ public final class ButterKnife {
   @NonNull @UiThread
   public static Unbinder bind(@NonNull Activity target) {
     View sourceView = target.getWindow().getDecorView();
-    return createBinding(target, sourceView);
+    return bind(target, sourceView);
   }
 
   /**
@@ -108,7 +108,7 @@ public final class ButterKnife {
    */
   @NonNull @UiThread
   public static Unbinder bind(@NonNull View target) {
-    return createBinding(target, target);
+    return bind(target, target);
   }
 
   /**
@@ -120,7 +120,7 @@ public final class ButterKnife {
   @NonNull @UiThread
   public static Unbinder bind(@NonNull Dialog target) {
     View sourceView = target.getWindow().getDecorView();
-    return createBinding(target, sourceView);
+    return bind(target, sourceView);
   }
 
   /**
@@ -133,19 +133,7 @@ public final class ButterKnife {
   @NonNull @UiThread
   public static Unbinder bind(@NonNull Object target, @NonNull Activity source) {
     View sourceView = source.getWindow().getDecorView();
-    return createBinding(target, sourceView);
-  }
-
-  /**
-   * BindView annotated fields and methods in the specified {@code target} using the {@code source}
-   * {@link View} as the view root.
-   *
-   * @param target Target class for view binding.
-   * @param source View root on which IDs will be looked up.
-   */
-  @NonNull @UiThread
-  public static Unbinder bind(@NonNull Object target, @NonNull View source) {
-    return createBinding(target, source);
+    return bind(target, sourceView);
   }
 
   /**
@@ -158,10 +146,18 @@ public final class ButterKnife {
   @NonNull @UiThread
   public static Unbinder bind(@NonNull Object target, @NonNull Dialog source) {
     View sourceView = source.getWindow().getDecorView();
-    return createBinding(target, sourceView);
+    return bind(target, sourceView);
   }
 
-  private static Unbinder createBinding(@NonNull Object target, @NonNull View source) {
+  /**
+   * BindView annotated fields and methods in the specified {@code target} using the {@code source}
+   * {@link View} as the view root.
+   *
+   * @param target Target class for view binding.
+   * @param source View root on which IDs will be looked up.
+   */
+  @NonNull @UiThread
+  public static Unbinder bind(@NonNull Object target, @NonNull View source) {
     Class<?> targetClass = target.getClass();
     if (debug) Log.d(TAG, "Looking up binding for " + targetClass.getName());
     Constructor<? extends Unbinder> constructor = findBindingConstructorForClass(targetClass);
