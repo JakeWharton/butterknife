@@ -4,7 +4,7 @@ import android.content.Context;
 import android.support.test.InstrumentationRegistry;
 import butterknife.BindDimen;
 import butterknife.Unbinder;
-import butterknife.test.R;
+import butterknife.runtime.test.R;
 import org.junit.Test;
 
 import static com.google.common.truth.Truth.assertThat;

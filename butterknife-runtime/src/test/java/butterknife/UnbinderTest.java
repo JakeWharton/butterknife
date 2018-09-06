@@ -193,11 +193,9 @@ public class UnbinderTest {
         + "import android.support.annotation.ColorInt;\n"
         + "import android.view.View;\n"
         + "import butterknife.BindColor;\n"
-        + "import butterknife.ButterKnife;\n"
         + "public class A {\n"
         + "  @BindColor(android.R.color.black) @ColorInt int blackColor;\n"
         + "  public A(View view) {\n"
-        + "    ButterKnife.bind(this, view);\n"
         + "  }\n"
         + "}\n");
 
@@ -206,12 +204,10 @@ public class UnbinderTest {
         + "import android.support.annotation.ColorInt;\n"
         + "import android.view.View;\n"
         + "import butterknife.BindColor;\n"
-        + "import butterknife.ButterKnife;\n"
         + "public class B extends A {\n"
         + "  @BindColor(android.R.color.white) @ColorInt int whiteColor;\n"
         + "  public B(View view) {\n"
         + "    super(view);\n"
-        + "    ButterKnife.bind(this, view);\n"
         + "  }\n"
         + "}\n");
 
@@ -221,13 +217,11 @@ public class UnbinderTest {
         + "import android.view.View;\n"
         + "import butterknife.BindView;\n"
         + "import butterknife.BindColor;\n"
-        + "import butterknife.ButterKnife;\n"
         + "public class C extends B {\n"
         + "  @BindColor(android.R.color.transparent) @ColorInt int transparentColor;\n"
         + "  @BindView(android.R.id.button1) View button1;\n"
         + "  public C(View view) {\n"
         + "    super(view);\n"
-        + "    ButterKnife.bind(this, view);\n"
         + "  }\n"
         + "}\n");
 
@@ -236,12 +230,10 @@ public class UnbinderTest {
         + "import android.support.annotation.ColorInt;\n"
         + "import android.view.View;\n"
         + "import butterknife.BindColor;\n"
-        + "import butterknife.ButterKnife;\n"
         + "public class D extends C {\n"
         + "  @BindColor(android.R.color.darker_gray) @ColorInt int grayColor;\n"
         + "  public D(View view) {\n"
         + "    super(view);\n"
-        + "    ButterKnife.bind(this, view);\n"
         + "  }\n"
         + "}\n");
 
@@ -250,12 +242,10 @@ public class UnbinderTest {
         + "import android.support.annotation.ColorInt;\n"
         + "import android.view.View;\n"
         + "import butterknife.BindColor;\n"
-        + "import butterknife.ButterKnife;\n"
         + "public class E extends C {\n"
         + "  @BindColor(android.R.color.background_dark) @ColorInt int backgroundDarkColor;\n"
         + "  public E(View view) {\n"
         + "    super(view);\n"
-        + "    ButterKnife.bind(this, view);\n"
         + "  }\n"
         + "}\n");
 
@@ -264,12 +254,10 @@ public class UnbinderTest {
         + "import android.support.annotation.ColorInt;\n"
         + "import android.view.View;\n"
         + "import butterknife.BindColor;\n"
-        + "import butterknife.ButterKnife;\n"
         + "public class F extends D {\n"
         + "  @BindColor(android.R.color.background_light) @ColorInt int backgroundLightColor;\n"
         + "  public F(View view) {\n"
         + "    super(view);\n"
-        + "    ButterKnife.bind(this, view);\n"
         + "  }\n"
         + "}\n");
 
@@ -279,14 +267,12 @@ public class UnbinderTest {
         + "import android.view.View;\n"
         + "import butterknife.BindView;\n"
         + "import butterknife.BindColor;\n"
-        + "import butterknife.ButterKnife;\n"
         + "import butterknife.OnClick;\n"
         + "public class G extends E {\n"
         + "  @BindColor(android.R.color.darker_gray) @ColorInt int grayColor;\n"
         + "  @BindView(android.R.id.button2) View button2;\n"
         + "  public G(View view) {\n"
         + "    super(view);\n"
-        + "    ButterKnife.bind(this, view);\n"
         + "  }\n"
         + "  @OnClick(android.R.id.content) public void onClick() {\n"
         + "  }\n"
@@ -298,13 +284,11 @@ public class UnbinderTest {
         + "import android.view.View;\n"
         + "import butterknife.BindView;\n"
         + "import butterknife.BindColor;\n"
-        + "import butterknife.ButterKnife;\n"
         + "public class H extends G {\n"
         + "  @BindColor(android.R.color.primary_text_dark) @ColorInt int grayColor;\n"
         + "  @BindView(android.R.id.button3) View button3;\n"
         + "  public H(View view) {\n"
         + "    super(view);\n"
-        + "    ButterKnife.bind(this, view);\n"
         + "  }\n"
         + "}\n");
 

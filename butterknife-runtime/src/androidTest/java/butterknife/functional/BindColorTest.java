@@ -5,7 +5,7 @@ import android.content.res.ColorStateList;
 import android.support.test.InstrumentationRegistry;
 import butterknife.BindColor;
 import butterknife.Unbinder;
-import butterknife.test.R;
+import butterknife.runtime.test.R;
 import org.junit.Test;
 
 import static com.google.common.truth.Truth.assertThat;
