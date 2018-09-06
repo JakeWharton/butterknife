@@ -1,22 +1,17 @@
 package butterknife;
 
-import android.annotation.TargetApi;
 import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.test.InstrumentationRegistry;
-import android.support.test.filters.SdkSuppress;
 import android.util.Property;
 import android.view.View;
 import java.util.List;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 
-import static android.os.Build.VERSION_CODES.ICE_CREAM_SANDWICH;
 import static com.google.common.truth.Truth.assertThat;
 import static java.util.Arrays.asList;
 
-public class ButterKnifeTest {
+public class ViewCollectionsTest {
   private static final Property<View, Boolean> PROPERTY_ENABLED =
       new Property<View, Boolean>(Boolean.class, "enabled") {
         @Override public Boolean get(View view) {
@@ -27,18 +22,18 @@ public class ButterKnifeTest {
           view.setEnabled(enabled);
         }
       };
-  private static final ButterKnife.Setter<View, Boolean> SETTER_ENABLED =
-      new ButterKnife.Setter<View, Boolean>() {
+  private static final Setter<View, Boolean> SETTER_ENABLED =
+      new Setter<View, Boolean>() {
         @Override public void set(@NonNull View view, Boolean value, int index) {
           view.setEnabled(value);
         }
       };
-  private static final ButterKnife.Action<View> ACTION_DISABLE = new ButterKnife.Action<View>() {
+  private static final Action<View> ACTION_DISABLE = new Action<View>() {
     @Override public void apply(@NonNull View view, int index) {
       view.setEnabled(false);
     }
   };
-  private static final ButterKnife.Action<View> ACTION_ZERO_ALPHA = new ButterKnife.Action<View>() {
+  private static final Action<View> ACTION_ZERO_ALPHA = new Action<View>() {
     @Override public void apply(@NonNull View view, int index) {
       view.setAlpha(0f);
     }
@@ -46,16 +41,11 @@ public class ButterKnifeTest {
 
   private final Context context = InstrumentationRegistry.getContext();
 
-  @Before @After // Clear out cache of binders before and after each test.
-  public void resetViewsCache() {
-    ButterKnife.BINDINGS.clear();
-  }
-
   @Test public void propertyAppliedToView() {
     View view = new View(context);
     assertThat(view.isEnabled()).isTrue();
 
-    ButterKnife.apply(view, PROPERTY_ENABLED, false);
+    ViewCollections.set(view, PROPERTY_ENABLED, false);
     assertThat(view.isEnabled()).isFalse();
   }
 
@@ -68,7 +58,7 @@ public class ButterKnifeTest {
     assertThat(view3.isEnabled()).isTrue();
 
     List<View> views = asList(view1, view2, view3);
-    ButterKnife.apply(views, PROPERTY_ENABLED, false);
+    ViewCollections.set(views, PROPERTY_ENABLED, false);
 
     assertThat(view1.isEnabled()).isFalse();
     assertThat(view2.isEnabled()).isFalse();
@@ -84,7 +74,7 @@ public class ButterKnifeTest {
     assertThat(view3.isEnabled()).isTrue();
 
     View[] views = new View[] { view1, view2, view3 };
-    ButterKnife.apply(views, PROPERTY_ENABLED, false);
+    ViewCollections.set(views, PROPERTY_ENABLED, false);
 
     assertThat(view1.isEnabled()).isFalse();
     assertThat(view2.isEnabled()).isFalse();
@@ -95,7 +85,7 @@ public class ButterKnifeTest {
     View view = new View(context);
     assertThat(view.isEnabled()).isTrue();
 
-    ButterKnife.apply(view, ACTION_DISABLE);
+    ViewCollections.run(view, ACTION_DISABLE);
 
     assertThat(view.isEnabled()).isFalse();
   }
@@ -105,7 +95,7 @@ public class ButterKnifeTest {
     assertThat(view.isEnabled()).isTrue();
     assertThat(view.getAlpha()).isEqualTo(1f);
 
-    ButterKnife.apply(view, ACTION_DISABLE, ACTION_ZERO_ALPHA);
+    ViewCollections.run(view, ACTION_DISABLE, ACTION_ZERO_ALPHA);
     assertThat(view.isEnabled()).isFalse();
     assertThat(view.getAlpha()).isEqualTo(0f);
   }
@@ -119,7 +109,7 @@ public class ButterKnifeTest {
     assertThat(view3.isEnabled()).isTrue();
 
     List<View> views = asList(view1, view2, view3);
-    ButterKnife.apply(views, ACTION_DISABLE);
+    ViewCollections.run(views, ACTION_DISABLE);
 
     assertThat(view1.isEnabled()).isFalse();
     assertThat(view2.isEnabled()).isFalse();
@@ -135,7 +125,7 @@ public class ButterKnifeTest {
     assertThat(view3.isEnabled()).isTrue();
 
     View[] views = new View[] { view1, view2, view3 };
-    ButterKnife.apply(views, ACTION_DISABLE);
+    ViewCollections.run(views, ACTION_DISABLE);
 
     assertThat(view1.isEnabled()).isFalse();
     assertThat(view2.isEnabled()).isFalse();
@@ -154,7 +144,7 @@ public class ButterKnifeTest {
     assertThat(view3.getAlpha()).isEqualTo(1f);
 
     List<View> views = asList(view1, view2, view3);
-    ButterKnife.apply(views, ACTION_DISABLE, ACTION_ZERO_ALPHA);
+    ViewCollections.run(views, ACTION_DISABLE, ACTION_ZERO_ALPHA);
 
     assertThat(view1.isEnabled()).isFalse();
     assertThat(view2.isEnabled()).isFalse();
@@ -176,7 +166,7 @@ public class ButterKnifeTest {
     assertThat(view3.getAlpha()).isEqualTo(1f);
 
     View[] views = new View[] { view1, view2, view3 };
-    ButterKnife.apply(views, ACTION_DISABLE, ACTION_ZERO_ALPHA);
+    ViewCollections.run(views, ACTION_DISABLE, ACTION_ZERO_ALPHA);
 
     assertThat(view1.isEnabled()).isFalse();
     assertThat(view2.isEnabled()).isFalse();
@@ -190,7 +180,7 @@ public class ButterKnifeTest {
     View view = new View(context);
     assertThat(view.isEnabled()).isTrue();
 
-    ButterKnife.apply(view, SETTER_ENABLED, false);
+    ViewCollections.set(view, SETTER_ENABLED, false);
 
     assertThat(view.isEnabled()).isFalse();
   }
@@ -204,7 +194,7 @@ public class ButterKnifeTest {
     assertThat(view3.isEnabled()).isTrue();
 
     List<View> views = asList(view1, view2, view3);
-    ButterKnife.apply(views, SETTER_ENABLED, false);
+    ViewCollections.set(views, SETTER_ENABLED, false);
 
     assertThat(view1.isEnabled()).isFalse();
     assertThat(view2.isEnabled()).isFalse();
@@ -220,26 +210,10 @@ public class ButterKnifeTest {
     assertThat(view3.isEnabled()).isTrue();
 
     View[] views = new View[] { view1, view2, view3 };
-    ButterKnife.apply(views, SETTER_ENABLED, false);
+    ViewCollections.set(views, SETTER_ENABLED, false);
 
     assertThat(view1.isEnabled()).isFalse();
     assertThat(view2.isEnabled()).isFalse();
     assertThat(view3.isEnabled()).isFalse();
-  }
-
-  @Test public void zeroBindingsBindDoesNotThrowException() {
-    class Example {
-    }
-
-    Example example = new Example();
-    assertThat(ButterKnife.bind(example, (View) null)).isSameAs(Unbinder.EMPTY);
-  }
-
-  @Test public void bindingKnownPackagesIsNoOp() {
-    View view = new View(context);
-    ButterKnife.bind(view);
-    assertThat(ButterKnife.BINDINGS).isEmpty();
-    ButterKnife.bind(new Object(), view);
-    assertThat(ButterKnife.BINDINGS).isEmpty();
   }
 }
