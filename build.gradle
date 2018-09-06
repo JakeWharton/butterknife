@@ -5,10 +5,10 @@ buildscript {
       'minSdk': 14,
       'compileSdk': 27,
 
-      'supportLibrary': '27.0.2',
-      'androidPlugin': '3.1.0-alpha09',
-      'androidTools': '26.1.0-alpha09',
-      'kotlin': '1.2.21',
+      'supportLibrary': '27.1.1',
+      'androidPlugin': '3.2.0-rc02',
+      'androidTools': '26.2.0-rc02',
+      'kotlin': '1.2.61',
 
       'release': '8.8.1',
   ]
@@ -37,7 +37,7 @@ buildscript {
       javapoet: 'com.squareup:javapoet:1.10.0',
       javaparser: 'com.github.javaparser:javaparser-core:3.5.14',
       junit: 'junit:junit:4.12',
-      truth: 'com.google.truth:truth:0.39',
+      truth: 'com.google.truth:truth:0.42',
       robolectric: 'org.robolectric:robolectric:3.7.1',
       compiletesting: 'com.google.testing.compile:compile-testing:0.15',
       'auto': [
@@ -50,7 +50,7 @@ buildscript {
           'compiler': "com.jakewharton:butterknife-compiler:${versions.release}"
       ],
       'kotlin': [
-          'stdLibJre8': "org.jetbrains.kotlin:kotlin-stdlib-jre8:${versions.kotlin}",
+          'stdLibJdk8': "org.jetbrains.kotlin:kotlin-stdlib-jdk8:${versions.kotlin}",
       ]
   ]
 
