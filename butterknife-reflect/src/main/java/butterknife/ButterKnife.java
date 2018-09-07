@@ -5,13 +5,19 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.res.ColorStateList;
 import android.content.res.Resources;
+import android.content.res.TypedArray;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.UiThread;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.content.res.ResourcesCompat;
 import android.util.Log;
 import android.view.View;
+import android.view.animation.Animation;
 import butterknife.internal.Constants;
 import butterknife.internal.Utils;
 import java.lang.annotation.Annotation;
@@ -137,6 +143,18 @@ public final class ButterKnife {
         unbinder = parseBindViews(target, field, source);
         if (unbinder != null) unbinders.add(unbinder);
 
+        unbinder = parseBindAnim(target, field, source);
+        if (unbinder != null) unbinders.add(unbinder);
+
+        unbinder = parseBindArray(target, field, source);
+        if (unbinder != null) unbinders.add(unbinder);
+
+        unbinder = parseBindBitmap(target, field, source);
+        if (unbinder != null) unbinders.add(unbinder);
+
+        unbinder = parseBindBool(target, field, source);
+        if (unbinder != null) unbinders.add(unbinder);
+
         unbinder = parseBindColor(target, field, source);
         if (unbinder != null) unbinders.add(unbinder);
 
@@ -144,6 +162,15 @@ public final class ButterKnife {
         if (unbinder != null) unbinders.add(unbinder);
 
         unbinder = parseBindDrawable(target, field, source);
+        if (unbinder != null) unbinders.add(unbinder);
+
+        unbinder = parseBindFloat(target, field, source);
+        if (unbinder != null) unbinders.add(unbinder);
+
+        unbinder = parseBindFont(target, field, source);
+        if (unbinder != null) unbinders.add(unbinder);
+
+        unbinder = parseBindInt(target, field, source);
         if (unbinder != null) unbinders.add(unbinder);
 
         unbinder = parseBindString(target, field, source);
@@ -194,7 +221,7 @@ public final class ButterKnife {
     } else {
       view = Utils.findOptionalViewAsType(source, id, who, viewClass);
     }
-    uncheckedSet(field, target, view);
+    trySet(field, target, view);
 
     return new FieldUnbinder(target, field);
   }
@@ -248,8 +275,107 @@ public final class ButterKnife {
       value = views;
     }
 
-    uncheckedSet(field, target, value);
+    trySet(field, target, value);
     return new FieldUnbinder(target, field);
+  }
+
+  private static @Nullable Unbinder parseBindAnim(Object target, Field field, View source) {
+    BindAnim bindAnim = field.getAnnotation(BindAnim.class);
+    if (bindAnim == null) {
+      return null;
+    }
+    validateMember(field);
+
+    int id = bindAnim.value();
+    Resources resources = source.getContext().getResources();
+
+    Object value;
+    Class<?> fieldType = field.getType();
+    if (fieldType == Animation.class) {
+      value = resources.getAnimation(id);
+    } else {
+      throw new IllegalStateException(); // TODO
+    }
+    trySet(field, target, value);
+
+    return Unbinder.EMPTY;
+  }
+
+  private static @Nullable Unbinder parseBindArray(Object target, Field field, View source) {
+    BindArray bindArray = field.getAnnotation(BindArray.class);
+    if (bindArray == null) {
+      return null;
+    }
+    validateMember(field);
+
+    int id = bindArray.value();
+    Resources resources = source.getContext().getResources();
+
+    Object value;
+    Class<?> fieldType = field.getType();
+    if (fieldType == TypedArray.class) {
+      value = resources.obtainTypedArray(id);
+    } else if (fieldType.isArray()) {
+      Class<?> componentType = fieldType.getComponentType();
+      if (componentType == String.class) {
+        value = resources.getStringArray(id);
+      } else if (componentType == int.class) {
+        value = resources.getIntArray(id);
+      } else if (componentType == CharSequence.class) {
+        value = resources.getTextArray(id);
+      } else {
+        throw new IllegalStateException(); // TODO
+      }
+    } else {
+      throw new IllegalStateException(); // TODO
+    }
+    trySet(field, target, value);
+
+    return Unbinder.EMPTY;
+  }
+
+  private static @Nullable Unbinder parseBindBitmap(Object target, Field field, View source) {
+    BindBitmap bindBitmap = field.getAnnotation(BindBitmap.class);
+    if (bindBitmap == null) {
+      return null;
+    }
+    validateMember(field);
+
+    int id = bindBitmap.value();
+    Resources resources = source.getContext().getResources();
+
+    Object value;
+    Class<?> fieldType = field.getType();
+    if (fieldType == Bitmap.class) {
+      value = BitmapFactory.decodeResource(resources, id);
+    } else {
+      throw new IllegalStateException(); // TODO
+    }
+    trySet(field, target, value);
+
+    return Unbinder.EMPTY;
+  }
+
+  private static @Nullable Unbinder parseBindBool(Object target, Field field, View source) {
+    BindBool bindBool = field.getAnnotation(BindBool.class);
+    if (bindBool == null) {
+      return null;
+    }
+    validateMember(field);
+
+    int id = bindBool.value();
+    Resources resources = source.getContext().getResources();
+
+    Object value;
+    Class<?> fieldType = field.getType();
+    if (fieldType == boolean.class) {
+      value = resources.getBoolean(id);
+    } else {
+      throw new IllegalStateException(); // TODO
+    }
+    trySet(field, target, value);
+
+    return Unbinder.EMPTY;
   }
 
   private static @Nullable Unbinder parseBindColor(Object target, Field field, View source) {
@@ -271,7 +397,7 @@ public final class ButterKnife {
     } else {
       throw new IllegalStateException(); // TODO
     }
-    uncheckedSet(field, target, value);
+    trySet(field, target, value);
 
     return Unbinder.EMPTY;
   }
@@ -295,7 +421,7 @@ public final class ButterKnife {
     } else {
       throw new IllegalStateException(); // TODO
     }
-    uncheckedSet(field, target, value);
+    trySet(field, target, value);
 
     return Unbinder.EMPTY;
   }
@@ -320,7 +446,77 @@ public final class ButterKnife {
     } else {
       throw new IllegalStateException(); // TODO
     }
-    uncheckedSet(field, target, value);
+    trySet(field, target, value);
+
+    return Unbinder.EMPTY;
+  }
+
+  private static @Nullable Unbinder parseBindFloat(Object target, Field field, View source) {
+    BindFloat bindInt = field.getAnnotation(BindFloat.class);
+    if (bindInt == null) {
+      return null;
+    }
+    validateMember(field);
+
+    int id = bindInt.value();
+    Context context = source.getContext();
+
+    Class<?> fieldType = field.getType();
+    Object value;
+    if (fieldType == float.class) {
+      value = Utils.getFloat(context, id);
+    } else {
+      throw new IllegalStateException(); // TODO
+    }
+    trySet(field, target, value);
+
+    return Unbinder.EMPTY;
+  }
+
+  private static @Nullable Unbinder parseBindFont(Object target, Field field, View source) {
+    BindFont bindFont = field.getAnnotation(BindFont.class);
+    if (bindFont == null) {
+      return null;
+    }
+    validateMember(field);
+
+    int id = bindFont.value();
+    int style = bindFont.style();
+    Context context = source.getContext();
+
+    Class<?> fieldType = field.getType();
+    Object value;
+    if (fieldType == Typeface.class) {
+      Typeface font = ResourcesCompat.getFont(context, id);
+      value = style != Typeface.NORMAL
+          ? Typeface.create(font, style)
+          : font;
+    } else {
+      throw new IllegalStateException(); // TODO
+    }
+    trySet(field, target, value);
+
+    return Unbinder.EMPTY;
+  }
+
+  private static @Nullable Unbinder parseBindInt(Object target, Field field, View source) {
+    BindInt bindInt = field.getAnnotation(BindInt.class);
+    if (bindInt == null) {
+      return null;
+    }
+    validateMember(field);
+
+    int id = bindInt.value();
+    Resources resources = source.getContext().getResources();
+
+    Class<?> fieldType = field.getType();
+    Object value;
+    if (fieldType == int.class) {
+      value = resources.getInteger(id);
+    } else {
+      throw new IllegalStateException(); // TODO
+    }
+    trySet(field, target, value);
 
     return Unbinder.EMPTY;
   }
@@ -332,14 +528,17 @@ public final class ButterKnife {
     }
     validateMember(field);
 
+    int id = bindString.value();
+    Context context = source.getContext();
+
     Class<?> fieldType = field.getType();
     Object value;
     if (fieldType == String.class) {
-      value = source.getContext().getString(bindString.value());
+      value = context.getString(id);
     } else {
       throw new IllegalStateException(); // TODO
     }
-    uncheckedSet(field, target, value);
+    trySet(field, target, value);
 
     return Unbinder.EMPTY;
   }
@@ -359,9 +558,9 @@ public final class ButterKnife {
     ViewCollections.set(views, ON_CLICK, new View.OnClickListener() {
       @Override public void onClick(View v) {
         if (parameterTypes.length == 0) {
-          uncheckedInvoke(method, target);
+          tryInvoke(method, target);
         } else {
-          uncheckedInvoke(method, target, v);
+          tryInvoke(method, target, v);
         }
       }
     });
@@ -388,9 +587,9 @@ public final class ButterKnife {
       @Override public boolean onLongClick(View v) {
         Object returnValue;
         if (parameterTypes.length == 0) {
-          returnValue = uncheckedInvoke(method, target);
+          returnValue = tryInvoke(method, target);
         } else {
-          returnValue = uncheckedInvoke(method, target, v);
+          returnValue = tryInvoke(method, target, v);
         }
         if (returnType != void.class) {
           return (boolean) returnValue;
@@ -448,7 +647,7 @@ public final class ButterKnife {
     return method.getAnnotation(Optional.class) == null;
   }
 
-  static void uncheckedSet(Field field, Object target, @Nullable Object value) {
+  static void trySet(Field field, Object target, @Nullable Object value) {
     try {
       field.set(target, value);
     } catch (IllegalAccessException e) {
@@ -456,7 +655,7 @@ public final class ButterKnife {
     }
   }
 
-  private static Object uncheckedInvoke(Method method, Object target, Object... arguments) {
+  private static Object tryInvoke(Method method, Object target, Object... arguments) {
     Throwable cause;
     try {
       return method.invoke(target, arguments);
