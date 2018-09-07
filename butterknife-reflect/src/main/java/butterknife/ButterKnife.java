@@ -221,7 +221,7 @@ public final class ButterKnife {
     } else {
       view = Utils.findOptionalViewAsType(source, id, who, viewClass);
     }
-    uncheckedSet(field, target, view);
+    trySet(field, target, view);
 
     return new FieldUnbinder(target, field);
   }
@@ -275,7 +275,7 @@ public final class ButterKnife {
       value = views;
     }
 
-    uncheckedSet(field, target, value);
+    trySet(field, target, value);
     return new FieldUnbinder(target, field);
   }
 
@@ -296,7 +296,7 @@ public final class ButterKnife {
     } else {
       throw new IllegalStateException(); // TODO
     }
-    uncheckedSet(field, target, value);
+    trySet(field, target, value);
 
     return Unbinder.EMPTY;
   }
@@ -329,7 +329,7 @@ public final class ButterKnife {
     } else {
       throw new IllegalStateException(); // TODO
     }
-    uncheckedSet(field, target, value);
+    trySet(field, target, value);
 
     return Unbinder.EMPTY;
   }
@@ -351,7 +351,7 @@ public final class ButterKnife {
     } else {
       throw new IllegalStateException(); // TODO
     }
-    uncheckedSet(field, target, value);
+    trySet(field, target, value);
 
     return Unbinder.EMPTY;
   }
@@ -373,7 +373,7 @@ public final class ButterKnife {
     } else {
       throw new IllegalStateException(); // TODO
     }
-    uncheckedSet(field, target, value);
+    trySet(field, target, value);
 
     return Unbinder.EMPTY;
   }
@@ -397,7 +397,7 @@ public final class ButterKnife {
     } else {
       throw new IllegalStateException(); // TODO
     }
-    uncheckedSet(field, target, value);
+    trySet(field, target, value);
 
     return Unbinder.EMPTY;
   }
@@ -421,7 +421,7 @@ public final class ButterKnife {
     } else {
       throw new IllegalStateException(); // TODO
     }
-    uncheckedSet(field, target, value);
+    trySet(field, target, value);
 
     return Unbinder.EMPTY;
   }
@@ -446,7 +446,7 @@ public final class ButterKnife {
     } else {
       throw new IllegalStateException(); // TODO
     }
-    uncheckedSet(field, target, value);
+    trySet(field, target, value);
 
     return Unbinder.EMPTY;
   }
@@ -468,7 +468,7 @@ public final class ButterKnife {
     } else {
       throw new IllegalStateException(); // TODO
     }
-    uncheckedSet(field, target, value);
+    trySet(field, target, value);
 
     return Unbinder.EMPTY;
   }
@@ -494,7 +494,7 @@ public final class ButterKnife {
     } else {
       throw new IllegalStateException(); // TODO
     }
-    uncheckedSet(field, target, value);
+    trySet(field, target, value);
 
     return Unbinder.EMPTY;
   }
@@ -516,7 +516,7 @@ public final class ButterKnife {
     } else {
       throw new IllegalStateException(); // TODO
     }
-    uncheckedSet(field, target, value);
+    trySet(field, target, value);
 
     return Unbinder.EMPTY;
   }
@@ -538,7 +538,7 @@ public final class ButterKnife {
     } else {
       throw new IllegalStateException(); // TODO
     }
-    uncheckedSet(field, target, value);
+    trySet(field, target, value);
 
     return Unbinder.EMPTY;
   }
@@ -558,9 +558,9 @@ public final class ButterKnife {
     ViewCollections.set(views, ON_CLICK, new View.OnClickListener() {
       @Override public void onClick(View v) {
         if (parameterTypes.length == 0) {
-          uncheckedInvoke(method, target);
+          tryInvoke(method, target);
         } else {
-          uncheckedInvoke(method, target, v);
+          tryInvoke(method, target, v);
         }
       }
     });
@@ -587,9 +587,9 @@ public final class ButterKnife {
       @Override public boolean onLongClick(View v) {
         Object returnValue;
         if (parameterTypes.length == 0) {
-          returnValue = uncheckedInvoke(method, target);
+          returnValue = tryInvoke(method, target);
         } else {
-          returnValue = uncheckedInvoke(method, target, v);
+          returnValue = tryInvoke(method, target, v);
         }
         if (returnType != void.class) {
           return (boolean) returnValue;
@@ -647,7 +647,7 @@ public final class ButterKnife {
     return method.getAnnotation(Optional.class) == null;
   }
 
-  static void uncheckedSet(Field field, Object target, @Nullable Object value) {
+  static void trySet(Field field, Object target, @Nullable Object value) {
     try {
       field.set(target, value);
     } catch (IllegalAccessException e) {
@@ -655,7 +655,7 @@ public final class ButterKnife {
     }
   }
 
-  private static Object uncheckedInvoke(Method method, Object target, Object... arguments) {
+  private static Object tryInvoke(Method method, Object target, Object... arguments) {
     Throwable cause;
     try {
       return method.invoke(target, arguments);
