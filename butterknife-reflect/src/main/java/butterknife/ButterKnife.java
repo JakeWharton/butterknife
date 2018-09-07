@@ -8,9 +8,12 @@ import android.support.annotation.UiThread;
 import android.util.Log;
 import android.view.View;
 import butterknife.internal.Utils;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -18,6 +21,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static java.lang.reflect.Modifier.PRIVATE;
+import static java.lang.reflect.Modifier.PUBLIC;
+import static java.lang.reflect.Modifier.STATIC;
 import static java.util.Collections.singletonList;
 
 public final class ButterKnife {
@@ -105,6 +111,10 @@ public final class ButterKnife {
   public static Unbinder bind(@NonNull Object target, @NonNull View source) {
     List<Unbinder> unbinders = new ArrayList<>();
     Class<?> targetClass = target.getClass();
+    if ((targetClass.getModifiers() & PRIVATE) != 0) {
+      throw new IllegalArgumentException(targetClass.getName() + " must not be private.");
+    }
+
     while (true) {
       String clsName = targetClass.getName();
       if (clsName.startsWith("android.") || clsName.startsWith("java.")) {
@@ -145,11 +155,10 @@ public final class ButterKnife {
     if (bindView == null) {
       return null;
     }
-    // TODO check is instance
-    // TODO check visibility
-    boolean isRequired = true; // TODO actually figure out
+    validateMember(field);
 
     int id = bindView.value();
+    boolean isRequired = isRequired(field);
     Class<?> viewClass = field.getType();
     String who = "field '" + field.getName() + "'";
     Object view;
@@ -168,9 +177,7 @@ public final class ButterKnife {
     if (bindViews == null) {
       return null;
     }
-    // TODO check is instance
-    // TODO check visibility
-    boolean isRequired = true; // TODO actually figure out
+    validateMember(field);
 
     Class<?> fieldClass = field.getType();
     Class<?> viewClass;
@@ -191,6 +198,7 @@ public final class ButterKnife {
     }
 
     int[] ids = bindViews.value();
+    boolean isRequired = isRequired(field);
     List<Object> views = new ArrayList<>(ids.length);
     String who = "field '" + field.getName() + "'";
     for (int id : ids) {
@@ -222,8 +230,7 @@ public final class ButterKnife {
     if (bindString == null) {
       return null;
     }
-    // TODO check is instance
-    // TODO check visibility
+    validateMember(field);
 
     String string = source.getContext().getString(bindString.value());
     uncheckedSet(field, target, string);
@@ -236,13 +243,11 @@ public final class ButterKnife {
     if (onClick == null) {
       return null;
     }
-    // TODO check is instance method
-    // TODO check visibility
-    boolean isRequired = true; // TODO actually figure out
+    validateMember(method);
     final Class<?>[] parameterTypes = method.getParameterTypes();
     // TODO validate parameter count (and types?)
 
-    List<View> views = findViews(source, onClick.value(), isRequired, method.getName());
+    List<View> views = findViews(source, onClick.value(), isRequired(method), method.getName());
 
     ViewCollections.set(views, ON_CLICK, new View.OnClickListener() {
       @Override public void onClick(View v) {
@@ -264,14 +269,13 @@ public final class ButterKnife {
       return null;
     }
     // TODO check is instance method
-    // TODO check visibility
-    boolean isRequired = true; // TODO actually figure out
+    validateMember(method);
     final Class<?>[] parameterTypes = method.getParameterTypes();
     // TODO validate parameter count (and types?)
     final Class<?> returnType = method.getReturnType();
     // TODO validate return type
 
-    List<View> views = findViews(source, onLongClick.value(), isRequired, method.getName());
+    List<View> views = findViews(source, onLongClick.value(), isRequired(method), method.getName());
 
     ViewCollections.set(views, ON_LONG_CLICK, new View.OnLongClickListener() {
       @Override public boolean onLongClick(View v) {
@@ -311,9 +315,33 @@ public final class ButterKnife {
     return views;
   }
 
-  static void uncheckedSet(Field field, Object target, @Nullable Object value) {
-    field.setAccessible(true); // TODO move this to a visibility check and only do for package.
+  private static <T extends AccessibleObject & Member> void validateMember(T object) {
+    int modifiers = object.getModifiers();
+    if ((modifiers & (PRIVATE | STATIC)) != 0) {
+      throw new IllegalStateException(object.getDeclaringClass().getName()
+          + "."
+          + object.getName()
+          + " must not be private or static");
+    }
+    if ((modifiers & PUBLIC) == 0) {
+      object.setAccessible(true);
+    }
+  }
 
+  private static boolean isRequired(Field field) {
+    for (Annotation annotation : field.getAnnotations()) {
+      if (annotation.getClass().getSimpleName().equals("Nullable")) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  private static boolean isRequired(Method method) {
+    return method.getAnnotation(Optional.class) == null;
+  }
+
+  static void uncheckedSet(Field field, Object target, @Nullable Object value) {
     try {
       field.set(target, value);
     } catch (IllegalAccessException e) {
@@ -322,8 +350,6 @@ public final class ButterKnife {
   }
 
   private static Object uncheckedInvoke(Method method, Object target, Object... arguments) {
-    method.setAccessible(true); // TODO move this to a visibility check and only do for package.
-
     Throwable cause;
     try {
       return method.invoke(target, arguments);
