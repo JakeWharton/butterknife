@@ -18,6 +18,7 @@ import android.support.v4.content.res.ResourcesCompat;
 import android.util.Log;
 import android.view.View;
 import android.view.animation.Animation;
+import android.widget.AdapterView;
 import butterknife.internal.Constants;
 import butterknife.internal.Utils;
 import java.lang.annotation.Annotation;
@@ -189,6 +190,9 @@ public final class ButterKnife {
         if (unbinder != null) unbinders.add(unbinder);
 
         unbinder = parseOnLongClick(target, method, source);
+        if (unbinder != null) unbinders.add(unbinder);
+
+        unbinder = parseOnItemClick(target, method, source);
         if (unbinder != null) unbinders.add(unbinder);
       }
 
@@ -553,7 +557,8 @@ public final class ButterKnife {
     final Class<?>[] parameterTypes = method.getParameterTypes();
     // TODO validate parameter count (and types?)
 
-    List<View> views = findViews(source, onClick.value(), isRequired(method), method.getName());
+    List<View> views =
+        findViews(source, onClick.value(), isRequired(method), method.getName(), View.class);
 
     ViewCollections.set(views, ON_CLICK, new View.OnClickListener() {
       @Override public void onClick(View v) {
@@ -581,7 +586,8 @@ public final class ButterKnife {
     final Class<?> returnType = method.getReturnType();
     // TODO validate return type
 
-    List<View> views = findViews(source, onLongClick.value(), isRequired(method), method.getName());
+    List<View> views =
+        findViews(source, onLongClick.value(), isRequired(method), method.getName(), View.class);
 
     ViewCollections.set(views, ON_LONG_CLICK, new View.OnLongClickListener() {
       @Override public boolean onLongClick(View v) {
@@ -601,18 +607,50 @@ public final class ButterKnife {
     return new ListenerUnbinder<>(views, ON_LONG_CLICK);
   }
 
-  private static List<View> findViews(View source, int[] ids, boolean isRequired, String name) {
+  private static @Nullable Unbinder parseOnItemClick(final Object target, final Method method,
+      View source) {
+    OnItemClick onItemClick = method.getAnnotation(OnItemClick.class);
+    if (onItemClick == null) {
+      return null;
+    }
+    validateMember(method);
+    final Class<?>[] parameterTypes = method.getParameterTypes();
+    // TODO validate parameter count (and types?)
+
+    List<AdapterView<?>> views =
+        findViews(source, onItemClick.value(), isRequired(method), method.getName(),
+            AdapterView.class);
+
+    ViewCollections.set(views, ON_ITEM_CLICK, new AdapterView.OnItemClickListener() {
+      @Override public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+        if (parameterTypes.length == 0) {
+          tryInvoke(method, target);
+        } else if (parameterTypes.length == 1 && parameterTypes[0] == int.class) {
+          // TODO this is a special case for the sample. re-implement matching logic from processor.
+          tryInvoke(method, target, position);
+        } else {
+          throw new IllegalStateException(); // TODO
+        }
+      }
+    });
+
+    return new ListenerUnbinder<>(views, ON_ITEM_CLICK);
+  }
+
+  @SuppressWarnings("unchecked")
+  private static <T extends View> List<T> findViews(View source, int[] ids, boolean isRequired,
+      String name, Class<? extends View> cls) {
     if (ids.length == 1 && ids[0] == View.NO_ID) {
-      return singletonList(source);
+      return singletonList((T) cls.cast(source));
     }
 
     String who = "method '" + name + "'";
-    List<View> views = new ArrayList<>(ids.length);
+    List<T> views = new ArrayList<>(ids.length);
     for (int id : ids) {
       if (isRequired) {
-        views.add(Utils.findRequiredView(source, id, who));
+        views.add((T) Utils.findRequiredViewAsType(source, id, who, cls));
       } else {
-        View view = source.findViewById(id);
+        T view = (T) Utils.findOptionalViewAsType(source, id, who, cls);
         if (view != null) {
           views.add(view);
         }
@@ -679,6 +717,14 @@ public final class ButterKnife {
       new Setter<View, View.OnLongClickListener>() {
         @Override public void set(@NonNull View view, View.OnLongClickListener value, int index) {
           view.setOnLongClickListener(value);
+        }
+      };
+  private static final Setter<AdapterView<?>, AdapterView.OnItemClickListener> ON_ITEM_CLICK =
+      new Setter<AdapterView<?>, AdapterView.OnItemClickListener>() {
+        @Override
+        public void set(@NonNull AdapterView<?> view, AdapterView.OnItemClickListener value,
+            int index) {
+          view.setOnItemClickListener(value);
         }
       };
 }
