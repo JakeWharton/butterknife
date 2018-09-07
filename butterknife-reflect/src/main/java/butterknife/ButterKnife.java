@@ -128,25 +128,43 @@ public final class ButterKnife {
       }
 
       for (Field field : targetClass.getDeclaredFields()) {
-        Unbinder unbinder = parseBindView(target, field, source);
-        if (unbinder == null) unbinder = parseBindViews(target, field, source);
-        if (unbinder == null) unbinder = parseBindColor(target, field, source);
-        if (unbinder == null) unbinder = parseBindDimen(target, field, source);
-        if (unbinder == null) unbinder = parseBindDrawable(target, field, source);
-        if (unbinder == null) unbinder = parseBindString(target, field, source);
+        int unbinderStartingSize = unbinders.size();
+        Unbinder unbinder;
 
-        if (unbinder != null) {
-          unbinders.add(unbinder);
+        unbinder = parseBindView(target, field, source);
+        if (unbinder != null) unbinders.add(unbinder);
+
+        unbinder = parseBindViews(target, field, source);
+        if (unbinder != null) unbinders.add(unbinder);
+
+        unbinder = parseBindColor(target, field, source);
+        if (unbinder != null) unbinders.add(unbinder);
+
+        unbinder = parseBindDimen(target, field, source);
+        if (unbinder != null) unbinders.add(unbinder);
+
+        unbinder = parseBindDrawable(target, field, source);
+        if (unbinder != null) unbinders.add(unbinder);
+
+        unbinder = parseBindString(target, field, source);
+        if (unbinder != null) unbinders.add(unbinder);
+
+        if (unbinders.size() - unbinderStartingSize > 1) {
+          throw new IllegalStateException(
+              "More than one bind annotation on " + targetClass.getName() + "." + field.getName());
         }
       }
+
       for (Method method : targetClass.getDeclaredMethods()) {
-        Unbinder unbinder = parseOnClick(target, method, source);
-        if (unbinder == null) unbinder = parseOnLongClick(target, method, source);
+        Unbinder unbinder;
 
-        if (unbinder != null) {
-          unbinders.add(unbinder);
-        }
+        unbinder = parseOnClick(target, method, source);
+        if (unbinder != null) unbinders.add(unbinder);
+
+        unbinder = parseOnLongClick(target, method, source);
+        if (unbinder != null) unbinders.add(unbinder);
       }
+
       targetClass = targetClass.getSuperclass();
     }
 
