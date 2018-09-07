@@ -14,6 +14,8 @@ android {
     targetSdkVersion versions.compileSdk
     versionCode 1
     versionName '1.0.0'
+
+    testInstrumentationRunner 'android.support.test.runner.AndroidJUnitRunner'
   }
 
   lintOptions {
@@ -31,7 +33,8 @@ android {
   buildTypes {
     debug {
       minifyEnabled true
-      proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard.pro'
+      proguardFiles getDefaultProguardFile('proguard-android.txt'), 'src/main/proguard.pro'
+      testProguardFile 'src/androidTest/proguard.pro'
     }
   }
 
@@ -61,7 +64,8 @@ dependencies {
   codegenImplementation project(':butterknife')
   codegenAnnotationProcessor project(':butterknife-compiler')
 
-  testImplementation deps.junit
-  testImplementation deps.truth
-  testImplementation deps.robolectric
+  androidTestImplementation deps.junit
+  androidTestImplementation deps.truth
+  androidTestImplementation deps.support.test.runner
+  androidTestImplementation deps.support.test.rules
 }

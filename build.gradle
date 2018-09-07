@@ -23,6 +23,7 @@ buildscript {
           'annotations': "com.android.support:support-annotations:${versions.supportLibrary}",
           'test': [
               'runner': 'com.android.support.test:runner:1.0.1',
+              'rules': 'com.android.support.test:rules:1.0.1',
           ],
       ],
       'androidx': [
@@ -38,7 +39,6 @@ buildscript {
       javaparser: 'com.github.javaparser:javaparser-core:3.5.14',
       junit: 'junit:junit:4.12',
       truth: 'com.google.truth:truth:0.42',
-      robolectric: 'org.robolectric:robolectric:3.7.1',
       compiletesting: 'com.google.testing.compile:compile-testing:0.15',
       'auto': [
           'service': 'com.google.auto.service:auto-service:1.0-rc4',
