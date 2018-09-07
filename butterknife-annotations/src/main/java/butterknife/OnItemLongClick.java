@@ -9,7 +9,7 @@ import java.lang.annotation.Target;
 
 import static android.widget.AdapterView.OnItemLongClickListener;
 import static java.lang.annotation.ElementType.METHOD;
-import static java.lang.annotation.RetentionPolicy.CLASS;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
  * Bind a method to an {@link OnItemLongClickListener OnItemLongClickListener} on the view for each
@@ -27,7 +27,7 @@ import static java.lang.annotation.RetentionPolicy.CLASS;
  * @see OnItemLongClickListener
  */
 @Target(METHOD)
-@Retention(CLASS)
+@Retention(RUNTIME)
 @ListenerClass(
     targetType = "android.widget.AdapterView<?>",
     setter = "setOnItemLongClickListener",
