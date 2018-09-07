@@ -10,10 +10,15 @@ import android.view.View;
 import butterknife.internal.Utils;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+
+import static java.util.Collections.singletonList;
 
 public final class ButterKnife {
   private ButterKnife() {
@@ -110,6 +115,14 @@ public final class ButterKnife {
         Unbinder unbinder = parseBindView(target, field, source);
         if (unbinder == null) unbinder = parseBindViews(target, field, source);
         if (unbinder == null) unbinder = parseBindString(target, field, source);
+
+        if (unbinder != null) {
+          unbinders.add(unbinder);
+        }
+      }
+      for (Method method : targetClass.getDeclaredMethods()) {
+        Unbinder unbinder = parseOnClick(target, method, source);
+        if (unbinder == null) unbinder = parseOnLongClick(target, method, source);
 
         if (unbinder != null) {
           unbinders.add(unbinder);
@@ -217,6 +230,87 @@ public final class ButterKnife {
     return Unbinder.EMPTY;
   }
 
+  private static @Nullable Unbinder parseOnClick(final Object target, final Method method,
+      View source) {
+    OnClick onClick = method.getAnnotation(OnClick.class);
+    if (onClick == null) {
+      return null;
+    }
+    // TODO check is instance method
+    // TODO check visibility
+    boolean isRequired = true; // TODO actually figure out
+    final Class<?>[] parameterTypes = method.getParameterTypes();
+    // TODO validate parameter count (and types?)
+
+    List<View> views = findViews(source, onClick.value(), isRequired, method.getName());
+
+    ViewCollections.set(views, ON_CLICK, new View.OnClickListener() {
+      @Override public void onClick(View v) {
+        if (parameterTypes.length == 0) {
+          uncheckedInvoke(method, target);
+        } else {
+          uncheckedInvoke(method, target, v);
+        }
+      }
+    });
+
+    return new ListenerUnbinder<>(views, ON_CLICK);
+  }
+
+  private static @Nullable Unbinder parseOnLongClick(final Object target, final Method method,
+      View source) {
+    OnLongClick onLongClick = method.getAnnotation(OnLongClick.class);
+    if (onLongClick == null) {
+      return null;
+    }
+    // TODO check is instance method
+    // TODO check visibility
+    boolean isRequired = true; // TODO actually figure out
+    final Class<?>[] parameterTypes = method.getParameterTypes();
+    // TODO validate parameter count (and types?)
+    final Class<?> returnType = method.getReturnType();
+    // TODO validate return type
+
+    List<View> views = findViews(source, onLongClick.value(), isRequired, method.getName());
+
+    ViewCollections.set(views, ON_LONG_CLICK, new View.OnLongClickListener() {
+      @Override public boolean onLongClick(View v) {
+        Object returnValue;
+        if (parameterTypes.length == 0) {
+          returnValue = uncheckedInvoke(method, target);
+        } else {
+          returnValue = uncheckedInvoke(method, target, v);
+        }
+        if (returnType != void.class) {
+          return (boolean) returnValue;
+        }
+        return false;
+      }
+    });
+
+    return new ListenerUnbinder<>(views, ON_LONG_CLICK);
+  }
+
+  private static List<View> findViews(View source, int[] ids, boolean isRequired, String name) {
+    if (ids.length == 1 && ids[0] == View.NO_ID) {
+      return singletonList(source);
+    }
+
+    String who = "method '" + name + "'";
+    List<View> views = new ArrayList<>(ids.length);
+    for (int id : ids) {
+      if (isRequired) {
+        views.add(Utils.findRequiredView(source, id, who));
+      } else {
+        View view = source.findViewById(id);
+        if (view != null) {
+          views.add(view);
+        }
+      }
+    }
+    return views;
+  }
+
   static void uncheckedSet(Field field, Object target, @Nullable Object value) {
     field.setAccessible(true); // TODO move this to a visibility check and only do for package.
 
@@ -226,4 +320,33 @@ public final class ButterKnife {
       throw new RuntimeException("Unable to assign " + value + " to " + field + " on " + target, e);
     }
   }
+
+  private static Object uncheckedInvoke(Method method, Object target, Object... arguments) {
+    method.setAccessible(true); // TODO move this to a visibility check and only do for package.
+
+    Throwable cause;
+    try {
+      return method.invoke(target, arguments);
+    } catch (IllegalAccessException e) {
+      cause = e;
+    } catch (InvocationTargetException e) {
+      cause = e;
+    }
+    throw new RuntimeException(
+        "Unable to invoke " + method + " on " + target + " with arguments "
+            + Arrays.toString(arguments), cause);
+  }
+
+  private static final Setter<View, View.OnClickListener> ON_CLICK =
+      new Setter<View, View.OnClickListener>() {
+        @Override public void set(@NonNull View view, View.OnClickListener value, int index) {
+          view.setOnClickListener(value);
+        }
+      };
+  private static final Setter<View, View.OnLongClickListener> ON_LONG_CLICK =
+      new Setter<View, View.OnLongClickListener>() {
+        @Override public void set(@NonNull View view, View.OnLongClickListener value, int index) {
+          view.setOnLongClickListener(value);
+        }
+      };
 }
