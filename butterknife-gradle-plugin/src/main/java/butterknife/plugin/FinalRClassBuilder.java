@@ -90,7 +90,10 @@ public final class FinalRClassBuilder {
   private static void addResourceField(TypeSpec.Builder resourceType, VariableDeclarator variable,
       ClassName annotation) {
     String fieldName = variable.getNameAsString();
-    String fieldValue = variable.getInitializer().map(Node::toString).orElse(null);
+    String fieldValue = variable.getInitializer()
+        .map(Node::toString)
+        .orElseThrow(
+            () -> new IllegalStateException("Field " + fieldName + " missing initializer"));
     FieldSpec.Builder fieldSpecBuilder = FieldSpec.builder(int.class, fieldName)
         .addModifiers(PUBLIC, STATIC, FINAL)
         .initializer(fieldValue);
