@@ -2,11 +2,17 @@ package butterknife;
 
 import android.app.Activity;
 import android.app.Dialog;
+import android.content.Context;
+import android.content.res.ColorStateList;
+import android.content.res.Resources;
+import android.graphics.drawable.Drawable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.UiThread;
+import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.View;
+import butterknife.internal.Constants;
 import butterknife.internal.Utils;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AccessibleObject;
@@ -124,6 +130,9 @@ public final class ButterKnife {
       for (Field field : targetClass.getDeclaredFields()) {
         Unbinder unbinder = parseBindView(target, field, source);
         if (unbinder == null) unbinder = parseBindViews(target, field, source);
+        if (unbinder == null) unbinder = parseBindColor(target, field, source);
+        if (unbinder == null) unbinder = parseBindDimen(target, field, source);
+        if (unbinder == null) unbinder = parseBindDrawable(target, field, source);
         if (unbinder == null) unbinder = parseBindString(target, field, source);
 
         if (unbinder != null) {
@@ -225,6 +234,79 @@ public final class ButterKnife {
     return new FieldUnbinder(target, field);
   }
 
+  private static @Nullable Unbinder parseBindColor(Object target, Field field, View source) {
+    BindColor bindColor = field.getAnnotation(BindColor.class);
+    if (bindColor == null) {
+      return null;
+    }
+    validateMember(field);
+
+    int id = bindColor.value();
+    Context context = source.getContext();
+
+    Object value;
+    Class<?> fieldType = field.getType();
+    if (fieldType == int.class) {
+      value = ContextCompat.getColor(context, id);
+    } else if (fieldType == ColorStateList.class) {
+      value = ContextCompat.getColorStateList(context, id);
+    } else {
+      throw new IllegalStateException(); // TODO
+    }
+    uncheckedSet(field, target, value);
+
+    return Unbinder.EMPTY;
+  }
+
+  private static @Nullable Unbinder parseBindDimen(Object target, Field field, View source) {
+    BindDimen bindDimen = field.getAnnotation(BindDimen.class);
+    if (bindDimen == null) {
+      return null;
+    }
+    validateMember(field);
+
+    int id = bindDimen.value();
+    Resources resources = source.getContext().getResources();
+
+    Class<?> fieldType = field.getType();
+    Object value;
+    if (fieldType == int.class) {
+      value = resources.getDimensionPixelSize(id);
+    } else if (fieldType == float.class) {
+      value = resources.getDimension(id);
+    } else {
+      throw new IllegalStateException(); // TODO
+    }
+    uncheckedSet(field, target, value);
+
+    return Unbinder.EMPTY;
+  }
+
+  private static @Nullable Unbinder parseBindDrawable(Object target, Field field, View source) {
+    BindDrawable bindDrawable = field.getAnnotation(BindDrawable.class);
+    if (bindDrawable == null) {
+      return null;
+    }
+    validateMember(field);
+
+    int id = bindDrawable.value();
+    int tint = bindDrawable.tint();
+    Context context = source.getContext();
+
+    Class<?> fieldType = field.getType();
+    Object value;
+    if (fieldType == Drawable.class) {
+      value = tint != Constants.NO_RES_ID
+          ? Utils.getTintedDrawable(context, id, tint)
+          : ContextCompat.getDrawable(context, id);
+    } else {
+      throw new IllegalStateException(); // TODO
+    }
+    uncheckedSet(field, target, value);
+
+    return Unbinder.EMPTY;
+  }
+
   private static @Nullable Unbinder parseBindString(Object target, Field field, View source) {
     BindString bindString = field.getAnnotation(BindString.class);
     if (bindString == null) {
@@ -232,8 +314,15 @@ public final class ButterKnife {
     }
     validateMember(field);
 
-    String string = source.getContext().getString(bindString.value());
-    uncheckedSet(field, target, string);
+    Class<?> fieldType = field.getType();
+    Object value;
+    if (fieldType == String.class) {
+      value = source.getContext().getString(bindString.value());
+    } else {
+      throw new IllegalStateException(); // TODO
+    }
+    uncheckedSet(field, target, value);
+
     return Unbinder.EMPTY;
   }
 
