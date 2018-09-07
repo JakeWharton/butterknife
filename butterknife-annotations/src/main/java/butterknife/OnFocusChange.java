@@ -9,7 +9,7 @@ import java.lang.annotation.Target;
 
 import static android.view.View.OnFocusChangeListener;
 import static java.lang.annotation.ElementType.METHOD;
-import static java.lang.annotation.RetentionPolicy.CLASS;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
  * Bind a method to an {@link OnFocusChangeListener OnFocusChangeListener} on the view for each ID
@@ -25,7 +25,7 @@ import static java.lang.annotation.RetentionPolicy.CLASS;
  * @see OnFocusChangeListener
  */
 @Target(METHOD)
-@Retention(CLASS)
+@Retention(RUNTIME)
 @ListenerClass(
     targetType = "android.view.View",
     setter = "setOnFocusChangeListener",

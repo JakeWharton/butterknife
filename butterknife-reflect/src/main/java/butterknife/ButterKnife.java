@@ -16,9 +16,12 @@ import android.support.annotation.UiThread;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.res.ResourcesCompat;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.animation.Animation;
 import android.widget.AdapterView;
+import android.widget.CompoundButton;
+import android.widget.TextView;
 import butterknife.internal.Constants;
 import butterknife.internal.Utils;
 import java.lang.annotation.Annotation;
@@ -186,13 +189,25 @@ public final class ButterKnife {
       for (Method method : targetClass.getDeclaredMethods()) {
         Unbinder unbinder;
 
+        unbinder = parseOnCheckedChanged(target, method, source);
+        if (unbinder != null) unbinders.add(unbinder);
+
         unbinder = parseOnClick(target, method, source);
         if (unbinder != null) unbinders.add(unbinder);
 
-        unbinder = parseOnLongClick(target, method, source);
+        unbinder = parseOnEditorAction(target, method, source);
+        if (unbinder != null) unbinders.add(unbinder);
+
+        unbinder = parseOnFocusChange(target, method, source);
         if (unbinder != null) unbinders.add(unbinder);
 
         unbinder = parseOnItemClick(target, method, source);
+        if (unbinder != null) unbinders.add(unbinder);
+
+        unbinder = parseOnItemLongClick(target, method, source);
+        if (unbinder != null) unbinders.add(unbinder);
+
+        unbinder = parseOnLongClick(target, method, source);
         if (unbinder != null) unbinders.add(unbinder);
       }
 
@@ -547,6 +562,30 @@ public final class ButterKnife {
     return Unbinder.EMPTY;
   }
 
+  private static @Nullable Unbinder parseOnCheckedChanged(final Object target, final Method method,
+      View source) {
+    OnCheckedChanged onCheckedChanged = method.getAnnotation(OnCheckedChanged.class);
+    if (onCheckedChanged == null) {
+      return null;
+    }
+    validateMember(method);
+    validateReturnType(method, void.class);
+    final ArgumentTransformer argumentTransformer =
+        createArgumentTransformer(method, ON_CHECKED_CHANGED_TYPES);
+
+    List<CompoundButton> views =
+        findViews(source, onCheckedChanged.value(), isRequired(method), method.getName(),
+            CompoundButton.class);
+
+    ViewCollections.set(views, ON_CHECKED_CHANGE, new CompoundButton.OnCheckedChangeListener() {
+      @Override public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+        tryInvoke(method, target, argumentTransformer.transform(buttonView, isChecked));
+      }
+    });
+
+    return new ListenerUnbinder<>(views, ON_CHECKED_CHANGE);
+  }
+
   private static @Nullable Unbinder parseOnClick(final Object target, final Method method,
       View source) {
     OnClick onClick = method.getAnnotation(OnClick.class);
@@ -568,6 +607,111 @@ public final class ButterKnife {
     });
 
     return new ListenerUnbinder<>(views, ON_CLICK);
+  }
+
+  private static @Nullable Unbinder parseOnEditorAction(final Object target, final Method method,
+      View source) {
+    OnEditorAction onEditorAction = method.getAnnotation(OnEditorAction.class);
+    if (onEditorAction == null) {
+      return null;
+    }
+    validateMember(method);
+    final boolean propagateReturn = validateReturnType(method, boolean.class);
+    final ArgumentTransformer argumentTransformer =
+        createArgumentTransformer(method, ON_EDITOR_ACTION_TYPES);
+
+    List<TextView> views =
+        findViews(source, onEditorAction.value(), isRequired(method), method.getName(),
+            TextView.class);
+
+    ViewCollections.set(views, ON_EDITOR_ACTION, new TextView.OnEditorActionListener() {
+      @Override public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+        Object value = tryInvoke(method, target, argumentTransformer.transform(v, actionId, event));
+        //noinspection SimplifiableConditionalExpression
+        return propagateReturn
+            ? (boolean) value
+            : false;
+      }
+    });
+
+    return new ListenerUnbinder<>(views, ON_EDITOR_ACTION);
+  }
+
+  private static @Nullable Unbinder parseOnFocusChange(final Object target, final Method method,
+      View source) {
+    OnFocusChange onFocusChange = method.getAnnotation(OnFocusChange.class);
+    if (onFocusChange == null) {
+      return null;
+    }
+    validateMember(method);
+    validateReturnType(method, void.class);
+    final ArgumentTransformer argumentTransformer =
+        createArgumentTransformer(method, ON_FOCUS_CHANGE_TYPES);
+
+    List<View> views =
+        findViews(source, onFocusChange.value(), isRequired(method), method.getName(), View.class);
+
+    ViewCollections.set(views, ON_FOCUS_CHANGE, new View.OnFocusChangeListener() {
+      @Override public void onFocusChange(View v, boolean hasFocus) {
+        tryInvoke(method, target, argumentTransformer.transform(v, hasFocus));
+      }
+    });
+
+    return new ListenerUnbinder<>(views, ON_FOCUS_CHANGE);
+  }
+
+  private static @Nullable Unbinder parseOnItemClick(final Object target, final Method method,
+      View source) {
+    OnItemClick onItemClick = method.getAnnotation(OnItemClick.class);
+    if (onItemClick == null) {
+      return null;
+    }
+    validateMember(method);
+    validateReturnType(method, void.class);
+    final ArgumentTransformer argumentTransformer =
+        createArgumentTransformer(method, ON_ITEM_CLICK_TYPES);
+
+    List<AdapterView<?>> views =
+        findViews(source, onItemClick.value(), isRequired(method), method.getName(),
+            AdapterView.class);
+
+    ViewCollections.set(views, ON_ITEM_CLICK, new AdapterView.OnItemClickListener() {
+      @Override public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+        tryInvoke(method, target, argumentTransformer.transform(parent, view, position, id));
+      }
+    });
+
+    return new ListenerUnbinder<>(views, ON_ITEM_CLICK);
+  }
+
+  private static @Nullable Unbinder parseOnItemLongClick(final Object target, final Method method,
+      View source) {
+    OnItemLongClick onItemLongClick = method.getAnnotation(OnItemLongClick.class);
+    if (onItemLongClick == null) {
+      return null;
+    }
+    validateMember(method);
+    final boolean propagateReturn = validateReturnType(method, boolean.class);
+    final ArgumentTransformer argumentTransformer =
+        createArgumentTransformer(method, ON_ITEM_LONG_CLICK_TYPES);
+
+    List<AdapterView<?>> views =
+        findViews(source, onItemLongClick.value(), isRequired(method), method.getName(),
+            AdapterView.class);
+
+    ViewCollections.set(views, ON_ITEM_LONG_CLICK, new AdapterView.OnItemLongClickListener() {
+      @Override
+      public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+        Object value =
+            tryInvoke(method, target, argumentTransformer.transform(parent, view, position, id));
+        //noinspection SimplifiableConditionalExpression
+        return propagateReturn
+            ? (boolean) value
+            : false;
+      }
+    });
+
+    return new ListenerUnbinder<>(views, ON_ITEM_LONG_CLICK);
   }
 
   private static @Nullable Unbinder parseOnLongClick(final Object target, final Method method,
@@ -595,30 +739,6 @@ public final class ButterKnife {
     });
 
     return new ListenerUnbinder<>(views, ON_LONG_CLICK);
-  }
-
-  private static @Nullable Unbinder parseOnItemClick(final Object target, final Method method,
-      View source) {
-    OnItemClick onItemClick = method.getAnnotation(OnItemClick.class);
-    if (onItemClick == null) {
-      return null;
-    }
-    validateMember(method);
-    validateReturnType(method, void.class);
-    final ArgumentTransformer argumentTransformer =
-        createArgumentTransformer(method, ON_ITEM_CLICK_TYPES);
-
-    List<AdapterView<?>> views =
-        findViews(source, onItemClick.value(), isRequired(method), method.getName(),
-            AdapterView.class);
-
-    ViewCollections.set(views, ON_ITEM_CLICK, new AdapterView.OnItemClickListener() {
-      @Override public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        tryInvoke(method, target, argumentTransformer.transform(parent, view, position, id));
-      }
-    });
-
-    return new ListenerUnbinder<>(views, ON_ITEM_CLICK);
   }
 
   @SuppressWarnings("unchecked")
@@ -813,16 +933,31 @@ public final class ButterKnife {
             + Arrays.toString(arguments), cause);
   }
 
+  private static final Setter<CompoundButton, CompoundButton.OnCheckedChangeListener>
+      ON_CHECKED_CHANGE = new Setter<CompoundButton, CompoundButton.OnCheckedChangeListener>() {
+    @Override
+    public void set(@NonNull CompoundButton view, CompoundButton.OnCheckedChangeListener value,
+        int index) {
+      view.setOnCheckedChangeListener(value);
+    }
+  };
   private static final Setter<View, View.OnClickListener> ON_CLICK =
       new Setter<View, View.OnClickListener>() {
         @Override public void set(@NonNull View view, View.OnClickListener value, int index) {
           view.setOnClickListener(value);
         }
       };
-  private static final Setter<View, View.OnLongClickListener> ON_LONG_CLICK =
-      new Setter<View, View.OnLongClickListener>() {
-        @Override public void set(@NonNull View view, View.OnLongClickListener value, int index) {
-          view.setOnLongClickListener(value);
+  private static final Setter<TextView, TextView.OnEditorActionListener> ON_EDITOR_ACTION =
+      new Setter<TextView, TextView.OnEditorActionListener>() {
+        @Override
+        public void set(@NonNull TextView view, TextView.OnEditorActionListener value, int index) {
+          view.setOnEditorActionListener(value);
+        }
+      };
+  private static final Setter<View, View.OnFocusChangeListener> ON_FOCUS_CHANGE =
+      new Setter<View, View.OnFocusChangeListener>() {
+        @Override public void set(@NonNull View view, View.OnFocusChangeListener value, int index) {
+          view.setOnFocusChangeListener(value);
         }
       };
   private static final Setter<AdapterView<?>, AdapterView.OnItemClickListener> ON_ITEM_CLICK =
@@ -833,11 +968,31 @@ public final class ButterKnife {
           view.setOnItemClickListener(value);
         }
       };
+  private static final Setter<AdapterView<?>, AdapterView.OnItemLongClickListener>
+      ON_ITEM_LONG_CLICK = new Setter<AdapterView<?>, AdapterView.OnItemLongClickListener>() {
+    @Override
+    public void set(@NonNull AdapterView<?> view, AdapterView.OnItemLongClickListener value,
+        int index) {
+      view.setOnItemLongClickListener(value);
+    }
+  };
+  private static final Setter<View, View.OnLongClickListener> ON_LONG_CLICK =
+      new Setter<View, View.OnLongClickListener>() {
+        @Override public void set(@NonNull View view, View.OnLongClickListener value, int index) {
+          view.setOnLongClickListener(value);
+        }
+      };
 
+  private static final Class<?>[] ON_CHECKED_CHANGED_TYPES =
+      { CompoundButton.class, boolean.class };
   private static final Class<?>[] ON_CLICK_TYPES = { View.class };
-  private static final Class<?>[] ON_LONG_CLICK_TYPES = { View.class };
+  private static final Class<?>[] ON_EDITOR_ACTION_TYPES =
+      { TextView.class, int.class, KeyEvent.class };
+  private static final Class<?>[] ON_FOCUS_CHANGE_TYPES = { View.class, boolean.class };
   private static final Class<?>[] ON_ITEM_CLICK_TYPES =
       { AdapterView.class, View.class, int.class, long.class };
+  private static final Class<?>[] ON_ITEM_LONG_CLICK_TYPES = ON_ITEM_CLICK_TYPES;
+  private static final Class<?>[] ON_LONG_CLICK_TYPES = ON_CLICK_TYPES;
 
   private interface ArgumentTransformer {
     ArgumentTransformer EMPTY = new ArgumentTransformer() {
