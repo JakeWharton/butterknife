@@ -554,19 +554,16 @@ public final class ButterKnife {
       return null;
     }
     validateMember(method);
-    final Class<?>[] parameterTypes = method.getParameterTypes();
-    // TODO validate parameter count (and types?)
+    validateReturnType(method, void.class);
+    final ArgumentTransformer argumentTransformer =
+        createArgumentTransformer(method, ON_CLICK_TYPES);
 
     List<View> views =
         findViews(source, onClick.value(), isRequired(method), method.getName(), View.class);
 
     ViewCollections.set(views, ON_CLICK, new View.OnClickListener() {
       @Override public void onClick(View v) {
-        if (parameterTypes.length == 0) {
-          tryInvoke(method, target);
-        } else {
-          tryInvoke(method, target, v);
-        }
+        tryInvoke(method, target, argumentTransformer.transform(v));
       }
     });
 
@@ -579,28 +576,21 @@ public final class ButterKnife {
     if (onLongClick == null) {
       return null;
     }
-    // TODO check is instance method
     validateMember(method);
-    final Class<?>[] parameterTypes = method.getParameterTypes();
-    // TODO validate parameter count (and types?)
-    final Class<?> returnType = method.getReturnType();
-    // TODO validate return type
+    final boolean propagateReturn = validateReturnType(method, boolean.class);
+    final ArgumentTransformer argumentTransformer =
+        createArgumentTransformer(method, ON_LONG_CLICK_TYPES);
 
     List<View> views =
         findViews(source, onLongClick.value(), isRequired(method), method.getName(), View.class);
 
     ViewCollections.set(views, ON_LONG_CLICK, new View.OnLongClickListener() {
       @Override public boolean onLongClick(View v) {
-        Object returnValue;
-        if (parameterTypes.length == 0) {
-          returnValue = tryInvoke(method, target);
-        } else {
-          returnValue = tryInvoke(method, target, v);
-        }
-        if (returnType != void.class) {
-          return (boolean) returnValue;
-        }
-        return false;
+        Object returnValue = tryInvoke(method, target, argumentTransformer.transform(v));
+        //noinspection SimplifiableConditionalExpression
+        return propagateReturn
+            ? (boolean) returnValue
+            : false;
       }
     });
 
@@ -614,8 +604,9 @@ public final class ButterKnife {
       return null;
     }
     validateMember(method);
-    final Class<?>[] parameterTypes = method.getParameterTypes();
-    // TODO validate parameter count (and types?)
+    validateReturnType(method, void.class);
+    final ArgumentTransformer argumentTransformer =
+        createArgumentTransformer(method, ON_ITEM_CLICK_TYPES);
 
     List<AdapterView<?>> views =
         findViews(source, onItemClick.value(), isRequired(method), method.getName(),
@@ -623,14 +614,7 @@ public final class ButterKnife {
 
     ViewCollections.set(views, ON_ITEM_CLICK, new AdapterView.OnItemClickListener() {
       @Override public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        if (parameterTypes.length == 0) {
-          tryInvoke(method, target);
-        } else if (parameterTypes.length == 1 && parameterTypes[0] == int.class) {
-          // TODO this is a special case for the sample. re-implement matching logic from processor.
-          tryInvoke(method, target, position);
-        } else {
-          throw new IllegalStateException(); // TODO
-        }
+        tryInvoke(method, target, argumentTransformer.transform(parent, view, position, id));
       }
     });
 
@@ -672,6 +656,26 @@ public final class ButterKnife {
     }
   }
 
+  /** Returns true when the return value should be propagated. Use a default otherwise. */
+  private static boolean validateReturnType(Method method, Class<?> expected) {
+    Class<?> returnType = method.getReturnType();
+    if (returnType == void.class) {
+      return false;
+    }
+    if (returnType != expected) {
+      String expectedType = "'" + expected.getName() + "'";
+      if (expected != void.class) {
+        expectedType = "'void' or " + expectedType;
+      }
+      throw new IllegalStateException(method.getDeclaringClass().getName()
+          + "."
+          + method.getName()
+          + " must have return type of "
+          + expectedType);
+    }
+    return true;
+  }
+
   private static boolean isRequired(Field field) {
     for (Annotation annotation : field.getAnnotations()) {
       if (annotation.getClass().getSimpleName().equals("Nullable")) {
@@ -683,6 +687,108 @@ public final class ButterKnife {
 
   private static boolean isRequired(Method method) {
     return method.getAnnotation(Optional.class) == null;
+  }
+
+  private static ArgumentTransformer createArgumentTransformer(Method method,
+      Class<?>[] callbackParameterTypes) {
+    Class<?>[] targetParameterTypes = method.getParameterTypes();
+
+    int targetParameterLength = targetParameterTypes.length;
+    if (targetParameterLength == 0) {
+      // Special case the common case of no arguments.
+      return ArgumentTransformer.EMPTY;
+    }
+
+    int callbackParameterLength = callbackParameterTypes.length;
+    if (targetParameterLength > callbackParameterLength) {
+      throw new IllegalStateException(method.getDeclaringClass().getName()
+          + "."
+          + method.getName()
+          + " must have at most "
+          + callbackParameterLength
+          + " parameter(s).");
+    }
+
+    if (Arrays.equals(targetParameterTypes, callbackParameterTypes)) {
+      // Special case the common case of exact argument match.
+      return ArgumentTransformer.IDENTITY;
+    }
+
+    boolean[] callbackIndexUsed = new boolean[callbackParameterLength];
+    final int[] indexMap = new int[targetParameterLength];
+    nextTarget: for (int targetIndex = 0; targetIndex < targetParameterLength; targetIndex++) {
+      Class<?> targetParameterType = targetParameterTypes[targetIndex];
+      for (int callbackIndex = 0; callbackIndex < callbackParameterLength; callbackIndex++) {
+        if (callbackIndexUsed[callbackIndex]) {
+          continue; // We have already used this callback argument.
+        }
+        Class<?> callbackParameterType = callbackParameterTypes[callbackIndex];
+
+        if (/* exact match */
+            callbackParameterType.equals(targetParameterType)
+            /* or subtype of view */
+            || (View.class.isAssignableFrom(callbackParameterType)
+                && callbackParameterType.isAssignableFrom(targetParameterType))
+            /* or interface (like Checkable) */
+            || targetParameterType.isInterface()) {
+          indexMap[targetIndex] = callbackIndex;
+          callbackIndexUsed[callbackIndex] = true;
+          continue nextTarget; // This avoids the error handling code if loop exits normally.
+        }
+      }
+
+      StringBuilder builder = new StringBuilder();
+      builder.append("Unable to match ")
+          .append(method.getDeclaringClass().getName())
+          .append('.')
+          .append(method.getName())
+          .append(" method arguments.");
+      for (int i = 0; i < targetParameterLength; i++) {
+        builder.append("\n\n  Parameter #")
+            .append(i + 1)
+            .append(": ")
+            .append(targetParameterTypes[i].getName())
+            .append("\n    ");
+        if (i < targetIndex) {
+          builder.append("matched listener parameter #")
+              .append(indexMap[i])
+              .append(": ")
+              .append(callbackParameterTypes[indexMap[i]].getName());
+        } else {
+          builder.append("did not match any listener parameters");
+        }
+      }
+      builder.append("\n\nMethods may have up to ")
+          .append(callbackParameterLength)
+          .append(" parameter(s):\n");
+      for (Class<?> callbackParameter : callbackParameterTypes) {
+        builder.append("\n  ").append(callbackParameter.getName());
+      }
+      builder.append(
+          "\n\nThese may be listed in any order but will be searched for from top to bottom.");
+      throw new IllegalStateException(builder.toString());
+    }
+
+    return new ArgumentTransformer() {
+      @Override public Object[] transform(Object[] arguments) {
+        Object[] newArguments = new Object[indexMap.length];
+        for (int i = 0; i < indexMap.length; i++) {
+          newArguments[i] = arguments[indexMap[i]];
+        }
+        return newArguments;
+      }
+
+      @Override public String toString() {
+        StringBuilder builder = new StringBuilder("ArgumentTransformer[");
+        for (int i = 0; i < indexMap.length; i++) {
+          if (i > 0) {
+            builder.append(", ");
+          }
+          builder.append(i).append(" => ").append(indexMap[i]);
+        }
+        return builder.append(']').toString();
+      }
+    };
   }
 
   static void trySet(Field field, Object target, @Nullable Object value) {
@@ -727,4 +833,34 @@ public final class ButterKnife {
           view.setOnItemClickListener(value);
         }
       };
+
+  private static final Class<?>[] ON_CLICK_TYPES = { View.class };
+  private static final Class<?>[] ON_LONG_CLICK_TYPES = { View.class };
+  private static final Class<?>[] ON_ITEM_CLICK_TYPES =
+      { AdapterView.class, View.class, int.class, long.class };
+
+  private interface ArgumentTransformer {
+    ArgumentTransformer EMPTY = new ArgumentTransformer() {
+      private final Object[] empty = new Object[0];
+
+      @Override public Object[] transform(Object[] arguments) {
+        return empty;
+      }
+
+      @Override public String toString() {
+        return "ArgumentTransformer[empty]";
+      }
+    };
+    ArgumentTransformer IDENTITY = new ArgumentTransformer() {
+      @Override public Object[] transform(Object[] arguments) {
+        return arguments;
+      }
+
+      @Override public String toString() {
+        return "ArgumentTransformer[identity]";
+      }
+    };
+
+    Object[] transform(Object... arguments);
+  }
 }
