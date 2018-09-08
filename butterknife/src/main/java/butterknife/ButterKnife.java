@@ -193,7 +193,8 @@ public final class ButterKnife {
       return bindingCtor;
     }
     String clsName = cls.getName();
-    if (clsName.startsWith("android.") || clsName.startsWith("java.")) {
+    if (clsName.startsWith("android.") || clsName.startsWith("java.")
+        || clsName.startsWith("androidx.")) {
       if (debug) Log.d(TAG, "MISS: Reached framework class. Abandoning search.");
       return null;
     }
