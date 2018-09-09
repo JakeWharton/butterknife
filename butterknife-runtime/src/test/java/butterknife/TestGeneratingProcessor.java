@@ -46,20 +46,12 @@ public class TestGeneratingProcessor extends AbstractProcessor {
   public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
     if (!processed) {
       processed = true;
-      Writer writer = null;
-      try {
-        writer = processingEnv.getFiler().createSourceFile(generatedClassName).openWriter();
+      try (Writer writer = processingEnv.getFiler()
+          .createSourceFile(generatedClassName)
+          .openWriter()) {
         writer.append(generatedSource);
       } catch (IOException e) {
         throw new RuntimeException(e);
-      } finally {
-        if (writer != null) {
-          try {
-            writer.close();
-          } catch (IOException e) {
-            throw new RuntimeException(e);
-          }
-        }
       }
     }
     return false;

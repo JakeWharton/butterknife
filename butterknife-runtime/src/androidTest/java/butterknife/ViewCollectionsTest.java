@@ -2,6 +2,7 @@ package butterknife;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.test.InstrumentationRegistry;
 import android.util.Property;
 import android.view.View;
@@ -24,7 +25,7 @@ public class ViewCollectionsTest {
       };
   private static final Setter<View, Boolean> SETTER_ENABLED =
       new Setter<View, Boolean>() {
-        @Override public void set(@NonNull View view, Boolean value, int index) {
+        @Override public void set(@NonNull View view, @Nullable Boolean value, int index) {
           view.setEnabled(value);
         }
       };

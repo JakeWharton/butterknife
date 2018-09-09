@@ -22,6 +22,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import javax.annotation.Nullable;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeMirror;
@@ -32,6 +33,7 @@ import static butterknife.compiler.ButterKnifeProcessor.VIEW_TYPE;
 import static butterknife.compiler.ButterKnifeProcessor.isSubtypeOfType;
 import static com.google.auto.common.MoreElements.getPackage;
 import static java.util.Collections.singletonList;
+import static java.util.Objects.requireNonNull;
 import static javax.lang.model.element.Modifier.FINAL;
 import static javax.lang.model.element.Modifier.PRIVATE;
 import static javax.lang.model.element.Modifier.PUBLIC;
@@ -70,12 +72,12 @@ final class BindingSet {
   private final ImmutableList<ViewBinding> viewBindings;
   private final ImmutableList<FieldCollectionViewBinding> collectionBindings;
   private final ImmutableList<ResourceBinding> resourceBindings;
-  private final BindingSet parentBinding;
+  private final @Nullable BindingSet parentBinding;
 
   private BindingSet(TypeName targetTypeName, ClassName bindingClassName, boolean isFinal,
       boolean isView, boolean isActivity, boolean isDialog, ImmutableList<ViewBinding> viewBindings,
       ImmutableList<FieldCollectionViewBinding> collectionBindings,
-      ImmutableList<ResourceBinding> resourceBindings, BindingSet parentBinding) {
+      ImmutableList<ResourceBinding> resourceBindings, @Nullable BindingSet parentBinding) {
     this.isFinal = isFinal;
     this.targetTypeName = targetTypeName;
     this.bindingClassName = bindingClassName;
@@ -363,7 +365,7 @@ final class BindingSet {
   private void addViewBinding(MethodSpec.Builder result, ViewBinding binding, boolean debuggable) {
     if (binding.isSingleFieldBinding()) {
       // Optimize the common case where there's a single binding directly to a field.
-      FieldViewBinding fieldBinding = binding.getFieldBinding();
+      FieldViewBinding fieldBinding = requireNonNull(binding.getFieldBinding());
       CodeBlock.Builder builder = CodeBlock.builder()
           .add("target.$L = ", fieldBinding.getName());
 
@@ -667,7 +669,7 @@ final class BindingSet {
   /** True if this binding requires a view. Otherwise only a context is needed. */
   private boolean constructorNeedsView() {
     return hasViewBindings() //
-        || parentBinding != null && parentBinding.constructorNeedsView();
+        || (parentBinding != null && parentBinding.constructorNeedsView());
   }
 
   static boolean requiresCast(TypeName type) {
@@ -707,7 +709,7 @@ final class BindingSet {
     private final boolean isActivity;
     private final boolean isDialog;
 
-    private BindingSet parentBinding;
+    private @Nullable BindingSet parentBinding;
 
     private final Map<Id, ViewBinding.Builder> viewIdMap = new LinkedHashMap<>();
     private final ImmutableList.Builder<FieldCollectionViewBinding> collectionBindings =
@@ -753,7 +755,7 @@ final class BindingSet {
       this.parentBinding = parent;
     }
 
-    String findExistingBindingName(Id id) {
+    @Nullable String findExistingBindingName(Id id) {
       ViewBinding.Builder builder = viewIdMap.get(id);
       if (builder == null) {
         return null;
