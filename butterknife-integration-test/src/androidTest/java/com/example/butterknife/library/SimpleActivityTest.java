@@ -1,19 +1,20 @@
 package com.example.butterknife.library;
 
+import android.support.test.rule.ActivityTestRule;
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
 import com.example.butterknife.R;
+import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.robolectric.Robolectric;
-import org.robolectric.RobolectricTestRunner;
 
 import static com.google.common.truth.Truth.assertThat;
 
-@RunWith(RobolectricTestRunner.class)
-public class SimpleActivityTest {
+public final class SimpleActivityTest {
+  @Rule public final ActivityTestRule<SimpleActivity> activityRule =
+      new ActivityTestRule<>(SimpleActivity.class);
+
   @Test public void verifyContentViewBinding() {
-    SimpleActivity activity = Robolectric.buildActivity(SimpleActivity.class).create().get();
+    SimpleActivity activity = activityRule.getActivity();
 
     Unbinder unbinder = ButterKnife.bind(activity);
     verifySimpleActivityBound(activity);

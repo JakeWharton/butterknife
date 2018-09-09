@@ -1,2 +1,4 @@
 -dontoptimize
 -dontobfuscate
+-dontshrink
+-dontwarn **

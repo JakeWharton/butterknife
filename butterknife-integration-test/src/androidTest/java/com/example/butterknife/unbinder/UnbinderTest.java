@@ -1,33 +1,31 @@
 package com.example.butterknife.unbinder;
 
+import android.content.Context;
+import android.support.test.InstrumentationRegistry;
 import android.view.View;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.robolectric.RobolectricTestRunner;
-import org.robolectric.RuntimeEnvironment;
 
 import static com.google.common.truth.Truth.assertThat;
 
-@RunWith(RobolectricTestRunner.class)
 public final class UnbinderTest {
+  private final Context context = InstrumentationRegistry.getContext();
 
-  @Test
-  public void verifyContentViewBinding() {
-    FrameLayout frameLayout = new FrameLayout(RuntimeEnvironment.application);
-    Button button1 = new Button(RuntimeEnvironment.application);
+  @Test public void verifyContentViewBinding() {
+    FrameLayout frameLayout = new FrameLayout(context);
+    Button button1 = new Button(context);
     button1.setId(android.R.id.button1);
     frameLayout.addView(button1);
-    Button button2 = new Button(RuntimeEnvironment.application);
+    Button button2 = new Button(context);
     button2.setId(android.R.id.button2);
     frameLayout.addView(button2);
-    Button button3 = new Button(RuntimeEnvironment.application);
+    Button button3 = new Button(context);
     button3.setId(android.R.id.button3);
     frameLayout.addView(button3);
-    View content = new View(RuntimeEnvironment.application);
+    View content = new View(context);
     content.setId(android.R.id.content);
     frameLayout.addView(content);
     H h = new H(frameLayout);
