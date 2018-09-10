@@ -133,7 +133,8 @@ public final class ButterKnife {
 
     while (true) {
       String clsName = targetClass.getName();
-      if (clsName.startsWith("android.") || clsName.startsWith("java.")) {
+      if (clsName.startsWith("android.") || clsName.startsWith("java.")
+          || clsName.startsWith("androidx.")) {
         break;
       }
 
