@@ -31,9 +31,11 @@ import static java.lang.annotation.RetentionPolicy.CLASS;
 @Retention(CLASS)
 @ListenerClass(
     targetType = "android.support.v4.view.ViewPager",
+    targetTypeAndroidX = "androidx.viewpager.widget.ViewPager",
     setter = "addOnPageChangeListener",
     remover = "removeOnPageChangeListener",
     type = "android.support.v4.view.ViewPager.OnPageChangeListener",
+    typeAndroidX = "androidx.viewpager.widget.ViewPager.OnPageChangeListener",
     callbacks = OnPageChange.Callback.class
 )
 public @interface OnPageChange {

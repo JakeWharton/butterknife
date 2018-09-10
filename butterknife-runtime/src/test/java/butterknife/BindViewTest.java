@@ -7,6 +7,7 @@ import javax.tools.JavaFileObject;
 import javax.tools.StandardLocation;
 import org.junit.Test;
 
+import static butterknife.TestStubs.ANDROIDX_CONTEXT_COMPAT;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.testing.compile.JavaSourceSubjectFactory.javaSource;
 import static com.google.testing.compile.JavaSourcesSubjectFactory.javaSources;
@@ -51,6 +52,52 @@ public class BindViewTest {
     );
 
     assertAbout(javaSource()).that(source)
+        .withCompilerOptions("-Xlint:-processing")
+        .processedWith(new ButterKnifeProcessor())
+        .compilesWithoutWarnings()
+        .and()
+        .generatesSources(bindingSource);
+  }
+
+  @Test public void bindingViewAndroidX() {
+    JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
+        + "package test;\n"
+        + "import android.view.View;\n"
+        + "import butterknife.BindView;\n"
+        + "public class Test {\n"
+        + "    @BindView(1) View thing;\n"
+        + "}"
+    );
+
+    JavaFileObject bindingSource = JavaFileObjects.forSourceString("test/Test_ViewBinding", ""
+        + "package test;\n"
+        + "import android.view.View;\n"
+        + "import androidx.annotation.CallSuper;\n"
+        + "import androidx.annotation.UiThread;\n"
+        + "import butterknife.Unbinder;\n"
+        + "import butterknife.internal.Utils;\n"
+        + "import java.lang.IllegalStateException;\n"
+        + "import java.lang.Override;\n"
+        + "public class Test_ViewBinding implements Unbinder {\n"
+        + "  private Test target;\n"
+        + "  @UiThread\n"
+        + "  public Test_ViewBinding(Test target, View source) {\n"
+        + "    this.target = target;\n"
+        + "    target.thing = Utils.findRequiredView(source, 1, \"field 'thing'\");\n"
+        + "  }\n"
+        + "  @Override\n"
+        + "  @CallSuper\n"
+        + "  public void unbind() {\n"
+        + "    Test target = this.target;\n"
+        + "    if (target == null) throw new IllegalStateException(\"Bindings already cleared.\");\n"
+        + "    this.target = null;\n"
+        + "    target.thing = null;\n"
+        + "  }\n"
+        + "}"
+    );
+
+    assertAbout(javaSources())
+        .that(asList(source, ANDROIDX_CONTEXT_COMPAT))
         .withCompilerOptions("-Xlint:-processing")
         .processedWith(new ButterKnifeProcessor())
         .compilesWithoutWarnings()
