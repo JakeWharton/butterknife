@@ -17,6 +17,7 @@ import android.support.v4.content.ContextCompat;
 import android.support.v4.content.res.ResourcesCompat;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.animation.Animation;
 import android.widget.AdapterView;
@@ -209,6 +210,9 @@ public final class ButterKnife {
         if (unbinder != null) unbinders.add(unbinder);
 
         unbinder = parseOnLongClick(target, method, source);
+        if (unbinder != null) unbinders.add(unbinder);
+
+        unbinder = parseOnTouch(target, method, source);
         if (unbinder != null) unbinders.add(unbinder);
       }
 
@@ -742,6 +746,33 @@ public final class ButterKnife {
     return new ListenerUnbinder<>(views, ON_LONG_CLICK);
   }
 
+  private static @Nullable Unbinder parseOnTouch(final Object target, final Method method,
+      View source) {
+    OnTouch onTouch = method.getAnnotation(OnTouch.class);
+    if (onTouch == null) {
+      return null;
+    }
+    validateMember(method);
+    final boolean propagateReturn = validateReturnType(method, boolean.class);
+    final ArgumentTransformer argumentTransformer =
+        createArgumentTransformer(method, ON_TOUCH_TYPES);
+
+    List<View> views =
+        findViews(source, onTouch.value(), isRequired(method), method.getName(), View.class);
+
+    ViewCollections.set(views, ON_TOUCH, new View.OnTouchListener() {
+      @Override public boolean onTouch(View v, MotionEvent event) {
+        Object returnValue = tryInvoke(method, target, argumentTransformer.transform(v));
+        //noinspection SimplifiableConditionalExpression
+        return propagateReturn
+            ? (boolean) returnValue
+            : false;
+      }
+    });
+
+    return new ListenerUnbinder<>(views, ON_TOUCH);
+  }
+
   @SuppressWarnings("unchecked")
   private static <T extends View> List<T> findViews(View source, int[] ids, boolean isRequired,
       String name, Class<? extends View> cls) {
@@ -983,6 +1014,12 @@ public final class ButterKnife {
           view.setOnLongClickListener(value);
         }
       };
+  private static final Setter<View, View.OnTouchListener> ON_TOUCH =
+      new Setter<View, View.OnTouchListener>() {
+        @Override public void set(@NonNull View view, View.OnTouchListener value, int index) {
+          view.setOnTouchListener(value);
+        }
+      };
 
   private static final Class<?>[] ON_CHECKED_CHANGED_TYPES =
       { CompoundButton.class, boolean.class };
@@ -994,6 +1031,7 @@ public final class ButterKnife {
       { AdapterView.class, View.class, int.class, long.class };
   private static final Class<?>[] ON_ITEM_LONG_CLICK_TYPES = ON_ITEM_CLICK_TYPES;
   private static final Class<?>[] ON_LONG_CLICK_TYPES = ON_CLICK_TYPES;
+  private static final Class<?>[] ON_TOUCH_TYPES = { View.class, MotionEvent.class };
 
   private interface ArgumentTransformer {
     ArgumentTransformer EMPTY = new ArgumentTransformer() {
