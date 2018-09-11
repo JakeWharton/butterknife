@@ -3,6 +3,10 @@
 
 # STUFF USED BY TESTS:
 
+-keep class butterknife.internal.Utils {
+  <methods>;
+}
+
 -keep class butterknife.Unbinder {
   void unbind();
 }
