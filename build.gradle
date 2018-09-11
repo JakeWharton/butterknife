@@ -6,7 +6,6 @@ buildscript {
       'compileSdk': 27,
 
       'supportLibrary': '27.1.1',
-      'androidPlugin': '3.2.0-rc03',
       'androidTools': '26.2.0-rc03',
       'kotlin': '1.2.61',
 
@@ -16,7 +15,7 @@ buildscript {
   ext.deps = [
       android: [
           'runtime': 'com.google.android:android:4.1.1.4',
-          'gradlePlugin': "com.android.tools.build:gradle:${versions.androidPlugin}",
+          'gradlePlugin': "com.android.tools.build:gradle:3.1.4",
       ],
       'support': [
           'compat': "com.android.support:support-compat:${versions.supportLibrary}",
@@ -62,7 +61,7 @@ buildscript {
   }
 
   dependencies {
-    classpath deps.android.gradlePlugin
+    classpath 'com.android.tools.build:gradle:3.2.0-rc03'
     classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${versions.kotlin}"
     classpath 'com.github.ben-manes:gradle-versions-plugin:0.17.0'
     classpath 'net.ltgt.gradle:gradle-errorprone-plugin:0.0.16'
