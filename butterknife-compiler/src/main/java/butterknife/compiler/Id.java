@@ -1,5 +1,6 @@
 package butterknife.compiler;
 
+import android.support.annotation.Nullable;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.sun.tools.javac.code.Symbol;
@@ -19,7 +20,7 @@ final class Id {
     this(value, null);
   }
 
-  Id(int value, Symbol rSymbol) {
+  Id(int value, @Nullable Symbol rSymbol) {
     this.value = value;
     if (rSymbol != null) {
       ClassName className = ClassName.get(rSymbol.packge().getQualifiedName().toString(), R,

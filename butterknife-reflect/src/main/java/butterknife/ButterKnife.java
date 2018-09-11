@@ -830,7 +830,7 @@ public final class ButterKnife {
 
   private static boolean isRequired(Field field) {
     for (Annotation annotation : field.getAnnotations()) {
-      if (annotation.getClass().getSimpleName().equals("Nullable")) {
+      if (annotation.annotationType().getSimpleName().equals("Nullable")) {
         return false;
       }
     }
@@ -922,7 +922,7 @@ public final class ButterKnife {
     }
 
     return new ArgumentTransformer() {
-      @Override public Object[] transform(Object[] arguments) {
+      @Override public Object[] transform(Object... arguments) {
         Object[] newArguments = new Object[indexMap.length];
         for (int i = 0; i < indexMap.length; i++) {
           newArguments[i] = arguments[indexMap[i]];
@@ -967,50 +967,51 @@ public final class ButterKnife {
 
   private static final Setter<CompoundButton, CompoundButton.OnCheckedChangeListener>
       ON_CHECKED_CHANGE = new Setter<CompoundButton, CompoundButton.OnCheckedChangeListener>() {
-    @Override
-    public void set(@NonNull CompoundButton view, CompoundButton.OnCheckedChangeListener value,
-        int index) {
+    @Override public void set(@NonNull CompoundButton view,
+        @Nullable CompoundButton.OnCheckedChangeListener value, int index) {
       view.setOnCheckedChangeListener(value);
     }
   };
   private static final Setter<View, View.OnClickListener> ON_CLICK =
       new Setter<View, View.OnClickListener>() {
-        @Override public void set(@NonNull View view, View.OnClickListener value, int index) {
+        @Override
+        public void set(@NonNull View view, @Nullable View.OnClickListener value, int index) {
           view.setOnClickListener(value);
         }
       };
   private static final Setter<TextView, TextView.OnEditorActionListener> ON_EDITOR_ACTION =
       new Setter<TextView, TextView.OnEditorActionListener>() {
         @Override
-        public void set(@NonNull TextView view, TextView.OnEditorActionListener value, int index) {
+        public void set(@NonNull TextView view, @Nullable TextView.OnEditorActionListener value,
+            int index) {
           view.setOnEditorActionListener(value);
         }
       };
   private static final Setter<View, View.OnFocusChangeListener> ON_FOCUS_CHANGE =
       new Setter<View, View.OnFocusChangeListener>() {
-        @Override public void set(@NonNull View view, View.OnFocusChangeListener value, int index) {
+        @Override
+        public void set(@NonNull View view, @Nullable View.OnFocusChangeListener value, int index) {
           view.setOnFocusChangeListener(value);
         }
       };
   private static final Setter<AdapterView<?>, AdapterView.OnItemClickListener> ON_ITEM_CLICK =
       new Setter<AdapterView<?>, AdapterView.OnItemClickListener>() {
-        @Override
-        public void set(@NonNull AdapterView<?> view, AdapterView.OnItemClickListener value,
-            int index) {
+        @Override public void set(@NonNull AdapterView<?> view,
+            @Nullable AdapterView.OnItemClickListener value, int index) {
           view.setOnItemClickListener(value);
         }
       };
   private static final Setter<AdapterView<?>, AdapterView.OnItemLongClickListener>
       ON_ITEM_LONG_CLICK = new Setter<AdapterView<?>, AdapterView.OnItemLongClickListener>() {
-    @Override
-    public void set(@NonNull AdapterView<?> view, AdapterView.OnItemLongClickListener value,
-        int index) {
+    @Override public void set(@NonNull AdapterView<?> view,
+        @Nullable AdapterView.OnItemLongClickListener value, int index) {
       view.setOnItemLongClickListener(value);
     }
   };
   private static final Setter<View, View.OnLongClickListener> ON_LONG_CLICK =
       new Setter<View, View.OnLongClickListener>() {
-        @Override public void set(@NonNull View view, View.OnLongClickListener value, int index) {
+        @Override
+        public void set(@NonNull View view, @Nullable View.OnLongClickListener value, int index) {
           view.setOnLongClickListener(value);
         }
       };
@@ -1037,7 +1038,7 @@ public final class ButterKnife {
     ArgumentTransformer EMPTY = new ArgumentTransformer() {
       private final Object[] empty = new Object[0];
 
-      @Override public Object[] transform(Object[] arguments) {
+      @Override public Object[] transform(Object... arguments) {
         return empty;
       }
 
@@ -1046,7 +1047,7 @@ public final class ButterKnife {
       }
     };
     ArgumentTransformer IDENTITY = new ArgumentTransformer() {
-      @Override public Object[] transform(Object[] arguments) {
+      @Override public Object[] transform(Object... arguments) {
         return arguments;
       }
 

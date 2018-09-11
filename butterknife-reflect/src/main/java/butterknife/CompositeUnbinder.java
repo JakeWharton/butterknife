@@ -1,11 +1,13 @@
 package butterknife;
 
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import java.util.List;
 
 final class CompositeUnbinder implements Unbinder {
-  private List<Unbinder> unbinders;
+  private @Nullable List<Unbinder> unbinders;
 
-  CompositeUnbinder(List<Unbinder> unbinders) {
+  CompositeUnbinder(@NonNull List<Unbinder> unbinders) {
     this.unbinders = unbinders;
   }
 

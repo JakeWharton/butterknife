@@ -1,6 +1,7 @@
 package butterknife;
 
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.annotation.UiThread;
 import android.util.Property;
 import android.view.View;
@@ -65,7 +66,7 @@ public final class ViewCollections {
   /** Set the {@code value} using the specified {@code setter} across the {@code list} of views. */
   @UiThread
   public static <T extends View, V> void set(@NonNull List<T> list,
-      @NonNull Setter<? super T, V> setter, V value) {
+      @NonNull Setter<? super T, V> setter, @Nullable V value) {
     for (int i = 0, count = list.size(); i < count; i++) {
       setter.set(list.get(i), value, i);
     }
@@ -74,7 +75,7 @@ public final class ViewCollections {
   /** Set the {@code value} using the specified {@code setter} across the {@code array} of views. */
   @UiThread
   public static <T extends View, V> void set(@NonNull T[] array,
-      @NonNull Setter<? super T, V> setter, V value) {
+      @NonNull Setter<? super T, V> setter, @Nullable V value) {
     for (int i = 0, count = array.length; i < count; i++) {
       setter.set(array[i], value, i);
     }
@@ -83,7 +84,7 @@ public final class ViewCollections {
   /** Set {@code value} on {@code view} using {@code setter}. */
   @UiThread
   public static <T extends View, V> void set(@NonNull T view,
-      @NonNull Setter<? super T, V> setter, V value) {
+      @NonNull Setter<? super T, V> setter, @Nullable V value) {
     setter.set(view, value, 0);
   }
 
@@ -92,7 +93,7 @@ public final class ViewCollections {
    */
   @UiThread
   public static <T extends View, V> void set(@NonNull List<T> list,
-      @NonNull Property<? super T, V> setter, V value) {
+      @NonNull Property<? super T, V> setter, @Nullable V value) {
     //noinspection ForLoopReplaceableByForEach
     for (int i = 0, count = list.size(); i < count; i++) {
       setter.set(list.get(i), value);
@@ -104,7 +105,7 @@ public final class ViewCollections {
    */
   @UiThread
   public static <T extends View, V> void set(@NonNull T[] array,
-      @NonNull Property<? super T, V> setter, V value) {
+      @NonNull Property<? super T, V> setter, @Nullable V value) {
     //noinspection ForLoopReplaceableByForEach
     for (int i = 0, count = array.length; i < count; i++) {
       setter.set(array[i], value);
@@ -114,7 +115,7 @@ public final class ViewCollections {
   /** Apply {@code value} to {@code view} using {@code property}. */
   @UiThread
   public static <T extends View, V> void set(@NonNull T view,
-      @NonNull Property<? super T, V> setter, V value) {
+      @NonNull Property<? super T, V> setter, @Nullable V value) {
     setter.set(view, value);
   }
 
