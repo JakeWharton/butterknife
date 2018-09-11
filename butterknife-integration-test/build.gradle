@@ -63,6 +63,7 @@ dependencies {
 
   codegenImplementation project(':butterknife')
   codegenAnnotationProcessor project(':butterknife-compiler')
+  androidTestCodegenAnnotationProcessor project(':butterknife-compiler')
 
   androidTestImplementation deps.junit
   androidTestImplementation deps.truth
