@@ -3,11 +3,11 @@ apply plugin: 'com.github.ben-manes.versions'
 buildscript {
   ext.versions = [
       'minSdk': 14,
-      'compileSdk': 27,
+      'compileSdk': 28,
 
-      'supportLibrary': '27.1.1',
+      'supportLibrary': '28.0.0',
       'androidTools': '26.2.0-rc03',
-      'kotlin': '1.2.61',
+      'kotlin': '1.2.70',
 
       'release': '8.8.1',
   ]
@@ -26,7 +26,7 @@ buildscript {
           ],
       ],
       'androidx': [
-          'annotations': "androidx.annotation:annotation:1.0.0-rc02",
+          'annotations': "androidx.annotation:annotation:1.0.0",
       ],
       'lint': [
           'core': "com.android.tools.lint:lint:${versions.androidTools}",
