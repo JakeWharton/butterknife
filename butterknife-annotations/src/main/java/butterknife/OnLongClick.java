@@ -9,7 +9,7 @@ import java.lang.annotation.Target;
 
 import static android.view.View.OnLongClickListener;
 import static java.lang.annotation.ElementType.METHOD;
-import static java.lang.annotation.RetentionPolicy.CLASS;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
  * Bind a method to an {@link OnLongClickListener OnLongClickListener} on the view for each ID
@@ -25,7 +25,8 @@ import static java.lang.annotation.RetentionPolicy.CLASS;
  *
  * @see OnLongClickListener
  */
-@Retention(CLASS) @Target(METHOD)
+@Target(METHOD)
+@Retention(RUNTIME)
 @ListenerClass(
     targetType = "android.view.View",
     setter = "setOnLongClickListener",

@@ -5,8 +5,8 @@ sourceCompatibility = JavaVersion.VERSION_1_8
 targetCompatibility = JavaVersion.VERSION_1_8
 
 dependencies {
-  implementation deps.lint.api
-  implementation deps.lint.checks
+  compileOnly deps.lint.api
+  compileOnly deps.lint.checks
 
   testImplementation deps.junit
   testImplementation deps.lint.core
@@ -18,7 +18,7 @@ dependencies {
 
 jar {
   manifest {
-    attributes 'Lint-Registry': 'butterknife.lint.LintRegistry'
+    attributes 'Lint-Registry-v2': 'butterknife.lint.LintRegistry'
   }
 }
 

@@ -1,10 +1,9 @@
 package butterknife;
 
-import android.annotation.TargetApi;
 import android.content.Context;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.test.InstrumentationRegistry;
-import android.support.test.filters.SdkSuppress;
 import android.util.Property;
 import android.view.View;
 import java.util.List;
@@ -12,12 +11,9 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import static android.os.Build.VERSION_CODES.ICE_CREAM_SANDWICH;
 import static com.google.common.truth.Truth.assertThat;
 import static java.util.Arrays.asList;
 
-@TargetApi(ICE_CREAM_SANDWICH)
-@SdkSuppress(minSdkVersion = ICE_CREAM_SANDWICH)
 public class ButterKnifeTest {
   private static final Property<View, Boolean> PROPERTY_ENABLED =
       new Property<View, Boolean>(Boolean.class, "enabled") {
@@ -31,7 +27,7 @@ public class ButterKnifeTest {
       };
   private static final ButterKnife.Setter<View, Boolean> SETTER_ENABLED =
       new ButterKnife.Setter<View, Boolean>() {
-        @Override public void set(@NonNull View view, Boolean value, int index) {
+        @Override public void set(@NonNull View view, @Nullable Boolean value, int index) {
           view.setEnabled(value);
         }
       };
@@ -234,7 +230,8 @@ public class ButterKnifeTest {
     }
 
     Example example = new Example();
-    assertThat(ButterKnife.bind(example, (View) null)).isSameAs(Unbinder.EMPTY);
+    View view = new View(context);
+    assertThat(ButterKnife.bind(example, view)).isSameAs(Unbinder.EMPTY);
   }
 
   @Test public void bindingKnownPackagesIsNoOp() {

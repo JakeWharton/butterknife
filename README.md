@@ -43,10 +43,12 @@ Download
 
 ```groovy
 dependencies {
-  compile 'com.jakewharton:butterknife:8.8.1'
+  implementation 'com.jakewharton:butterknife:8.8.1'
   annotationProcessor 'com.jakewharton:butterknife-compiler:8.8.1'
 }
 ```
+
+If you are using Kotlin, replace `annotationProcessor` with `kapt`.
 
 Snapshots of the development version are available in [Sonatype's `snapshots` repository][snap].
 

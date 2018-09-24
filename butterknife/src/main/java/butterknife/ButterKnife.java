@@ -1,13 +1,10 @@
 package butterknife;
 
-import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.Dialog;
-import android.os.Build;
 import android.support.annotation.CheckResult;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.annotation.RequiresApi;
 import android.support.annotation.UiThread;
 import android.support.annotation.VisibleForTesting;
 import android.util.Log;
@@ -47,12 +44,6 @@ import java.util.Map;
  * {@literal @}BindView({R.id.first_name, R.id.middle_name, R.id.last_name})
  * List<EditText> nameViews;
  * </code></pre>
- * There are three convenience methods for working with view collections:
- * <ul>
- * <li>{@link #apply(List, Action)} &ndash; Applies an action to each view.</li>
- * <li>{@link #apply(List, Setter, Object)} &ndash; Applies a setter value to each view.</li>
- * <li>{@link #apply(List, Property, Object)} &ndash; Applies a property value to each view.</li>
- * </ul>
  * <p>
  * To bind listeners to your views you can annotate your methods:
  * <pre><code>
@@ -86,20 +77,6 @@ public final class ButterKnife {
     throw new AssertionError("No instances.");
   }
 
-  /** An action that can be applied to a list of views. */
-  public interface Action<T extends View> {
-    /** Apply the action on the {@code view} which is at {@code index} in the list. */
-    @UiThread
-    void apply(@NonNull T view, int index);
-  }
-
-  /** A setter that can apply a value to a list of views. */
-  public interface Setter<T extends View, V> {
-    /** Set the {@code value} on the {@code view} which is at {@code index} in the list. */
-    @UiThread
-    void set(@NonNull T view, V value, int index);
-  }
-
   private static final String TAG = "ButterKnife";
   private static boolean debug = false;
 
@@ -120,7 +97,7 @@ public final class ButterKnife {
   @NonNull @UiThread
   public static Unbinder bind(@NonNull Activity target) {
     View sourceView = target.getWindow().getDecorView();
-    return createBinding(target, sourceView);
+    return bind(target, sourceView);
   }
 
   /**
@@ -131,7 +108,7 @@ public final class ButterKnife {
    */
   @NonNull @UiThread
   public static Unbinder bind(@NonNull View target) {
-    return createBinding(target, target);
+    return bind(target, target);
   }
 
   /**
@@ -143,7 +120,7 @@ public final class ButterKnife {
   @NonNull @UiThread
   public static Unbinder bind(@NonNull Dialog target) {
     View sourceView = target.getWindow().getDecorView();
-    return createBinding(target, sourceView);
+    return bind(target, sourceView);
   }
 
   /**
@@ -156,19 +133,7 @@ public final class ButterKnife {
   @NonNull @UiThread
   public static Unbinder bind(@NonNull Object target, @NonNull Activity source) {
     View sourceView = source.getWindow().getDecorView();
-    return createBinding(target, sourceView);
-  }
-
-  /**
-   * BindView annotated fields and methods in the specified {@code target} using the {@code source}
-   * {@link View} as the view root.
-   *
-   * @param target Target class for view binding.
-   * @param source View root on which IDs will be looked up.
-   */
-  @NonNull @UiThread
-  public static Unbinder bind(@NonNull Object target, @NonNull View source) {
-    return createBinding(target, source);
+    return bind(target, sourceView);
   }
 
   /**
@@ -181,10 +146,18 @@ public final class ButterKnife {
   @NonNull @UiThread
   public static Unbinder bind(@NonNull Object target, @NonNull Dialog source) {
     View sourceView = source.getWindow().getDecorView();
-    return createBinding(target, sourceView);
+    return bind(target, sourceView);
   }
 
-  private static Unbinder createBinding(@NonNull Object target, @NonNull View source) {
+  /**
+   * BindView annotated fields and methods in the specified {@code target} using the {@code source}
+   * {@link View} as the view root.
+   *
+   * @param target Target class for view binding.
+   * @param source View root on which IDs will be looked up.
+   */
+  @NonNull @UiThread
+  public static Unbinder bind(@NonNull Object target, @NonNull View source) {
     Class<?> targetClass = target.getClass();
     if (debug) Log.d(TAG, "Looking up binding for " + targetClass.getName());
     Constructor<? extends Unbinder> constructor = findBindingConstructorForClass(targetClass);
@@ -220,7 +193,8 @@ public final class ButterKnife {
       return bindingCtor;
     }
     String clsName = cls.getName();
-    if (clsName.startsWith("android.") || clsName.startsWith("java.")) {
+    if (clsName.startsWith("android.") || clsName.startsWith("java.")
+        || clsName.startsWith("androidx.")) {
       if (debug) Log.d(TAG, "MISS: Reached framework class. Abandoning search.");
       return null;
     }
@@ -239,119 +213,107 @@ public final class ButterKnife {
     return bindingCtor;
   }
 
-  /** Apply the specified {@code actions} across the {@code list} of views. */
+  /** @deprecated Use {@link ViewCollections#run(List, butterknife.Action[])} */
   @UiThread
+  @Deprecated
   @SafeVarargs public static <T extends View> void apply(@NonNull List<T> list,
       @NonNull Action<? super T>... actions) {
-    for (int i = 0, count = list.size(); i < count; i++) {
-      for (Action<? super T> action : actions) {
-        action.apply(list.get(i), i);
-      }
-    }
+    ViewCollections.run(list, actions);
   }
 
-  /** Apply the specified {@code actions} across the {@code array} of views. */
+  /** @deprecated Use {@link ViewCollections#run(View[], butterknife.Action[])} */
   @UiThread
+  @Deprecated
   @SafeVarargs public static <T extends View> void apply(@NonNull T[] array,
       @NonNull Action<? super T>... actions) {
-    for (int i = 0, count = array.length; i < count; i++) {
-      for (Action<? super T> action : actions) {
-        action.apply(array[i], i);
-      }
-    }
+    ViewCollections.run(array, actions);
   }
 
-  /** Apply the specified {@code action} across the {@code list} of views. */
+  /** @deprecated Use {@link ViewCollections#run(List, butterknife.Action)} */
   @UiThread
+  @Deprecated
   public static <T extends View> void apply(@NonNull List<T> list,
       @NonNull Action<? super T> action) {
-    for (int i = 0, count = list.size(); i < count; i++) {
-      action.apply(list.get(i), i);
-    }
+    ViewCollections.run(list, action);
   }
 
-  /** Apply the specified {@code action} across the {@code array} of views. */
+  /** @deprecated Use {@link ViewCollections#run(View[], butterknife.Action)} */
   @UiThread
+  @Deprecated
   public static <T extends View> void apply(@NonNull T[] array, @NonNull Action<? super T> action) {
-    for (int i = 0, count = array.length; i < count; i++) {
-      action.apply(array[i], i);
-    }
+    ViewCollections.run(array, action);
   }
 
-  /** Apply {@code actions} to {@code view}. */
+  /** @deprecated Use {@link ViewCollections#run(View, butterknife.Action[])} */
   @UiThread
+  @Deprecated
   @SafeVarargs public static <T extends View> void apply(@NonNull T view,
       @NonNull Action<? super T>... actions) {
-    for (Action<? super T> action : actions) {
-      action.apply(view, 0);
-    }
+    ViewCollections.run(view, actions);
   }
 
-  /** Apply {@code action} to {@code view}. */
+  /** @deprecated {@link ViewCollections#run(View, butterknife.Action)} */
   @UiThread
+  @Deprecated
   public static <T extends View> void apply(@NonNull T view, @NonNull Action<? super T> action) {
-    action.apply(view, 0);
+    ViewCollections.run(view, action);
   }
 
-  /** Set the {@code value} using the specified {@code setter} across the {@code list} of views. */
+  /** @deprecated Use {@link ViewCollections#set(List, butterknife.Setter, Object)} */
   @UiThread
+  @Deprecated
   public static <T extends View, V> void apply(@NonNull List<T> list,
       @NonNull Setter<? super T, V> setter, V value) {
-    for (int i = 0, count = list.size(); i < count; i++) {
-      setter.set(list.get(i), value, i);
-    }
+    ViewCollections.set(list, setter, value);
   }
 
-  /** Set the {@code value} using the specified {@code setter} across the {@code array} of views. */
+  /** @deprecated Use {@link ViewCollections#set(View[], butterknife.Setter, Object)} */
   @UiThread
+  @Deprecated
   public static <T extends View, V> void apply(@NonNull T[] array,
       @NonNull Setter<? super T, V> setter, V value) {
-    for (int i = 0, count = array.length; i < count; i++) {
-      setter.set(array[i], value, i);
-    }
+    ViewCollections.set(array, setter, value);
   }
 
-  /** Set {@code value} on {@code view} using {@code setter}. */
+  /** @deprecated Use {@link ViewCollections#set(View, butterknife.Setter, Object)} */
   @UiThread
+  @Deprecated
   public static <T extends View, V> void apply(@NonNull T view,
       @NonNull Setter<? super T, V> setter, V value) {
-    setter.set(view, value, 0);
+    ViewCollections.set(view, setter, value);
   }
 
-  /**
-   * Apply the specified {@code value} across the {@code list} of views using the {@code property}.
-   */
-  @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH) // http://b.android.com/213630
-  @RequiresApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
+  /** @deprecated Use {@link ViewCollections#set(List, Property, Object)} */
   @UiThread
+  @Deprecated
   public static <T extends View, V> void apply(@NonNull List<T> list,
       @NonNull Property<? super T, V> setter, V value) {
-    //noinspection ForLoopReplaceableByForEach
-    for (int i = 0, count = list.size(); i < count; i++) {
-      setter.set(list.get(i), value);
-    }
+    ViewCollections.set(list, setter, value);
   }
 
-  /**
-   * Apply the specified {@code value} across the {@code array} of views using the {@code property}.
-   */
-  @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH) // http://b.android.com/213630
-  @RequiresApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
+  /** @deprecated Use {@link ViewCollections#set(View[], Property, Object)} */
   @UiThread
+  @Deprecated
   public static <T extends View, V> void apply(@NonNull T[] array,
       @NonNull Property<? super T, V> setter, V value) {
-    //noinspection ForLoopReplaceableByForEach
-    for (int i = 0, count = array.length; i < count; i++) {
-      setter.set(array[i], value);
-    }
+    ViewCollections.set(array, setter, value);
   }
 
-  /** Apply {@code value} to {@code view} using {@code property}. */
-  @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH) // http://b.android.com/213630
-  @RequiresApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
+  /** @deprecated Use {@link ViewCollections#set(View, Property, Object)} */
   @UiThread
+  @Deprecated
   public static <T extends View, V> void apply(@NonNull T view,
       @NonNull Property<? super T, V> setter, V value) {
-    setter.set(view, value);
+    ViewCollections.set(view, setter, value);
+  }
+
+  /** @deprecated Use {@link butterknife.Action} */
+  @Deprecated
+  public interface Action<T extends View> extends butterknife.Action<T> {
+  }
+
+  /** @deprecated Use {@link butterknife.Setter} */
+  @Deprecated
+  public interface Setter<T extends View, V> extends butterknife.Setter<T, V> {
   }
 }

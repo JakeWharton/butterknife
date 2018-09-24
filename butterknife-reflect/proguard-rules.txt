@@ -1,0 +1,2 @@
+-keepclassmembers class * { @butterknife.* <methods>; }
+-keepclassmembers class * { @butterknife.* <fields>; }

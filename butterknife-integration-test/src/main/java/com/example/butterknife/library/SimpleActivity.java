@@ -9,6 +9,7 @@ import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
+import butterknife.Action;
 import butterknife.BindString;
 import butterknife.BindView;
 import butterknife.BindViews;
@@ -16,14 +17,14 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 import butterknife.OnItemClick;
 import butterknife.OnLongClick;
+import butterknife.ViewCollections;
 import com.example.butterknife.R;
-
 import java.util.List;
 
 import static android.widget.Toast.LENGTH_SHORT;
 
 public class SimpleActivity extends Activity {
-  private static final ButterKnife.Action<View> ALPHA_FADE = new ButterKnife.Action<View>() {
+  private static final Action<View> ALPHA_FADE = new Action<View>() {
     @Override public void apply(@NonNull View view, int index) {
       AlphaAnimation alphaAnimation = new AlphaAnimation(0, 1);
       alphaAnimation.setFillBefore(true);
@@ -49,7 +50,7 @@ public class SimpleActivity extends Activity {
 
   @OnClick(R.id.hello) void sayHello() {
     Toast.makeText(this, "Hello, views!", LENGTH_SHORT).show();
-    ButterKnife.apply(headerViews, ALPHA_FADE);
+    ViewCollections.run(headerViews, ALPHA_FADE);
   }
 
   @OnLongClick(R.id.hello) boolean sayGetOffMe() {

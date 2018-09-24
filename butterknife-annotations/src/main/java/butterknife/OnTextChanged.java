@@ -12,7 +12,7 @@ import static java.lang.annotation.ElementType.METHOD;
 import static java.lang.annotation.RetentionPolicy.CLASS;
 
 /**
- * Bind a method to an {@link TextWatcher TextWatcher} on the view for each ID specified.
+ * Bind a method to a {@link TextWatcher TextWatcher} on the view for each ID specified.
  * <pre><code>
  * {@literal @}OnTextChanged(R.id.example) void onTextChanged(CharSequence text) {
  *   Toast.makeText(this, "Text changed: " + text, Toast.LENGTH_SHORT).show();

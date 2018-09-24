@@ -9,7 +9,7 @@ import java.lang.annotation.Target;
 
 import static android.widget.AdapterView.OnItemClickListener;
 import static java.lang.annotation.ElementType.METHOD;
-import static java.lang.annotation.RetentionPolicy.CLASS;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
  * Bind a method to an {@link OnItemClickListener OnItemClickListener} on the view for each ID
@@ -25,7 +25,7 @@ import static java.lang.annotation.RetentionPolicy.CLASS;
  * @see OnItemClickListener
  */
 @Target(METHOD)
-@Retention(CLASS)
+@Retention(RUNTIME)
 @ListenerClass(
     targetType = "android.widget.AdapterView<?>",
     setter = "setOnItemClickListener",
