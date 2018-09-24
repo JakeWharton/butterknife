@@ -10,7 +10,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 public @interface ListenerClass {
   String targetType();
 
-  String targetTypeAndroidX() default "";
+  String legacyTargetType() default "";
 
   /** Name of the setter method on the {@linkplain #targetType() target type} for the listener. */
   String setter();
@@ -24,7 +24,7 @@ public @interface ListenerClass {
   /** Fully-qualified class name of the listener type. */
   String type();
 
-  String typeAndroidX() default "";
+  String legacyType() default "";
 
   /** Enum which declares the listener callback methods. Mutually exclusive to {@link #method()}. */
   Class<? extends Enum<?>> callbacks() default NONE.class;

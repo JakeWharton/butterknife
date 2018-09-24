@@ -79,7 +79,7 @@ class ButterKnifePlugin : Plugin<Project> {
             inputs.file(rFile)
 
             doLast {
-              FinalRClassBuilder.brewJava(rFile, outputDir, rPackage, "R2", useAndroidX)
+              FinalRClassBuilder.brewJava(rFile, outputDir, rPackage, "R2", !useAndroidX)
             }
           }
         }

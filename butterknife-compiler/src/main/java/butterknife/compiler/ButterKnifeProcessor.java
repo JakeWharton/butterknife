@@ -123,7 +123,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
   private int sdk = 1;
   private boolean debuggable = true;
-  private boolean useAndroidX = false;
+  private boolean useLegacyTypes = false;
 
   private final RScanner rScanner = new RScanner();
 
@@ -143,7 +143,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     }
 
     debuggable = !"false".equals(env.getOptions().get(OPTION_DEBUGGABLE));
-    useAndroidX = hasAndroidX(env.getElementUtils());
+    useLegacyTypes = !hasAndroidX(env.getElementUtils());
 
     typeUtils = env.getTypeUtils();
     filer = env.getFiler();
@@ -193,7 +193,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
       TypeElement typeElement = entry.getKey();
       BindingSet binding = entry.getValue();
 
-      JavaFile javaFile = binding.brewJava(sdk, debuggable, useAndroidX);
+      JavaFile javaFile = binding.brewJava(sdk, debuggable, useLegacyTypes);
       try {
         javaFile.writeTo(filer);
       } catch (IOException e) {
@@ -671,11 +671,11 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     Id resourceId = elementToId(element, BindColor.class, id);
     BindingSet.Builder builder = getOrCreateBindingBuilder(builderMap, enclosingElement);
 
-    FieldResourceBinding.Type colorStateList = useAndroidX
-        ? FieldResourceBinding.Type.COLOR_STATE_LIST_ANDROIDX
-        : FieldResourceBinding.Type.COLOR_STATE_LIST;
-    FieldResourceBinding.Type color = useAndroidX
-        ? FieldResourceBinding.Type.COLOR_ANDROIDX
+    FieldResourceBinding.Type colorStateList = useLegacyTypes
+        ? FieldResourceBinding.Type.COLOR_STATE_LIST_LEGACY
+            : FieldResourceBinding.Type.COLOR_STATE_LIST;
+    FieldResourceBinding.Type color = useLegacyTypes
+        ? FieldResourceBinding.Type.COLOR_LEGACY
         : FieldResourceBinding.Type.COLOR;
     builder.addResource(new FieldResourceBinding(
         resourceId,
@@ -782,7 +782,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
     BindingSet.Builder builder = getOrCreateBindingBuilder(builderMap, enclosingElement);
     builder.addResource(new FieldDrawableBinding(resourceIds.get(id), name, resourceIds.get(tint),
-        useAndroidX));
+        useLegacyTypes));
 
     erasedTargetNames.add(enclosingElement);
   }
@@ -854,7 +854,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
     BindingSet.Builder builder = getOrCreateBindingBuilder(builderMap, enclosingElement);
     Id resourceId = elementToId(element, BindFont.class, bindFont.value());
-    builder.addResource(new FieldTypefaceBinding(resourceId, name, style, useAndroidX));
+    builder.addResource(new FieldTypefaceBinding(resourceId, name, style, useLegacyTypes));
 
     erasedTargetNames.add(enclosingElement);
   }
@@ -1362,16 +1362,11 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
   }
 
   /**
-   * Perform two lookups to see if the androidx annotation and core libraries are on the application
-   * classpath. If both aren't present butterknife will leverage support annotations and
-   * compat libraries instead.
+   * Check for an AndroidX type required by the runtime to determine whether we're in AndroidX or
+   * using legacy support library types.
    */
-  private static boolean hasAndroidX(Elements elementUtils) {
-    boolean annotationsPresent
-        = elementUtils.getTypeElement("androidx.annotation.NonNull") != null;
-    boolean corePresent
-        = elementUtils.getTypeElement("androidx.core.content.ContextCompat") != null;
-    return annotationsPresent && corePresent;
+  private static boolean hasAndroidX(Elements elements) {
+    return elements.getTypeElement("androidx.core.content.ContextCompat") != null;
   }
 
   private static class RScanner extends TreeScanner {
