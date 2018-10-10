@@ -582,11 +582,9 @@ public final class ButterKnife {
         findViews(source, onCheckedChanged.value(), isRequired(method), method.getName(),
             CompoundButton.class);
 
-    ViewCollections.set(views, ON_CHECKED_CHANGE, new CompoundButton.OnCheckedChangeListener() {
-      @Override public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-        tryInvoke(method, target, argumentTransformer.transform(buttonView, isChecked));
-      }
-    });
+    ViewCollections.set(views, ON_CHECKED_CHANGE,
+        (buttonView, isChecked) -> tryInvoke(method, target,
+            argumentTransformer.transform(buttonView, isChecked)));
 
     return new ListenerUnbinder<>(views, ON_CHECKED_CHANGE);
   }
@@ -605,11 +603,8 @@ public final class ButterKnife {
     List<View> views =
         findViews(source, onClick.value(), isRequired(method), method.getName(), View.class);
 
-    ViewCollections.set(views, ON_CLICK, new View.OnClickListener() {
-      @Override public void onClick(View v) {
-        tryInvoke(method, target, argumentTransformer.transform(v));
-      }
-    });
+    ViewCollections.set(views, ON_CLICK,
+        v -> tryInvoke(method, target, argumentTransformer.transform(v)));
 
     return new ListenerUnbinder<>(views, ON_CLICK);
   }
@@ -629,14 +624,12 @@ public final class ButterKnife {
         findViews(source, onEditorAction.value(), isRequired(method), method.getName(),
             TextView.class);
 
-    ViewCollections.set(views, ON_EDITOR_ACTION, new TextView.OnEditorActionListener() {
-      @Override public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-        Object value = tryInvoke(method, target, argumentTransformer.transform(v, actionId, event));
-        //noinspection SimplifiableConditionalExpression
-        return propagateReturn
-            ? (boolean) value
-            : false;
-      }
+    ViewCollections.set(views, ON_EDITOR_ACTION, (v, actionId, event) -> {
+      Object value = tryInvoke(method, target, argumentTransformer.transform(v, actionId, event));
+      //noinspection SimplifiableConditionalExpression
+      return propagateReturn
+          ? (boolean) value
+          : false;
     });
 
     return new ListenerUnbinder<>(views, ON_EDITOR_ACTION);
@@ -656,11 +649,8 @@ public final class ButterKnife {
     List<View> views =
         findViews(source, onFocusChange.value(), isRequired(method), method.getName(), View.class);
 
-    ViewCollections.set(views, ON_FOCUS_CHANGE, new View.OnFocusChangeListener() {
-      @Override public void onFocusChange(View v, boolean hasFocus) {
-        tryInvoke(method, target, argumentTransformer.transform(v, hasFocus));
-      }
-    });
+    ViewCollections.set(views, ON_FOCUS_CHANGE,
+        (v, hasFocus) -> tryInvoke(method, target, argumentTransformer.transform(v, hasFocus)));
 
     return new ListenerUnbinder<>(views, ON_FOCUS_CHANGE);
   }
@@ -680,11 +670,9 @@ public final class ButterKnife {
         findViews(source, onItemClick.value(), isRequired(method), method.getName(),
             AdapterView.class);
 
-    ViewCollections.set(views, ON_ITEM_CLICK, new AdapterView.OnItemClickListener() {
-      @Override public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        tryInvoke(method, target, argumentTransformer.transform(parent, view, position, id));
-      }
-    });
+    ViewCollections.set(views, ON_ITEM_CLICK,
+        (parent, view, position, id) -> tryInvoke(method, target,
+            argumentTransformer.transform(parent, view, position, id)));
 
     return new ListenerUnbinder<>(views, ON_ITEM_CLICK);
   }
@@ -704,16 +692,13 @@ public final class ButterKnife {
         findViews(source, onItemLongClick.value(), isRequired(method), method.getName(),
             AdapterView.class);
 
-    ViewCollections.set(views, ON_ITEM_LONG_CLICK, new AdapterView.OnItemLongClickListener() {
-      @Override
-      public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-        Object value =
-            tryInvoke(method, target, argumentTransformer.transform(parent, view, position, id));
-        //noinspection SimplifiableConditionalExpression
-        return propagateReturn
-            ? (boolean) value
-            : false;
-      }
+    ViewCollections.set(views, ON_ITEM_LONG_CLICK, (parent, view, position, id) -> {
+      Object value =
+          tryInvoke(method, target, argumentTransformer.transform(parent, view, position, id));
+      //noinspection SimplifiableConditionalExpression
+      return propagateReturn
+          ? (boolean) value
+          : false;
     });
 
     return new ListenerUnbinder<>(views, ON_ITEM_LONG_CLICK);
@@ -733,14 +718,12 @@ public final class ButterKnife {
     List<View> views =
         findViews(source, onLongClick.value(), isRequired(method), method.getName(), View.class);
 
-    ViewCollections.set(views, ON_LONG_CLICK, new View.OnLongClickListener() {
-      @Override public boolean onLongClick(View v) {
-        Object returnValue = tryInvoke(method, target, argumentTransformer.transform(v));
-        //noinspection SimplifiableConditionalExpression
-        return propagateReturn
-            ? (boolean) returnValue
-            : false;
-      }
+    ViewCollections.set(views, ON_LONG_CLICK, v -> {
+      Object returnValue = tryInvoke(method, target, argumentTransformer.transform(v));
+      //noinspection SimplifiableConditionalExpression
+      return propagateReturn
+          ? (boolean) returnValue
+          : false;
     });
 
     return new ListenerUnbinder<>(views, ON_LONG_CLICK);
@@ -760,14 +743,12 @@ public final class ButterKnife {
     List<View> views =
         findViews(source, onTouch.value(), isRequired(method), method.getName(), View.class);
 
-    ViewCollections.set(views, ON_TOUCH, new View.OnTouchListener() {
-      @Override public boolean onTouch(View v, MotionEvent event) {
-        Object returnValue = tryInvoke(method, target, argumentTransformer.transform(v));
-        //noinspection SimplifiableConditionalExpression
-        return propagateReturn
-            ? (boolean) returnValue
-            : false;
-      }
+    ViewCollections.set(views, ON_TOUCH, (v, event) -> {
+      Object returnValue = tryInvoke(method, target, argumentTransformer.transform(v));
+      //noinspection SimplifiableConditionalExpression
+      return propagateReturn
+          ? (boolean) returnValue
+          : false;
     });
 
     return new ListenerUnbinder<>(views, ON_TOUCH);
@@ -966,61 +947,21 @@ public final class ButterKnife {
   }
 
   private static final Setter<CompoundButton, CompoundButton.OnCheckedChangeListener>
-      ON_CHECKED_CHANGE = new Setter<CompoundButton, CompoundButton.OnCheckedChangeListener>() {
-    @Override public void set(@NonNull CompoundButton view,
-        @Nullable CompoundButton.OnCheckedChangeListener value, int index) {
-      view.setOnCheckedChangeListener(value);
-    }
-  };
+      ON_CHECKED_CHANGE = (view, value, index) -> view.setOnCheckedChangeListener(value);
   private static final Setter<View, View.OnClickListener> ON_CLICK =
-      new Setter<View, View.OnClickListener>() {
-        @Override
-        public void set(@NonNull View view, @Nullable View.OnClickListener value, int index) {
-          view.setOnClickListener(value);
-        }
-      };
+      (view, value, index) -> view.setOnClickListener(value);
   private static final Setter<TextView, TextView.OnEditorActionListener> ON_EDITOR_ACTION =
-      new Setter<TextView, TextView.OnEditorActionListener>() {
-        @Override
-        public void set(@NonNull TextView view, @Nullable TextView.OnEditorActionListener value,
-            int index) {
-          view.setOnEditorActionListener(value);
-        }
-      };
+      (view, value, index) -> view.setOnEditorActionListener(value);
   private static final Setter<View, View.OnFocusChangeListener> ON_FOCUS_CHANGE =
-      new Setter<View, View.OnFocusChangeListener>() {
-        @Override
-        public void set(@NonNull View view, @Nullable View.OnFocusChangeListener value, int index) {
-          view.setOnFocusChangeListener(value);
-        }
-      };
+      (view, value, index) -> view.setOnFocusChangeListener(value);
   private static final Setter<AdapterView<?>, AdapterView.OnItemClickListener> ON_ITEM_CLICK =
-      new Setter<AdapterView<?>, AdapterView.OnItemClickListener>() {
-        @Override public void set(@NonNull AdapterView<?> view,
-            @Nullable AdapterView.OnItemClickListener value, int index) {
-          view.setOnItemClickListener(value);
-        }
-      };
+      (view, value, index) -> view.setOnItemClickListener(value);
   private static final Setter<AdapterView<?>, AdapterView.OnItemLongClickListener>
-      ON_ITEM_LONG_CLICK = new Setter<AdapterView<?>, AdapterView.OnItemLongClickListener>() {
-    @Override public void set(@NonNull AdapterView<?> view,
-        @Nullable AdapterView.OnItemLongClickListener value, int index) {
-      view.setOnItemLongClickListener(value);
-    }
-  };
+      ON_ITEM_LONG_CLICK = (view, value, index) -> view.setOnItemLongClickListener(value);
   private static final Setter<View, View.OnLongClickListener> ON_LONG_CLICK =
-      new Setter<View, View.OnLongClickListener>() {
-        @Override
-        public void set(@NonNull View view, @Nullable View.OnLongClickListener value, int index) {
-          view.setOnLongClickListener(value);
-        }
-      };
+      (view, value, index) -> view.setOnLongClickListener(value);
   private static final Setter<View, View.OnTouchListener> ON_TOUCH =
-      new Setter<View, View.OnTouchListener>() {
-        @Override public void set(@NonNull View view, View.OnTouchListener value, int index) {
-          view.setOnTouchListener(value);
-        }
-      };
+      (view, value, index) -> view.setOnTouchListener(value);
 
   private static final Class<?>[] ON_CHECKED_CHANGED_TYPES =
       { CompoundButton.class, boolean.class };

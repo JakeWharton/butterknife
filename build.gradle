@@ -7,7 +7,7 @@ buildscript {
 
       'supportLibrary': '28.0.0',
       'androidTools': '26.2.0',
-      'kotlin': '1.2.70',
+      'kotlin': '1.2.71',
 
       'release': '8.8.1',
   ]
