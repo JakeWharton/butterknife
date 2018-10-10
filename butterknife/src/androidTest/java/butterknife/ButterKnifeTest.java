@@ -26,21 +26,11 @@ public class ButterKnifeTest {
         }
       };
   private static final ButterKnife.Setter<View, Boolean> SETTER_ENABLED =
-      new ButterKnife.Setter<View, Boolean>() {
-        @Override public void set(@NonNull View view, @Nullable Boolean value, int index) {
-          view.setEnabled(value);
-        }
-      };
-  private static final ButterKnife.Action<View> ACTION_DISABLE = new ButterKnife.Action<View>() {
-    @Override public void apply(@NonNull View view, int index) {
-      view.setEnabled(false);
-    }
-  };
-  private static final ButterKnife.Action<View> ACTION_ZERO_ALPHA = new ButterKnife.Action<View>() {
-    @Override public void apply(@NonNull View view, int index) {
-      view.setAlpha(0f);
-    }
-  };
+      (view, value, index) -> view.setEnabled(value);
+  private static final ButterKnife.Action<View> ACTION_DISABLE =
+      (view, index) -> view.setEnabled(false);
+  private static final ButterKnife.Action<View> ACTION_ZERO_ALPHA =
+      (view, index) -> view.setAlpha(0f);
 
   private final Context context = InstrumentationRegistry.getContext();
 

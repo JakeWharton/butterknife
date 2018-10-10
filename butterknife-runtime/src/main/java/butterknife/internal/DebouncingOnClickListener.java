@@ -9,11 +9,7 @@ import android.view.View;
 public abstract class DebouncingOnClickListener implements View.OnClickListener {
   static boolean enabled = true;
 
-  private static final Runnable ENABLE_AGAIN = new Runnable() {
-    @Override public void run() {
-      enabled = true;
-    }
-  };
+  private static final Runnable ENABLE_AGAIN = () -> enabled = true;
 
   @Override public final void onClick(View v) {
     if (enabled) {

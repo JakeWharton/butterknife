@@ -2,7 +2,6 @@ package com.example.butterknife.library;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.view.View;
 import android.view.animation.AlphaAnimation;
 import android.widget.Button;
@@ -24,14 +23,12 @@ import java.util.List;
 import static android.widget.Toast.LENGTH_SHORT;
 
 public class SimpleActivity extends Activity {
-  private static final Action<View> ALPHA_FADE = new Action<View>() {
-    @Override public void apply(@NonNull View view, int index) {
-      AlphaAnimation alphaAnimation = new AlphaAnimation(0, 1);
-      alphaAnimation.setFillBefore(true);
-      alphaAnimation.setDuration(500);
-      alphaAnimation.setStartOffset(index * 100);
-      view.startAnimation(alphaAnimation);
-    }
+  private static final Action<View> ALPHA_FADE = (view, index) -> {
+    AlphaAnimation alphaAnimation = new AlphaAnimation(0, 1);
+    alphaAnimation.setFillBefore(true);
+    alphaAnimation.setDuration(500);
+    alphaAnimation.setStartOffset(index * 100);
+    view.startAnimation(alphaAnimation);
   };
 
   @BindView(R.id.title) TextView title;
