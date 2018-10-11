@@ -20,6 +20,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import butterknife.internal.ButterKnifeListenter;
+
 /**
  * Field and method binding for Android views. Use this class to simplify finding views and
  * attaching listeners by binding them with annotations.
@@ -83,6 +85,7 @@ import java.util.Map;
  * </code></pre>
  */
 public final class ButterKnife {
+  private static ButterKnifeListenter butterKnifeListenter;
   private ButterKnife() {
     throw new AssertionError("No instances.");
   }
@@ -110,6 +113,14 @@ public final class ButterKnife {
   /** Control whether debug logging is enabled. */
   public static void setDebug(boolean debug) {
     ButterKnife.debug = debug;
+  }
+
+  public static ButterKnifeListenter getButterKnifeListenter() {
+    return butterKnifeListenter;
+  }
+
+  public static void setButterKnifeListenter(ButterKnifeListenter butterKnifeListenter) {
+    ButterKnife.butterKnifeListenter = butterKnifeListenter;
   }
 
   /**
