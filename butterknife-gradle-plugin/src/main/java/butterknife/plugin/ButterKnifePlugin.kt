@@ -7,12 +7,13 @@ import com.android.build.gradle.FeaturePlugin
 import com.android.build.gradle.LibraryExtension
 import com.android.build.gradle.LibraryPlugin
 import com.android.build.gradle.api.BaseVariant
+import com.android.build.gradle.internal.res.GenerateLibraryRFileTask
+import com.android.build.gradle.internal.res.LinkApplicationAndroidResourcesTask
 import groovy.util.XmlSlurper
 import org.gradle.api.DomainObjectSet
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.ExtensionContainer
-import java.io.File
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.reflect.KClass
 
@@ -58,29 +59,31 @@ class ButterKnifePlugin : Plugin<Project> {
       val outputDir = project.buildDir.resolve(
           "generated/source/r2/${variant.dirName}")
 
-      val task = project.tasks.create("generate${variant.name.capitalize()}R2")
-      task.inputs.property("useAndroidX", useAndroidX)
-      task.outputs.dir(outputDir)
-      variant.registerJavaGeneratingTask(task, outputDir)
 
       val rPackage = getPackageName(variant)
       val once = AtomicBoolean()
       variant.outputs.all { output ->
         val processResources = output.processResources
-        task.dependsOn(processResources)
 
         // Though there might be multiple outputs, their R files are all the same. Thus, we only
         // need to configure the task once with the R.java input and action.
         if (once.compareAndSet(false, true)) {
-          val pathToR = rPackage.replace('.', File.separatorChar)
-          val rFile = processResources.sourceOutputDir.resolve(pathToR).resolve("R.java")
-
-          task.apply {
-            inputs.file(rFile)
-
-            doLast {
-              FinalRClassBuilder.brewJava(rFile, outputDir, rPackage, "R2", !useAndroidX)
-            }
+          // TODO: switch to better API once exists in AGP (https://issuetracker.google.com/118668005)
+          val rFile =
+                  project.files(
+                          when (processResources) {
+                            is GenerateLibraryRFileTask -> processResources.textSymbolOutputFile
+                            is LinkApplicationAndroidResourcesTask -> processResources.textSymbolOutputFile
+                            else -> throw RuntimeException("Minimum supported Android Gradle Plugin is 3.1.0")
+                          })
+                          .builtBy(processResources)
+          project.tasks.create("generate${variant.name.capitalize()}R2", R2Generator::class.java) {
+            it.outputDir = outputDir
+            it.rFile = rFile
+            it.useAndroidX = useAndroidX
+            it.packageName = rPackage
+            it.className = "R2"
+            variant.registerJavaGeneratingTask(it, outputDir)
           }
         }
       }

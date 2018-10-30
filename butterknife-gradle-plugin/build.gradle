@@ -8,7 +8,6 @@ dependencies {
   compileOnly gradleApi()
 
   implementation deps.android.gradlePlugin
-  implementation deps.javaparser
   implementation deps.javapoet
   implementation deps.kotlin.stdLibJdk8
 
