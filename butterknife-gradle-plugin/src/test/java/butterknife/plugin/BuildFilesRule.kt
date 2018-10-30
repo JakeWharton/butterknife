@@ -10,6 +10,9 @@ class BuildFilesRule(private val root: File) : TestRule {
     override fun apply(base: Statement, description: Description): Statement {
         return object : Statement() {
             override fun evaluate() {
+                val settingsFile = File(root, "settings.gradle")
+                val hasSettingsFile = settingsFile.exists()
+                if (!hasSettingsFile) settingsFile.writeText("")
                 val buildFile = File(root, "build.gradle")
                 val hasBuildFile = buildFile.exists()
                 if (hasBuildFile) {
@@ -29,6 +32,7 @@ class BuildFilesRule(private val root: File) : TestRule {
                 try {
                     base.evaluate()
                 } finally {
+                    if (!hasSettingsFile) settingsFile.delete()
                     if (!hasBuildFile) buildFile.delete()
                     if (!hasManifestFile) manifestFile.delete()
                 }

@@ -12,21 +12,20 @@ import org.junit.runners.Parameterized
 import org.junit.runners.Parameterized.Parameters
 
 @RunWith(Parameterized::class)
-class FinalRClassBuilderTest(val rFile: String, val r2File: String, val useLegacyTypes: Boolean) {
+class FinalRClassBuilderTest(private val useLegacyTypes: Boolean) {
   @Rule @JvmField val tempFolder = TemporaryFolder()
 
   @Test fun brewJava() {
     val packageName = "com.butterknife.example"
-
-    val rFile = tempFolder.newFile("R.java").also {
-      it.writeText(javaClass.getResource("/fixtures/$rFile.java").readText())
+    val rFile = tempFolder.newFile("R.txt").also {
+      it.writeText(javaClass.getResource("/fixtures/R.txt").readText())
     }
 
     val outputDir = tempFolder.newFolder()
-    FinalRClassBuilder.brewJava(rFile, outputDir, packageName, "R2", useLegacyTypes)
+    brewJava(rFile, outputDir, packageName, "R2", useLegacyTypes)
 
     val actual = outputDir.resolve("com/butterknife/example/R2.java").readText()
-    var expected = javaClass.getResource("/fixtures/$r2File.java").readText()
+    var expected = javaClass.getResource("/fixtures/R2.java").readText()
     if (useLegacyTypes) {
       expected = expected.replace("import androidx.", "import android.support.")
     }
@@ -38,11 +37,6 @@ class FinalRClassBuilderTest(val rFile: String, val r2File: String, val useLegac
   }
 
   companion object {
-    @JvmStatic @Parameters fun data() = listOf(
-        arrayOf("R", "R2", false),
-        arrayOf("RFinal", "R2", false),
-        arrayOf("R", "R2", true),
-        arrayOf("RFinal", "R2", true)
-    )
+    @JvmStatic @Parameters(name="useLegacyTypes={0}") fun data() = listOf(false, true)
   }
 }
