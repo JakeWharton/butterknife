@@ -90,6 +90,9 @@ public final class R2 {
 
   public static final class styleable {
     @StyleableRes
-    public static final int res = 0x7f040015;
+    public static final int resArray_child = 0;
+
+    @StyleableRes
+    public static final int resArray_child2 = 1;
   }
 }
