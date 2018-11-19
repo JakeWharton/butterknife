@@ -56,9 +56,8 @@ final class BindingSet {
       ClassName.get("android.annotation", "SuppressLint");
   private static final ClassName UNBINDER = ClassName.get("butterknife", "Unbinder");
   static final ClassName BITMAP_FACTORY = ClassName.get("android.graphics", "BitmapFactory");
-  /* This string concat lunacy is to work around Jetifier nonsense. */
   static final ClassName CONTEXT_COMPAT_LEGACY =
-      ClassName.get("android.sup" + new String("port.v4.content"), "ContextCompat");
+      ClassName.get("android.support.v4.content", "ContextCompat");
   static final ClassName CONTEXT_COMPAT =
       ClassName.get("androidx.core.content", "ContextCompat");
   static final ClassName ANIMATION_UTILS =
