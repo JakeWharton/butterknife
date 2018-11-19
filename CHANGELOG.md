@@ -1,6 +1,14 @@
 Change Log
 ==========
 
+Version 9.0.0-rc2 *(2018-11-19)*
+--------------------------------
+
+ * Add support for Android Gradle plugin 3.3 and newer where `R` is no longer generated as Java source. This
+   has a side-effect of removing support for Android Gradle plugin 3.0.x (and older).
+ * Use Java 8 bytecode for all artifacts as announced in RC1 release notes.
+
+
 Version 9.0.0-rc1 *(2018-10-10)*
 --------------------------------
 
