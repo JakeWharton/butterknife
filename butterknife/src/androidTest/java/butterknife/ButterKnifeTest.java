@@ -215,13 +215,15 @@ public class ButterKnifeTest {
     assertThat(view3.isEnabled()).isFalse();
   }
 
-  @Test public void zeroBindingsBindDoesNotThrowException() {
+  @Test public void zeroBindingsBindDoesNotThrowExceptionAndCaches() {
     class Example {
     }
 
     Example example = new Example();
     View view = new View(context);
+    assertThat(ButterKnife.BINDINGS).isEmpty();
     assertThat(ButterKnife.bind(example, view)).isSameAs(Unbinder.EMPTY);
+    assertThat(ButterKnife.BINDINGS).containsEntry(Example.class, null);
   }
 
   @Test public void bindingKnownPackagesIsNoOp() {

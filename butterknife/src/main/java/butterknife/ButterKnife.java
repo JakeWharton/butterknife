@@ -188,7 +188,7 @@ public final class ButterKnife {
   @Nullable @CheckResult @UiThread
   private static Constructor<? extends Unbinder> findBindingConstructorForClass(Class<?> cls) {
     Constructor<? extends Unbinder> bindingCtor = BINDINGS.get(cls);
-    if (bindingCtor != null) {
+    if (bindingCtor != null || BINDINGS.containsKey(cls)) {
       if (debug) Log.d(TAG, "HIT: Cached in binding map.");
       return bindingCtor;
     }
