@@ -1,6 +1,14 @@
 Change Log
 ==========
 
+Version 9.0.0-rc3 *(2018-12-20)*
+--------------------------------
+
+ * Fix: Correct generated resource annotation names when running Turkish locale.
+ * Cache the fact that a class hierarchy has no remaining bindings to prevent traversing the hierarchy
+   multiple times.
+
+
 Version 9.0.0-rc2 *(2018-11-19)*
 --------------------------------
 
