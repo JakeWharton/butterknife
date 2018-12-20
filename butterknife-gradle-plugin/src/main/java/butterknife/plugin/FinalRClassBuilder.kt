@@ -4,6 +4,7 @@ import com.squareup.javapoet.ClassName
 import com.squareup.javapoet.FieldSpec
 import com.squareup.javapoet.JavaFile
 import com.squareup.javapoet.TypeSpec
+import java.util.Locale
 import javax.lang.model.element.Modifier.FINAL
 import javax.lang.model.element.Modifier.PUBLIC
 import javax.lang.model.element.Modifier.STATIC
@@ -58,6 +59,9 @@ class FinalRClassBuilder(
 
   private fun getSupportAnnotationClass(type: String): ClassName {
     val supportPackage = if (useLegacyTypes) ANNOTATION_PACKAGE_LEGACY else ANNOTATION_PACKAGE
-    return ClassName.get(supportPackage, type.capitalize() + "Res")
+    return ClassName.get(supportPackage, type.capitalize(Locale.US) + "Res")
   }
+
+  // TODO https://youtrack.jetbrains.com/issue/KT-28933
+  private fun String.capitalize(locale: Locale) = substring(0, 1).toUpperCase(locale) + substring(1)
 }
