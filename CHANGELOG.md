@@ -1,6 +1,40 @@
 Change Log
 ==========
 
+Version 9.0.0 *(2019-01-03)*
+----------------------------
+
+ * New: Support for AndroidX. Requires `android.useAndroidX=true` in `gradle.properties` to generate
+   AndroidX code.
+
+ * New: A `butterknife-runtime` artifact has been extracted from `butterknife` which contains the APIs
+   required for the generated code but does not contain the code to reflectively look up the generated
+   code. This allows you to reference the generated code directly such that R8/ProGuard optimization can
+   rename both the generated code and your classes. `ButterKnife.bind` and the consumer R8/ProGuard rules
+   remain in the old `butterknife` artifact.
+ 
+ * New: Experimental `butterknife-reflect` artifact eliminates the need to run the annotation
+   processor for IDE builds. This artifact is binary compatible with `butterknife` so it can be interchanged
+   depending on how your build is being invoked. See [its README](butterknife-reflect/README.md) for more
+   information. Currently about 90% of functionality is covered. File bugs for anything that does not work.
+
+   Note: This artifact requires Java 8. There's no good reason for this except to push the ecosystem to
+   having this be a default. As of AGP 3.2 there is no reason not to do this.
+
+ * New: Lint checks have been ported to UAST and now work on Kotlin code.
+
+ * Add support for Android Gradle plugin 3.3 and newer where `R` is no longer generated as Java source. This
+   has a side-effect of removing support for Android Gradle plugin 3.0.x (and older).
+ * Use Java 8 bytecode for all artifacts as announced in RC1 release notes.
+ * Fix: Allow `@BindFont` to work prior to API 26 using `ResourcesCompat`.
+ * Fix: Update Android Gradle plugin to 3.1 or newer to fix binary incompatibilities.
+ * Fix: Correct generated resource annotation names when running Turkish locale.
+ * Fix: Use the application ID instead of the resource package for generating `R2`.
+ * Cache the fact that a class hierarchy has no remaining bindings to prevent traversing the hierarchy
+   multiple times.
+ * Deprecated methods from 8.x have been removed.
+
+
 Version 9.0.0-rc3 *(2018-12-20)*
 --------------------------------
 
