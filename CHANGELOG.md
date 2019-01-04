@@ -29,6 +29,8 @@ Version 9.0.0 *(2019-01-03)*
    having this be a default. As of AGP 3.2 there is no reason not to do this.
 
  * New: Lint checks have been ported to UAST and now work on Kotlin code.
+ 
+ * Helpers such as `apply` have been deprecated on `ButterKnife` and are now available on the `ViewCollections` class.
 
  * Add support for Android Gradle plugin 3.3 and newer where `R` is no longer generated as Java source. This
    has a side-effect of removing support for Android Gradle plugin 3.0.x (and older).
