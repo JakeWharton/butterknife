@@ -1,6 +1,13 @@
 Change Log
 ==========
 
+Version 10.0.0 *(2019-01-03)*
+-----------------------------
+
+ * Equivalent to 9.0.0 but only supports AndroidX-enabled builds.
+ * Removed APIs deprecated in 9.0.0.
+
+
 Version 9.0.0 *(2019-01-03)*
 ----------------------------
 
