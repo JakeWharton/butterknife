@@ -3,7 +3,6 @@ package butterknife;
 import android.app.Activity;
 import android.app.Dialog;
 import android.util.Log;
-import android.util.Property;
 import android.view.View;
 import androidx.annotation.CheckResult;
 import androidx.annotation.NonNull;
@@ -211,109 +210,5 @@ public final class ButterKnife {
     }
     BINDINGS.put(cls, bindingCtor);
     return bindingCtor;
-  }
-
-  /** @deprecated Use {@link ViewCollections#run(List, butterknife.Action[])} */
-  @UiThread
-  @Deprecated
-  @SafeVarargs public static <T extends View> void apply(@NonNull List<T> list,
-      @NonNull Action<? super T>... actions) {
-    ViewCollections.run(list, actions);
-  }
-
-  /** @deprecated Use {@link ViewCollections#run(View[], butterknife.Action[])} */
-  @UiThread
-  @Deprecated
-  @SafeVarargs public static <T extends View> void apply(@NonNull T[] array,
-      @NonNull Action<? super T>... actions) {
-    ViewCollections.run(array, actions);
-  }
-
-  /** @deprecated Use {@link ViewCollections#run(List, butterknife.Action)} */
-  @UiThread
-  @Deprecated
-  public static <T extends View> void apply(@NonNull List<T> list,
-      @NonNull Action<? super T> action) {
-    ViewCollections.run(list, action);
-  }
-
-  /** @deprecated Use {@link ViewCollections#run(View[], butterknife.Action)} */
-  @UiThread
-  @Deprecated
-  public static <T extends View> void apply(@NonNull T[] array, @NonNull Action<? super T> action) {
-    ViewCollections.run(array, action);
-  }
-
-  /** @deprecated Use {@link ViewCollections#run(View, butterknife.Action[])} */
-  @UiThread
-  @Deprecated
-  @SafeVarargs public static <T extends View> void apply(@NonNull T view,
-      @NonNull Action<? super T>... actions) {
-    ViewCollections.run(view, actions);
-  }
-
-  /** @deprecated {@link ViewCollections#run(View, butterknife.Action)} */
-  @UiThread
-  @Deprecated
-  public static <T extends View> void apply(@NonNull T view, @NonNull Action<? super T> action) {
-    ViewCollections.run(view, action);
-  }
-
-  /** @deprecated Use {@link ViewCollections#set(List, butterknife.Setter, Object)} */
-  @UiThread
-  @Deprecated
-  public static <T extends View, V> void apply(@NonNull List<T> list,
-      @NonNull Setter<? super T, V> setter, V value) {
-    ViewCollections.set(list, setter, value);
-  }
-
-  /** @deprecated Use {@link ViewCollections#set(View[], butterknife.Setter, Object)} */
-  @UiThread
-  @Deprecated
-  public static <T extends View, V> void apply(@NonNull T[] array,
-      @NonNull Setter<? super T, V> setter, V value) {
-    ViewCollections.set(array, setter, value);
-  }
-
-  /** @deprecated Use {@link ViewCollections#set(View, butterknife.Setter, Object)} */
-  @UiThread
-  @Deprecated
-  public static <T extends View, V> void apply(@NonNull T view,
-      @NonNull Setter<? super T, V> setter, V value) {
-    ViewCollections.set(view, setter, value);
-  }
-
-  /** @deprecated Use {@link ViewCollections#set(List, Property, Object)} */
-  @UiThread
-  @Deprecated
-  public static <T extends View, V> void apply(@NonNull List<T> list,
-      @NonNull Property<? super T, V> setter, V value) {
-    ViewCollections.set(list, setter, value);
-  }
-
-  /** @deprecated Use {@link ViewCollections#set(View[], Property, Object)} */
-  @UiThread
-  @Deprecated
-  public static <T extends View, V> void apply(@NonNull T[] array,
-      @NonNull Property<? super T, V> setter, V value) {
-    ViewCollections.set(array, setter, value);
-  }
-
-  /** @deprecated Use {@link ViewCollections#set(View, Property, Object)} */
-  @UiThread
-  @Deprecated
-  public static <T extends View, V> void apply(@NonNull T view,
-      @NonNull Property<? super T, V> setter, V value) {
-    ViewCollections.set(view, setter, value);
-  }
-
-  /** @deprecated Use {@link butterknife.Action} */
-  @Deprecated
-  public interface Action<T extends View> extends butterknife.Action<T> {
-  }
-
-  /** @deprecated Use {@link butterknife.Setter} */
-  @Deprecated
-  public interface Setter<T extends View, V> extends butterknife.Setter<T, V> {
   }
 }
