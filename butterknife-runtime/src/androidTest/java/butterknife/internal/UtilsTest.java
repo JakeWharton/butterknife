@@ -1,8 +1,8 @@
 package butterknife.internal;
 
 import android.content.Context;
-import android.support.test.InstrumentationRegistry;
 import android.view.View;
+import androidx.test.InstrumentationRegistry;
 import org.junit.Test;
 
 import static com.google.common.truth.Truth.assertThat;

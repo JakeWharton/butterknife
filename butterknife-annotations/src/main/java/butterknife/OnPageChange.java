@@ -1,7 +1,7 @@
 package butterknife;
 
-import android.support.annotation.IdRes;
 import android.view.View;
+import androidx.annotation.IdRes;
 import butterknife.internal.ListenerClass;
 import butterknife.internal.ListenerMethod;
 import java.lang.annotation.Retention;
@@ -31,11 +31,9 @@ import static java.lang.annotation.RetentionPolicy.CLASS;
 @Retention(CLASS)
 @ListenerClass(
     targetType = "androidx.viewpager.widget.ViewPager",
-    legacyTargetType = "android.support.v4.view.ViewPager",
     setter = "addOnPageChangeListener",
     remover = "removeOnPageChangeListener",
     type = "androidx.viewpager.widget.ViewPager.OnPageChangeListener",
-    legacyType = "android.support.v4.view.ViewPager.OnPageChangeListener",
     callbacks = OnPageChange.Callback.class
 )
 public @interface OnPageChange {

@@ -44,20 +44,14 @@ final class BindingSet {
   private static final ClassName VIEW = ClassName.get("android.view", "View");
   private static final ClassName CONTEXT = ClassName.get("android.content", "Context");
   private static final ClassName RESOURCES = ClassName.get("android.content.res", "Resources");
-  private static final ClassName UI_THREAD_LEGACY =
-      ClassName.get("android.support.annotation", "UiThread");
   private static final ClassName UI_THREAD =
       ClassName.get("androidx.annotation", "UiThread");
-  private static final ClassName CALL_SUPER_LEGACY =
-      ClassName.get("android.support.annotation", "CallSuper");
   private static final ClassName CALL_SUPER =
       ClassName.get("androidx.annotation", "CallSuper");
   private static final ClassName SUPPRESS_LINT =
       ClassName.get("android.annotation", "SuppressLint");
   private static final ClassName UNBINDER = ClassName.get("butterknife", "Unbinder");
   static final ClassName BITMAP_FACTORY = ClassName.get("android.graphics", "BitmapFactory");
-  static final ClassName CONTEXT_COMPAT_LEGACY =
-      ClassName.get("android.support.v4.content", "ContextCompat");
   static final ClassName CONTEXT_COMPAT =
       ClassName.get("androidx.core.content", "ContextCompat");
   static final ClassName ANIMATION_UTILS =
@@ -90,14 +84,14 @@ final class BindingSet {
     this.parentBinding = parentBinding;
   }
 
-  JavaFile brewJava(int sdk, boolean debuggable, boolean useLegacyTypes) {
-    TypeSpec bindingConfiguration = createType(sdk, debuggable, useLegacyTypes);
+  JavaFile brewJava(int sdk, boolean debuggable) {
+    TypeSpec bindingConfiguration = createType(sdk, debuggable);
     return JavaFile.builder(bindingClassName.packageName(), bindingConfiguration)
         .addFileComment("Generated code from Butter Knife. Do not modify!")
         .build();
   }
 
-  private TypeSpec createType(int sdk, boolean debuggable, boolean useLegacyTypes) {
+  private TypeSpec createType(int sdk, boolean debuggable) {
     TypeSpec.Builder result = TypeSpec.classBuilder(bindingClassName.simpleName())
         .addModifiers(PUBLIC);
     if (isFinal) {
@@ -115,32 +109,32 @@ final class BindingSet {
     }
 
     if (isView) {
-      result.addMethod(createBindingConstructorForView(useLegacyTypes));
+      result.addMethod(createBindingConstructorForView());
     } else if (isActivity) {
-      result.addMethod(createBindingConstructorForActivity(useLegacyTypes));
+      result.addMethod(createBindingConstructorForActivity());
     } else if (isDialog) {
-      result.addMethod(createBindingConstructorForDialog(useLegacyTypes));
+      result.addMethod(createBindingConstructorForDialog());
     }
     if (!constructorNeedsView()) {
       // Add a delegating constructor with a target type + view signature for reflective use.
-      result.addMethod(createBindingViewDelegateConstructor(useLegacyTypes));
+      result.addMethod(createBindingViewDelegateConstructor());
     }
-    result.addMethod(createBindingConstructor(sdk, debuggable, useLegacyTypes));
+    result.addMethod(createBindingConstructor(sdk, debuggable));
 
     if (hasViewBindings() || parentBinding == null) {
-      result.addMethod(createBindingUnbindMethod(result, useLegacyTypes));
+      result.addMethod(createBindingUnbindMethod(result));
     }
 
     return result.build();
   }
 
-  private MethodSpec createBindingViewDelegateConstructor(boolean useLegacyTypes) {
+  private MethodSpec createBindingViewDelegateConstructor() {
     return MethodSpec.constructorBuilder()
         .addJavadoc("@deprecated Use {@link #$T($T, $T)} for direct creation.\n    "
                 + "Only present for runtime invocation through {@code ButterKnife.bind()}.\n",
             bindingClassName, targetTypeName, CONTEXT)
         .addAnnotation(Deprecated.class)
-        .addAnnotation(useLegacyTypes ? UI_THREAD_LEGACY : UI_THREAD)
+        .addAnnotation(UI_THREAD)
         .addModifiers(PUBLIC)
         .addParameter(targetTypeName, "target")
         .addParameter(VIEW, "source")
@@ -148,9 +142,9 @@ final class BindingSet {
         .build();
   }
 
-  private MethodSpec createBindingConstructorForView(boolean useLegacyTypes) {
+  private MethodSpec createBindingConstructorForView() {
     MethodSpec.Builder builder = MethodSpec.constructorBuilder()
-        .addAnnotation(useLegacyTypes ? UI_THREAD_LEGACY : UI_THREAD)
+        .addAnnotation(UI_THREAD)
         .addModifiers(PUBLIC)
         .addParameter(targetTypeName, "target");
     if (constructorNeedsView()) {
@@ -161,9 +155,9 @@ final class BindingSet {
     return builder.build();
   }
 
-  private MethodSpec createBindingConstructorForActivity(boolean useLegacyTypes) {
+  private MethodSpec createBindingConstructorForActivity() {
     MethodSpec.Builder builder = MethodSpec.constructorBuilder()
-        .addAnnotation(useLegacyTypes ? UI_THREAD_LEGACY : UI_THREAD)
+        .addAnnotation(UI_THREAD)
         .addModifiers(PUBLIC)
         .addParameter(targetTypeName, "target");
     if (constructorNeedsView()) {
@@ -174,9 +168,9 @@ final class BindingSet {
     return builder.build();
   }
 
-  private MethodSpec createBindingConstructorForDialog(boolean useLegacyTypes) {
+  private MethodSpec createBindingConstructorForDialog() {
     MethodSpec.Builder builder = MethodSpec.constructorBuilder()
-        .addAnnotation(useLegacyTypes ? UI_THREAD_LEGACY : UI_THREAD)
+        .addAnnotation(UI_THREAD)
         .addModifiers(PUBLIC)
         .addParameter(targetTypeName, "target");
     if (constructorNeedsView()) {
@@ -187,9 +181,9 @@ final class BindingSet {
     return builder.build();
   }
 
-  private MethodSpec createBindingConstructor(int sdk, boolean debuggable, boolean useLegacyTypes) {
+  private MethodSpec createBindingConstructor(int sdk, boolean debuggable) {
     MethodSpec.Builder constructor = MethodSpec.constructorBuilder()
-        .addAnnotation(useLegacyTypes ? UI_THREAD_LEGACY : UI_THREAD)
+        .addAnnotation(UI_THREAD)
         .addModifiers(PUBLIC);
 
     if (hasMethodBindings()) {
@@ -238,7 +232,7 @@ final class BindingSet {
         constructor.addStatement("$T view", VIEW);
       }
       for (ViewBinding binding : viewBindings) {
-        addViewBinding(constructor, binding, debuggable, useLegacyTypes);
+        addViewBinding(constructor, binding, debuggable);
       }
       for (FieldCollectionViewBinding binding : collectionBindings) {
         constructor.addStatement("$L", binding.render(debuggable));
@@ -264,13 +258,12 @@ final class BindingSet {
     return constructor.build();
   }
 
-  private MethodSpec createBindingUnbindMethod(TypeSpec.Builder bindingClass,
-      boolean useLegacyTypes) {
+  private MethodSpec createBindingUnbindMethod(TypeSpec.Builder bindingClass) {
     MethodSpec.Builder result = MethodSpec.methodBuilder("unbind")
         .addAnnotation(Override.class)
         .addModifiers(PUBLIC);
     if (!isFinal && parentBinding == null) {
-      result.addAnnotation(useLegacyTypes ? CALL_SUPER_LEGACY : CALL_SUPER);
+      result.addAnnotation(CALL_SUPER);
     }
 
     if (hasTargetField()) {
@@ -294,7 +287,7 @@ final class BindingSet {
     if (hasMethodBindings()) {
       result.addCode("\n");
       for (ViewBinding binding : viewBindings) {
-        addFieldAndUnbindStatement(bindingClass, result, binding, useLegacyTypes);
+        addFieldAndUnbindStatement(bindingClass, result, binding);
       }
     }
 
@@ -306,7 +299,7 @@ final class BindingSet {
   }
 
   private void addFieldAndUnbindStatement(TypeSpec.Builder result, MethodSpec.Builder unbindMethod,
-      ViewBinding bindings, boolean useLegacyTypes) {
+      ViewBinding bindings) {
     // Only add fields to the binding if there are method bindings.
     Map<ListenerClass, Map<ListenerMethod, Set<MethodViewBinding>>> classMethodBindings =
         bindings.getMethodBindings();
@@ -332,12 +325,12 @@ final class BindingSet {
       boolean requiresRemoval = !"".equals(listenerClass.remover());
       String listenerField = "null";
       if (requiresRemoval) {
-        TypeName listenerClassName = bestGuess(getType(listenerClass, useLegacyTypes));
+        TypeName listenerClassName = bestGuess(listenerClass.type());
         listenerField = fieldName + ((ClassName) listenerClassName).simpleName();
         result.addField(listenerClassName, listenerField, PRIVATE);
       }
 
-      String targetType = getTargetType(listenerClass, useLegacyTypes);
+      String targetType = listenerClass.targetType();
       if (!VIEW_TYPE.equals(targetType)) {
         unbindMethod.addStatement("(($T) $N).$N($N)", bestGuess(targetType),
             fieldName, removerOrSetter(listenerClass, requiresRemoval), listenerField);
@@ -358,32 +351,13 @@ final class BindingSet {
     }
   }
 
-  private static String getType(ListenerClass listenerClass, boolean useLegacyTypes) {
-    String type = listenerClass.type();
-    String legacyType = listenerClass.legacyType();
-    if (useLegacyTypes && !legacyType.isEmpty()) {
-      type = legacyType;
-    }
-    return type;
-  }
-
-  private static String getTargetType(ListenerClass listenerClass, boolean useLegacyTypes) {
-    String targetType = listenerClass.targetType();
-    String legacyTargetType = listenerClass.legacyTargetType();
-    if (useLegacyTypes && !legacyTargetType.isEmpty()) {
-      targetType = legacyTargetType;
-    }
-    return targetType;
-  }
-
   private String removerOrSetter(ListenerClass listenerClass, boolean requiresRemoval) {
     return requiresRemoval
         ? listenerClass.remover()
         : listenerClass.setter();
   }
 
-  private void addViewBinding(MethodSpec.Builder result, ViewBinding binding, boolean debuggable,
-      boolean useLegacyTypes) {
+  private void addViewBinding(MethodSpec.Builder result, ViewBinding binding, boolean debuggable) {
     if (binding.isSingleFieldBinding()) {
       // Optimize the common case where there's a single binding directly to a field.
       FieldViewBinding fieldBinding = requireNonNull(binding.getFieldBinding());
@@ -424,7 +398,7 @@ final class BindingSet {
     }
 
     addFieldBinding(result, binding, debuggable);
-    addMethodBindings(result, binding, debuggable, useLegacyTypes);
+    addMethodBindings(result, binding, debuggable);
   }
 
   private void addFieldBinding(MethodSpec.Builder result, ViewBinding binding, boolean debuggable) {
@@ -445,8 +419,8 @@ final class BindingSet {
     }
   }
 
-  private void addMethodBindings(MethodSpec.Builder result, ViewBinding binding, boolean debuggable,
-      boolean useLegacyTypes) {
+  private void addMethodBindings(MethodSpec.Builder result, ViewBinding binding,
+      boolean debuggable) {
     Map<ListenerClass, Map<ListenerMethod, Set<MethodViewBinding>>> classMethodBindings =
         binding.getMethodBindings();
     if (classMethodBindings.isEmpty()) {
@@ -474,7 +448,7 @@ final class BindingSet {
       Map<ListenerMethod, Set<MethodViewBinding>> methodBindings = e.getValue();
 
       TypeSpec.Builder callback = TypeSpec.anonymousClassBuilder("")
-          .superclass(ClassName.bestGuess(getType(listener, useLegacyTypes)));
+          .superclass(ClassName.bestGuess(listener.type()));
 
       for (ListenerMethod method : getListenerMethods(listener)) {
         MethodSpec.Builder callbackMethod = MethodSpec.methodBuilder(method.name())
@@ -529,12 +503,12 @@ final class BindingSet {
       boolean requiresRemoval = listener.remover().length() != 0;
       String listenerField = null;
       if (requiresRemoval) {
-        TypeName listenerClassName = bestGuess(getType(listener, useLegacyTypes));
+        TypeName listenerClassName = bestGuess(listener.type());
         listenerField = fieldName + ((ClassName) listenerClassName).simpleName();
         result.addStatement("$L = $L", listenerField, callback.build());
       }
 
-      String targetType = getTargetType(listener, useLegacyTypes);
+      String targetType = listener.targetType();
       if (!VIEW_TYPE.equals(targetType)) {
         result.addStatement("(($T) $N).$L($L)", bestGuess(targetType), bindName,
             listener.setter(), requiresRemoval ? listenerField : callback.build());

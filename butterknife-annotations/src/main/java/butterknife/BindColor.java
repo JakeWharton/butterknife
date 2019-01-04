@@ -1,6 +1,6 @@
 package butterknife;
 
-import android.support.annotation.ColorRes;
+import androidx.annotation.ColorRes;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 

@@ -3,7 +3,6 @@ package butterknife;
 import butterknife.compiler.ButterKnifeProcessor;
 import com.google.testing.compile.JavaFileObjects;
 import javax.tools.JavaFileObject;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import static com.google.common.truth.Truth.assertAbout;
@@ -24,10 +23,10 @@ public class BindFontTest {
         + "// Generated code from Butter Knife. Do not modify!\n"
         + "package test;\n"
         + "import android.content.Context;\n"
-        + "import android.support.annotation.CallSuper;\n"
-        + "import android.support.annotation.UiThread;\n"
-        + "import android.support.v4.content.res.ResourcesCompat;\n"
         + "import android.view.View;\n"
+        + "import androidx.annotation.CallSuper;\n"
+        + "import androidx.annotation.UiThread;\n"
+        + "import androidx.core.content.res.ResourcesCompat;\n"
         + "import butterknife.Unbinder;\n"
         + "import java.lang.Deprecated;\n"
         + "import java.lang.Override;\n"
@@ -77,9 +76,9 @@ public class BindFontTest {
         + "package test;\n"
         + "import android.content.Context;\n"
         + "import android.content.res.Resources;\n"
-        + "import android.support.annotation.CallSuper;\n"
-        + "import android.support.annotation.UiThread;\n"
         + "import android.view.View;\n"
+        + "import androidx.annotation.CallSuper;\n"
+        + "import androidx.annotation.UiThread;\n"
         + "import butterknife.Unbinder;\n"
         + "import java.lang.Deprecated;\n"
         + "import java.lang.Override;\n"
@@ -130,10 +129,10 @@ public class BindFontTest {
         + "package test;\n"
         + "import android.content.Context;\n"
         + "import android.graphics.Typeface;\n"
-        + "import android.support.annotation.CallSuper;\n"
-        + "import android.support.annotation.UiThread;\n"
-        + "import android.support.v4.content.res.ResourcesCompat;\n"
         + "import android.view.View;\n"
+        + "import androidx.annotation.CallSuper;\n"
+        + "import androidx.annotation.UiThread;\n"
+        + "import androidx.core.content.res.ResourcesCompat;\n"
         + "import butterknife.Unbinder;\n"
         + "import java.lang.Deprecated;\n"
         + "import java.lang.Override;\n"
@@ -184,9 +183,9 @@ public class BindFontTest {
         + "import android.content.Context;\n"
         + "import android.content.res.Resources;\n"
         + "import android.graphics.Typeface;\n"
-        + "import android.support.annotation.CallSuper;\n"
-        + "import android.support.annotation.UiThread;\n"
         + "import android.view.View;\n"
+        + "import androidx.annotation.CallSuper;\n"
+        + "import androidx.annotation.UiThread;\n"
         + "import butterknife.Unbinder;\n"
         + "import java.lang.Deprecated;\n"
         + "import java.lang.Override;\n"

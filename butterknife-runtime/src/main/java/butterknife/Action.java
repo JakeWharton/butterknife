@@ -1,8 +1,8 @@
 package butterknife;
 
-import android.support.annotation.NonNull;
-import android.support.annotation.UiThread;
 import android.view.View;
+import androidx.annotation.NonNull;
+import androidx.annotation.UiThread;
 
 /** An action that can be applied to a list of views. */
 public interface Action<T extends View> {

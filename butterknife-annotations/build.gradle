@@ -11,7 +11,7 @@ checkstyle {
 
 dependencies {
   compileOnly deps.android.runtime
-  api deps.support.annotations
+  api deps.androidx.annotations
 }
 
 apply from: rootProject.file('gradle/gradle-mvn-push.gradle')

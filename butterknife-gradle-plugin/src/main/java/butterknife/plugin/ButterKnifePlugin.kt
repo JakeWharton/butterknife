@@ -55,7 +55,6 @@ class ButterKnifePlugin : Plugin<Project> {
 
   private fun configureR2Generation(project: Project, variants: DomainObjectSet<out BaseVariant>) {
     variants.all { variant ->
-      val useAndroidX = (project.findProperty("android.useAndroidX") as String?)?.toBoolean() ?: false
       val outputDir = project.buildDir.resolve(
           "generated/source/r2/${variant.dirName}")
 
@@ -80,7 +79,6 @@ class ButterKnifePlugin : Plugin<Project> {
           project.tasks.create("generate${variant.name.capitalize()}R2", R2Generator::class.java) {
             it.outputDir = outputDir
             it.rFile = rFile
-            it.useAndroidX = useAndroidX
             it.packageName = rPackage
             it.className = "R2"
             variant.registerJavaGeneratingTask(it, outputDir)
@@ -91,6 +89,6 @@ class ButterKnifePlugin : Plugin<Project> {
   }
 
   private operator fun <T : Any> ExtensionContainer.get(type: KClass<T>): T {
-    return getByType(type.java)!!
+    return getByType(type.java)
   }
 }

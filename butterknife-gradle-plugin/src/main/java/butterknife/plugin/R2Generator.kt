@@ -16,9 +16,6 @@ open class R2Generator : DefaultTask() {
   var rFile: FileCollection? = null
 
   @get:Input
-  var useAndroidX: Boolean? = null
-
-  @get:Input
   var packageName: String? = null
 
   @get:Input
@@ -27,7 +24,7 @@ open class R2Generator : DefaultTask() {
   @Suppress("unused") // Invoked by Gradle.
   @TaskAction
   fun brewJava() {
-    brewJava(rFile!!.singleFile, outputDir!!, packageName!!, className!!, !useAndroidX!!)
+    brewJava(rFile!!.singleFile, outputDir!!, packageName!!, className!!)
   }
 }
 
@@ -35,10 +32,9 @@ fun brewJava(
   rFile: File,
   outputDir: File,
   packageName: String,
-  className: String,
-  useLegacyTypes: Boolean
+  className: String
 ) {
-  FinalRClassBuilder(packageName, className, useLegacyTypes)
+  FinalRClassBuilder(packageName, className)
       .also { ResourceSymbolListReader(it).readSymbolTable(rFile) }
       .build()
       .writeTo(outputDir)

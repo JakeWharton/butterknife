@@ -67,6 +67,6 @@ dependencies {
 
   androidTestImplementation deps.junit
   androidTestImplementation deps.truth
-  androidTestImplementation deps.support.test.runner
-  androidTestImplementation deps.support.test.rules
+  androidTestImplementation deps.androidx.test.runner
+  androidTestImplementation deps.androidx.test.rules
 }

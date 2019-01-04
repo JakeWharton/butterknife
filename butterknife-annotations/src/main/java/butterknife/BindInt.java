@@ -1,6 +1,6 @@
 package butterknife;
 
-import android.support.annotation.IntegerRes;
+import androidx.annotation.IntegerRes;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 

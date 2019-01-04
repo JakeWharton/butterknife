@@ -7,12 +7,8 @@ import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
-import org.junit.runner.RunWith
-import org.junit.runners.Parameterized
-import org.junit.runners.Parameterized.Parameters
 
-@RunWith(Parameterized::class)
-class FinalRClassBuilderTest(private val useLegacyTypes: Boolean) {
+class FinalRClassBuilderTest {
   @Rule @JvmField val tempFolder = TemporaryFolder()
 
   @Test fun brewJava() {
@@ -22,21 +18,14 @@ class FinalRClassBuilderTest(private val useLegacyTypes: Boolean) {
     }
 
     val outputDir = tempFolder.newFolder()
-    brewJava(rFile, outputDir, packageName, "R2", useLegacyTypes)
+    brewJava(rFile, outputDir, packageName, "R2")
 
     val actual = outputDir.resolve("com/butterknife/example/R2.java").readText()
-    var expected = javaClass.getResource("/fixtures/R2.java").readText()
-    if (useLegacyTypes) {
-      expected = expected.replace("import androidx.", "import android.support.")
-    }
+    val expected = javaClass.getResource("/fixtures/R2.java").readText()
 
     assertEquals(expected.trim(), actual.trim())
 
     val actualJava = JavaFileObjects.forSourceString("$packageName.R2", actual)
     assertAbout(javaSource()).that(actualJava).compilesWithoutError()
-  }
-
-  companion object {
-    @JvmStatic @Parameters(name="useLegacyTypes={0}") fun data() = listOf(false, true)
   }
 }

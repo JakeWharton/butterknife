@@ -11,7 +11,6 @@ import javax.lang.model.element.Modifier.STATIC
 
 
 private const val ANNOTATION_PACKAGE = "androidx.annotation"
-private const val ANNOTATION_PACKAGE_LEGACY = "android.support.annotation"
 internal val SUPPORTED_TYPES = setOf("anim", "array", "attr", "bool", "color", "dimen",
     "drawable", "id", "integer", "layout", "menu", "plurals", "string", "style", "styleable")
 
@@ -21,8 +20,7 @@ internal val SUPPORTED_TYPES = setOf("anim", "array", "attr", "bool", "color", "
  */
 class FinalRClassBuilder(
   private val packageName: String,
-  private val className: String,
-  private val useLegacyTypes: Boolean
+  private val className: String
 ) {
 
   private var resourceTypes = mutableMapOf<String, TypeSpec.Builder>()
@@ -58,8 +56,7 @@ class FinalRClassBuilder(
   }
 
   private fun getSupportAnnotationClass(type: String): ClassName {
-    val supportPackage = if (useLegacyTypes) ANNOTATION_PACKAGE_LEGACY else ANNOTATION_PACKAGE
-    return ClassName.get(supportPackage, type.capitalize(Locale.US) + "Res")
+    return ClassName.get(ANNOTATION_PACKAGE, type.capitalize(Locale.US) + "Res")
   }
 
   // TODO https://youtrack.jetbrains.com/issue/KT-28933

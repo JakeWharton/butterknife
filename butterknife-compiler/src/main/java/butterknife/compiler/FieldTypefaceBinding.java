@@ -1,12 +1,10 @@
 package butterknife.compiler;
 
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 
 final class FieldTypefaceBinding implements ResourceBinding {
-  private static final ClassName RESOURCES_COMPAT_LEGACY =
-      ClassName.get("android.support.v4.content.res", "ResourcesCompat");
   private static final ClassName RESOURCES_COMPAT =
       ClassName.get("androidx.core.content.res", "ResourcesCompat");
   private static final ClassName TYPEFACE = ClassName.get("android.graphics", "Typeface");
@@ -37,13 +35,11 @@ final class FieldTypefaceBinding implements ResourceBinding {
   private final Id id;
   private final String name;
   private final TypefaceStyles style;
-  private final boolean useLegacyTypes;
 
-  FieldTypefaceBinding(Id id, String name, TypefaceStyles style, boolean useLegacyTypes) {
+  FieldTypefaceBinding(Id id, String name, TypefaceStyles style) {
     this.id = id;
     this.name = name;
     this.style = style;
-    this.useLegacyTypes = useLegacyTypes;
   }
 
   @Override public Id id() {
@@ -57,8 +53,7 @@ final class FieldTypefaceBinding implements ResourceBinding {
   @Override public CodeBlock render(int sdk) {
     CodeBlock typeface = sdk >= 26
         ? CodeBlock.of("res.getFont($L)", id.code)
-        : CodeBlock.of("$T.getFont(context, $L)",
-            useLegacyTypes ? RESOURCES_COMPAT_LEGACY : RESOURCES_COMPAT, id.code);
+        : CodeBlock.of("$T.getFont(context, $L)", RESOURCES_COMPAT, id.code);
     if (style != TypefaceStyles.NORMAL) {
       typeface = CodeBlock.of("$1T.create($2L, $1T.$3L)", TYPEFACE, typeface, style);
     }

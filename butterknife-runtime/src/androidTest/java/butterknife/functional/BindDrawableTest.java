@@ -2,7 +2,7 @@ package butterknife.functional;
 
 import android.content.Context;
 import android.graphics.drawable.Drawable;
-import android.support.test.InstrumentationRegistry;
+import androidx.test.InstrumentationRegistry;
 import butterknife.BindDrawable;
 import butterknife.Unbinder;
 import butterknife.runtime.test.R;

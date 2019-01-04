@@ -1,6 +1,6 @@
 package butterknife;
 
-import android.support.annotation.DimenRes;
+import androidx.annotation.DimenRes;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 

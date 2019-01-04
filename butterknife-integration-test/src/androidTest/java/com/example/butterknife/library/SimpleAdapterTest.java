@@ -1,8 +1,8 @@
 package com.example.butterknife.library;
 
 import android.content.Context;
-import android.support.test.InstrumentationRegistry;
 import android.view.View;
+import androidx.test.InstrumentationRegistry;
 import com.example.butterknife.R;
 import org.junit.Test;
 

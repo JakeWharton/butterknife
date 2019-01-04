@@ -1,6 +1,6 @@
 package butterknife;
 
-import android.support.annotation.StringRes;
+import androidx.annotation.StringRes;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 

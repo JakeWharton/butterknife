@@ -35,13 +35,13 @@ android {
 
 dependencies {
   api project(':butterknife-annotations')
-  api deps.support.compat
+  api deps.androidx.core
 
   lintChecks project(':butterknife-lint')
 
   androidTestImplementation deps.junit
   androidTestImplementation deps.truth
-  androidTestImplementation deps.support.test.runner
+  androidTestImplementation deps.androidx.test.runner
   androidTestAnnotationProcessor project(':butterknife-compiler')
 
   testImplementation deps.junit

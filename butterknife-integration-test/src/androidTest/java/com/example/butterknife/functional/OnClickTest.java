@@ -1,12 +1,12 @@
 package com.example.butterknife.functional;
 
 import android.content.Context;
-import android.support.test.InstrumentationRegistry;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.TextView;
+import androidx.test.InstrumentationRegistry;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import butterknife.Optional;

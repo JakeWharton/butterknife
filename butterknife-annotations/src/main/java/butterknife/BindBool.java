@@ -1,6 +1,6 @@
 package butterknife;
 
-import android.support.annotation.BoolRes;
+import androidx.annotation.BoolRes;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 

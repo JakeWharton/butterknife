@@ -5,7 +5,6 @@ buildscript {
       'minSdk': 14,
       'compileSdk': 28,
 
-      'supportLibrary': '28.0.0',
       'androidTools': '26.2.0',
       'kotlin': '1.2.71',
 
@@ -17,16 +16,13 @@ buildscript {
           'runtime': 'com.google.android:android:4.1.1.4',
           'gradlePlugin': "com.android.tools.build:gradle:3.1.4",
       ],
-      'support': [
-          'compat': "com.android.support:support-compat:${versions.supportLibrary}",
-          'annotations': "com.android.support:support-annotations:${versions.supportLibrary}",
-          'test': [
-              'runner': 'com.android.support.test:runner:1.0.1',
-              'rules': 'com.android.support.test:rules:1.0.1',
-          ],
-      ],
       'androidx': [
+          'core': "androidx.core:core:1.0.0",
           'annotations': "androidx.annotation:annotation:1.0.0",
+          'test': [
+              'runner': 'androidx.test:runner:1.1.0',
+              'rules': 'androidx.test:rules:1.1.0',
+          ],
       ],
       'lint': [
           'core': "com.android.tools.lint:lint:${versions.androidTools}",
@@ -54,8 +50,8 @@ buildscript {
 
   repositories {
     mavenCentral()
-    jcenter()
     google()
+    jcenter()
     gradlePluginPortal()
   }
 

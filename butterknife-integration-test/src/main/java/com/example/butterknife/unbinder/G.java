@@ -1,7 +1,7 @@
 package com.example.butterknife.unbinder;
 
-import android.support.annotation.ColorInt;
 import android.view.View;
+import androidx.annotation.ColorInt;
 import butterknife.BindColor;
 import butterknife.BindView;
 import butterknife.ButterKnife;

@@ -1,6 +1,6 @@
 package butterknife;
 
-import android.support.annotation.AnimRes;
+import androidx.annotation.AnimRes;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 

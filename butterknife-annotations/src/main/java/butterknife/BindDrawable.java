@@ -1,7 +1,7 @@
 package butterknife;
 
-import android.support.annotation.AttrRes;
-import android.support.annotation.DrawableRes;
+import androidx.annotation.AttrRes;
+import androidx.annotation.DrawableRes;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 

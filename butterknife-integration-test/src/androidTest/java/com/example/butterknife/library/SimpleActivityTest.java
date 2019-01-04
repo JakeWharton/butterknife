@@ -1,6 +1,6 @@
 package com.example.butterknife.library;
 
-import android.support.test.rule.ActivityTestRule;
+import androidx.test.rule.ActivityTestRule;
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
 import com.example.butterknife.R;

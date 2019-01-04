@@ -3,7 +3,7 @@ package butterknife.functional;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.support.test.InstrumentationRegistry;
+import androidx.test.InstrumentationRegistry;
 import butterknife.BindBitmap;
 import butterknife.Unbinder;
 import butterknife.runtime.test.R;

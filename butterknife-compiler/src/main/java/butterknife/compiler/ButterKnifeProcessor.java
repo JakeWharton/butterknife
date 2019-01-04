@@ -72,7 +72,6 @@ import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.type.TypeVariable;
-import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 import javax.tools.Diagnostic.Kind;
 
@@ -123,7 +122,6 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
   private int sdk = 1;
   private boolean debuggable = true;
-  private boolean useLegacyTypes = false;
 
   private final RScanner rScanner = new RScanner();
 
@@ -143,7 +141,6 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     }
 
     debuggable = !"false".equals(env.getOptions().get(OPTION_DEBUGGABLE));
-    useLegacyTypes = !hasAndroidX(env.getElementUtils());
 
     typeUtils = env.getTypeUtils();
     filer = env.getFiler();
@@ -193,7 +190,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
       TypeElement typeElement = entry.getKey();
       BindingSet binding = entry.getValue();
 
-      JavaFile javaFile = binding.brewJava(sdk, debuggable, useLegacyTypes);
+      JavaFile javaFile = binding.brewJava(sdk, debuggable);
       try {
         javaFile.writeTo(filer);
       } catch (IOException e) {
@@ -671,12 +668,8 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     Id resourceId = elementToId(element, BindColor.class, id);
     BindingSet.Builder builder = getOrCreateBindingBuilder(builderMap, enclosingElement);
 
-    FieldResourceBinding.Type colorStateList = useLegacyTypes
-        ? FieldResourceBinding.Type.COLOR_STATE_LIST_LEGACY
-            : FieldResourceBinding.Type.COLOR_STATE_LIST;
-    FieldResourceBinding.Type color = useLegacyTypes
-        ? FieldResourceBinding.Type.COLOR_LEGACY
-        : FieldResourceBinding.Type.COLOR;
+    FieldResourceBinding.Type colorStateList = FieldResourceBinding.Type.COLOR_STATE_LIST;
+    FieldResourceBinding.Type color = FieldResourceBinding.Type.COLOR;
     builder.addResource(new FieldResourceBinding(
         resourceId,
         name,
@@ -781,8 +774,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     Map<Integer, Id> resourceIds = elementToIds(element, BindDrawable.class, new int[] {id, tint});
 
     BindingSet.Builder builder = getOrCreateBindingBuilder(builderMap, enclosingElement);
-    builder.addResource(new FieldDrawableBinding(resourceIds.get(id), name, resourceIds.get(tint),
-        useLegacyTypes));
+    builder.addResource(new FieldDrawableBinding(resourceIds.get(id), name, resourceIds.get(tint)));
 
     erasedTargetNames.add(enclosingElement);
   }
@@ -854,7 +846,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
     BindingSet.Builder builder = getOrCreateBindingBuilder(builderMap, enclosingElement);
     Id resourceId = elementToId(element, BindFont.class, bindFont.value());
-    builder.addResource(new FieldTypefaceBinding(resourceId, name, style, useLegacyTypes));
+    builder.addResource(new FieldTypefaceBinding(resourceId, name, style));
 
     erasedTargetNames.add(enclosingElement);
   }
@@ -1359,14 +1351,6 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
       }
     }
     return null;
-  }
-
-  /**
-   * Check for an AndroidX type required by the runtime to determine whether we're in AndroidX or
-   * using legacy support library types.
-   */
-  private static boolean hasAndroidX(Elements elements) {
-    return elements.getTypeElement("androidx.core.content.ContextCompat") != null;
   }
 
   private static class RScanner extends TreeScanner {

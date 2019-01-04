@@ -1,6 +1,6 @@
 package butterknife.compiler;
 
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 import com.google.common.collect.ImmutableList;
 import com.google.errorprone.annotations.Immutable;
 import com.squareup.javapoet.ClassName;
@@ -13,13 +13,8 @@ final class FieldResourceBinding implements ResourceBinding {
   enum Type {
     BITMAP(new ResourceMethod(BindingSet.BITMAP_FACTORY, "decodeResource", true, 1)),
     BOOL("getBoolean"),
-    COLOR_LEGACY(new ResourceMethod(BindingSet.CONTEXT_COMPAT_LEGACY, "getColor", false, 1),
-        new ResourceMethod(null, "getColor", false, 23)),
     COLOR(new ResourceMethod(BindingSet.CONTEXT_COMPAT, "getColor", false, 1),
         new ResourceMethod(null, "getColor", false, 23)),
-    COLOR_STATE_LIST_LEGACY(
-        new ResourceMethod(BindingSet.CONTEXT_COMPAT_LEGACY, "getColorStateList", false, 1),
-        new ResourceMethod(null, "getColorStateList", false, 23)),
     COLOR_STATE_LIST(new ResourceMethod(BindingSet.CONTEXT_COMPAT,
         "getColorStateList", false, 1),
         new ResourceMethod(null, "getColorStateList", false, 23)),
