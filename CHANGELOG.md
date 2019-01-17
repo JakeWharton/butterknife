@@ -1,6 +1,12 @@
 Change Log
 ==========
 
+Version 10.0.0-INCAP *(2019-01-17)*
+-----------------------------
+
+ * Supports inheritance across modules: #1045
+ * Supports incremental annotation processing for gradle 4.7+: #1225
+
 Version 10.0.0 *(2019-01-03)*
 -----------------------------
 
