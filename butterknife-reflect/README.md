@@ -33,7 +33,7 @@ Usage
 Kotlin modules:
 ```groovy
 dependencies {
-  if (properties.containsKey('android.injected.invoked.from.ide')) {
+  if (project.hasProperty('android.injected.invoked.from.ide')) {
     implementation 'com.jakewharton:butterknife-reflect:<version>'
   } else {
     implementation 'com.jakewharton:butterknife:<version>'
@@ -45,7 +45,7 @@ dependencies {
 Java modules:
 ```groovy
 dependencies {
-  if (properties.containsKey('android.injected.invoked.from.ide')) {
+  if (project.hasProperty('android.injected.invoked.from.ide')) {
     implementation 'com.jakewharton:butterknife-reflect:<version>'
   } else {
     implementation 'com.jakewharton:butterknife:<version>'
