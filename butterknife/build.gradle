@@ -8,7 +8,7 @@ android {
 
     consumerProguardFiles 'proguard-rules.txt'
 
-    testInstrumentationRunner 'android.support.test.runner.AndroidJUnitRunner'
+    testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
   }
 
   compileOptions {
