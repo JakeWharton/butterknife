@@ -152,8 +152,12 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     elementUtils = env.getElementUtils();
     filer = env.getFiler();
     try {
-      trees = Trees.instance(processingEnv);
-    } catch (IllegalArgumentException ignored) {
+      //reflection won't be necessary after https://github.com/gradle/gradle/pull/8393
+      java.lang.reflect.Field delegateField = processingEnv.getClass().getDeclaredField("delegate");
+      delegateField.setAccessible(true);
+      trees = Trees.instance((ProcessingEnvironment) delegateField.get(processingEnv));
+    } catch (Throwable ignored) {
+      ignored.printStackTrace();
     }
   }
 
