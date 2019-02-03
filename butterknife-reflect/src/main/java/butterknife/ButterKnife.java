@@ -25,7 +25,6 @@ import androidx.core.content.ContextCompat;
 import androidx.core.content.res.ResourcesCompat;
 import butterknife.internal.Constants;
 import butterknife.internal.Utils;
-import java.lang.annotation.Annotation;
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
@@ -236,15 +235,9 @@ public final class ButterKnife {
     validateMember(field);
 
     int id = bindView.value();
-    boolean isRequired = isRequired(field);
     Class<?> viewClass = field.getType();
     String who = "field '" + field.getName() + "'";
-    Object view;
-    if (isRequired) {
-      view = Utils.findRequiredViewAsType(source, id, who, viewClass);
-    } else {
-      view = Utils.findOptionalViewAsType(source, id, who, viewClass);
-    }
+    Object view = Utils.findOptionalViewAsType(source, id, who, viewClass);
     trySet(field, target, view);
 
     return new FieldUnbinder(target, field);
@@ -276,16 +269,10 @@ public final class ButterKnife {
     }
 
     int[] ids = bindViews.value();
-    boolean isRequired = isRequired(field);
     List<Object> views = new ArrayList<>(ids.length);
     String who = "field '" + field.getName() + "'";
     for (int id : ids) {
-      Object view;
-      if (isRequired) {
-        view = Utils.findRequiredViewAsType(source, id, who, viewClass);
-      } else {
-        view = Utils.findOptionalViewAsType(source, id, who, viewClass);
-      }
+      Object view = Utils.findOptionalViewAsType(source, id, who, viewClass);
       if (view != null) {
         views.add(view);
       }
@@ -805,15 +792,6 @@ public final class ButterKnife {
           + method.getName()
           + " must have return type of "
           + expectedType);
-    }
-    return true;
-  }
-
-  private static boolean isRequired(Field field) {
-    for (Annotation annotation : field.getAnnotations()) {
-      if (annotation.annotationType().getSimpleName().equals("Nullable")) {
-        return false;
-      }
     }
     return true;
   }
