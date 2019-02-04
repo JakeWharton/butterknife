@@ -156,8 +156,12 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
       java.lang.reflect.Field delegateField = processingEnv.getClass().getDeclaredField("delegate");
       delegateField.setAccessible(true);
       trees = Trees.instance((ProcessingEnvironment) delegateField.get(processingEnv));
-    } catch (Throwable ignored) {
-      ignored.printStackTrace();
+    } catch (Throwable t) {
+      t.printStackTrace();
+      try {
+        trees = Trees.instance(processingEnv);
+      } catch (Throwable ignored) {
+      }
     }
   }
 
