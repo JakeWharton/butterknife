@@ -1,6 +1,11 @@
 Change Log
 ==========
 
+Version 10.0.0-INCAP-2 *(2019-01-31)*
+-----------------------------
+
+* make sure bk incap works when the build is incremental or not
+
 Version 10.0.0-INCAP-1 *(2019-01-31)*
 -----------------------------
 
