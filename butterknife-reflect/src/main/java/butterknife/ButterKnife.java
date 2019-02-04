@@ -10,6 +10,8 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
@@ -209,6 +211,9 @@ public final class ButterKnife {
         if (unbinder != null) unbinders.add(unbinder);
 
         unbinder = parseOnLongClick(target, method, source);
+        if (unbinder != null) unbinders.add(unbinder);
+
+        unbinder = parseOnTextChanged(target, method, source);
         if (unbinder != null) unbinders.add(unbinder);
 
         unbinder = parseOnTouch(target, method, source);
@@ -716,6 +721,87 @@ public final class ButterKnife {
     return new ListenerUnbinder<>(views, ON_LONG_CLICK);
   }
 
+  private static @Nullable Unbinder parseOnTextChanged(final Object target, final Method method,
+      View source) {
+    OnTextChanged onTextChanged = method.getAnnotation(OnTextChanged.class);
+    if (onTextChanged == null) {
+      return null;
+    }
+    validateMember(method);
+    validateReturnType(method, void.class);
+
+    List<TextView> views = findViews(source, onTextChanged.value(), isRequired(method),
+        method.getName(), View.class);
+
+    OnTextChanged.Callback callback = onTextChanged.callback();
+    if (callback == OnTextChanged.Callback.TEXT_CHANGED) {
+      final ArgumentTransformer argumentTransformer =
+          createArgumentTransformer(method, ON_TEXT_CHANGED_TYPES);
+
+      TextWatcher textWatcher = new TextWatcher() {
+        @Override
+        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+        }
+
+        @Override
+        public void onTextChanged(CharSequence s, int start, int before, int count) {
+          tryInvoke(method, target, argumentTransformer.transform(s, start, before, count));
+        }
+
+        @Override
+        public void afterTextChanged(Editable s) {
+        }
+      };
+      ViewCollections.set(views, ADD_TEXT_WATCHER, textWatcher);
+
+      return new ListenerUnbinder<>(views, REMOVE_TEXT_WATCHER, textWatcher);
+    } else if (callback == OnTextChanged.Callback.BEFORE_TEXT_CHANGED) {
+      final ArgumentTransformer argumentTransformer =
+          createArgumentTransformer(method, BEFORE_TEXT_CHANGED_TYPES);
+
+      TextWatcher textWatcher = new TextWatcher() {
+        @Override
+        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+          tryInvoke(method, target, argumentTransformer.transform(s, start, count, after));
+        }
+
+        @Override
+        public void onTextChanged(CharSequence s, int start, int before, int count) {
+        }
+
+        @Override
+        public void afterTextChanged(Editable s) {
+        }
+      };
+      ViewCollections.set(views, ADD_TEXT_WATCHER, textWatcher);
+
+      return new ListenerUnbinder<>(views, REMOVE_TEXT_WATCHER, textWatcher);
+    } else if (callback == OnTextChanged.Callback.AFTER_TEXT_CHANGED) {
+      final ArgumentTransformer argumentTransformer =
+          createArgumentTransformer(method, AFTER_TEXT_CHANGED_TYPES);
+
+      TextWatcher textWatcher = new TextWatcher() {
+        @Override
+        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+        }
+
+        @Override
+        public void onTextChanged(CharSequence s, int start, int before, int count) {
+        }
+
+        @Override
+        public void afterTextChanged(Editable s) {
+          tryInvoke(method, target, argumentTransformer.transform(s));
+        }
+      };
+      ViewCollections.set(views, ADD_TEXT_WATCHER, textWatcher);
+
+      return new ListenerUnbinder<>(views, REMOVE_TEXT_WATCHER, textWatcher);
+    }
+
+    return null;
+  }
+
   private static @Nullable Unbinder parseOnTouch(final Object target, final Method method,
       View source) {
     OnTouch onTouch = method.getAnnotation(OnTouch.class);
@@ -940,6 +1026,10 @@ public final class ButterKnife {
       (view, value, index) -> view.setOnLongClickListener(value);
   private static final Setter<View, View.OnTouchListener> ON_TOUCH =
       (view, value, index) -> view.setOnTouchListener(value);
+  private static final Setter<TextView, TextWatcher> ADD_TEXT_WATCHER =
+      (view, value, index) -> view.addTextChangedListener(value);
+  private static final Setter<TextView, TextWatcher> REMOVE_TEXT_WATCHER =
+      (view, value, index) -> view.removeTextChangedListener(value);
 
   private static final Class<?>[] ON_CHECKED_CHANGED_TYPES =
       { CompoundButton.class, boolean.class };
@@ -951,6 +1041,10 @@ public final class ButterKnife {
       { AdapterView.class, View.class, int.class, long.class };
   private static final Class<?>[] ON_ITEM_LONG_CLICK_TYPES = ON_ITEM_CLICK_TYPES;
   private static final Class<?>[] ON_LONG_CLICK_TYPES = ON_CLICK_TYPES;
+  private static final Class<?>[] ON_TEXT_CHANGED_TYPES =
+      { CharSequence.class, int.class, int.class, int.class };
+  private static final Class<?>[] BEFORE_TEXT_CHANGED_TYPES = ON_TEXT_CHANGED_TYPES;
+  private static final Class<?>[] AFTER_TEXT_CHANGED_TYPES = { Editable.class };
   private static final Class<?>[] ON_TOUCH_TYPES = { View.class, MotionEvent.class };
 
   private interface ArgumentTransformer {
