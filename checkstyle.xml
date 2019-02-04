@@ -97,7 +97,9 @@
 
     <!-- Checks for blocks. You know, those {}'s         -->
     <!-- See http://checkstyle.sf.net/config_blocks.html -->
-    <module name="AvoidNestedBlocks"/>
+    <module name="AvoidNestedBlocks">
+        <property name="allowInSwitchCase" value="true"/>
+    </module>
     <!--<module name="EmptyBlock"/>-->
     <module name="LeftCurly"/>
     <module name="NeedBraces">
