@@ -8,11 +8,14 @@ final class MethodViewBinding implements MemberViewBinding {
   private final String name;
   private final List<Parameter> parameters;
   private final boolean required;
+  private final boolean hasReturnValue;
 
-  MethodViewBinding(String name, List<Parameter> parameters, boolean required) {
+  MethodViewBinding(String name, List<Parameter> parameters, boolean required,
+      boolean hasReturnValue) {
     this.name = name;
     this.parameters = Collections.unmodifiableList(new ArrayList<>(parameters));
     this.required = required;
+    this.hasReturnValue = hasReturnValue;
   }
 
   public String getName() {
@@ -29,5 +32,9 @@ final class MethodViewBinding implements MemberViewBinding {
 
   public boolean isRequired() {
     return required;
+  }
+
+  public boolean hasReturnValue() {
+    return hasReturnValue;
   }
 }

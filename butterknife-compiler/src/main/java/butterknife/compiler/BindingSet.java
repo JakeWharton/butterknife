@@ -460,14 +460,15 @@ final class BindingSet {
           callbackMethod.addParameter(bestGuess(parameterTypes[i]), "p" + i);
         }
 
-        boolean hasReturnType = !"void".equals(method.returnType());
+        boolean hasReturnValue = false;
         CodeBlock.Builder builder = CodeBlock.builder();
-        if (hasReturnType) {
-          builder.add("return ");
-        }
-
-        if (methodBindings.containsKey(method)) {
-          for (MethodViewBinding methodBinding : methodBindings.get(method)) {
+        Set<MethodViewBinding> methodViewBindings = methodBindings.get(method);
+        if (methodViewBindings != null) {
+          for (MethodViewBinding methodBinding : methodViewBindings) {
+            if (methodBinding.hasReturnValue()) {
+              hasReturnValue = true;
+              builder.add("return "); // TODO what about multiple methods?
+            }
             builder.add("target.$L(", methodBinding.getName());
             List<Parameter> parameters = methodBinding.getParameters();
             String[] listenerParameters = method.parameters();
@@ -493,9 +494,12 @@ final class BindingSet {
             }
             builder.add(");\n");
           }
-        } else if (hasReturnType) {
-          builder.add("$L;\n", method.defaultReturn());
         }
+
+        if (!"void".equals(method.returnType()) && !hasReturnValue) {
+          builder.add("return $L;\n", method.defaultReturn());
+        }
+
         callbackMethod.addCode(builder.build());
         callback.addMethod(callbackMethod.build());
       }
