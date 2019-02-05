@@ -157,7 +157,6 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
       delegateField.setAccessible(true);
       trees = Trees.instance((ProcessingEnvironment) delegateField.get(processingEnv));
     } catch (Throwable t) {
-      t.printStackTrace();
       try {
         trees = Trees.instance(processingEnv);
       } catch (Throwable ignored) {
@@ -375,15 +374,12 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
       BindingSet.Builder builder = entry.getValue();
 
       TypeElement parentType = findParentType(type, erasedTargetNames);
-      System.out.println(type + " parent type: " + parentType);
       if (parentType == null) {
         bindingMap.put(type, builder.build());
       } else {
         BindingSet parentBinding = bindingMap.get(parentType);
 
         // parent binding is null, let's try to find a previouly generated binding
-        System.out.println(type + " parent binding: " + parentBinding);
-        System.out.println(type + " parent has view binder: " + hasViewBinder(parentType));
         if (parentBinding == null && hasViewBinder(parentType)) {
           parentBinding = createStubBindingSet(parentType);
         }
@@ -1323,7 +1319,6 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     TypeMirror type;
     while (true) {
       type = typeElement.getSuperclass();
-      System.out.println("super type: " + type);
       if (type.getKind() == TypeKind.NONE) {
         return null;
       }
