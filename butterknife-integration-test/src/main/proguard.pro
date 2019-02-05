@@ -1,5 +1,7 @@
 -dontoptimize
 -dontobfuscate
+-dontnote **
+-dontwarn **
 
 # STUFF USED BY TESTS:
 
