@@ -8,24 +8,26 @@ import android.widget.FrameLayout;
 import android.widget.TextView;
 import androidx.test.InstrumentationRegistry;
 import butterknife.ButterKnife;
-import butterknife.OnClick;
+import butterknife.OnLongClick;
 import butterknife.Optional;
 import butterknife.Unbinder;
-import com.example.butterknife.BuildConfig;
 import org.junit.Test;
 
 import static com.example.butterknife.functional.ViewTestUtils.treeWithIds;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertSame;
-import static org.junit.Assume.assumeFalse;
+import static org.junit.Assert.assertTrue;
 
 @SuppressWarnings("unused") // Used reflectively / by code gen.
-public final class OnClickTest {
+public final class OnLongClickTest {
   static final class Simple {
+    boolean returnValue = true;
     int clicks = 0;
 
-    @OnClick(1) void click() {
+    @OnLongClick(1) boolean click() {
       clicks++;
+      return returnValue;
     }
   }
 
@@ -37,57 +39,58 @@ public final class OnClickTest {
     Unbinder unbinder = ButterKnife.bind(target, tree);
     assertEquals(0, target.clicks);
 
-    view1.performClick();
+    assertTrue(view1.performLongClick());
     assertEquals(1, target.clicks);
+
+    target.returnValue = false;
+    assertFalse(view1.performLongClick());
+    assertEquals(2, target.clicks);
 
     unbinder.unbind();
-    view1.performClick();
-    assertEquals(1, target.clicks);
+    view1.performLongClick();
+    assertEquals(2, target.clicks);
   }
 
-  static final class MultipleBindings {
+  static final class ReturnVoid {
     int clicks = 0;
 
-    @OnClick(1) void click1() {
-      clicks++;
-    }
-
-    @OnClick(1) void clicks2() {
+    @OnLongClick(1) void click() {
       clicks++;
     }
   }
 
-  @Test public void multipleBindings() {
-    assumeFalse("Not implemented", BuildConfig.FLAVOR.equals("reflect")); // TODO
-
+  @Test public void returnVoid() {
     View tree = treeWithIds(1);
     View view1 = tree.findViewById(1);
 
-    MultipleBindings target = new MultipleBindings();
+    ReturnVoid target = new ReturnVoid();
     Unbinder unbinder = ButterKnife.bind(target, tree);
     assertEquals(0, target.clicks);
 
-    view1.performClick();
-    assertEquals(2, target.clicks);
+    assertTrue(view1.performLongClick());
+    assertEquals(1, target.clicks);
 
     unbinder.unbind();
-    view1.performClick();
-    assertEquals(2, target.clicks);
+    view1.performLongClick();
+    assertEquals(1, target.clicks);
   }
 
   static final class Visibilities {
     int clicks = 0;
 
-    @OnClick(1) public void publicClick() {
+    @OnLongClick(1) public boolean publicClick() {
       clicks++;
+      return true;
     }
 
-    @OnClick(2) void packageClick() {
+    @OnLongClick(2) boolean packageClick() {
       clicks++;
+      return true;
     }
 
-    @OnClick(3) protected void protectedClick() {
+    @OnLongClick(3) protected boolean protectedClick() {
       clicks++;
+      return true;
     }
   }
 
@@ -101,21 +104,22 @@ public final class OnClickTest {
     ButterKnife.bind(target, tree);
     assertEquals(0, target.clicks);
 
-    view1.performClick();
+    view1.performLongClick();
     assertEquals(1, target.clicks);
 
-    view2.performClick();
+    view2.performLongClick();
     assertEquals(2, target.clicks);
 
-    view3.performClick();
+    view3.performLongClick();
     assertEquals(3, target.clicks);
   }
 
   static final class MultipleIds {
     int clicks = 0;
 
-    @OnClick({1, 2}) void click() {
+    @OnLongClick({1, 2}) boolean click() {
       clicks++;
+      return true;
     }
   }
 
@@ -128,23 +132,24 @@ public final class OnClickTest {
     Unbinder unbinder = ButterKnife.bind(target, tree);
     assertEquals(0, target.clicks);
 
-    view1.performClick();
+    view1.performLongClick();
     assertEquals(1, target.clicks);
 
-    view2.performClick();
+    view2.performLongClick();
     assertEquals(2, target.clicks);
 
     unbinder.unbind();
-    view1.performClick();
-    view2.performClick();
+    view1.performLongClick();
+    view2.performLongClick();
     assertEquals(2, target.clicks);
   }
 
   static final class OptionalId {
     int clicks = 0;
 
-    @Optional @OnClick(1) public void click() {
+    @Optional @OnLongClick(1) public boolean click() {
       clicks++;
+      return true;
     }
   }
 
@@ -156,11 +161,11 @@ public final class OnClickTest {
     Unbinder unbinder = ButterKnife.bind(target, tree);
     assertEquals(0, target.clicks);
 
-    view1.performClick();
+    view1.performLongClick();
     assertEquals(1, target.clicks);
 
     unbinder.unbind();
-    view1.performClick();
+    view1.performLongClick();
     assertEquals(1, target.clicks);
   }
 
@@ -172,11 +177,11 @@ public final class OnClickTest {
     Unbinder unbinder = ButterKnife.bind(target, tree);
     assertEquals(0, target.clicks);
 
-    view2.performClick();
+    view2.performLongClick();
     assertEquals(0, target.clicks);
 
     unbinder.unbind();
-    view2.performClick();
+    view2.performLongClick();
     assertEquals(0, target.clicks);
   }
 
@@ -185,20 +190,24 @@ public final class OnClickTest {
 
     View last;
 
-    @OnClick(1) void clickView(View view) {
+    @OnLongClick(1) boolean clickView(View view) {
       last = view;
+      return true;
     }
 
-    @OnClick(2) void clickTextView(TextView view) {
+    @OnLongClick(2) boolean clickTextView(TextView view) {
       last = view;
+      return true;
     }
 
-    @OnClick(3) void clickButton(Button view) {
+    @OnLongClick(3) boolean clickButton(Button view) {
       last = view;
+      return true;
     }
 
-    @OnClick(4) void clickMyInterface(MyInterface view) {
+    @OnLongClick(4) boolean clickMyInterface(MyInterface view) {
       last = (View) view;
+      return true;
     }
   }
 
@@ -206,12 +215,6 @@ public final class OnClickTest {
     class MyView extends Button implements ArgumentCast.MyInterface {
       MyView(Context context) {
         super(context);
-      }
-
-      @Override public boolean post(Runnable action) {
-        // Because of DebouncingOnClickListener, we run any posted Runnables synchronously.
-        action.run();
-        return true;
       }
     }
 
@@ -232,16 +235,16 @@ public final class OnClickTest {
     ArgumentCast target = new ArgumentCast();
     ButterKnife.bind(target, tree);
 
-    view1.performClick();
+    view1.performLongClick();
     assertSame(view1, target.last);
 
-    view2.performClick();
+    view2.performLongClick();
     assertSame(view2, target.last);
 
-    view3.performClick();
+    view3.performLongClick();
     assertSame(view3, target.last);
 
-    view4.performClick();
+    view4.performLongClick();
     assertSame(view4, target.last);
   }
 }
