@@ -29,6 +29,7 @@ android {
 
 dependencies {
   api project(':butterknife-runtime')
+  api deps.androidx.viewpager
 }
 
 apply from: rootProject.file('gradle/gradle-mvn-push.gradle')
