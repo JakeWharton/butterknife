@@ -22,6 +22,8 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
  * Any number of parameters from
  * {@link OnTouchListener#onTouch(android.view.View, android.view.MotionEvent) onTouch} may be used
  * on the method.
+ * <p>
+ * If the return type of the method is {@code void}, true will be returned from the listener.
  *
  * @see OnTouchListener
  */
@@ -38,7 +40,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
             "android.view.MotionEvent"
         },
         returnType = "boolean",
-        defaultReturn = "false"
+        defaultReturn = "true"
     )
 )
 public @interface OnTouch {

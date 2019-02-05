@@ -22,6 +22,8 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
  * </code></pre>
  * Any number of parameters from {@link OnLongClickListener#onLongClick(android.view.View)} may be
  * used on the method.
+ * <p>
+ * If the return type of the method is {@code void}, true will be returned from the listener.
  *
  * @see OnLongClickListener
  */
@@ -37,7 +39,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
             "android.view.View"
         },
         returnType = "boolean",
-        defaultReturn = "false"
+        defaultReturn = "true"
     )
 )
 public @interface OnLongClick {

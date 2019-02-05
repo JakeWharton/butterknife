@@ -1110,7 +1110,9 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
       TypeVariable typeVariable = (TypeVariable) returnType;
       returnType = typeVariable.getUpperBound();
     }
-    if (!returnType.toString().equals(method.returnType())) {
+    String returnTypeString = returnType.toString();
+    boolean hasReturnValue = !"void".equals(returnTypeString);
+    if (!returnTypeString.equals(method.returnType()) && hasReturnValue) {
       error(element, "@%s methods must have a '%s' return type. (%s.%s)",
           annotationClass.getSimpleName(), method.returnType(),
           enclosingElement.getQualifiedName(), element.getSimpleName());
@@ -1186,7 +1188,8 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
       }
     }
 
-    MethodViewBinding binding = new MethodViewBinding(name, Arrays.asList(parameters), required);
+    MethodViewBinding binding =
+        new MethodViewBinding(name, Arrays.asList(parameters), required, hasReturnValue);
     BindingSet.Builder builder = getOrCreateBindingBuilder(builderMap, enclosingElement);
     Map<Integer, Id> resourceIds = elementToIds(element, annotationClass, ids);
 
