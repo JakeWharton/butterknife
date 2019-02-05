@@ -621,7 +621,7 @@ public final class ButterKnife {
       //noinspection SimplifiableConditionalExpression
       return propagateReturn
           ? (boolean) value
-          : false;
+          : true;
     });
 
     return new ListenerUnbinder<>(views, ON_EDITOR_ACTION);
@@ -690,7 +690,7 @@ public final class ButterKnife {
       //noinspection SimplifiableConditionalExpression
       return propagateReturn
           ? (boolean) value
-          : false;
+          : true;
     });
 
     return new ListenerUnbinder<>(views, ON_ITEM_LONG_CLICK);
@@ -715,7 +715,7 @@ public final class ButterKnife {
       //noinspection SimplifiableConditionalExpression
       return propagateReturn
           ? (boolean) returnValue
-          : false;
+          : true;
     });
 
     return new ListenerUnbinder<>(views, ON_LONG_CLICK);
@@ -791,7 +791,7 @@ public final class ButterKnife {
       //noinspection SimplifiableConditionalExpression
       return propagateReturn
           ? (boolean) returnValue
-          : false;
+          : true;
     });
 
     return new ListenerUnbinder<>(views, ON_TOUCH);
