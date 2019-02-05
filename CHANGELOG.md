@@ -1,6 +1,13 @@
 Change Log
 ==========
 
+Version 10.0.0.3 *(2019-02-04)*
+-----------------------------
+
+* fix version numbering. There was a weird gradle bug when using the old format 
+(https://github.com/gradle/gradle/issues/1487)
+* fix logs of processor
+
 Version 10.0.0-INCAP-2 *(2019-01-31)*
 -----------------------------
 
