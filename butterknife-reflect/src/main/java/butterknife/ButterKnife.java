@@ -25,6 +25,7 @@ import androidx.annotation.Nullable;
 import androidx.annotation.UiThread;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.res.ResourcesCompat;
+import androidx.viewpager.widget.ViewPager;
 import butterknife.internal.Constants;
 import butterknife.internal.Utils;
 import java.lang.reflect.AccessibleObject;
@@ -211,6 +212,9 @@ public final class ButterKnife {
         if (unbinder != null) unbinders.add(unbinder);
 
         unbinder = parseOnLongClick(target, method, source);
+        if (unbinder != null) unbinders.add(unbinder);
+
+        unbinder = parseOnPageChange(target, method, source);
         if (unbinder != null) unbinders.add(unbinder);
 
         unbinder = parseOnTextChanged(target, method, source);
@@ -721,6 +725,61 @@ public final class ButterKnife {
     return new ListenerUnbinder<>(views, ON_LONG_CLICK);
   }
 
+  private static @Nullable Unbinder parseOnPageChange(final Object target, final Method method,
+      View source) {
+    OnPageChange onPageChange = method.getAnnotation(OnPageChange.class);
+    if (onPageChange == null) {
+      return null;
+    }
+    validateMember(method);
+    validateReturnType(method, void.class);
+
+    List<ViewPager> views =
+        findViews(source, onPageChange.value(), isRequired(method), method.getName(),
+            ViewPager.class);
+
+    ViewPager.OnPageChangeListener listener;
+    switch (onPageChange.callback()) {
+      case PAGE_SCROLLED: {
+        ArgumentTransformer argumentTransformer =
+            createArgumentTransformer(method, ON_PAGE_SCROLLED_TYPES);
+        listener = new ViewPager.SimpleOnPageChangeListener() {
+          @Override public void onPageScrolled(int position, float positionOffset,
+              int positionOffsetPixels) {
+            tryInvoke(method, target,
+                argumentTransformer.transform(position, positionOffset, positionOffsetPixels));
+          }
+        };
+        break;
+      }
+      case PAGE_SELECTED: {
+        ArgumentTransformer argumentTransformer =
+            createArgumentTransformer(method, ON_PAGE_SELECTED_TYPES);
+        listener = new ViewPager.SimpleOnPageChangeListener() {
+          @Override public void onPageSelected(int position) {
+            tryInvoke(method, target, argumentTransformer.transform(position));
+          }
+        };
+        break;
+      }
+      case PAGE_SCROLL_STATE_CHANGED: {
+        ArgumentTransformer argumentTransformer =
+            createArgumentTransformer(method, ON_PAGE_SCROLL_STATE_CHANGED_TYPES);
+        listener = new ViewPager.SimpleOnPageChangeListener() {
+          @Override public void onPageScrollStateChanged(int state) {
+            tryInvoke(method, target, argumentTransformer.transform(state));
+          }
+        };
+        break;
+      }
+      default:
+        throw new AssertionError();
+    }
+
+    ViewCollections.set(views, ADD_ON_PAGE_CHANGE, listener);
+    return new ListenerUnbinder<>(views, REMOVE_ON_PAGE_CHANGE, listener);
+  }
+
   private static @Nullable Unbinder parseOnTextChanged(Object target, Method method, View source) {
     OnTextChanged onTextChanged = method.getAnnotation(OnTextChanged.class);
     if (onTextChanged == null) {
@@ -996,6 +1055,10 @@ public final class ButterKnife {
       (view, value, index) -> view.setOnLongClickListener(value);
   private static final Setter<View, View.OnTouchListener> ON_TOUCH =
       (view, value, index) -> view.setOnTouchListener(value);
+  private static final Setter<ViewPager, ViewPager.OnPageChangeListener> ADD_ON_PAGE_CHANGE =
+      (view, value, index) -> view.addOnPageChangeListener(value);
+  private static final Setter<ViewPager, ViewPager.OnPageChangeListener> REMOVE_ON_PAGE_CHANGE =
+      (view, value, index) -> view.removeOnPageChangeListener(value);
   private static final Setter<TextView, TextWatcher> ADD_TEXT_WATCHER =
       (view, value, index) -> view.addTextChangedListener(value);
   private static final Setter<TextView, TextWatcher> REMOVE_TEXT_WATCHER =
@@ -1011,6 +1074,9 @@ public final class ButterKnife {
       { AdapterView.class, View.class, int.class, long.class };
   private static final Class<?>[] ON_ITEM_LONG_CLICK_TYPES = ON_ITEM_CLICK_TYPES;
   private static final Class<?>[] ON_LONG_CLICK_TYPES = ON_CLICK_TYPES;
+  private static final Class<?>[] ON_PAGE_SCROLLED_TYPES = { int.class, float.class, int.class };
+  private static final Class<?>[] ON_PAGE_SELECTED_TYPES = { int.class };
+  private static final Class<?>[] ON_PAGE_SCROLL_STATE_CHANGED_TYPES = { int.class };
   private static final Class<?>[] ON_TEXT_CHANGED_TYPES =
       { CharSequence.class, int.class, int.class, int.class };
   private static final Class<?>[] BEFORE_TEXT_CHANGED_TYPES = ON_TEXT_CHANGED_TYPES;
