@@ -1,16 +1,20 @@
-package butterknife.functional;
+package com.example.butterknife.functional;
 
 import android.content.Context;
+import android.view.View;
 import androidx.test.InstrumentationRegistry;
 import butterknife.BindInt;
+import butterknife.ButterKnife;
 import butterknife.Unbinder;
-import butterknife.runtime.test.R;
+import com.example.butterknife.test.R;
 import org.junit.Test;
 
+import static com.example.butterknife.functional.ViewTestUtils.treeWithIds;
 import static com.google.common.truth.Truth.assertThat;
 
 public final class BindIntTest {
   private final Context context = InstrumentationRegistry.getContext();
+  private final View tree = treeWithIds(1);
 
   static class Target {
     @BindInt(R.integer.twelve) int actual;
@@ -20,7 +24,7 @@ public final class BindIntTest {
     Target target = new Target();
     int expected = context.getResources().getInteger(R.integer.twelve);
 
-    Unbinder unbinder = new BindIntTest$Target_ViewBinding(target, context);
+    Unbinder unbinder = ButterKnife.bind(target, tree);
     assertThat(target.actual).isEqualTo(expected);
 
     unbinder.unbind();

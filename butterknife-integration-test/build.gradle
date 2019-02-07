@@ -43,11 +43,9 @@ android {
 
     reflect {
       dimension 'runtime'
-      applicationIdSuffix '.reflect'
     }
     codegen {
       dimension 'runtime'
-      applicationIdSuffix '.codegen'
     }
   }
 

@@ -1,17 +1,21 @@
-package butterknife.functional;
+package com.example.butterknife.functional;
 
 import android.content.Context;
 import android.content.res.ColorStateList;
+import android.view.View;
 import androidx.test.InstrumentationRegistry;
 import butterknife.BindColor;
+import butterknife.ButterKnife;
 import butterknife.Unbinder;
-import butterknife.runtime.test.R;
+import com.example.butterknife.test.R;
 import org.junit.Test;
 
+import static com.example.butterknife.functional.ViewTestUtils.treeWithIds;
 import static com.google.common.truth.Truth.assertThat;
 
 public final class BindColorTest {
   private final Context context = InstrumentationRegistry.getContext();
+  private final View tree = treeWithIds(1);
 
   static class IntTarget {
     @BindColor(R.color.red) int actual;
@@ -21,7 +25,7 @@ public final class BindColorTest {
     IntTarget target = new IntTarget();
     int expected = context.getResources().getColor(R.color.red);
 
-    Unbinder unbinder = new BindColorTest$IntTarget_ViewBinding(target, context);
+    Unbinder unbinder = ButterKnife.bind(target, tree);
     assertThat(target.actual).isEqualTo(expected);
 
     unbinder.unbind();
@@ -36,7 +40,7 @@ public final class BindColorTest {
     ColorStateListTarget target = new ColorStateListTarget();
     ColorStateList expected = context.getResources().getColorStateList(R.color.colors);
 
-    Unbinder unbinder = new BindColorTest$ColorStateListTarget_ViewBinding(target, context);
+    Unbinder unbinder = ButterKnife.bind(target, tree);
     assertThat(target.actual.toString()).isEqualTo(expected.toString());
 
     unbinder.unbind();

@@ -1,17 +1,21 @@
-package butterknife.functional;
+package com.example.butterknife.functional;
 
 import android.content.Context;
 import android.util.TypedValue;
+import android.view.View;
 import androidx.test.InstrumentationRegistry;
 import butterknife.BindFloat;
+import butterknife.ButterKnife;
 import butterknife.Unbinder;
-import butterknife.runtime.test.R;
+import com.example.butterknife.test.R;
 import org.junit.Test;
 
+import static com.example.butterknife.functional.ViewTestUtils.treeWithIds;
 import static com.google.common.truth.Truth.assertThat;
 
 public final class BindFloatTest {
   private final Context context = InstrumentationRegistry.getContext();
+  private final View tree = treeWithIds(1);
 
   static class Target {
     @BindFloat(R.dimen.twelve_point_two) float actual;
@@ -23,7 +27,7 @@ public final class BindFloatTest {
     context.getResources().getValue(R.dimen.twelve_point_two, value, true);
     float expected = value.getFloat();
 
-    Unbinder unbinder = new BindFloatTest$Target_ViewBinding(target, context);
+    Unbinder unbinder = ButterKnife.bind(target, tree);
     assertThat(target.actual).isEqualTo(expected);
 
     unbinder.unbind();
