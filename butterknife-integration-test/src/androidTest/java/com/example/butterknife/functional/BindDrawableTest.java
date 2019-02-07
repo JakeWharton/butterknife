@@ -1,17 +1,21 @@
-package butterknife.functional;
+package com.example.butterknife.functional;
 
 import android.content.Context;
 import android.graphics.drawable.Drawable;
+import android.view.View;
 import androidx.test.InstrumentationRegistry;
 import butterknife.BindDrawable;
+import butterknife.ButterKnife;
 import butterknife.Unbinder;
-import butterknife.runtime.test.R;
+import com.example.butterknife.test.R;
 import org.junit.Test;
 
+import static com.example.butterknife.functional.ViewTestUtils.treeWithIds;
 import static com.google.common.truth.Truth.assertThat;
 
 public final class BindDrawableTest {
   private final Context context = InstrumentationRegistry.getContext();
+  private final View tree = treeWithIds(1);
 
   static class Target {
     @BindDrawable(R.drawable.circle) Drawable actual;
@@ -21,7 +25,7 @@ public final class BindDrawableTest {
     Target target = new Target();
     Drawable expected = context.getResources().getDrawable(R.drawable.circle);
 
-    Unbinder unbinder = new BindDrawableTest$Target_ViewBinding(target, context);
+    Unbinder unbinder = ButterKnife.bind(target, tree);
     assertThat(target.actual.getConstantState()).isEqualTo(expected.getConstantState());
 
     unbinder.unbind();

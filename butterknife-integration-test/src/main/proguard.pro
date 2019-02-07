@@ -16,3 +16,7 @@
 -keep class com.example.butterknife.unbinder.H {
   <init>(...);
 }
+
+-keep class androidx.core.** {
+  <methods>;
+}

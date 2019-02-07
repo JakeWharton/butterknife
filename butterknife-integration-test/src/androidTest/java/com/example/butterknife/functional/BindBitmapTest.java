@@ -1,18 +1,22 @@
-package butterknife.functional;
+package com.example.butterknife.functional;
 
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.view.View;
 import androidx.test.InstrumentationRegistry;
 import butterknife.BindBitmap;
+import butterknife.ButterKnife;
 import butterknife.Unbinder;
-import butterknife.runtime.test.R;
+import com.example.butterknife.test.R;
 import org.junit.Test;
 
+import static com.example.butterknife.functional.ViewTestUtils.treeWithIds;
 import static org.junit.Assert.assertTrue;
 
 public final class BindBitmapTest {
   private final Context context = InstrumentationRegistry.getContext();
+  private final View tree = treeWithIds(1);
 
   static class Target {
     @BindBitmap(R.drawable.pixel) Bitmap actual;
@@ -22,7 +26,7 @@ public final class BindBitmapTest {
     Target target = new Target();
     Bitmap expected = BitmapFactory.decodeResource(context.getResources(), R.drawable.pixel);
 
-    Unbinder unbinder = new BindBitmapTest$Target_ViewBinding(target, context);
+    Unbinder unbinder = ButterKnife.bind(target, tree);
     assertTrue(target.actual.sameAs(expected));
 
     unbinder.unbind();
