@@ -95,7 +95,7 @@ subprojects { project ->
   //  ]
   //}
 
-  if (!project.name.equals('butterknife-gradle-plugin')) {
+  if (project.name != 'butterknife-gradle-plugin') {
     apply plugin: 'checkstyle'
 
     task checkstyle(type: Checkstyle) {
