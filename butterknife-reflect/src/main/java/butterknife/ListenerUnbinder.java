@@ -1,12 +1,13 @@
 package butterknife;
 
 import android.view.View;
+import androidx.annotation.Nullable;
 import java.util.List;
 
 final class ListenerUnbinder<V extends View, L> implements Unbinder {
   private final List<V> targets;
   private final Setter<V, L> setter;
-  private final L listener;
+  @Nullable private final L listener;
 
   ListenerUnbinder(List<V> targets, Setter<V, L> setter) {
     this.targets = targets;
@@ -14,7 +15,7 @@ final class ListenerUnbinder<V extends View, L> implements Unbinder {
     this.listener = null;
   }
 
-  ListenerUnbinder(List<V> targets, Setter<V, L> setter, L listener) {
+  ListenerUnbinder(List<V> targets, Setter<V, L> setter, @Nullable L listener) {
     this.targets = targets;
     this.setter = setter;
     this.listener = listener;

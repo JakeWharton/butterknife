@@ -9,6 +9,7 @@ import com.android.tools.lint.detector.api.JavaContext;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.android.tools.lint.detector.api.Scope;
 import com.android.tools.lint.detector.api.Severity;
+import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableSet;
 import java.util.Collections;
 import java.util.List;
@@ -29,7 +30,7 @@ public class InvalidR2UsageDetector extends Detector implements Detector.UastSca
   private static final String LINT_ERROR_BODY = "R2 should only be used inside annotations";
   private static final String LINT_ERROR_TITLE = "Invalid usage of R2";
   private static final String ISSUE_ID = "InvalidR2Usage";
-  private static final Set<String> SUPPORTED_TYPES =
+  private static final ImmutableSet<String> SUPPORTED_TYPES =
       ImmutableSet.of("array", "attr", "bool", "color", "dimen", "drawable", "id", "integer",
           "string");
 
@@ -105,8 +106,8 @@ public class InvalidR2UsageDetector extends Detector implements Detector.UastSca
     }
 
     private static boolean endsWithAny(String text, Set<String> possibleValues) {
-      String[] tokens = text.split("\\.");
-      return tokens.length > 1 && possibleValues.contains(tokens[tokens.length - 1]);
+      List<String> tokens = Splitter.on('.').splitToList(text);
+      return tokens.size() > 1 && possibleValues.contains(tokens.get(tokens.size() - 1));
     }
   }
 }

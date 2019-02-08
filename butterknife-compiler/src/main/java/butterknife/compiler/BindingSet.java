@@ -138,7 +138,7 @@ final class BindingSet {
         .addModifiers(PUBLIC)
         .addParameter(targetTypeName, "target")
         .addParameter(VIEW, "source")
-        .addStatement(("this(target, source.getContext())"))
+        .addStatement("this(target, source.getContext())")
         .build();
   }
 
