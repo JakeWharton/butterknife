@@ -7,11 +7,10 @@ import butterknife.ButterKnife;
 import butterknife.Unbinder;
 import org.junit.Test;
 
-import static com.example.butterknife.functional.ViewTestUtils.treeWithIds;
 import static org.junit.Assert.assertNotNull;
 
 public final class BindAnimTest {
-  private final View tree = treeWithIds(1);
+  private final View tree = ViewTree.create(1);
 
   static class Target {
     @BindAnim(android.R.anim.fade_in) Animation actual;

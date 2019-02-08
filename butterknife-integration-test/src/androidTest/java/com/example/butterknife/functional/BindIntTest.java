@@ -9,12 +9,11 @@ import butterknife.Unbinder;
 import com.example.butterknife.test.R;
 import org.junit.Test;
 
-import static com.example.butterknife.functional.ViewTestUtils.treeWithIds;
 import static com.google.common.truth.Truth.assertThat;
 
 public final class BindIntTest {
   private final Context context = InstrumentationRegistry.getContext();
-  private final View tree = treeWithIds(1);
+  private final View tree = ViewTree.create(1);
 
   static class Target {
     @BindInt(R.integer.twelve) int actual;

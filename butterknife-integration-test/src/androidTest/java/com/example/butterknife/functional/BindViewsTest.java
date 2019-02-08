@@ -7,7 +7,6 @@ import butterknife.Unbinder;
 import java.util.List;
 import org.junit.Test;
 
-import static com.example.butterknife.functional.ViewTestUtils.treeWithIds;
 import static com.google.common.truth.Truth.assertThat;
 
 public final class BindViewsTest {
@@ -16,7 +15,7 @@ public final class BindViewsTest {
   }
 
   @Test public void array() {
-    View tree = treeWithIds(1, 2, 3);
+    View tree = ViewTree.create(1, 2, 3);
     View expected1 = tree.findViewById(1);
     View expected2 = tree.findViewById(2);
     View expected3 = tree.findViewById(3);
@@ -33,7 +32,7 @@ public final class BindViewsTest {
   }
 
   @Test public void list() {
-    View tree = treeWithIds(1, 2, 3);
+    View tree = ViewTree.create(1, 2, 3);
     View expected1 = tree.findViewById(1);
     View expected2 = tree.findViewById(2);
     View expected3 = tree.findViewById(3);

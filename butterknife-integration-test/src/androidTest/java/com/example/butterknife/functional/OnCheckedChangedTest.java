@@ -3,102 +3,99 @@ package com.example.butterknife.functional;
 import android.content.Context;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.FrameLayout;
-import android.widget.TextView;
+import android.widget.ToggleButton;
 import androidx.test.InstrumentationRegistry;
 import androidx.test.annotation.UiThreadTest;
 import butterknife.ButterKnife;
-import butterknife.OnLongClick;
+import butterknife.OnCheckedChanged;
 import butterknife.Optional;
 import butterknife.Unbinder;
+import com.example.butterknife.BuildConfig;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assume.assumeFalse;
 
 @SuppressWarnings("unused") // Used reflectively / by code gen.
-public final class OnLongClickTest {
+public final class OnCheckedChangedTest {
   static final class Simple {
-    boolean returnValue = true;
     int clicks = 0;
 
-    @OnLongClick(1) boolean click() {
+    @OnCheckedChanged(1) void click() {
       clicks++;
-      return returnValue;
     }
   }
 
   @UiThreadTest
   @Test public void simple() {
-    View tree = ViewTree.create(1);
+    View tree = ViewTree.create(ToggleButton.class, 1);
     View view1 = tree.findViewById(1);
 
     Simple target = new Simple();
     Unbinder unbinder = ButterKnife.bind(target, tree);
     assertEquals(0, target.clicks);
 
-    assertTrue(view1.performLongClick());
+    view1.performClick();
     assertEquals(1, target.clicks);
 
-    target.returnValue = false;
-    assertFalse(view1.performLongClick());
-    assertEquals(2, target.clicks);
-
     unbinder.unbind();
-    view1.performLongClick();
-    assertEquals(2, target.clicks);
+    view1.performClick();
+    assertEquals(1, target.clicks);
   }
 
-  static final class ReturnVoid {
+  static final class MultipleBindings {
     int clicks = 0;
 
-    @OnLongClick(1) void click() {
+    @OnCheckedChanged(1) void click1() {
+      clicks++;
+    }
+
+    @OnCheckedChanged(1) void clicks2() {
       clicks++;
     }
   }
 
   @UiThreadTest
-  @Test public void returnVoid() {
-    View tree = ViewTree.create(1);
+  @Test public void multipleBindings() {
+    assumeFalse("Not implemented", BuildConfig.FLAVOR.equals("reflect")); // TODO
+
+    View tree = ViewTree.create(ToggleButton.class, 1);
     View view1 = tree.findViewById(1);
 
-    ReturnVoid target = new ReturnVoid();
+    MultipleBindings target = new MultipleBindings();
     Unbinder unbinder = ButterKnife.bind(target, tree);
     assertEquals(0, target.clicks);
 
-    assertTrue(view1.performLongClick());
-    assertEquals(1, target.clicks);
+    view1.performClick();
+    assertEquals(2, target.clicks);
 
     unbinder.unbind();
-    view1.performLongClick();
-    assertEquals(1, target.clicks);
+    view1.performClick();
+    assertEquals(2, target.clicks);
   }
 
   static final class Visibilities {
     int clicks = 0;
 
-    @OnLongClick(1) public boolean publicClick() {
+    @OnCheckedChanged(1) public void publicClick() {
       clicks++;
-      return true;
     }
 
-    @OnLongClick(2) boolean packageClick() {
+    @OnCheckedChanged(2) void packageClick() {
       clicks++;
-      return true;
     }
 
-    @OnLongClick(3) protected boolean protectedClick() {
+    @OnCheckedChanged(3) protected void protectedClick() {
       clicks++;
-      return true;
     }
   }
 
   @UiThreadTest
   @Test public void visibilities() {
-    View tree = ViewTree.create(1, 2, 3);
+    View tree = ViewTree.create(ToggleButton.class, 1, 2, 3);
     View view1 = tree.findViewById(1);
     View view2 = tree.findViewById(2);
     View view3 = tree.findViewById(3);
@@ -107,28 +104,27 @@ public final class OnLongClickTest {
     ButterKnife.bind(target, tree);
     assertEquals(0, target.clicks);
 
-    view1.performLongClick();
+    view1.performClick();
     assertEquals(1, target.clicks);
 
-    view2.performLongClick();
+    view2.performClick();
     assertEquals(2, target.clicks);
 
-    view3.performLongClick();
+    view3.performClick();
     assertEquals(3, target.clicks);
   }
 
   static final class MultipleIds {
     int clicks = 0;
 
-    @OnLongClick({1, 2}) boolean click() {
+    @OnCheckedChanged({1, 2}) void click() {
       clicks++;
-      return true;
     }
   }
 
   @UiThreadTest
   @Test public void multipleIds() {
-    View tree = ViewTree.create(1, 2);
+    View tree = ViewTree.create(ToggleButton.class, 1, 2);
     View view1 = tree.findViewById(1);
     View view2 = tree.findViewById(2);
 
@@ -136,58 +132,57 @@ public final class OnLongClickTest {
     Unbinder unbinder = ButterKnife.bind(target, tree);
     assertEquals(0, target.clicks);
 
-    view1.performLongClick();
+    view1.performClick();
     assertEquals(1, target.clicks);
 
-    view2.performLongClick();
+    view2.performClick();
     assertEquals(2, target.clicks);
 
     unbinder.unbind();
-    view1.performLongClick();
-    view2.performLongClick();
+    view1.performClick();
+    view2.performClick();
     assertEquals(2, target.clicks);
   }
 
   static final class OptionalId {
     int clicks = 0;
 
-    @Optional @OnLongClick(1) public boolean click() {
+    @Optional @OnCheckedChanged(1) public void click() {
       clicks++;
-      return true;
     }
   }
 
   @UiThreadTest
   @Test public void optionalIdPresent() {
-    View tree = ViewTree.create(1);
+    View tree = ViewTree.create(ToggleButton.class, 1);
     View view1 = tree.findViewById(1);
 
     OptionalId target = new OptionalId();
     Unbinder unbinder = ButterKnife.bind(target, tree);
     assertEquals(0, target.clicks);
 
-    view1.performLongClick();
+    view1.performClick();
     assertEquals(1, target.clicks);
 
     unbinder.unbind();
-    view1.performLongClick();
+    view1.performClick();
     assertEquals(1, target.clicks);
   }
 
   @UiThreadTest
   @Test public void optionalIdAbsent() {
-    View tree = ViewTree.create(2);
+    View tree = ViewTree.create(ToggleButton.class, 2);
     View view2 = tree.findViewById(2);
 
     OptionalId target = new OptionalId();
     Unbinder unbinder = ButterKnife.bind(target, tree);
     assertEquals(0, target.clicks);
 
-    view2.performLongClick();
+    view2.performClick();
     assertEquals(0, target.clicks);
 
     unbinder.unbind();
-    view2.performLongClick();
+    view2.performClick();
     assertEquals(0, target.clicks);
   }
 
@@ -196,30 +191,22 @@ public final class OnLongClickTest {
 
     View last;
 
-    @OnLongClick(1) boolean clickView(View view) {
+    @OnCheckedChanged(1) void clickTextView(CompoundButton view) {
       last = view;
-      return true;
     }
 
-    @OnLongClick(2) boolean clickTextView(TextView view) {
+    @OnCheckedChanged(2) void clickButton(ToggleButton view) {
       last = view;
-      return true;
     }
 
-    @OnLongClick(3) boolean clickButton(Button view) {
-      last = view;
-      return true;
-    }
-
-    @OnLongClick(4) boolean clickMyInterface(MyInterface view) {
+    @OnCheckedChanged(3) void clickMyInterface(MyInterface view) {
       last = (View) view;
-      return true;
     }
   }
 
   @UiThreadTest
   @Test public void argumentCast() {
-    class MyView extends Button implements ArgumentCast.MyInterface {
+    class MyView extends ToggleButton implements ArgumentCast.MyInterface {
       MyView(Context context) {
         super(context);
       }
@@ -231,27 +218,21 @@ public final class OnLongClickTest {
     view2.setId(2);
     View view3 = new MyView(InstrumentationRegistry.getContext());
     view3.setId(3);
-    View view4 = new MyView(InstrumentationRegistry.getContext());
-    view4.setId(4);
     ViewGroup tree = new FrameLayout(InstrumentationRegistry.getContext());
     tree.addView(view1);
     tree.addView(view2);
     tree.addView(view3);
-    tree.addView(view4);
 
     ArgumentCast target = new ArgumentCast();
     ButterKnife.bind(target, tree);
 
-    view1.performLongClick();
+    view1.performClick();
     assertSame(view1, target.last);
 
-    view2.performLongClick();
+    view2.performClick();
     assertSame(view2, target.last);
 
-    view3.performLongClick();
+    view3.performClick();
     assertSame(view3, target.last);
-
-    view4.performLongClick();
-    assertSame(view4, target.last);
   }
 }

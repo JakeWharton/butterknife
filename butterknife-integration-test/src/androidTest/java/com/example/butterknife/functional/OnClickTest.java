@@ -7,6 +7,7 @@ import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 import androidx.test.InstrumentationRegistry;
+import androidx.test.annotation.UiThreadTest;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import butterknife.Optional;
@@ -14,7 +15,6 @@ import butterknife.Unbinder;
 import com.example.butterknife.BuildConfig;
 import org.junit.Test;
 
-import static com.example.butterknife.functional.ViewTestUtils.treeWithIds;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assume.assumeFalse;
@@ -29,8 +29,9 @@ public final class OnClickTest {
     }
   }
 
+  @UiThreadTest
   @Test public void simple() {
-    View tree = treeWithIds(1);
+    View tree = ViewTree.create(1);
     View view1 = tree.findViewById(1);
 
     Simple target = new Simple();
@@ -57,10 +58,11 @@ public final class OnClickTest {
     }
   }
 
+  @UiThreadTest
   @Test public void multipleBindings() {
     assumeFalse("Not implemented", BuildConfig.FLAVOR.equals("reflect")); // TODO
 
-    View tree = treeWithIds(1);
+    View tree = ViewTree.create(1);
     View view1 = tree.findViewById(1);
 
     MultipleBindings target = new MultipleBindings();
@@ -91,8 +93,9 @@ public final class OnClickTest {
     }
   }
 
+  @UiThreadTest
   @Test public void visibilities() {
-    View tree = treeWithIds(1, 2, 3);
+    View tree = ViewTree.create(1, 2, 3);
     View view1 = tree.findViewById(1);
     View view2 = tree.findViewById(2);
     View view3 = tree.findViewById(3);
@@ -119,8 +122,9 @@ public final class OnClickTest {
     }
   }
 
+  @UiThreadTest
   @Test public void multipleIds() {
-    View tree = treeWithIds(1, 2);
+    View tree = ViewTree.create(1, 2);
     View view1 = tree.findViewById(1);
     View view2 = tree.findViewById(2);
 
@@ -148,8 +152,9 @@ public final class OnClickTest {
     }
   }
 
+  @UiThreadTest
   @Test public void optionalIdPresent() {
-    View tree = treeWithIds(1);
+    View tree = ViewTree.create(1);
     View view1 = tree.findViewById(1);
 
     OptionalId target = new OptionalId();
@@ -164,8 +169,9 @@ public final class OnClickTest {
     assertEquals(1, target.clicks);
   }
 
+  @UiThreadTest
   @Test public void optionalIdAbsent() {
-    View tree = treeWithIds(2);
+    View tree = ViewTree.create(2);
     View view2 = tree.findViewById(2);
 
     OptionalId target = new OptionalId();
@@ -202,6 +208,7 @@ public final class OnClickTest {
     }
   }
 
+  @UiThreadTest
   @Test public void argumentCast() {
     class MyView extends Button implements ArgumentCast.MyInterface {
       MyView(Context context) {
