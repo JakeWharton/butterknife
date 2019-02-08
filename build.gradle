@@ -60,7 +60,7 @@ buildscript {
     classpath 'com.android.tools.build:gradle:3.3.1'
     classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${versions.kotlin}"
     classpath 'com.github.ben-manes:gradle-versions-plugin:0.17.0'
-    classpath 'net.ltgt.gradle:gradle-errorprone-plugin:0.0.16'
+    classpath 'net.ltgt.gradle:gradle-errorprone-plugin:0.6.1'
   }
 }
 
@@ -77,23 +77,18 @@ subprojects { project ->
   apply plugin: 'net.ltgt.errorprone'
 
   dependencies {
-    errorprone 'com.google.errorprone:error_prone_core:2.3.1'
+    //noinspection GradleDynamicVersion
+    errorproneJavac 'com.google.errorprone:javac:9+181-r4173-1'
+    errorprone 'com.google.errorprone:error_prone_core:2.3.2'
+    errorprone 'com.uber.nullaway:nullaway:0.6.4'
   }
 
-  // TODO figure out why this causes codegen to fail in android tests.
-  //def nullaway = dependencies.create('com.uber.nullaway:nullaway:0.5.5')
-  //configurations.all { Configuration configuration ->
-  //  if (configuration.name.endsWith('nnotationProcessor')) {
-  //    configuration.dependencies.add(nullaway)
-  //  }
-  //}
-  //
-  //tasks.withType(JavaCompile) {
-  //  options.compilerArgs += [
-  //      '-Xep:NullAway:ERROR',
-  //      '-XepOpt:NullAway:AnnotatedPackages=butterknife',
-  //  ]
-  //}
+  tasks.withType(JavaCompile).configureEach {
+    options.errorprone {
+      option("NullAway:AnnotatedPackages", "butterknife")
+      check("NullAway", net.ltgt.gradle.errorprone.CheckSeverity.ERROR)
+    }
+  }
 
   if (project.name != 'butterknife-gradle-plugin') {
     apply plugin: 'checkstyle'
