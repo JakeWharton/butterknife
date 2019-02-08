@@ -10,21 +10,21 @@ import java.io.File
 
 open class R2Generator : DefaultTask() {
   @get:OutputDirectory
-  var outputDir: File? = null
+  lateinit var outputDir: File
 
   @get:InputFiles
-  var rFile: FileCollection? = null
+  lateinit var rFile: FileCollection
 
   @get:Input
-  var packageName: String? = null
+  lateinit var packageName: String
 
   @get:Input
-  var className: String? = null
+  lateinit var className: String
 
   @Suppress("unused") // Invoked by Gradle.
   @TaskAction
   fun generate() {
-    generateFile(rFile!!.singleFile, outputDir!!, packageName!!, className!!)
+    generateFile(rFile.singleFile, outputDir, packageName, className)
   }
 }
 
