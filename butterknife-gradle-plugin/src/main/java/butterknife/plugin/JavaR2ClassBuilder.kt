@@ -53,7 +53,4 @@ internal class JavaR2ClassBuilder: R2ClassBuilder {
   private fun getSupportAnnotationClass(type: ResourceType): ClassName {
     return ClassName.get(R2ClassBuilder.ANNOTATION_PACKAGE, type.renderString.capitalize(Locale.US) + "Res")
   }
-
-  // TODO https://youtrack.jetbrains.com/issue/KT-28933
-  private fun String.capitalize(locale: Locale) = substring(0, 1).toUpperCase(locale) + substring(1)
 }

@@ -1,6 +1,10 @@
 package butterknife.plugin
 
 import java.io.File
+import java.util.Locale
+
+// TODO https://youtrack.jetbrains.com/issue/KT-28933
+internal fun String.capitalize(locale: Locale) = substring(0, 1).toUpperCase(locale) + substring(1)
 
 /**
  * High level interface for an "R2" class generator.
