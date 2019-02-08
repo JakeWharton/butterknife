@@ -17,6 +17,7 @@ import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.AdapterView;
 import android.widget.CompoundButton;
 import android.widget.TextView;
@@ -245,6 +246,15 @@ public final class ButterKnife {
 
     int id = bindView.value();
     Class<?> viewClass = field.getType();
+    if (!View.class.isAssignableFrom(viewClass) && !viewClass.isInterface()) {
+      throw new IllegalStateException(
+          "@BindView fields must extend from View or be an interface. ("
+              + field.getDeclaringClass().getName()
+              + '.'
+              + field.getName()
+              + ')');
+    }
+
     String who = "field '" + field.getName() + "'";
     Object view = Utils.findOptionalViewAsType(source, id, who, viewClass);
     trySet(field, target, view);
@@ -271,13 +281,37 @@ public final class ButterKnife {
         // TODO real rawType impl!!!!
         viewClass = (Class<?>) viewType;
       } else {
-        throw new IllegalStateException(); // TODO
+        throw new IllegalStateException("@BindViews List must have a generic component. ("
+            + field.getDeclaringClass().getName()
+            + '.'
+            + field.getName()
+            + ')');
       }
     } else {
-      throw new IllegalStateException(); // TODO
+      throw new IllegalStateException("@BindViews must be a List or array. ("
+          + field.getDeclaringClass().getName()
+          + '.'
+          + field.getName()
+          + ')');
+    }
+    if (!View.class.isAssignableFrom(viewClass) && !viewClass.isInterface()) {
+      throw new IllegalStateException(
+          "@BindViews List or array type must extend from View or be an interface. ("
+              + field.getDeclaringClass().getName()
+              + '.'
+              + field.getName()
+              + ')');
     }
 
     int[] ids = bindViews.value();
+    if (ids.length == 0) {
+      throw new IllegalStateException("@BindViews must specify at least one ID. ("
+          + field.getDeclaringClass().getName()
+          + '.'
+          + field.getName()
+          + ')');
+    }
+
     List<Object> views = new ArrayList<>(ids.length);
     String who = "field '" + field.getName() + "'";
     for (int id : ids) {
@@ -307,14 +341,18 @@ public final class ButterKnife {
     validateMember(field);
 
     int id = bindAnim.value();
-    Resources resources = source.getContext().getResources();
+    Context context = source.getContext();
 
     Object value;
     Class<?> fieldType = field.getType();
     if (fieldType == Animation.class) {
-      value = resources.getAnimation(id);
+      value = AnimationUtils.loadAnimation(context, id);
     } else {
-      throw new IllegalStateException(); // TODO
+      throw new IllegalStateException("@BindAnim field type must be 'Animation'. ("
+          + field.getDeclaringClass().getName()
+          + '.'
+          + field.getName()
+          + ')');
     }
     trySet(field, target, value);
 
@@ -344,10 +382,20 @@ public final class ButterKnife {
       } else if (componentType == CharSequence.class) {
         value = resources.getTextArray(id);
       } else {
-        throw new IllegalStateException(); // TODO
+        throw new IllegalStateException("@BindArray field type must be one of: "
+            + "String[], int[], CharSequence[], android.content.res.TypedArray. ("
+            + field.getDeclaringClass().getName()
+            + '.'
+            + field.getName()
+            + ')');
       }
     } else {
-      throw new IllegalStateException(); // TODO
+      throw new IllegalStateException("@BindArray field type must be one of: "
+          + "String[], int[], CharSequence[], android.content.res.TypedArray. ("
+          + field.getDeclaringClass().getName()
+          + '.'
+          + field.getName()
+          + ')');
     }
     trySet(field, target, value);
 
@@ -369,7 +417,11 @@ public final class ButterKnife {
     if (fieldType == Bitmap.class) {
       value = BitmapFactory.decodeResource(resources, id);
     } else {
-      throw new IllegalStateException(); // TODO
+      throw new IllegalStateException("@BindBitmap field type must be 'Bitmap'. ("
+          + field.getDeclaringClass().getName()
+          + '.'
+          + field.getName()
+          + ')');
     }
     trySet(field, target, value);
 
@@ -391,7 +443,11 @@ public final class ButterKnife {
     if (fieldType == boolean.class) {
       value = resources.getBoolean(id);
     } else {
-      throw new IllegalStateException(); // TODO
+      throw new IllegalStateException("@BindBool field type must be 'boolean'. ("
+          + field.getDeclaringClass().getName()
+          + '.'
+          + field.getName()
+          + ')');
     }
     trySet(field, target, value);
 
@@ -415,7 +471,11 @@ public final class ButterKnife {
     } else if (fieldType == ColorStateList.class) {
       value = ContextCompat.getColorStateList(context, id);
     } else {
-      throw new IllegalStateException(); // TODO
+      throw new IllegalStateException("@BindColor field type must be 'int' or 'ColorStateList'. ("
+          + field.getDeclaringClass().getName()
+          + '.'
+          + field.getName()
+          + ')');
     }
     trySet(field, target, value);
 
@@ -439,7 +499,11 @@ public final class ButterKnife {
     } else if (fieldType == float.class) {
       value = resources.getDimension(id);
     } else {
-      throw new IllegalStateException(); // TODO
+      throw new IllegalStateException("@BindDimen field type must be 'int' or 'float'. ("
+          + field.getDeclaringClass().getName()
+          + '.'
+          + field.getName()
+          + ')');
     }
     trySet(field, target, value);
 
@@ -464,7 +528,11 @@ public final class ButterKnife {
           ? Utils.getTintedDrawable(context, id, tint)
           : ContextCompat.getDrawable(context, id);
     } else {
-      throw new IllegalStateException(); // TODO
+      throw new IllegalStateException("@BindDrawable field type must be 'Drawable'. ("
+          + field.getDeclaringClass().getName()
+          + '.'
+          + field.getName()
+          + ')');
     }
     trySet(field, target, value);
 
@@ -486,7 +554,11 @@ public final class ButterKnife {
     if (fieldType == float.class) {
       value = Utils.getFloat(context, id);
     } else {
-      throw new IllegalStateException(); // TODO
+      throw new IllegalStateException("@BindFloat field type must be 'float'. ("
+          + field.getDeclaringClass().getName()
+          + '.'
+          + field.getName()
+          + ')');
     }
     trySet(field, target, value);
 
@@ -508,11 +580,29 @@ public final class ButterKnife {
     Object value;
     if (fieldType == Typeface.class) {
       Typeface font = ResourcesCompat.getFont(context, id);
-      value = style != Typeface.NORMAL
-          ? Typeface.create(font, style)
-          : font;
+      switch (style) {
+        case Typeface.NORMAL:
+          value = font;
+          break;
+        case Typeface.BOLD:
+        case Typeface.ITALIC:
+        case Typeface.BOLD_ITALIC:
+          value = Typeface.create(font, style);
+          break;
+        default:
+          throw new IllegalStateException(
+              "@BindFont style must be NORMAL, BOLD, ITALIC, or BOLD_ITALIC. ("
+                  + field.getDeclaringClass().getName()
+                  + '.'
+                  + field.getName()
+                  + ')');
+      }
     } else {
-      throw new IllegalStateException(); // TODO
+      throw new IllegalStateException("@BindFont field type must be 'Typeface'. ("
+          + field.getDeclaringClass().getName()
+          + '.'
+          + field.getName()
+          + ')');
     }
     trySet(field, target, value);
 
@@ -534,7 +624,11 @@ public final class ButterKnife {
     if (fieldType == int.class) {
       value = resources.getInteger(id);
     } else {
-      throw new IllegalStateException(); // TODO
+      throw new IllegalStateException("@BindInt field type must be 'int'. ("
+          + field.getDeclaringClass().getName()
+          + '.'
+          + field.getName()
+          + ')');
     }
     trySet(field, target, value);
 
@@ -556,7 +650,11 @@ public final class ButterKnife {
     if (fieldType == String.class) {
       value = context.getString(id);
     } else {
-      throw new IllegalStateException(); // TODO
+      throw new IllegalStateException("@BindString field type must be 'String'. ("
+          + field.getDeclaringClass().getName()
+          + '.'
+          + field.getName()
+          + ')');
     }
     trySet(field, target, value);
 

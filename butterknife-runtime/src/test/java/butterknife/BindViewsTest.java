@@ -13,73 +13,6 @@ import static com.google.testing.compile.JavaSourceSubjectFactory.javaSource;
 import static com.google.testing.compile.JavaSourcesSubjectFactory.javaSources;
 
 public class BindViewsTest {
-  @Test public void fieldVisibility() {
-    JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
-        + "package test;\n"
-        + "import android.view.View;\n"
-        + "import butterknife.BindViews;\n"
-        + "import java.util.List;\n"
-        + "public class Test {\n"
-        + "  @BindViews(1) public List<View> thing1;\n"
-        + "  @BindViews(2) List<View> thing2;\n"
-        + "  @BindViews(3) protected List<View> thing3;\n"
-        + "}"
-    );
-
-    assertAbout(javaSource()).that(source)
-        .withCompilerOptions("-Xlint:-processing")
-        .processedWith(new ButterKnifeProcessor())
-        .compilesWithoutWarnings();
-  }
-
-  @Test public void bindingArray() {
-    JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
-        + "package test;\n"
-        + "import android.view.View;\n"
-        + "import butterknife.BindViews;\n"
-        + "public class Test {\n"
-        + "    @BindViews({1, 2, 3}) View[] thing;\n"
-        + "}"
-    );
-
-    JavaFileObject bindingSource = JavaFileObjects.forSourceString("test/Test_ViewBinding", ""
-        + "package test;\n"
-        + "import android.view.View;\n"
-        + "import androidx.annotation.CallSuper;\n"
-        + "import androidx.annotation.UiThread;\n"
-        + "import butterknife.Unbinder;\n"
-        + "import butterknife.internal.Utils;\n"
-        + "import java.lang.IllegalStateException;\n"
-        + "import java.lang.Override;\n"
-        + "public class Test_ViewBinding implements Unbinder {\n"
-        + "  private Test target;\n"
-        + "  @UiThread\n"
-        + "  public Test_ViewBinding(Test target, View source) {\n"
-        + "    this.target = target;\n"
-        + "    target.thing = Utils.arrayFilteringNull(\n"
-        + "        Utils.findRequiredView(source, 1, \"field 'thing'\"), \n"
-        + "        Utils.findRequiredView(source, 2, \"field 'thing'\"), \n"
-        + "        Utils.findRequiredView(source, 3, \"field 'thing'\"));\n"
-        + "  }\n"
-        + "  @Override\n"
-        + "  @CallSuper\n"
-        + "  public void unbind() {\n"
-        + "    Test target = this.target;\n"
-        + "    if (target == null) throw new IllegalStateException(\"Bindings already cleared.\");\n"
-        + "    this.target = null;\n"
-        + "    target.thing = null;\n"
-        + "  }\n"
-        + "}"
-    );
-
-    assertAbout(javaSource()).that(source)
-        .withCompilerOptions("-Xlint:-processing")
-        .processedWith(new ButterKnifeProcessor())
-        .compilesWithoutWarnings()
-        .and()
-        .generatesSources(bindingSource);
-  }
-
   @Test public void bindingArrayWithGenerics() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
@@ -275,56 +208,6 @@ public class BindViewsTest {
         .and()
         .generatesSources(bindingSource);
   }
-
-  @Test public void bindingList() {
-    JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
-        + "package test;\n"
-        + "import android.view.View;\n"
-        + "import butterknife.BindViews;\n"
-        + "import java.util.List;\n"
-        + "public class Test {\n"
-        + "    @BindViews({1, 2, 3}) List<View> thing;\n"
-        + "}"
-    );
-
-    JavaFileObject bindingSource = JavaFileObjects.forSourceString("test/Test_ViewBinding", ""
-        + "package test;\n"
-        + "import android.view.View;\n"
-        + "import androidx.annotation.CallSuper;\n"
-        + "import androidx.annotation.UiThread;\n"
-        + "import butterknife.Unbinder;\n"
-        + "import butterknife.internal.Utils;\n"
-        + "import java.lang.IllegalStateException;\n"
-        + "import java.lang.Override;\n"
-        + "public class Test_ViewBinding implements Unbinder {\n"
-        + "  private Test target;\n"
-        + "  @UiThread\n"
-        + "  public Test_ViewBinding(Test target, View source) {\n"
-        + "    this.target = target;\n"
-        + "    target.thing = Utils.listFilteringNull(\n"
-        + "        Utils.findRequiredView(source, 1, \"field 'thing'\"), \n"
-        + "        Utils.findRequiredView(source, 2, \"field 'thing'\"), \n"
-        + "        Utils.findRequiredView(source, 3, \"field 'thing'\"));\n"
-        + "  }\n"
-        + "  @Override\n"
-        + "  @CallSuper\n"
-        + "  public void unbind() {\n"
-        + "    Test target = this.target;\n"
-        + "    if (target == null) throw new IllegalStateException(\"Bindings already cleared.\");\n"
-        + "    this.target = null;\n"
-        + "    target.thing = null;\n"
-        + "  }\n"
-        + "}"
-    );
-
-    assertAbout(javaSource()).that(source)
-        .withCompilerOptions("-Xlint:-processing")
-        .processedWith(new ButterKnifeProcessor())
-        .compilesWithoutWarnings()
-        .and()
-        .generatesSources(bindingSource);
-  }
-
 
   @Test public void bindingGeneratedView() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
