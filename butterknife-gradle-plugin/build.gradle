@@ -9,6 +9,7 @@ dependencies {
 
   implementation deps.android.gradlePlugin
   implementation deps.javapoet
+  implementation deps.kotlinpoet
   implementation deps.kotlin.stdLibJdk8
 
   testImplementation deps.junit
