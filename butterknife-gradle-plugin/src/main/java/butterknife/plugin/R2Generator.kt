@@ -28,7 +28,7 @@ open class R2Generator : DefaultTask() {
   }
 }
 
-internal fun generateFile(
+fun generateFile(
   rFile: File,
   outputDir: File,
   packageName: String,
