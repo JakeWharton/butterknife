@@ -7,13 +7,13 @@ import java.io.File
  */
 internal interface R2ClassBuilder {
   /**
-   * Adds a new resource field to render.
+   * Adds a new resource constant to render.
    *
    * @param type the [ResourceType].
    * @param fieldName the resource field name.
    * @param fieldValue the constant resource field value.
    */
-  fun addResourceField(type: ResourceType, fieldName: String, fieldValue: String)
+  fun addResourceConstant(type: ResourceType, fieldName: String, fieldValue: String)
 
   /**
    * Writes the created class to the given output directory. Package structure will be created as

@@ -36,7 +36,7 @@ internal class JavaR2ClassBuilder: R2ClassBuilder {
         .writeTo(outputDir)
   }
 
-  override fun addResourceField(type: ResourceType, fieldName: String, fieldValue: String) {
+  override fun addResourceConstant(type: ResourceType, fieldName: String, fieldValue: String) {
     val fieldSpecBuilder = FieldSpec.builder(Int::class.javaPrimitiveType, fieldName)
         .addModifiers(PUBLIC, STATIC, FINAL)
         .initializer(fieldValue)

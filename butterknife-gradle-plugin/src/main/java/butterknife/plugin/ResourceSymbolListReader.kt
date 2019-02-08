@@ -22,6 +22,6 @@ internal class ResourceSymbolListReader(private val builder: R2ClassBuilder) {
     val resourceType = RENDER_MAPPING[symbolType] ?: return
     val name = values[2]
     val value = values[3]
-    builder.addResourceField(resourceType, name, value)
+    builder.addResourceConstant(resourceType, name, value)
   }
 }
