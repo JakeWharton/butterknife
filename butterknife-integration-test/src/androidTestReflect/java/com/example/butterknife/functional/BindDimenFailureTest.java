@@ -5,12 +5,11 @@ import butterknife.BindDimen;
 import butterknife.ButterKnife;
 import org.junit.Test;
 
-import static com.example.butterknife.functional.ViewTestUtils.treeWithIds;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.fail;
 
 public final class BindDimenFailureTest {
-  private final View tree = treeWithIds(1);
+  private final View tree = ViewTree.create(1);
 
   static class Target {
     @BindDimen(1) String actual;

@@ -13,13 +13,12 @@ import com.example.butterknife.test.R;
 import org.junit.Test;
 
 import static android.graphics.Typeface.BOLD;
-import static com.example.butterknife.functional.ViewTestUtils.treeWithIds;
 import static com.google.common.truth.Truth.assertThat;
 
 @SdkSuppress(minSdkVersion = 24) // AndroidX problems on earlier versions
 public final class BindFontTest {
   private final Context context = InstrumentationRegistry.getContext();
-  private final View tree = treeWithIds(1);
+  private final View tree = ViewTree.create(1);
 
   static class TargetTypeface {
     @BindFont(R.font.inconsolata_regular) Typeface actual;

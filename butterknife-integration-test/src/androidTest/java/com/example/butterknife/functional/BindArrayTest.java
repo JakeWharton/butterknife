@@ -9,12 +9,11 @@ import butterknife.Unbinder;
 import com.example.butterknife.test.R;
 import org.junit.Test;
 
-import static com.example.butterknife.functional.ViewTestUtils.treeWithIds;
 import static com.google.common.truth.Truth.assertThat;
 
 public final class BindArrayTest {
   private final Context context = InstrumentationRegistry.getContext();
-  private final View tree = treeWithIds(1);
+  private final View tree = ViewTree.create(1);
 
   static class StringArrayTarget {
     @BindArray(R.array.string_one_two_three) String[] actual;
