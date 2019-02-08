@@ -88,6 +88,14 @@ class ExampleActivity extends Activity {
 }
 ```
 
+By default it will generate a Java R2 class. If you want kotlin, you can configure it via the plugin
+extension:
+
+```groovy
+butterKnife {
+  generateKotlin = true
+}
+```
 
 
 License

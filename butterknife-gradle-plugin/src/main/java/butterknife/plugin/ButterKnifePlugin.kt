@@ -19,22 +19,25 @@ import kotlin.reflect.KClass
 
 class ButterKnifePlugin : Plugin<Project> {
   override fun apply(project: Project) {
+    val extension by lazy {
+      project.extensions.create("butterKnife", ButterKnifeExtension::class.java)
+    }
     project.plugins.all {
       when (it) {
         is FeaturePlugin -> {
           project.extensions[FeatureExtension::class].run {
-            configureR2Generation(project, featureVariants)
-            configureR2Generation(project, libraryVariants)
+            configureR2Generation(project, extension, featureVariants)
+            configureR2Generation(project, extension, libraryVariants)
           }
         }
         is LibraryPlugin -> {
           project.extensions[LibraryExtension::class].run {
-            configureR2Generation(project, libraryVariants)
+            configureR2Generation(project, extension, libraryVariants)
           }
         }
         is AppPlugin -> {
           project.extensions[AppExtension::class].run {
-            configureR2Generation(project, applicationVariants)
+            configureR2Generation(project, extension, applicationVariants)
           }
         }
       }
@@ -43,7 +46,7 @@ class ButterKnifePlugin : Plugin<Project> {
 
   // Parse the variant's main manifest file in order to get the package id which is used to create
   // R.java in the right place.
-  private fun getPackageName(variant : BaseVariant) : String {
+  private fun getPackageName(variant: BaseVariant): String {
     val slurper = XmlSlurper(false, false)
     val list = variant.sourceSets.map { it.manifestFile }
 
@@ -53,8 +56,10 @@ class ButterKnifePlugin : Plugin<Project> {
     return result.getProperty("@package").toString()
   }
 
-  private fun configureR2Generation(project: Project, variants: DomainObjectSet<out BaseVariant>) {
-    variants.all { variant ->
+  private fun configureR2Generation(project: Project,
+      extension: ButterKnifeExtension,
+      variants: DomainObjectSet<out BaseVariant>) {
+    variants.whenObjectAdded { variant ->
       val outputDir = project.buildDir.resolve(
           "generated/source/r2/${variant.dirName}")
 
@@ -81,6 +86,7 @@ class ButterKnifePlugin : Plugin<Project> {
             it.rFile = rFile
             it.packageName = rPackage
             it.className = "R2"
+            it.generateKotlin = extension.generateKotlin
             variant.registerJavaGeneratingTask(it, outputDir)
           }
         }
