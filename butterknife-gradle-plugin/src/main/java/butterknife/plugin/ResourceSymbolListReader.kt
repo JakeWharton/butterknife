@@ -1,8 +1,9 @@
 package butterknife.plugin
 
+import butterknife.plugin.R2ClassBuilder.Companion.ResourceType.Companion.RENDER_MAPPING
 import java.io.File
 
-class ResourceSymbolListReader(private val builder: FinalRClassBuilder) {
+internal class ResourceSymbolListReader(private val builder: R2ClassBuilder) {
 
   fun readSymbolTable(symbolTable: File) {
     symbolTable.forEachLine { processLine(it) }
@@ -18,11 +19,9 @@ class ResourceSymbolListReader(private val builder: FinalRClassBuilder) {
       return
     }
     val symbolType = values[1]
-    if (symbolType !in SUPPORTED_TYPES) {
-      return
-    }
+    val resourceType = RENDER_MAPPING[symbolType] ?: return
     val name = values[2]
     val value = values[3]
-    builder.addResourceField(symbolType, name, value)
+    builder.addResourceField(resourceType, name, value)
   }
 }

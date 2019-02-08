@@ -23,19 +23,18 @@ open class R2Generator : DefaultTask() {
 
   @Suppress("unused") // Invoked by Gradle.
   @TaskAction
-  fun brewJava() {
-    brewJava(rFile!!.singleFile, outputDir!!, packageName!!, className!!)
+  fun generate() {
+    generateFile(rFile!!.singleFile, outputDir!!, packageName!!, className!!)
   }
 }
 
-fun brewJava(
+internal fun generateFile(
   rFile: File,
   outputDir: File,
   packageName: String,
   className: String
 ) {
-  FinalRClassBuilder(packageName, className)
+  JavaR2ClassBuilder()
       .also { ResourceSymbolListReader(it).readSymbolTable(rFile) }
-      .build()
-      .writeTo(outputDir)
+      .write(packageName, className, outputDir)
 }

@@ -8,17 +8,17 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
 
-class FinalRClassBuilderTest {
+class JavaRClassBuilderTest {
   @Rule @JvmField val tempFolder = TemporaryFolder()
 
-  @Test fun brewJava() {
+  @Test fun generateFile() {
     val packageName = "com.butterknife.example"
     val rFile = tempFolder.newFile("R.txt").also {
       it.writeText(javaClass.getResource("/fixtures/R.txt").readText())
     }
 
     val outputDir = tempFolder.newFolder()
-    brewJava(rFile, outputDir, packageName, "R2")
+    generateFile(rFile, outputDir, packageName, "R2")
 
     val actual = outputDir.resolve("com/butterknife/example/R2.java").readText()
     val expected = javaClass.getResource("/fixtures/R2.java").readText()
