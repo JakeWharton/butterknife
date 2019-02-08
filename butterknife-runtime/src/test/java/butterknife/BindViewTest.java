@@ -13,52 +13,6 @@ import static com.google.testing.compile.JavaSourcesSubjectFactory.javaSources;
 import static java.util.Arrays.asList;
 
 public class BindViewTest {
-  @Test public void bindingView() {
-    JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
-        + "package test;\n"
-        + "import android.view.View;\n"
-        + "import butterknife.BindView;\n"
-        + "public class Test {\n"
-        + "    @BindView(1) View thing;\n"
-        + "}"
-    );
-
-    JavaFileObject bindingSource = JavaFileObjects.forSourceString("test/Test_ViewBinding", ""
-        + "package test;\n"
-        + "import android.view.View;\n"
-        + "import androidx.annotation.CallSuper;\n"
-        + "import androidx.annotation.UiThread;\n"
-        + "import butterknife.Unbinder;\n"
-        + "import butterknife.internal.Utils;\n"
-        + "import java.lang.IllegalStateException;\n"
-        + "import java.lang.Override;\n"
-        + "public class Test_ViewBinding implements Unbinder {\n"
-        + "  private Test target;\n"
-        + "  @UiThread\n"
-        + "  public Test_ViewBinding(Test target, View source) {\n"
-        + "    this.target = target;\n"
-        + "    target.thing = Utils.findRequiredView(source, 1, \"field 'thing'\");\n"
-        + "  }\n"
-        + "  @Override\n"
-        + "  @CallSuper\n"
-        + "  public void unbind() {\n"
-        + "    Test target = this.target;\n"
-        + "    if (target == null) throw new IllegalStateException(\"Bindings already cleared.\");\n"
-        + "    this.target = null;\n"
-        + "    target.thing = null;\n"
-        + "  }\n"
-        + "}"
-    );
-
-    assertAbout(javaSource())
-        .that(source)
-        .withCompilerOptions("-Xlint:-processing")
-        .processedWith(new ButterKnifeProcessor())
-        .compilesWithoutWarnings()
-        .and()
-        .generatesSources(bindingSource);
-  }
-
   @Test public void bindingViewNonDebuggable() {
     JavaFileObject source = JavaFileObjects.forSourceString("test.Test", ""
         + "package test;\n"
@@ -303,53 +257,6 @@ public class BindViewTest {
         .compilesWithoutWarnings()
         .and()
         .generatesSources(bindingBaseSource, bindingTestSource);
-  }
-
-  @Test public void bindingViewInnerClass() {
-    JavaFileObject source = JavaFileObjects.forSourceString("test.Outer", ""
-        + "package test;\n"
-        + "import android.view.View;\n"
-        + "import butterknife.BindView;\n"
-        + "public class Outer {\n"
-        + "  public static class Test {\n"
-        + "    @BindView(1) View thing;\n"
-        + "  }\n"
-        + "}"
-    );
-
-    JavaFileObject bindingSource = JavaFileObjects.forSourceString("test/Outer$Test_ViewBinding", ""
-        + "package test;\n"
-        + "import android.view.View;\n"
-        + "import androidx.annotation.CallSuper;\n"
-        + "import androidx.annotation.UiThread;\n"
-        + "import butterknife.Unbinder;\n"
-        + "import butterknife.internal.Utils;\n"
-        + "import java.lang.IllegalStateException;\n"
-        + "import java.lang.Override;\n"
-        + "public class Outer$Test_ViewBinding implements Unbinder {\n"
-        + "  private Outer.Test target;\n"
-        + "  @UiThread\n"
-        + "  public Outer$Test_ViewBinding(Outer.Test target, View source) {\n"
-        + "    this.target = target;\n"
-        + "    target.thing = Utils.findRequiredView(source, 1, \"field 'thing'\");\n"
-        + "  }\n"
-        + "  @Override\n"
-        + "  @CallSuper\n"
-        + "  public void unbind() {\n"
-        + "    Outer.Test target = this.target;\n"
-        + "    if (target == null) throw new IllegalStateException(\"Bindings already cleared.\");\n"
-        + "    this.target = null;\n"
-        + "    target.thing = null;\n"
-        + "  }\n"
-        + "}"
-    );
-
-    assertAbout(javaSource()).that(source)
-        .withCompilerOptions("-Xlint:-processing")
-        .processedWith(new ButterKnifeProcessor())
-        .compilesWithoutWarnings()
-        .and()
-        .generatesSources(bindingSource);
   }
 
   @Test public void bindingViewUppercasePackageName() {

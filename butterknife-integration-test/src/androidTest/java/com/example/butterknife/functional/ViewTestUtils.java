@@ -3,6 +3,7 @@ package com.example.butterknife.functional;
 import android.content.Context;
 import android.view.View;
 import android.widget.FrameLayout;
+import android.widget.TextView;
 import androidx.test.InstrumentationRegistry;
 
 final class ViewTestUtils {
@@ -10,7 +11,7 @@ final class ViewTestUtils {
     Context context = InstrumentationRegistry.getContext();
     FrameLayout group = new FrameLayout(context);
 
-    class SuperGrossView extends View {
+    class SuperGrossView extends TextView {
       SuperGrossView(Context context) {
         super(context);
       }
