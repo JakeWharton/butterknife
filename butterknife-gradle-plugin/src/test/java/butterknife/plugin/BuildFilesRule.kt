@@ -5,8 +5,15 @@ import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
 import java.io.File
+import kotlin.annotation.AnnotationRetention.RUNTIME
+import kotlin.annotation.AnnotationTarget.FUNCTION
 
 class BuildFilesRule(private val root: File) : TestRule {
+
+    @Target(FUNCTION)
+    @Retention(RUNTIME)
+    annotation class KotlinTest
+
     override fun apply(base: Statement, description: Description): Statement {
         return object : Statement() {
             override fun evaluate() {
@@ -20,6 +27,14 @@ class BuildFilesRule(private val root: File) : TestRule {
                 } else {
                     val buildFileTemplate = File(root, "../../build.gradle").readText()
                     buildFile.writeText(buildFileTemplate)
+                    if (description.getAnnotation(KotlinTest::class.java) != null) {
+                        buildFile.appendText("""
+
+                          butterKnife {
+                            generateKotlin = true
+                          }
+                        """.trimIndent())
+                    }
                 }
 
                 val manifestFile = File(root, "src/main/AndroidManifest.xml")
