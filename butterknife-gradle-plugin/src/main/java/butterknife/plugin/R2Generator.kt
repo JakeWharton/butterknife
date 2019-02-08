@@ -21,10 +21,13 @@ open class R2Generator : DefaultTask() {
   @get:Input
   lateinit var className: String
 
+  @get:Input
+  var generateKotlin: Boolean = false
+
   @Suppress("unused") // Invoked by Gradle.
   @TaskAction
   fun generate() {
-    generateFile(rFile.singleFile, outputDir, packageName, className)
+    generateFile(rFile.singleFile, outputDir, packageName, className, generateKotlin)
   }
 }
 
@@ -32,9 +35,11 @@ fun generateFile(
   rFile: File,
   outputDir: File,
   packageName: String,
-  className: String
+  className: String,
+  generateKotlin: Boolean
 ) {
-  JavaR2ClassBuilder()
+  val classBuilder = if (generateKotlin) KotlinR2ClassBuilder() else JavaR2ClassBuilder()
+  classBuilder
       .also { ResourceSymbolListReader(it).readSymbolTable(rFile) }
       .write(packageName, className, outputDir)
 }

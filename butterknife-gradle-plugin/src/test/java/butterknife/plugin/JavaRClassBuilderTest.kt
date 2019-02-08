@@ -18,7 +18,7 @@ class JavaRClassBuilderTest {
     }
 
     val outputDir = tempFolder.newFolder()
-    generateFile(rFile, outputDir, packageName, "R2")
+    generateFile(rFile, outputDir, packageName, "R2", false)
 
     val actual = outputDir.resolve("com/butterknife/example/R2.java").readText()
     val expected = javaClass.getResource("/fixtures/R2.java").readText()
