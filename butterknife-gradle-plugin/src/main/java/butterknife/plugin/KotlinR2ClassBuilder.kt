@@ -32,6 +32,7 @@ internal class KotlinR2ClassBuilder: R2ClassBuilder {
     }
     FileSpec.builder(packageName, className)
         .addComment("Generated code from Butter Knife gradle plugin. Do not modify!")
+        .indent("  ")
         .addType(result.build())
         .build()
         .writeTo(outputDir)
