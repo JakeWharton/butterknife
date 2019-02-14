@@ -1,6 +1,18 @@
 Change Log
 ==========
 
+Version 10.1.0 *(2019-02-13)*
+-----------------------------
+
+ * New: Listeners which require return values (e.g., long click) can now be bound to methods returning `void`.
+   The default value of `true` will be returned in this case.
+ * New: Add support for `@OnTextChanged` and `@OnPageChange` to reflection backend.
+ * Remove enforcement of required views in the reflection backend. Most `@Nullable` annotations do not have
+   runtime retention so they can't be checked at runtime with reflection. Instead of forcing everyone to find
+   a new annotation, this enforcement is now dropped. While this might lead to nulls in otherwise required
+   view bindings, they'll either be unused or quickly cause a `NullPointerException`.
+
+
 Version 10.0.0 *(2019-01-03)*
 -----------------------------
 
