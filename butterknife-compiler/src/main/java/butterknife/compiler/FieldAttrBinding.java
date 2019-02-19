@@ -16,7 +16,8 @@ final class FieldAttrBinding implements ResourceBinding {
     COLOR_STATE_LIST {
       @Override
       CodeBlock render(String name, Id id) {
-        return CodeBlock.of("target.$L = $T.getThemeColorStateList(context, $L)", name, UTILS, id.code);
+        return CodeBlock.of("target.$L = $T.getThemeColorStateList(context, $L)", name, UTILS,
+           id.code);
       }
     };
 
