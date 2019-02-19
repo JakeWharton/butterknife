@@ -1,30 +1,7 @@
 package butterknife.compiler;
 
-import butterknife.BindAnim;
-import butterknife.BindArray;
-import butterknife.BindBitmap;
-import butterknife.BindBool;
-import butterknife.BindColor;
-import butterknife.BindDimen;
-import butterknife.BindDrawable;
-import butterknife.BindFloat;
-import butterknife.BindFont;
-import butterknife.BindInt;
-import butterknife.BindString;
-import butterknife.BindView;
-import butterknife.BindViews;
-import butterknife.OnCheckedChanged;
-import butterknife.OnClick;
-import butterknife.OnEditorAction;
-import butterknife.OnFocusChange;
-import butterknife.OnItemClick;
-import butterknife.OnItemLongClick;
-import butterknife.OnItemSelected;
-import butterknife.OnLongClick;
-import butterknife.OnPageChange;
-import butterknife.OnTextChanged;
-import butterknife.OnTouch;
-import butterknife.Optional;
+import androidx.annotation.ColorInt;
+import butterknife.*;
 import butterknife.compiler.FieldTypefaceBinding.TypefaceStyles;
 import butterknife.internal.ListenerClass;
 import butterknife.internal.ListenerMethod;
@@ -167,6 +144,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
     annotations.add(BindAnim.class);
     annotations.add(BindArray.class);
+    annotations.add(BindAttr.class);
     annotations.add(BindBitmap.class);
     annotations.add(BindBool.class);
     annotations.add(BindColor.class);
@@ -224,6 +202,17 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
         logParsingError(element, BindArray.class, e);
       }
     }
+
+    // Process each @BindAttr element.
+    for (Element element : env.getElementsAnnotatedWith(BindAttr.class)) {
+      if (!SuperficialValidation.validateElement(element)) continue;
+      try {
+          parseBindAttribute(element, builderMap, erasedTargetNames);
+      } catch (Exception e) {
+        logParsingError(element, BindAttr.class, e);
+      }
+    }
+
 
     // Process each @BindBitmap element.
     for (Element element : env.getElementsAnnotatedWith(BindBitmap.class)) {
@@ -428,6 +417,43 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     }
 
     return false;
+  }
+
+  private void parseBindAttribute(Element element,
+                                  Map<TypeElement, BindingSet.Builder> builderMap, Set<TypeElement> erasedTargetNames) {
+    boolean hasError = false;
+    TypeElement enclosingElement = (TypeElement) element.getEnclosingElement();
+
+    // Verify that the target type is supported.
+    FieldAttrBinding.Type type = null;
+    TypeMirror elementType = element.asType();
+    if (COLOR_STATE_LIST_TYPE.equals(elementType.toString())) {
+      type = FieldAttrBinding.Type.COLOR_STATE_LIST;
+    } else if (elementType.getKind() == TypeKind.INT && elementType.getAnnotation(ColorInt.class) != null) {
+      type = FieldAttrBinding.Type.COLOR_STATE_LIST;
+    } else {
+      error(element, "@%s doesn't support this type. for more info see the docs of the annotation. (%s.%s)",
+          BindAttr.class.getSimpleName(), enclosingElement.getQualifiedName(),
+          element.getSimpleName());
+      hasError = true;
+    }
+
+    // Verify common generated code restrictions.
+    hasError |= isInaccessibleViaGeneratedCode(BindAttr.class, "fields", element);
+    hasError |= isBindingInWrongPackage(BindAttr.class, element);
+
+    if (hasError) {
+      return;
+    }
+
+    // Assemble information on the field.
+    String name = element.getSimpleName().toString();
+    int id = element.getAnnotation(BindAttr.class).value();
+    Id resourceId = elementToId(element, BindAttr.class, id);
+    BindingSet.Builder builder = getOrCreateBindingBuilder(builderMap, enclosingElement);
+
+    builder.addResource(new FieldAttrBinding(resourceId, name, type));
+    erasedTargetNames.add(enclosingElement);
   }
 
   private void parseBindView(Element element, Map<TypeElement, BindingSet.Builder> builderMap,
