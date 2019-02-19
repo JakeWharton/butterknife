@@ -430,7 +430,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     if (COLOR_STATE_LIST_TYPE.equals(elementType.toString())) {
       type = FieldAttrBinding.Type.COLOR_STATE_LIST;
     } else if (elementType.getKind() == TypeKind.INT && elementType.getAnnotation(ColorInt.class) != null) {
-      type = FieldAttrBinding.Type.COLOR_STATE_LIST;
+      type = FieldAttrBinding.Type.COLOR_INT;
     } else {
       error(element, "@%s doesn't support this type. for more info see the docs of the annotation. (%s.%s)",
           BindAttr.class.getSimpleName(), enclosingElement.getQualifiedName(),
