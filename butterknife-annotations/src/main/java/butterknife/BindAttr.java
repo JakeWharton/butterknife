@@ -10,8 +10,9 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
  * Bind a field to the specified attribute ID.
- * Now it supports only colors presented as {@code int} (annotated with {@link androidx.annotation.ColorInt})
- * and {@link android.content.res.ColorStateList}:
+ * <p>
+ * It supports only colors presented as {@code int} (annotated with
+ * {@link androidx.annotation.ColorInt}) and {@link android.content.res.ColorStateList}.
  * <pre><code>
  * {@literal @}BindColor(R.attr.colorAccent)
  * {@literal @}ColorInt
