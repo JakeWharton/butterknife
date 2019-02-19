@@ -429,7 +429,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     TypeMirror elementType = element.asType();
     if (COLOR_STATE_LIST_TYPE.equals(elementType.toString())) {
       type = FieldAttrBinding.Type.COLOR_STATE_LIST;
-    } else if (elementType.getKind() == TypeKind.INT && elementType.getAnnotation(ColorInt.class) != null) {
+    } else if (elementType.getKind() == TypeKind.INT && element.getAnnotation(ColorInt.class) != null) {
       type = FieldAttrBinding.Type.COLOR_INT;
     } else {
       error(element, "@%s doesn't support this type. for more info see the docs of the annotation. (%s.%s)",
