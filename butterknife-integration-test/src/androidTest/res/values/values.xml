@@ -15,4 +15,12 @@
     <item>2</item>
     <item>3</item>
   </integer-array>
+  <attr name="colorAccent" format="reference|color"/>
+  <attr name="textColorStateList" format="reference"/>
+
+  <style name="Theme.App" parent="android:Theme.DeviceDefault">
+    <item name="colorAccent">#f00</item>
+    <item name="textColorStateList">@color/colors</item>
+  </style>
+
 </resources>
