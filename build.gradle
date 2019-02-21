@@ -5,7 +5,7 @@ buildscript {
       'minSdk': 14,
       'compileSdk': 28,
 
-      'androidTools': '26.3.0',
+      'androidTools': '26.3.1',
       'kotlin': '1.2.71',
 
       'release': '8.8.1',
