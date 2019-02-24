@@ -5,7 +5,7 @@ buildscript {
       'minSdk': 14,
       'compileSdk': 28,
 
-      'androidTools': '26.2.0',
+      'androidTools': '26.3.1',
       'kotlin': '1.2.71',
 
       'release': '8.8.1',
@@ -14,7 +14,7 @@ buildscript {
   ext.deps = [
       android: [
           'runtime': 'com.google.android:android:4.1.1.4',
-          'gradlePlugin': "com.android.tools.build:gradle:3.1.4",
+          'gradlePlugin': "com.android.tools.build:gradle:3.3.1",
       ],
       'androidx': [
           'core': "androidx.core:core:1.0.0",

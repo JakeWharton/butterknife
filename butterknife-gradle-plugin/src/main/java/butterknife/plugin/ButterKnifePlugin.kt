@@ -9,6 +9,7 @@ import com.android.build.gradle.LibraryPlugin
 import com.android.build.gradle.api.BaseVariant
 import com.android.build.gradle.internal.res.GenerateLibraryRFileTask
 import com.android.build.gradle.internal.res.LinkApplicationAndroidResourcesTask
+import com.android.builder.model.Version
 import groovy.util.XmlSlurper
 import org.gradle.api.DomainObjectSet
 import org.gradle.api.Plugin
@@ -61,7 +62,12 @@ class ButterKnifePlugin : Plugin<Project> {
       val rPackage = getPackageName(variant)
       val once = AtomicBoolean()
       variant.outputs.all { output ->
-        val processResources = output.processResources
+        val processResources = if (isLazyTaskProviderCompatible()) {
+          output.processResourcesProvider.get()
+        } else {
+          @Suppress("DEPRECATION") // keep it around for AGP 3.1 and 3.2 support
+          output.processResources
+        }
 
         // Though there might be multiple outputs, their R files are all the same. Thus, we only
         // need to configure the task once with the R.java input and action.
@@ -88,7 +94,27 @@ class ButterKnifePlugin : Plugin<Project> {
     }
   }
 
+  private fun isLazyTaskProviderCompatible(): Boolean {
+    val match = AGP_VERSION_PATTERN.matchEntire(Version.ANDROID_GRADLE_PLUGIN_VERSION) ?: return false
+    val major = match.groups[1]!!.value.toInt()
+    val minor = match.groups[2]!!.value.toInt()
+    // introduced in 3.3.0 (actually one of their alpha/betas, but we can reasonably expect people to update to stable)
+    return (3 == major && 3 <= minor) || 3 < major
+  }
+
   private operator fun <T : Any> ExtensionContainer.get(type: KClass<T>): T {
     return getByType(type.java)
+  }
+
+  companion object {
+    /**
+     * @sample 3.1.4
+     * @sample 3.2.1
+     * @sample 3.3.0-rc03
+     * @sample 3.3.1
+     * @sample 3.4.0-beta05
+     * @sample 3.5.0-alpha05
+     */
+    private val AGP_VERSION_PATTERN = Regex("""(\d+)\.(\d+)\.(\d+)(?:-(.*))?""")
   }
 }
