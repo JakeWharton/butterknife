@@ -1,17 +1,20 @@
 package butterknife.internal;
 
 import android.content.Context;
+import android.content.res.ColorStateList;
 import android.content.res.Resources;
 import android.graphics.drawable.Drawable;
 import android.util.TypedValue;
 import android.view.View;
 import androidx.annotation.AttrRes;
+import androidx.annotation.ColorInt;
 import androidx.annotation.DimenRes;
 import androidx.annotation.DrawableRes;
 import androidx.annotation.IdRes;
 import androidx.annotation.UiThread;
 import androidx.core.content.ContextCompat;
 import androidx.core.graphics.drawable.DrawableCompat;
+
 import java.lang.reflect.Array;
 import java.util.List;
 
@@ -131,6 +134,19 @@ public final class Utils {
           + to
           + "'. See cause for more info.", e);
     }
+  }
+
+  @ColorInt
+  @UiThread
+  public static int getThemeColor(Context context, @AttrRes int colorAttr) {
+    context.getTheme().resolveAttribute(colorAttr, VALUE, true);
+    return VALUE.data;
+  }
+
+  @UiThread
+  public static ColorStateList getThemeColorStateList(Context context, @AttrRes int colorAttr) {
+    context.getTheme().resolveAttribute(colorAttr, VALUE, true);
+    return ContextCompat.getColorStateList(context, VALUE.resourceId);
   }
 
   private static String getResourceEntryName(View view, @IdRes int id) {
