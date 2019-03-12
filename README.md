@@ -42,6 +42,15 @@ Download
 --------
 
 ```groovy
+android {
+  ...
+  // Butterknife requires Java 8.
+  compileOptions {
+    sourceCompatibility JavaVersion.VERSION_1_8
+    targetCompatibility JavaVersion.VERSION_1_8
+  }
+}
+
 dependencies {
   implementation 'com.jakewharton:butterknife:10.1.0'
   annotationProcessor 'com.jakewharton:butterknife-compiler:10.1.0'
