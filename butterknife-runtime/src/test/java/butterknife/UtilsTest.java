@@ -17,9 +17,10 @@ public final class UtilsTest {
     assertThat(listFilteringNull("One", "Two", null)).containsExactly("One", "Two");
     assertThat(listFilteringNull("One", null, "Two")).containsExactly("One", "Two");
     assertThat(listFilteringNull(null, "One", "Two")).containsExactly("One", "Two");
+    assertThat(listFilteringNull("One", "Two", "Three")).containsExactly("One", "Two", "Three");
   }
 
-  @Test public void arrayOfFiltersNull() {
+  @Test public void arrayFilteringNullRemovesNulls() {
     assertThat(arrayFilteringNull(null, null, null)).isEmpty();
     assertThat(arrayFilteringNull("One", null, null)).asList().containsExactly("One");
     assertThat(arrayFilteringNull(null, "One", null)).asList().containsExactly("One");
@@ -27,6 +28,14 @@ public final class UtilsTest {
     assertThat(arrayFilteringNull("One", "Two", null)).asList().containsExactly("One", "Two");
     assertThat(arrayFilteringNull("One", null, "Two")).asList().containsExactly("One", "Two");
     assertThat(arrayFilteringNull(null, "One", "Two")).asList().containsExactly("One", "Two");
+  }
+
+  @Test public void arrayFilteringNullReturnsOriginalWhenNoNulls() {
+    String[] input = { "One", "Two", "Three" };
+    String[] actual = arrayFilteringNull(input);
+    assertThat(actual).isSameAs(input);
+    // Even though we got the same reference back check to ensure its contents weren't mutated.
+    assertThat(actual).asList().containsExactly("One", "Two", "Three");
   }
 
   @Test public void testCastParam() {

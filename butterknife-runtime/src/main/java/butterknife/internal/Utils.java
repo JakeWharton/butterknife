@@ -12,7 +12,7 @@ import androidx.annotation.IdRes;
 import androidx.annotation.UiThread;
 import androidx.core.content.ContextCompat;
 import androidx.core.graphics.drawable.DrawableCompat;
-import java.lang.reflect.Array;
+import java.util.Arrays;
 import java.util.List;
 
 @SuppressWarnings("WeakerAccess") // Used by generated code.
@@ -59,13 +59,9 @@ public final class Utils {
         views[end++] = view;
       }
     }
-    if (end == length) {
-      return views;
-    }
-    //noinspection unchecked
-    T[] newViews = (T[]) Array.newInstance(views.getClass().getComponentType(), end);
-    System.arraycopy(views, 0, newViews, 0, end);
-    return newViews;
+    return end == length
+        ? views
+        : Arrays.copyOfRange(views, 0, end);
   }
 
   @SafeVarargs
