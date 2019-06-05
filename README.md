@@ -87,6 +87,10 @@ apply plugin: 'com.android.library'
 apply plugin: 'com.jakewharton.butterknife'
 ```
 
+since you are creating a library you should remove
+``` apply plugin: 'com.android.application'```and ```applicationId```  
+according to the stackoverflow question: [Android Gradle plugin X.x.x must not be applied to project Error](https://stackoverflow.com/questions/48245522/android-gradle-plugin-3-0-1-must-not-be-applied-to-project)
+
 Now make sure you use `R2` instead of `R` inside all Butter Knife annotations.
 
 ```java
