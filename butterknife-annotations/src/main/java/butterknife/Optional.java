@@ -4,7 +4,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
 import static java.lang.annotation.ElementType.METHOD;
-import static java.lang.annotation.RetentionPolicy.CLASS;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
  * Denote that the view specified by the injection is not required to be present.
@@ -12,6 +12,7 @@ import static java.lang.annotation.RetentionPolicy.CLASS;
  * {@literal @}Optional @OnClick(R.id.subtitle) void onSubtitleClick() {}
  * </code></pre>
  */
-@Retention(CLASS) @Target(METHOD)
+@Target(METHOD)
+@Retention(RUNTIME)
 public @interface Optional {
 }

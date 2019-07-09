@@ -4,8 +4,8 @@ android {
   compileSdkVersion versions.compileSdk
 
   compileOptions {
-    sourceCompatibility = JavaVersion.VERSION_1_7
-    targetCompatibility = JavaVersion.VERSION_1_7
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
   }
 
   defaultConfig {
@@ -14,6 +14,8 @@ android {
     targetSdkVersion versions.compileSdk
     versionCode 1
     versionName '1.0.0'
+
+    testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
   }
 
   lintOptions {
@@ -21,6 +23,7 @@ android {
     textOutput "stdout"
     checkAllWarnings true
     warningsAsErrors true
+    disable 'UnknownNullness'
     showAll true
     explainIssues true
     // We run a full lint analysis as build part in CI, so skip vital checks for assemble tasks.
@@ -28,9 +31,21 @@ android {
   }
 
   buildTypes {
-    release {
+    debug {
       minifyEnabled true
-      proguardFile getDefaultProguardFile('proguard-android.txt')
+      proguardFiles getDefaultProguardFile('proguard-android.txt'), 'src/main/proguard.pro'
+      testProguardFile 'src/androidTest/proguard.pro'
+    }
+  }
+
+  productFlavors {
+    flavorDimensions 'runtime'
+
+    reflect {
+      dimension 'runtime'
+    }
+    codegen {
+      dimension 'runtime'
     }
   }
 
@@ -42,10 +57,14 @@ android {
 }
 
 dependencies {
-  implementation project(':butterknife')
-  annotationProcessor project(':butterknife-compiler')
+  reflectImplementation project(':butterknife-reflect')
 
-  testImplementation deps.junit
-  testImplementation deps.truth
-  testImplementation deps.robolectric
+  codegenImplementation project(':butterknife')
+  codegenAnnotationProcessor project(':butterknife-compiler')
+  androidTestCodegenAnnotationProcessor project(':butterknife-compiler')
+
+  androidTestImplementation deps.junit
+  androidTestImplementation deps.truth
+  androidTestImplementation deps.androidx.test.runner
+  androidTestImplementation deps.androidx.test.rules
 }

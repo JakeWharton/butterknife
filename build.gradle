@@ -3,12 +3,10 @@ apply plugin: 'com.github.ben-manes.versions'
 buildscript {
   ext.versions = [
       'minSdk': 14,
-      'compileSdk': 26,
+      'compileSdk': 28,
 
-      'supportLibrary': '27.0.0',
-      'androidPlugin': '3.0.0',
-      'androidTools': '26.0.0',
-      'kotlin': '1.1.51',
+      'androidTools': '26.2.0',
+      'kotlin': '1.2.71',
 
       'release': '8.8.1',
   ]
@@ -16,13 +14,15 @@ buildscript {
   ext.deps = [
       android: [
           'runtime': 'com.google.android:android:4.1.1.4',
-          'gradlePlugin': "com.android.tools.build:gradle:${versions.androidPlugin}",
+          'gradlePlugin': "com.android.tools.build:gradle:3.1.4",
       ],
-      'support': [
-          'compat': "com.android.support:support-compat:${versions.supportLibrary}",
-          'annotations': "com.android.support:support-annotations:${versions.supportLibrary}",
+      'androidx': [
+          'core': "androidx.core:core:1.0.0",
+          'viewpager': "androidx.viewpager:viewpager:1.0.0",
+          'annotations': "androidx.annotation:annotation:1.0.0",
           'test': [
-              'runner': 'com.android.support.test:runner:1.0.1',
+              'runner': 'androidx.test:runner:1.1.0',
+              'rules': 'androidx.test:rules:1.1.0',
           ],
       ],
       'lint': [
@@ -31,36 +31,36 @@ buildscript {
           'checks': "com.android.tools.lint:lint-checks:${versions.androidTools}",
           'tests': "com.android.tools.lint:lint-tests:${versions.androidTools}",
       ],
-      javapoet: 'com.squareup:javapoet:1.9.0',
-      javaparser: 'com.github.javaparser:javaparser-core:3.5.0',
+      javapoet: 'com.squareup:javapoet:1.10.0',
       junit: 'junit:junit:4.12',
-      truth: 'com.google.truth:truth:0.36',
-      robolectric: 'org.robolectric:robolectric:3.5',
-      compiletesting: 'com.google.testing.compile:compile-testing:0.12',
+      truth: 'com.google.truth:truth:0.42',
+      compiletesting: 'com.google.testing.compile:compile-testing:0.15',
       'auto': [
-          'service': 'com.google.auto.service:auto-service:1.0-rc3',
-          'common': 'com.google.auto:auto-common:0.8',
+          'service': 'com.google.auto.service:auto-service:1.0-rc4',
+          'common': 'com.google.auto:auto-common:0.10',
       ],
-      'guava': 'com.google.guava:guava:23.0',
+      'guava': 'com.google.guava:guava:24.0-jre',
       'release': [
           'runtime': "com.jakewharton:butterknife:${versions.release}",
           'compiler': "com.jakewharton:butterknife-compiler:${versions.release}"
       ],
       'kotlin': [
-          'stdLibJre8': "org.jetbrains.kotlin:kotlin-stdlib-jre8:${versions.kotlin}",
+          'stdLibJdk8': "org.jetbrains.kotlin:kotlin-stdlib-jdk8:${versions.kotlin}",
       ]
   ]
 
   repositories {
     mavenCentral()
-    jcenter()
     google()
+    jcenter()
+    gradlePluginPortal()
   }
 
   dependencies {
-    classpath deps.android.gradlePlugin
+    classpath 'com.android.tools.build:gradle:3.2.0'
     classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${versions.kotlin}"
     classpath 'com.github.ben-manes:gradle-versions-plugin:0.17.0'
+    classpath 'net.ltgt.gradle:gradle-errorprone-plugin:0.0.16'
   }
 }
 
@@ -70,9 +70,30 @@ subprojects { project ->
 
   repositories {
     mavenCentral()
-    jcenter()
     google()
+    jcenter()
   }
+
+  apply plugin: 'net.ltgt.errorprone'
+
+  dependencies {
+    errorprone 'com.google.errorprone:error_prone_core:2.3.1'
+  }
+
+  // TODO figure out why this causes codegen to fail in android tests.
+  //def nullaway = dependencies.create('com.uber.nullaway:nullaway:0.5.5')
+  //configurations.all { Configuration configuration ->
+  //  if (configuration.name.endsWith('nnotationProcessor')) {
+  //    configuration.dependencies.add(nullaway)
+  //  }
+  //}
+  //
+  //tasks.withType(JavaCompile) {
+  //  options.compilerArgs += [
+  //      '-Xep:NullAway:ERROR',
+  //      '-XepOpt:NullAway:AnnotatedPackages=butterknife',
+  //  ]
+  //}
 
   if (!project.name.equals('butterknife-gradle-plugin')) {
     apply plugin: 'checkstyle'

@@ -1,11 +1,11 @@
 package butterknife;
 
-import android.support.annotation.ColorRes;
+import androidx.annotation.ColorRes;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
 import static java.lang.annotation.ElementType.FIELD;
-import static java.lang.annotation.RetentionPolicy.CLASS;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
  * Bind a field to the specified color resource ID. Type can be {@code int} or
@@ -15,7 +15,8 @@ import static java.lang.annotation.RetentionPolicy.CLASS;
  * {@literal @}BindColor(R.color.background_green_selector) ColorStateList greenSelector;
  * </code></pre>
  */
-@Retention(CLASS) @Target(FIELD)
+@Target(FIELD)
+@Retention(RUNTIME)
 public @interface BindColor {
   /** Color resource ID to which the field will be bound. */
   @ColorRes int value();

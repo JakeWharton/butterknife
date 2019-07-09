@@ -22,6 +22,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import javax.annotation.Nullable;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeMirror;
@@ -32,6 +33,7 @@ import static butterknife.compiler.ButterKnifeProcessor.VIEW_TYPE;
 import static butterknife.compiler.ButterKnifeProcessor.isSubtypeOfType;
 import static com.google.auto.common.MoreElements.getPackage;
 import static java.util.Collections.singletonList;
+import static java.util.Objects.requireNonNull;
 import static javax.lang.model.element.Modifier.FINAL;
 import static javax.lang.model.element.Modifier.PRIVATE;
 import static javax.lang.model.element.Modifier.PUBLIC;
@@ -43,15 +45,15 @@ final class BindingSet {
   private static final ClassName CONTEXT = ClassName.get("android.content", "Context");
   private static final ClassName RESOURCES = ClassName.get("android.content.res", "Resources");
   private static final ClassName UI_THREAD =
-      ClassName.get("android.support.annotation", "UiThread");
+      ClassName.get("androidx.annotation", "UiThread");
   private static final ClassName CALL_SUPER =
-      ClassName.get("android.support.annotation", "CallSuper");
+      ClassName.get("androidx.annotation", "CallSuper");
   private static final ClassName SUPPRESS_LINT =
       ClassName.get("android.annotation", "SuppressLint");
   private static final ClassName UNBINDER = ClassName.get("butterknife", "Unbinder");
   static final ClassName BITMAP_FACTORY = ClassName.get("android.graphics", "BitmapFactory");
   static final ClassName CONTEXT_COMPAT =
-      ClassName.get("android.support.v4.content", "ContextCompat");
+      ClassName.get("androidx.core.content", "ContextCompat");
   static final ClassName ANIMATION_UTILS =
           ClassName.get("android.view.animation", "AnimationUtils");
 
@@ -64,12 +66,12 @@ final class BindingSet {
   private final ImmutableList<ViewBinding> viewBindings;
   private final ImmutableList<FieldCollectionViewBinding> collectionBindings;
   private final ImmutableList<ResourceBinding> resourceBindings;
-  private final BindingSet parentBinding;
+  private final @Nullable BindingSet parentBinding;
 
   private BindingSet(TypeName targetTypeName, ClassName bindingClassName, boolean isFinal,
       boolean isView, boolean isActivity, boolean isDialog, ImmutableList<ViewBinding> viewBindings,
       ImmutableList<FieldCollectionViewBinding> collectionBindings,
-      ImmutableList<ResourceBinding> resourceBindings, BindingSet parentBinding) {
+      ImmutableList<ResourceBinding> resourceBindings, @Nullable BindingSet parentBinding) {
     this.isFinal = isFinal;
     this.targetTypeName = targetTypeName;
     this.bindingClassName = bindingClassName;
@@ -83,7 +85,8 @@ final class BindingSet {
   }
 
   JavaFile brewJava(int sdk, boolean debuggable) {
-    return JavaFile.builder(bindingClassName.packageName(), createType(sdk, debuggable))
+    TypeSpec bindingConfiguration = createType(sdk, debuggable);
+    return JavaFile.builder(bindingClassName.packageName(), bindingConfiguration)
         .addFileComment("Generated code from Butter Knife. Do not modify!")
         .build();
   }
@@ -304,7 +307,10 @@ final class BindingSet {
       return;
     }
 
-    String fieldName = bindings.isBoundToRoot() ? "viewSource" : "view" + bindings.getId().value;
+    String fieldName =
+        bindings.isBoundToRoot()
+            ? "viewSource"
+            : "view" + Integer.toHexString(bindings.getId().value);
     result.addField(VIEW, fieldName, PRIVATE);
 
     // We only need to emit the null check if there are zero required bindings.
@@ -324,8 +330,9 @@ final class BindingSet {
         result.addField(listenerClassName, listenerField, PRIVATE);
       }
 
-      if (!VIEW_TYPE.equals(listenerClass.targetType())) {
-        unbindMethod.addStatement("(($T) $N).$N($N)", bestGuess(listenerClass.targetType()),
+      String targetType = listenerClass.targetType();
+      if (!VIEW_TYPE.equals(targetType)) {
+        unbindMethod.addStatement("(($T) $N).$N($N)", bestGuess(targetType),
             fieldName, removerOrSetter(listenerClass, requiresRemoval), listenerField);
       } else {
         unbindMethod.addStatement("$N.$N($N)", fieldName,
@@ -353,7 +360,7 @@ final class BindingSet {
   private void addViewBinding(MethodSpec.Builder result, ViewBinding binding, boolean debuggable) {
     if (binding.isSingleFieldBinding()) {
       // Optimize the common case where there's a single binding directly to a field.
-      FieldViewBinding fieldBinding = binding.getFieldBinding();
+      FieldViewBinding fieldBinding = requireNonNull(binding.getFieldBinding());
       CodeBlock.Builder builder = CodeBlock.builder()
           .add("target.$L = ", fieldBinding.getName());
 
@@ -430,7 +437,7 @@ final class BindingSet {
     String fieldName = "viewSource";
     String bindName = "source";
     if (!binding.isBoundToRoot()) {
-      fieldName = "view" + binding.getId().value;
+      fieldName = "view" + Integer.toHexString(binding.getId().value);
       bindName = "view";
     }
     result.addStatement("$L = $N", fieldName, bindName);
@@ -453,14 +460,15 @@ final class BindingSet {
           callbackMethod.addParameter(bestGuess(parameterTypes[i]), "p" + i);
         }
 
-        boolean hasReturnType = !"void".equals(method.returnType());
+        boolean hasReturnValue = false;
         CodeBlock.Builder builder = CodeBlock.builder();
-        if (hasReturnType) {
-          builder.add("return ");
-        }
-
-        if (methodBindings.containsKey(method)) {
-          for (MethodViewBinding methodBinding : methodBindings.get(method)) {
+        Set<MethodViewBinding> methodViewBindings = methodBindings.get(method);
+        if (methodViewBindings != null) {
+          for (MethodViewBinding methodBinding : methodViewBindings) {
+            if (methodBinding.hasReturnValue()) {
+              hasReturnValue = true;
+              builder.add("return "); // TODO what about multiple methods?
+            }
             builder.add("target.$L(", methodBinding.getName());
             List<Parameter> parameters = methodBinding.getParameters();
             String[] listenerParameters = method.parameters();
@@ -486,9 +494,12 @@ final class BindingSet {
             }
             builder.add(");\n");
           }
-        } else if (hasReturnType) {
-          builder.add("$L;\n", method.defaultReturn());
         }
+
+        if (!"void".equals(method.returnType()) && !hasReturnValue) {
+          builder.add("return $L;\n", method.defaultReturn());
+        }
+
         callbackMethod.addCode(builder.build());
         callback.addMethod(callbackMethod.build());
       }
@@ -501,8 +512,9 @@ final class BindingSet {
         result.addStatement("$L = $L", listenerField, callback.build());
       }
 
-      if (!VIEW_TYPE.equals(listener.targetType())) {
-        result.addStatement("(($T) $N).$L($L)", bestGuess(listener.targetType()), bindName,
+      String targetType = listener.targetType();
+      if (!VIEW_TYPE.equals(targetType)) {
+        result.addStatement("(($T) $N).$L($L)", bestGuess(targetType), bindName,
             listener.setter(), requiresRemoval ? listenerField : callback.build());
       } else {
         result.addStatement("$N.$L($L)", bindName, listener.setter(),
@@ -657,7 +669,7 @@ final class BindingSet {
   /** True if this binding requires a view. Otherwise only a context is needed. */
   private boolean constructorNeedsView() {
     return hasViewBindings() //
-        || parentBinding != null && parentBinding.constructorNeedsView();
+        || (parentBinding != null && parentBinding.constructorNeedsView());
   }
 
   static boolean requiresCast(TypeName type) {
@@ -697,7 +709,7 @@ final class BindingSet {
     private final boolean isActivity;
     private final boolean isDialog;
 
-    private BindingSet parentBinding;
+    private @Nullable BindingSet parentBinding;
 
     private final Map<Id, ViewBinding.Builder> viewIdMap = new LinkedHashMap<>();
     private final ImmutableList.Builder<FieldCollectionViewBinding> collectionBindings =
@@ -743,7 +755,7 @@ final class BindingSet {
       this.parentBinding = parent;
     }
 
-    String findExistingBindingName(Id id) {
+    @Nullable String findExistingBindingName(Id id) {
       ViewBinding.Builder builder = viewIdMap.get(id);
       if (builder == null) {
         return null;

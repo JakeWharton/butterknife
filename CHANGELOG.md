@@ -1,6 +1,109 @@
 Change Log
 ==========
 
+Version 10.1.0 *(2019-02-13)*
+-----------------------------
+
+ * New: Listeners which require return values (e.g., long click) can now be bound to methods returning `void`.
+   The default value of `true` will be returned in this case.
+ * New: Add support for `@OnTextChanged` and `@OnPageChange` to reflection backend.
+ * Remove enforcement of required views in the reflection backend. Most `@Nullable` annotations do not have
+   runtime retention so they can't be checked at runtime with reflection. Instead of forcing everyone to find
+   a new annotation, this enforcement is now dropped. While this might lead to nulls in otherwise required
+   view bindings, they'll either be unused or quickly cause a `NullPointerException`.
+
+
+Version 10.0.0 *(2019-01-03)*
+-----------------------------
+
+ * Equivalent to 9.0.0 but only supports AndroidX-enabled builds.
+ * Removed APIs deprecated in 9.0.0.
+
+
+Version 9.0.0 *(2019-01-03)*
+----------------------------
+
+ * New: Support for AndroidX. Requires `android.useAndroidX=true` in `gradle.properties` to generate
+   AndroidX code.
+
+ * New: A `butterknife-runtime` artifact has been extracted from `butterknife` which contains the APIs
+   required for the generated code but does not contain the code to reflectively look up the generated
+   code. This allows you to reference the generated code directly such that R8/ProGuard optimization can
+   rename both the generated code and your classes. `ButterKnife.bind` and the consumer R8/ProGuard rules
+   remain in the old `butterknife` artifact.
+ 
+ * New: Experimental `butterknife-reflect` artifact eliminates the need to run the annotation
+   processor for IDE builds. This artifact is binary compatible with `butterknife` so it can be interchanged
+   depending on how your build is being invoked. See [its README](butterknife-reflect/README.md) for more
+   information. Currently about 90% of functionality is covered. File bugs for anything that does not work.
+
+   Note: This artifact requires Java 8. There's no good reason for this except to push the ecosystem to
+   having this be a default. As of AGP 3.2 there is no reason not to do this.
+
+ * New: Lint checks have been ported to UAST and now work on Kotlin code.
+ 
+ * Helpers such as `apply` have been deprecated on `ButterKnife` and are now available on the `ViewCollections` class.
+
+ * Add support for Android Gradle plugin 3.3 and newer where `R` is no longer generated as Java source. This
+   has a side-effect of removing support for Android Gradle plugin 3.0.x (and older).
+ * Use Java 8 bytecode for all artifacts as announced in RC1 release notes.
+ * Fix: Allow `@BindFont` to work prior to API 26 using `ResourcesCompat`.
+ * Fix: Update Android Gradle plugin to 3.1 or newer to fix binary incompatibilities.
+ * Fix: Correct generated resource annotation names when running Turkish locale.
+ * Fix: Use the application ID instead of the resource package for generating `R2`.
+ * Cache the fact that a class hierarchy has no remaining bindings to prevent traversing the hierarchy
+   multiple times.
+ * Deprecated methods from 8.x have been removed.
+
+
+Version 9.0.0-rc3 *(2018-12-20)*
+--------------------------------
+
+ * Fix: Correct generated resource annotation names when running Turkish locale.
+ * Cache the fact that a class hierarchy has no remaining bindings to prevent traversing the hierarchy
+   multiple times.
+
+
+Version 9.0.0-rc2 *(2018-11-19)*
+--------------------------------
+
+ * Add support for Android Gradle plugin 3.3 and newer where `R` is no longer generated as Java source. This
+   has a side-effect of removing support for Android Gradle plugin 3.0.x (and older).
+ * Use Java 8 bytecode for all artifacts as announced in RC1 release notes.
+
+
+Version 9.0.0-rc1 *(2018-10-10)*
+--------------------------------
+
+ * New: Support for AndroidX. Requires `android.useAndroidX=true` in `gradle.properties` to generate
+   AndroidX code.
+
+ * New: A `butterknife-runtime` artifact has been extracted from `butterknife` which contains the APIs
+   required for the generated code but does not contain the code to reflectively look up the generated
+   code. This allows you to reference the generated code directly such that R8/ProGuard optimization can
+   rename both the generated code and your classes. `ButterKnife.bind` and the consumer R8/ProGuard rules
+   remain in the old `butterknife` artifact.
+ 
+ * New: Experimental `butterknife-reflect` artifact eliminates the need to run the annotation
+   processor for IDE builds. This artifact is binary compatible with `butterknife` so it can be interchanged
+   depending on how your build is being invoked. See [its README](butterknife-reflect/README.md) for more
+   information. Currently about 90% of functionality is covered. File bugs for anything that does not work.
+
+   Note: This artifact requires Java 8. There's no good reason for this except to push the ecosystem to
+   having this be a default. As of AGP 3.2 there is no reason not to do this.
+
+ * New: Lint checks have been ported to UAST and now work on Kotlin code.
+
+ * Fix: Allow `@BindFont` to work prior to API 26 using `ResourcesCompat`.
+ * Fix: Update Android Gradle plugin to 3.1 or newer to fix binary incompatibilities.
+ * Fix: Use the application ID instead of the resource package for generating `R2`.
+ * Deprecated methods from 8.x have been removed.
+
+Note: The next release candidate will switch all artifacts to require Java 8 bytecode which will force
+your applications to enable Java 8 bytecode. As of AGP 3.2 there is no cost to this, and there is no
+reason to have it set any lower.
+
+
 Version 8.8.1 *(2017-08-09)*
 ----------------------------
 

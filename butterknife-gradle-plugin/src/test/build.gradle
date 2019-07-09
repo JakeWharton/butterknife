@@ -1,0 +1,66 @@
+plugins {
+    id 'com.android.application'
+    id 'com.jakewharton.butterknife'
+}
+
+repositories {
+    google()
+}
+
+android {
+    compileSdkVersion 28
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
+    }
+
+    defaultConfig {
+        // This is different than the manifest.
+        applicationId 'com.example.butterknife'
+        minSdkVersion 27
+        targetSdkVersion 27
+        versionCode 1
+        versionName '1.0.0'
+    }
+
+    // Add differing applicationIdSuffixes for debug and release to ensure that the gradle plugin
+    // finds the R.java file correctly.
+    buildTypes {
+        debug {
+            applicationIdSuffix = ".debug"
+        }
+        release {
+            applicationIdSuffix = ".release"
+        }
+    }
+
+    flavorDimensions "flavorA"
+
+    // Override the applicationId in flavors to ensure that the gradle plugin
+    // finds the R.java file correctly.
+    productFlavors {
+        flavorA {
+            applicationId "foo.bar"
+        }
+
+        flavorB {
+            applicationId "bar.foo"
+        }
+    }
+
+    sourceSets {
+        main.java.srcDirs += '../../../../../butterknife/src/main/java'
+        main.java.srcDirs += '../../../../../butterknife-runtime/src/main/java'
+        main.java.srcDirs += '../../../../../butterknife-annotations/src/main/java'
+    }
+
+    lintOptions {
+        checkReleaseBuilds false
+    }
+
+}
+
+dependencies {
+    implementation "androidx.core:core:1.0.0"
+}

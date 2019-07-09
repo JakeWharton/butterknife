@@ -1,11 +1,11 @@
 package butterknife;
 
-import android.support.annotation.DimenRes;
+import androidx.annotation.DimenRes;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
 import static java.lang.annotation.ElementType.FIELD;
-import static java.lang.annotation.RetentionPolicy.CLASS;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
  * Bind a field to the specified dimension resource ID whose type is explicitly defined as float.
@@ -17,7 +17,8 @@ import static java.lang.annotation.RetentionPolicy.CLASS;
  * {@literal @}BindFloat(R.dimen.image_ratio) float imageRatio;
  * </code></pre>
  */
-@Retention(CLASS) @Target(FIELD)
+@Target(FIELD)
+@Retention(RUNTIME)
 public @interface BindFloat {
   /** Float resource ID to which the field will be bound. */
   @DimenRes int value();

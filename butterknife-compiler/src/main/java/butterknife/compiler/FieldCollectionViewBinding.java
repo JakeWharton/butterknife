@@ -10,8 +10,8 @@ import static butterknife.compiler.BindingSet.requiresCast;
 
 final class FieldCollectionViewBinding {
   enum Kind {
-    ARRAY("arrayOf"),
-    LIST("listOf");
+    ARRAY("arrayFilteringNull"),
+    LIST("listFilteringNull");
 
     final String factoryName;
 

@@ -1,7 +1,7 @@
 package butterknife;
 
-import android.support.annotation.IdRes;
 import android.view.View;
+import androidx.annotation.IdRes;
 import butterknife.internal.ListenerClass;
 import butterknife.internal.ListenerMethod;
 import java.lang.annotation.Retention;
@@ -9,7 +9,7 @@ import java.lang.annotation.Target;
 
 import static android.view.View.OnLongClickListener;
 import static java.lang.annotation.ElementType.METHOD;
-import static java.lang.annotation.RetentionPolicy.CLASS;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
  * Bind a method to an {@link OnLongClickListener OnLongClickListener} on the view for each ID
@@ -22,10 +22,13 @@ import static java.lang.annotation.RetentionPolicy.CLASS;
  * </code></pre>
  * Any number of parameters from {@link OnLongClickListener#onLongClick(android.view.View)} may be
  * used on the method.
+ * <p>
+ * If the return type of the method is {@code void}, true will be returned from the listener.
  *
  * @see OnLongClickListener
  */
-@Retention(CLASS) @Target(METHOD)
+@Target(METHOD)
+@Retention(RUNTIME)
 @ListenerClass(
     targetType = "android.view.View",
     setter = "setOnLongClickListener",
@@ -36,7 +39,7 @@ import static java.lang.annotation.RetentionPolicy.CLASS;
             "android.view.View"
         },
         returnType = "boolean",
-        defaultReturn = "false"
+        defaultReturn = "true"
     )
 )
 public @interface OnLongClick {

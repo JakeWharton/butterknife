@@ -6,7 +6,7 @@
     <title>Butter Knife</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Field and method binding for Android views.">
-    <link href="http://fonts.googleapis.com/css?family=Roboto:regular,medium,thin,italic,mediumitalic,bold" rel="stylesheet" title="roboto">
+    <link href="https://fonts.googleapis.com/css?family=Roboto:regular,medium,thin,italic,mediumitalic,bold" rel="stylesheet" title="roboto">
     <link href="static/bootstrap.min.css" rel="stylesheet">
     <link href="static/bootstrap-responsive.min.css" rel="stylesheet">
     <link href="static/prettify.css" rel="stylesheet">
@@ -51,7 +51,7 @@
   @BindString(R.string.title) String title;
   @BindDrawable(R.drawable.graphic) Drawable graphic;
   @BindColor(R.color.red) int red; // int or ColorStateList field
-  @BindDimen(R.dimen.spacer) Float spacer; // int (for pixel size) or float (for exact value) field
+  @BindDimen(R.dimen.spacer) float spacer; // int (for pixel size) or float (for exact value) field
   // ...
 }</pre>
 
@@ -202,17 +202,9 @@ void onNothingSelected() {
   // TODO ...
 }</pre>
 
-            <h4 id="bonus">Bonus</h4>
-            <p>Also included are <code>findById</code> methods which simplify code that still has to find views on a <code>View</code>, <code>Activity</code>, or <code>Dialog</code>. It uses generics to infer the return type and automatically performs the cast.</p>
-            <pre class="prettyprint">View view = LayoutInflater.from(context).inflate(R.layout.thing, null);
-TextView firstName = ButterKnife.findById(view, R.id.first_name);
-TextView lastName = ButterKnife.findById(view, R.id.last_name);
-ImageView photo = ButterKnife.findById(view, R.id.photo);</pre>
-            <p>Add a static import for <code>ButterKnife.findById</code> and enjoy even more fun.</p>
-
             <h3 id="download">Download</h3>
             <h4>Gradle</h4>
-            <pre class="prettyprint">compile 'com.jakewharton:butterknife:<span class="version"><em>(insert latest version)</em></span>'
+            <pre class="prettyprint">implementation 'com.jakewharton:butterknife:<span class="version"><em>(insert latest version)</em></span>'
 annotationProcessor 'com.jakewharton:butterknife-compiler:<span class="version"><em>(insert latest version)</em></span>'</pre>
 
             <h3 id="license">License</h3>
@@ -235,7 +227,7 @@ limitations under the License.</pre>
         </div>
       </div>
     </div>
-    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
     <script src="static/jquery-maven-artifact.min.js"></script>
     <script src="static/prettify.js"></script>
     <script>
