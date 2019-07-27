@@ -1,8 +1,5 @@
 package butterknife.compiler;
 
-import butterknife.OnTouch;
-import butterknife.internal.ListenerClass;
-import butterknife.internal.ListenerMethod;
 import com.google.common.collect.ImmutableList;
 import com.squareup.javapoet.AnnotationSpec;
 import com.squareup.javapoet.ClassName;
@@ -26,6 +23,10 @@ import javax.annotation.Nullable;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeMirror;
+
+import butterknife.OnTouch;
+import butterknife.internal.ListenerClass;
+import butterknife.internal.ListenerMethod;
 
 import static butterknife.compiler.ButterKnifeProcessor.ACTIVITY_TYPE;
 import static butterknife.compiler.ButterKnifeProcessor.DIALOG_TYPE;
@@ -774,6 +775,15 @@ final class BindingSet {
         viewIdMap.put(id, viewId);
       }
       return viewId;
+    }
+
+    boolean viewBindingsIdCoedIsNumber(Id id){
+      ViewBinding.Builder viewId = viewIdMap.get(id);
+      if (viewId == null) {
+        return id.coedIsNumber();
+      }else {
+        return false;
+      }
     }
 
     BindingSet build() {
