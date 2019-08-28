@@ -59,6 +59,7 @@ final class BindingSet implements BindingInformationProvider {
 
   private final TypeName targetTypeName;
   private final ClassName bindingClassName;
+  private final TypeElement enclosingElement;
   private final boolean isFinal;
   private final boolean isView;
   private final boolean isActivity;
@@ -68,14 +69,17 @@ final class BindingSet implements BindingInformationProvider {
   private final ImmutableList<ResourceBinding> resourceBindings;
   private final @Nullable BindingInformationProvider parentBinding;
 
-  private BindingSet(TypeName targetTypeName, ClassName bindingClassName, boolean isFinal,
-      boolean isView, boolean isActivity, boolean isDialog, ImmutableList<ViewBinding> viewBindings,
+  private BindingSet(
+      TypeName targetTypeName, ClassName bindingClassName, TypeElement enclosingElement,
+      boolean isFinal, boolean isView, boolean isActivity, boolean isDialog,
+      ImmutableList<ViewBinding> viewBindings,
       ImmutableList<FieldCollectionViewBinding> collectionBindings,
       ImmutableList<ResourceBinding> resourceBindings,
       @Nullable BindingInformationProvider parentBinding) {
     this.isFinal = isFinal;
     this.targetTypeName = targetTypeName;
     this.bindingClassName = bindingClassName;
+    this.enclosingElement = enclosingElement;
     this.isView = isView;
     this.isActivity = isActivity;
     this.isDialog = isDialog;
@@ -99,7 +103,8 @@ final class BindingSet implements BindingInformationProvider {
 
   private TypeSpec createType(int sdk, boolean debuggable) {
     TypeSpec.Builder result = TypeSpec.classBuilder(bindingClassName.simpleName())
-        .addModifiers(PUBLIC);
+        .addModifiers(PUBLIC)
+        .addOriginatingElement(enclosingElement);
     if (isFinal) {
       result.addModifiers(FINAL);
     }
@@ -702,7 +707,8 @@ final class BindingSet implements BindingInformationProvider {
     ClassName bindingClassName = getBindingClassName(enclosingElement);
 
     boolean isFinal = enclosingElement.getModifiers().contains(Modifier.FINAL);
-    return new Builder(targetType, bindingClassName, isFinal, isView, isActivity, isDialog);
+    return new Builder(targetType, bindingClassName, enclosingElement, isFinal, isView, isActivity,
+        isDialog);
   }
 
   static ClassName getBindingClassName(TypeElement typeElement) {
@@ -715,6 +721,7 @@ final class BindingSet implements BindingInformationProvider {
   static final class Builder {
     private final TypeName targetTypeName;
     private final ClassName bindingClassName;
+    private final TypeElement enclosingElement;
     private final boolean isFinal;
     private final boolean isView;
     private final boolean isActivity;
@@ -727,10 +734,12 @@ final class BindingSet implements BindingInformationProvider {
         ImmutableList.builder();
     private final ImmutableList.Builder<ResourceBinding> resourceBindings = ImmutableList.builder();
 
-    private Builder(TypeName targetTypeName, ClassName bindingClassName, boolean isFinal,
-        boolean isView, boolean isActivity, boolean isDialog) {
+    private Builder(
+        TypeName targetTypeName, ClassName bindingClassName, TypeElement enclosingElement,
+        boolean isFinal, boolean isView, boolean isActivity, boolean isDialog) {
       this.targetTypeName = targetTypeName;
       this.bindingClassName = bindingClassName;
+      this.enclosingElement = enclosingElement;
       this.isFinal = isFinal;
       this.isView = isView;
       this.isActivity = isActivity;
@@ -792,9 +801,9 @@ final class BindingSet implements BindingInformationProvider {
       for (ViewBinding.Builder builder : viewIdMap.values()) {
         viewBindings.add(builder.build());
       }
-      return new BindingSet(targetTypeName, bindingClassName, isFinal, isView, isActivity, isDialog,
-          viewBindings.build(), collectionBindings.build(), resourceBindings.build(),
-          parentBinding);
+      return new BindingSet(targetTypeName, bindingClassName, enclosingElement, isFinal, isView,
+          isActivity, isDialog, viewBindings.build(), collectionBindings.build(),
+          resourceBindings.build(), parentBinding);
     }
   }
 }

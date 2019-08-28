@@ -12,6 +12,9 @@ dependencies {
   compileOnly deps.auto.service
   compileOnly files(org.gradle.internal.jvm.Jvm.current().getToolsJar())
 
+  api deps.incap.runtime
+  compileOnly deps.incap.processor
+
   testImplementation deps.junit
   testImplementation deps.truth
 }
