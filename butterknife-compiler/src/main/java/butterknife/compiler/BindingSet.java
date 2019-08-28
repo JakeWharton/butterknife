@@ -39,7 +39,7 @@ import static javax.lang.model.element.Modifier.PRIVATE;
 import static javax.lang.model.element.Modifier.PUBLIC;
 
 /** A set of all the bindings requested by a single type. */
-final class BindingSet {
+final class BindingSet implements BindingInformationProvider {
   static final ClassName UTILS = ClassName.get("butterknife.internal", "Utils");
   private static final ClassName VIEW = ClassName.get("android.view", "View");
   private static final ClassName CONTEXT = ClassName.get("android.content", "Context");
@@ -66,12 +66,13 @@ final class BindingSet {
   private final ImmutableList<ViewBinding> viewBindings;
   private final ImmutableList<FieldCollectionViewBinding> collectionBindings;
   private final ImmutableList<ResourceBinding> resourceBindings;
-  private final @Nullable BindingSet parentBinding;
+  private final @Nullable BindingInformationProvider parentBinding;
 
   private BindingSet(TypeName targetTypeName, ClassName bindingClassName, boolean isFinal,
       boolean isView, boolean isActivity, boolean isDialog, ImmutableList<ViewBinding> viewBindings,
       ImmutableList<FieldCollectionViewBinding> collectionBindings,
-      ImmutableList<ResourceBinding> resourceBindings, @Nullable BindingSet parentBinding) {
+      ImmutableList<ResourceBinding> resourceBindings,
+      @Nullable BindingInformationProvider parentBinding) {
     this.isFinal = isFinal;
     this.targetTypeName = targetTypeName;
     this.bindingClassName = bindingClassName;
@@ -82,6 +83,11 @@ final class BindingSet {
     this.collectionBindings = collectionBindings;
     this.resourceBindings = resourceBindings;
     this.parentBinding = parentBinding;
+  }
+
+  @Override
+  public ClassName getBindingClassName() {
+    return bindingClassName;
   }
 
   JavaFile brewJava(int sdk, boolean debuggable) {
@@ -99,7 +105,7 @@ final class BindingSet {
     }
 
     if (parentBinding != null) {
-      result.superclass(parentBinding.bindingClassName);
+      result.superclass(parentBinding.getBindingClassName());
     } else {
       result.addSuperinterface(UNBINDER);
     }
@@ -667,7 +673,8 @@ final class BindingSet {
   }
 
   /** True if this binding requires a view. Otherwise only a context is needed. */
-  private boolean constructorNeedsView() {
+  @Override
+  public boolean constructorNeedsView() {
     return hasViewBindings() //
         || (parentBinding != null && parentBinding.constructorNeedsView());
   }
@@ -692,13 +699,17 @@ final class BindingSet {
       targetType = ((ParameterizedTypeName) targetType).rawType;
     }
 
-    String packageName = getPackage(enclosingElement).getQualifiedName().toString();
-    String className = enclosingElement.getQualifiedName().toString().substring(
-        packageName.length() + 1).replace('.', '$');
-    ClassName bindingClassName = ClassName.get(packageName, className + "_ViewBinding");
+    ClassName bindingClassName = getBindingClassName(enclosingElement);
 
     boolean isFinal = enclosingElement.getModifiers().contains(Modifier.FINAL);
     return new Builder(targetType, bindingClassName, isFinal, isView, isActivity, isDialog);
+  }
+
+  static ClassName getBindingClassName(TypeElement typeElement) {
+    String packageName = getPackage(typeElement).getQualifiedName().toString();
+    String className = typeElement.getQualifiedName().toString().substring(
+            packageName.length() + 1).replace('.', '$');
+    return ClassName.get(packageName, className + "_ViewBinding");
   }
 
   static final class Builder {
@@ -709,7 +720,7 @@ final class BindingSet {
     private final boolean isActivity;
     private final boolean isDialog;
 
-    private @Nullable BindingSet parentBinding;
+    private @Nullable BindingInformationProvider parentBinding;
 
     private final Map<Id, ViewBinding.Builder> viewIdMap = new LinkedHashMap<>();
     private final ImmutableList.Builder<FieldCollectionViewBinding> collectionBindings =
@@ -751,7 +762,7 @@ final class BindingSet {
       resourceBindings.add(binding);
     }
 
-    void setParent(BindingSet parent) {
+    void setParent(BindingInformationProvider parent) {
       this.parentBinding = parent;
     }
 
@@ -785,5 +796,30 @@ final class BindingSet {
           viewBindings.build(), collectionBindings.build(), resourceBindings.build(),
           parentBinding);
     }
+  }
+}
+
+interface BindingInformationProvider {
+  boolean constructorNeedsView();
+  ClassName getBindingClassName();
+}
+
+final class ClasspathBindingSet implements BindingInformationProvider {
+  private boolean constructorNeedsView;
+  private ClassName className;
+
+  ClasspathBindingSet(boolean constructorNeedsView, TypeElement classElement) {
+    this.constructorNeedsView = constructorNeedsView;
+    this.className = BindingSet.getBindingClassName(classElement);
+  }
+
+  @Override
+  public ClassName getBindingClassName() {
+    return className;
+  }
+
+  @Override
+  public boolean constructorNeedsView() {
+    return constructorNeedsView;
   }
 }
