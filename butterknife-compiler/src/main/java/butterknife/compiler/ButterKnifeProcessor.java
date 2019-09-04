@@ -30,6 +30,7 @@ import butterknife.internal.ListenerClass;
 import butterknife.internal.ListenerMethod;
 import com.google.auto.common.SuperficialValidation;
 import com.google.auto.service.AutoService;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.TypeName;
@@ -48,6 +49,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Deque;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -342,6 +344,9 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
       findAndParseListener(env, listener, builderMap, erasedTargetNames);
     }
 
+    Map<TypeElement, ClasspathBindingSet> classpathBindings =
+        findAllSupertypeBindings(builderMap, erasedTargetNames);
+
     // Associate superclass binders with their subclass binders. This is a queue-based tree walk
     // which starts at the roots (superclasses) and walks to the leafs (subclasses).
     Deque<Map.Entry<TypeElement, BindingSet.Builder>> entries =
@@ -353,11 +358,14 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
       TypeElement type = entry.getKey();
       BindingSet.Builder builder = entry.getValue();
 
-      TypeElement parentType = findParentType(type, erasedTargetNames);
+      TypeElement parentType = findParentType(type, erasedTargetNames, classpathBindings.keySet());
       if (parentType == null) {
         bindingMap.put(type, builder.build());
       } else {
-        BindingSet parentBinding = bindingMap.get(parentType);
+        BindingInformationProvider parentBinding = bindingMap.get(parentType);
+        if (parentBinding == null) {
+          parentBinding = classpathBindings.get(parentType);
+        }
         if (parentBinding != null) {
           builder.setParent(parentBinding);
           bindingMap.put(type, builder.build());
@@ -1264,19 +1272,86 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     return builder;
   }
 
-  /** Finds the parent binder type in the supplied set, if any. */
-  private @Nullable TypeElement findParentType(TypeElement typeElement, Set<TypeElement> parents) {
-    TypeMirror type;
+  /** Finds the parent binder type in the supplied sets, if any. */
+  private @Nullable TypeElement findParentType(
+      TypeElement typeElement, Set<TypeElement> parents, Set<TypeElement> classpathParents) {
     while (true) {
-      type = typeElement.getSuperclass();
-      if (type.getKind() == TypeKind.NONE) {
-        return null;
-      }
-      typeElement = (TypeElement) ((DeclaredType) type).asElement();
-      if (parents.contains(typeElement)) {
+      typeElement = getSuperClass(typeElement);
+      if (typeElement == null || parents.contains(typeElement)
+          || classpathParents.contains(typeElement)) {
         return typeElement;
       }
     }
+  }
+
+  private Map<TypeElement, ClasspathBindingSet> findAllSupertypeBindings(
+      Map<TypeElement, BindingSet.Builder> builderMap, Set<TypeElement> processedInThisRound) {
+    Map<TypeElement, ClasspathBindingSet> classpathBindings = new HashMap<>();
+
+    Set<Class<? extends Annotation>> supportedAnnotations = getSupportedAnnotations();
+    Set<Class<? extends Annotation>> requireViewInConstructor =
+        ImmutableSet.<Class<? extends Annotation>>builder()
+            .addAll(LISTENERS).add(BindView.class).add(BindViews.class).build();
+    supportedAnnotations.removeAll(requireViewInConstructor);
+
+    for (TypeElement typeElement : builderMap.keySet()) {
+      // Make sure to process superclass before subclass. This is because if there is a class that
+      // requires a View in the constructor, all subclasses need it as well.
+      Deque<TypeElement> superClasses = new ArrayDeque<>();
+      TypeElement superClass = getSuperClass(typeElement);
+      while (superClass != null && !processedInThisRound.contains(superClass)
+          && !classpathBindings.containsKey(superClass)) {
+        superClasses.addFirst(superClass);
+        superClass = getSuperClass(superClass);
+      }
+
+      boolean parentHasConstructorWithView = false;
+      while (!superClasses.isEmpty()) {
+        TypeElement superclass = superClasses.removeFirst();
+        ClasspathBindingSet classpathBinding =
+            findBindingInfoForType(superclass, requireViewInConstructor, supportedAnnotations,
+                parentHasConstructorWithView);
+        if (classpathBinding != null) {
+          parentHasConstructorWithView |= classpathBinding.constructorNeedsView();
+          classpathBindings.put(superclass, classpathBinding);
+        }
+      }
+    }
+    return ImmutableMap.copyOf(classpathBindings);
+  }
+
+  private @Nullable ClasspathBindingSet findBindingInfoForType(
+      TypeElement typeElement, Set<Class<? extends Annotation>> requireConstructorWithView,
+      Set<Class<? extends Annotation>> otherAnnotations, boolean needsConstructorWithView) {
+    boolean foundSupportedAnnotation = false;
+    for (Element enclosedElement : typeElement.getEnclosedElements()) {
+      for (Class<? extends Annotation> bindViewAnnotation : requireConstructorWithView) {
+        if (enclosedElement.getAnnotation(bindViewAnnotation) != null) {
+          return new ClasspathBindingSet(true, typeElement);
+        }
+      }
+      for (Class<? extends Annotation> supportedAnnotation : otherAnnotations) {
+        if (enclosedElement.getAnnotation(supportedAnnotation) != null) {
+          if (needsConstructorWithView) {
+            return new ClasspathBindingSet(true, typeElement);
+          }
+          foundSupportedAnnotation = true;
+        }
+      }
+    }
+    if (foundSupportedAnnotation) {
+      return new ClasspathBindingSet(false, typeElement);
+    } else {
+      return null;
+    }
+  }
+
+  private @Nullable TypeElement getSuperClass(TypeElement typeElement) {
+    TypeMirror type = typeElement.getSuperclass();
+    if (type.getKind() == TypeKind.NONE) {
+      return null;
+    }
+    return (TypeElement) ((DeclaredType) type).asElement();
   }
 
   @Override public SourceVersion getSupportedSourceVersion() {
