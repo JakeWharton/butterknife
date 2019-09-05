@@ -76,6 +76,8 @@ import javax.lang.model.type.TypeMirror;
 import javax.lang.model.type.TypeVariable;
 import javax.lang.model.util.Types;
 import javax.tools.Diagnostic.Kind;
+import net.ltgt.gradle.incap.IncrementalAnnotationProcessor;
+import net.ltgt.gradle.incap.IncrementalAnnotationProcessorType;
 
 import static butterknife.internal.Constants.NO_RES_ID;
 import static java.util.Objects.requireNonNull;
@@ -86,6 +88,7 @@ import static javax.lang.model.element.Modifier.PRIVATE;
 import static javax.lang.model.element.Modifier.STATIC;
 
 @AutoService(Processor.class)
+@IncrementalAnnotationProcessor(IncrementalAnnotationProcessorType.DYNAMIC)
 @SuppressWarnings("NullAway") // TODO fix all these...
 public final class ButterKnifeProcessor extends AbstractProcessor {
   // TODO remove when http://b.android.com/187527 is released.
@@ -149,11 +152,28 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     try {
       trees = Trees.instance(processingEnv);
     } catch (IllegalArgumentException ignored) {
+      try {
+        // Get original ProcessingEnvironment from Gradle-wrapped one or KAPT-wrapped one.
+        for (Field field : processingEnv.getClass().getDeclaredFields()) {
+          if (field.getName().equals("delegate") || field.getName().equals("processingEnv")) {
+            field.setAccessible(true);
+            ProcessingEnvironment javacEnv = (ProcessingEnvironment) field.get(processingEnv);
+            trees = Trees.instance(javacEnv);
+            break;
+          }
+        }
+      } catch (Throwable ignored2) {
+      }
     }
   }
 
   @Override public Set<String> getSupportedOptions() {
-    return ImmutableSet.of(OPTION_SDK_INT, OPTION_DEBUGGABLE);
+    ImmutableSet.Builder<String> builder = ImmutableSet.builder();
+    builder.add(OPTION_SDK_INT, OPTION_DEBUGGABLE);
+    if (trees != null) {
+      builder.add(IncrementalAnnotationProcessorType.ISOLATING.getProcessorOption());
+    }
+    return builder.build();
   }
 
   @Override public Set<String> getSupportedAnnotationTypes() {
