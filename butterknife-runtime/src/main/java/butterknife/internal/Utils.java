@@ -61,7 +61,7 @@ public final class Utils {
     }
     return end == length
         ? views
-        : Arrays.copyOfRange(views, 0, end);
+        : Arrays.copyOf(views, end);
   }
 
   @SafeVarargs
