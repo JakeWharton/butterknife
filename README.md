@@ -52,8 +52,8 @@ android {
 }
 
 dependencies {
-  implementation 'com.jakewharton:butterknife:10.1.0'
-  annotationProcessor 'com.jakewharton:butterknife-compiler:10.1.0'
+  implementation 'com.jakewharton:butterknife:10.2.0'
+  annotationProcessor 'com.jakewharton:butterknife-compiler:10.2.0'
 }
 ```
 
@@ -75,7 +75,7 @@ buildscript {
     google()
    }
   dependencies {
-    classpath 'com.jakewharton:butterknife-gradle-plugin:10.1.0'
+    classpath 'com.jakewharton:butterknife-gradle-plugin:10.2.0'
   }
 }
 ```

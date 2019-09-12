@@ -1,6 +1,15 @@
 Change Log
 ==========
 
+Version 10.2.0 *(2019-09-12)*
+-----------------------------
+
+ * New: Support incremental annotation processing.
+ * Fix: Detect generated superclass bindings across compilation units.
+ * Fix: Avoid deprecated APIs from the Android Gradle plugin. As a result, the new minimum supported version
+   of the Android Gradle plugin is 3.3.
+
+
 Version 10.1.0 *(2019-02-13)*
 -----------------------------
 
