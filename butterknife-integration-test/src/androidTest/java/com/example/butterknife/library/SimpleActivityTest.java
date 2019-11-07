@@ -23,7 +23,7 @@ public final class SimpleActivityTest {
   }
 
   protected static void verifySimpleActivityBound(SimpleActivity activity) {
-    assertThat(activity.title.getId()).isEqualTo(R.id.title);
+    assertThat(activity.title.getId()).isEqualTo(R.id.titleTv);
     assertThat(activity.subtitle.getId()).isEqualTo(R.id.subtitle);
     assertThat(activity.hello.getId()).isEqualTo(R.id.hello);
     assertThat(activity.listOfThings.getId()).isEqualTo(R.id.list_of_things);
