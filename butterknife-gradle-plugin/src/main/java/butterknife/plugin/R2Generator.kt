@@ -5,6 +5,8 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 import java.io.File
 
@@ -13,6 +15,7 @@ open class R2Generator : DefaultTask() {
   var outputDir: File? = null
 
   @get:InputFiles
+  @get:PathSensitive(PathSensitivity.NONE)
   var rFile: FileCollection? = null
 
   @get:Input
