@@ -7,7 +7,7 @@
               android:padding="8dp"
               tools:ignore="SelectableText">
     <TextView
-            android:id="@+id/title"
+            android:id="@+id/titleTv"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center"

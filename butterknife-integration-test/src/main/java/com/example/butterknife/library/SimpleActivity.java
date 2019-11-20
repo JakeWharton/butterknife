@@ -18,6 +18,7 @@ import butterknife.OnItemClick;
 import butterknife.OnLongClick;
 import butterknife.ViewCollections;
 import com.example.butterknife.R;
+import static com.example.butterknife.R.id.titleTv;
 import java.util.List;
 
 import static android.widget.Toast.LENGTH_SHORT;
@@ -31,7 +32,7 @@ public class SimpleActivity extends Activity {
     view.startAnimation(alphaAnimation);
   };
 
-  @BindView(R.id.title) TextView title;
+  @BindView(titleTv) TextView title;
   @BindView(R.id.subtitle) TextView subtitle;
   @BindView(R.id.hello) Button hello;
   @BindView(R.id.list_of_things) ListView listOfThings;
@@ -41,7 +42,7 @@ public class SimpleActivity extends Activity {
   @BindString(R.string.by_jake_wharton) String byJakeWharton;
   @BindString(R.string.say_hello) String sayHello;
 
-  @BindViews({ R.id.title, R.id.subtitle, R.id.hello }) List<View> headerViews;
+  @BindViews({ titleTv, R.id.subtitle, R.id.hello }) List<View> headerViews;
 
   private SimpleAdapter adapter;
 
