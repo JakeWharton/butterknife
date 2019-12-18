@@ -1,6 +1,7 @@
 package butterknife.plugin
 
 import com.squareup.javapoet.ClassName
+import com.squareup.javapoet.CodeBlock
 import com.squareup.javapoet.FieldSpec
 import com.squareup.javapoet.JavaFile
 import com.squareup.javapoet.TypeSpec
@@ -38,13 +39,13 @@ class FinalRClassBuilder(
         .build()
   }
 
-  fun addResourceField(type: String, fieldName: String, fieldValue: String) {
+  fun addResourceField(type: String, fieldName: String, fieldInitializer: CodeBlock) {
     if (type !in SUPPORTED_TYPES) {
       return
     }
     val fieldSpecBuilder = FieldSpec.builder(Int::class.javaPrimitiveType, fieldName)
         .addModifiers(PUBLIC, STATIC, FINAL)
-        .initializer(fieldValue)
+        .initializer(fieldInitializer)
 
     fieldSpecBuilder.addAnnotation(getSupportAnnotationClass(type))
 

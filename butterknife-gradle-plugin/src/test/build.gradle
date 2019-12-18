@@ -5,6 +5,10 @@ plugins {
 
 repositories {
     google()
+    maven {
+        url "file://${projectDir.absolutePath}/../../../../../build/localMaven"
+    }
+    mavenCentral()
 }
 
 android {
@@ -49,12 +53,6 @@ android {
         }
     }
 
-    sourceSets {
-        main.java.srcDirs += '../../../../../butterknife/src/main/java'
-        main.java.srcDirs += '../../../../../butterknife-runtime/src/main/java'
-        main.java.srcDirs += '../../../../../butterknife-annotations/src/main/java'
-    }
-
     lintOptions {
         checkReleaseBuilds false
     }
@@ -63,4 +61,6 @@ android {
 
 dependencies {
     implementation "androidx.core:core:1.0.0"
+    implementation "com.jakewharton:butterknife:${getProperty("butterknife.version")}"
+    annotationProcessor "com.jakewharton:butterknife-compiler:${getProperty("butterknife.version")}"
 }

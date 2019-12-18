@@ -19,10 +19,13 @@ class FixturesTest(val fixtureRoot: File, val name: String) {
         val androidHome = androidHome()
         File(fixtureRoot, "local.properties").writeText("sdk.dir=$androidHome\n")
 
+        val butterKnifeVersion = System.getProperty("butterknife.version")!!
+
         val runner = GradleRunner.create()
                 .withProjectDir(fixtureRoot)
                 .withPluginClasspath()
-                .withArguments("clean", "assembleDebug", "assembleRelease", "--stacktrace")
+                .withArguments("clean", "assembleDebug", "assembleRelease", "--stacktrace",
+                        "-Pbutterknife.version=$butterKnifeVersion")
 
         if (File(fixtureRoot, "ignored.txt").exists()) {
             println("Skipping ignored test $name.")
