@@ -17,4 +17,13 @@ dependencies {
   testImplementation deps.compiletesting
 }
 
+test {
+  dependsOn(':butterknife:installLocally')
+  dependsOn(':butterknife-annotations:installLocally')
+  dependsOn(':butterknife-compiler:installLocally')
+  dependsOn(':butterknife-runtime:installLocally')
+
+  systemProperty('butterknife.version', version)
+}
+
 apply from: rootProject.file('gradle/gradle-mvn-push.gradle')
