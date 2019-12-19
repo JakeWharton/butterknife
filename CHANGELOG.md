@@ -1,6 +1,18 @@
 Change Log
 ==========
 
+Version 10.2.1 *(2019-12-19)*
+-----------------------------
+
+Heads up: Development on this tool is winding down as [view binding](https://developer.android.com/topic/libraries/view-binding) will be stable in AS/AGP 3.6.
+
+ * New: Make R2-generating Gradle task cacheable by default.
+ * Fix: R2 classes now generate their own unique values for entries. This ensures that the annotation processor
+   can always do a reverse mapping from ID back to name and type. In AGP 3.6.0, the `R.txt` symbol table that was
+   previously used as a source for values now uses 0 for every entry which required this change.
+ * Fix: Lint check for R2 values now properly handles static imports for entries.
+
+
 Version 10.2.0 *(2019-09-12)*
 -----------------------------
 
