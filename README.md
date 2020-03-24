@@ -1,8 +1,10 @@
 Butter Knife
 ============
 
-**Attention**: Development on this tool is winding down. Please consider switching to
-[view binding](https://developer.android.com/topic/libraries/view-binding) in the coming months.
+**Attention**: This tool is now deprecated. Please switch to
+[view binding](https://developer.android.com/topic/libraries/view-binding).
+Existing versions will continue to work, obviously, but only critical bug fixes for integration
+with AGP will be considered. Feature development and general bug fixes have stopped.
 
 ![Logo](website/static/logo.png)
 
