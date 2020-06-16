@@ -78,7 +78,7 @@ buildscript {
   repositories {
     mavenCentral()
     google()
-   }
+  }
   dependencies {
     classpath 'com.jakewharton:butterknife-gradle-plugin:10.2.1'
   }
