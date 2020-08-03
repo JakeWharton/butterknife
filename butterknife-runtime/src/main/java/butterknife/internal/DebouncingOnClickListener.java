@@ -1,5 +1,7 @@
 package butterknife.internal;
 
+import android.os.Handler;
+import android.os.Looper;
 import android.view.View;
 
 /**
@@ -7,14 +9,20 @@ import android.view.View;
  * same frame. A click on one button disables all buttons for that frame.
  */
 public abstract class DebouncingOnClickListener implements View.OnClickListener {
-  static boolean enabled = true;
-
   private static final Runnable ENABLE_AGAIN = () -> enabled = true;
+  private static final Handler MAIN = new Handler(Looper.getMainLooper());
+
+  static boolean enabled = true;
 
   @Override public final void onClick(View v) {
     if (enabled) {
       enabled = false;
-      v.post(ENABLE_AGAIN);
+
+      // Post to the main looper directly rather than going through the view.
+      // Ensure that ENABLE_AGAIN will be executed, avoid static field {@link #enabled}
+      // staying in false state.
+      MAIN.post(ENABLE_AGAIN);
+
       doClick(v);
     }
   }
