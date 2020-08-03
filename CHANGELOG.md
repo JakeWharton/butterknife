@@ -1,6 +1,14 @@
 Change Log
 ==========
 
+Version 10.2.2 *(2020-08-03)*
+-----------------------------
+
+Heads up: Development on this tool is winding down as [view binding](https://developer.android.com/topic/libraries/view-binding) will be stable in AS/AGP 3.6.
+
+ * Fix: Views detached while processing click callbacks will no longer disable future clicks on other views.
+
+
 Version 10.2.1 *(2019-12-19)*
 -----------------------------
 
