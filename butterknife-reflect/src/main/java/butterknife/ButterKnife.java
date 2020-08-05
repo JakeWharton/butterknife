@@ -944,7 +944,7 @@ public final class ButterKnife {
         findViews(source, onTouch.value(), isRequired(method), method.getName(), View.class);
 
     ViewCollections.set(views, ON_TOUCH, (v, event) -> {
-      Object returnValue = tryInvoke(method, target, argumentTransformer.transform(v));
+      Object returnValue = tryInvoke(method, target, argumentTransformer.transform(v, event));
       //noinspection SimplifiableConditionalExpression
       return propagateReturn
           ? (boolean) returnValue
