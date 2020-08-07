@@ -53,6 +53,41 @@ public final class OnTouchTest {
     assertEquals(2, target.touches);
   }
 
+  static final class Arguments {
+    int touches = 0;
+
+    @OnTouch(1) boolean touch(View v) {
+      touches++;
+      return true;
+    }
+
+    @OnTouch(2) boolean touch(View v, MotionEvent event) {
+      touches++;
+      return true;
+    }
+  }
+
+  @UiThreadTest
+  @Test public void arguments() {
+    View tree = ViewTree.create(1, 2);
+    View view1 = tree.findViewById(1);
+    View view2 = tree.findViewById(2);
+
+    Arguments target = new Arguments();
+    Unbinder unbinder = ButterKnife.bind(target, tree);
+    assertEquals(0, target.touches);
+
+    assertTrue(performTouch(view1));
+    assertEquals(1, target.touches);
+
+    assertTrue(performTouch(view2));
+    assertEquals(2, target.touches);
+
+    unbinder.unbind();
+    performTouch(view1);
+    assertEquals(2, target.touches);
+  }
+
   static final class ReturnVoid {
     int touches = 0;
 
