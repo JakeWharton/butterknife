@@ -467,7 +467,7 @@ final class BindingSet implements BindingInformationProvider {
             .addModifiers(PUBLIC)
             .returns(bestGuess(method.returnType()));
         String[] parameterTypes = method.parameters();
-        for (int i = 0, count = parameterTypes.length; i < count; i++) {
+        for (int i = 0; i < parameterTypes.length; i++) {
           callbackMethod.addParameter(bestGuess(parameterTypes[i]), "p" + i);
         }
 
