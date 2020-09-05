@@ -24,6 +24,7 @@ import butterknife.OnLongClick;
 import butterknife.OnPageChange;
 import butterknife.OnTextChanged;
 import butterknife.OnTouch;
+import butterknife.OnValueChange;
 import butterknife.Optional;
 import butterknife.compiler.FieldTypefaceBinding.TypefaceStyles;
 import butterknife.internal.ListenerClass;
@@ -119,7 +120,8 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
       OnLongClick.class, //
       OnPageChange.class, //
       OnTextChanged.class, //
-      OnTouch.class //
+      OnTouch.class, //
+      OnValueChange.class //
   );
 
   private Types typeUtils;
