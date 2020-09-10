@@ -1,33 +1,5 @@
 package butterknife.compiler;
 
-import butterknife.BindAnim;
-import butterknife.BindArray;
-import butterknife.BindBitmap;
-import butterknife.BindBool;
-import butterknife.BindColor;
-import butterknife.BindDimen;
-import butterknife.BindDrawable;
-import butterknife.BindFloat;
-import butterknife.BindFont;
-import butterknife.BindInt;
-import butterknife.BindString;
-import butterknife.BindView;
-import butterknife.BindViews;
-import butterknife.OnCheckedChanged;
-import butterknife.OnClick;
-import butterknife.OnEditorAction;
-import butterknife.OnFocusChange;
-import butterknife.OnItemClick;
-import butterknife.OnItemLongClick;
-import butterknife.OnItemSelected;
-import butterknife.OnLongClick;
-import butterknife.OnPageChange;
-import butterknife.OnTextChanged;
-import butterknife.OnTouch;
-import butterknife.Optional;
-import butterknife.compiler.FieldTypefaceBinding.TypefaceStyles;
-import butterknife.internal.ListenerClass;
-import butterknife.internal.ListenerMethod;
 import com.google.auto.common.SuperficialValidation;
 import com.google.auto.service.AutoService;
 import com.google.common.collect.ImmutableMap;
@@ -80,6 +52,35 @@ import javax.tools.Diagnostic.Kind;
 import net.ltgt.gradle.incap.IncrementalAnnotationProcessor;
 import net.ltgt.gradle.incap.IncrementalAnnotationProcessorType;
 
+import butterknife.BindAnim;
+import butterknife.BindArray;
+import butterknife.BindBitmap;
+import butterknife.BindBool;
+import butterknife.BindColor;
+import butterknife.BindDimen;
+import butterknife.BindDrawable;
+import butterknife.BindFloat;
+import butterknife.BindFont;
+import butterknife.BindInt;
+import butterknife.BindString;
+import butterknife.BindView;
+import butterknife.BindViews;
+import butterknife.OnCheckedChanged;
+import butterknife.OnClick;
+import butterknife.OnEditorAction;
+import butterknife.OnFocusChange;
+import butterknife.OnItemClick;
+import butterknife.OnItemLongClick;
+import butterknife.OnItemSelected;
+import butterknife.OnLongClick;
+import butterknife.OnPageChange;
+import butterknife.OnTextChanged;
+import butterknife.OnTouch;
+import butterknife.Optional;
+import butterknife.compiler.FieldTypefaceBinding.TypefaceStyles;
+import butterknife.internal.ListenerClass;
+import butterknife.internal.ListenerMethod;
+
 import static butterknife.internal.Constants.NO_RES_ID;
 import static java.util.Objects.requireNonNull;
 import static javax.lang.model.element.ElementKind.CLASS;
@@ -130,6 +131,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
   private boolean debuggable = true;
 
   private final RScanner rScanner = new RScanner();
+  private final FindRScanner findRScanner = new FindRScanner();
 
   @Override public synchronized void init(ProcessingEnvironment env) {
     super.init(env);
@@ -1028,7 +1030,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     for (Element element : env.getElementsAnnotatedWith(annotationClass)) {
       if (!SuperficialValidation.validateElement(element)) continue;
       try {
-        parseListenerAnnotation(annotationClass, element, builderMap, erasedTargetNames);
+        parseListenerAnnotation(annotationClass, element, builderMap, erasedTargetNames,env);
       } catch (Exception e) {
         StringWriter stackTrace = new StringWriter();
         e.printStackTrace(new PrintWriter(stackTrace));
@@ -1040,7 +1042,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
   }
 
   private void parseListenerAnnotation(Class<? extends Annotation> annotationClass, Element element,
-      Map<TypeElement, BindingSet.Builder> builderMap, Set<TypeElement> erasedTargetNames)
+      Map<TypeElement, BindingSet.Builder> builderMap, Set<TypeElement> erasedTargetNames, RoundEnvironment env)
       throws Exception {
     // This should be guarded by the annotation's @Target but it's worth a check for safe casting.
     if (!(element instanceof ExecutableElement) || element.getKind() != METHOD) {
@@ -1223,7 +1225,26 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
     Map<Integer, Id> resourceIds = elementToIds(element, annotationClass, ids);
 
     for (Map.Entry<Integer, Id> entry : resourceIds.entrySet()) {
-      if (!builder.addMethod(entry.getValue(), listener, method, binding)) {
+      Id id = entry.getValue();
+      if (builder.viewBindingsIdCoedIsNumber(entry.getValue())){
+        String rPackageName = ((Symbol.MethodSymbol) element).owner.owner.toString() + ".R";
+        findRScanner.reset();
+        findRScanner.rId = entry.getValue().value;
+        for (Element element1 : env.getRootElements()) {
+          if (element1.toString().equals(rPackageName)) {
+            JCTree tree = (JCTree) trees.getTree(element1);
+            if (tree != null) { // tree can be null if the references are compiled types and not source
+              tree.accept(findRScanner);
+              if (findRScanner.resourceId != null) {
+                id = findRScanner.resourceId;
+                break;
+              }
+            }
+            break;
+          }
+        }
+      }
+      if (!builder.addMethod(id, listener, method, binding)) {
         error(element, "Multiple listener methods with return value specified for ID %d. (%s.%s)",
             entry.getKey(), enclosingElement.getQualifiedName(), element.getSimpleName());
         return;
@@ -1498,6 +1519,37 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
 
     void reset() {
       resourceIds.clear();
+    }
+  }
+
+  private static class FindRScanner extends TreeScanner {
+
+    Id resourceId = null;
+    int rId = -1;
+
+    @Override
+    public void visitVarDef(JCTree.JCVariableDecl var1) {
+      try {
+        if (rId != -1) {
+          int rIdValue = (Integer) ((JCTree.JCLiteral) var1.init).value;
+
+          if (rIdValue == rId) {
+            Symbol symbol = var1.sym;
+            if (symbol.getEnclosingElement() != null) {
+              try {
+                resourceId = new Id(rIdValue, symbol);
+              } catch (Exception ignored) {
+              }
+            }
+          }
+        }
+      } catch (Exception ignored) {
+      }
+    }
+
+    void reset() {
+      resourceId = null;
+      rId = -1;
     }
   }
 }
