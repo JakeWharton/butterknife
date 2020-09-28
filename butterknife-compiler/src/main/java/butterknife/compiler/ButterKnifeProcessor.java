@@ -22,6 +22,7 @@ import butterknife.OnItemLongClick;
 import butterknife.OnItemSelected;
 import butterknife.OnLongClick;
 import butterknife.OnPageChange;
+import butterknife.OnRatingBarChange;
 import butterknife.OnTextChanged;
 import butterknife.OnTouch;
 import butterknife.Optional;
@@ -118,6 +119,7 @@ public final class ButterKnifeProcessor extends AbstractProcessor {
       OnItemSelected.class, //
       OnLongClick.class, //
       OnPageChange.class, //
+      OnRatingBarChange.class, //
       OnTextChanged.class, //
       OnTouch.class //
   );
