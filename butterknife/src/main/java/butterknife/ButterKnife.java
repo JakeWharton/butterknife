@@ -4,16 +4,18 @@ import android.app.Activity;
 import android.app.Dialog;
 import android.util.Log;
 import android.view.View;
-import androidx.annotation.CheckResult;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.annotation.UiThread;
-import androidx.annotation.VisibleForTesting;
+
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+
+import androidx.annotation.CheckResult;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.UiThread;
+import androidx.annotation.VisibleForTesting;
 
 /**
  * Field and method binding for Android views. Use this class to simplify finding views and
@@ -76,7 +78,7 @@ public final class ButterKnife {
     throw new AssertionError("No instances.");
   }
 
-  private static final String TAG = "ButterKnife";
+  private static final String TAG = "ButterKnife1";
   private static boolean debug = false;
 
   @VisibleForTesting
