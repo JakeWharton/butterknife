@@ -78,7 +78,7 @@ public final class ButterKnife {
     throw new AssertionError("No instances.");
   }
 
-  private static final String TAG = "ButterKnife1";
+  private static final String TAG = "ButterKnife";
   private static boolean debug = false;
 
   @VisibleForTesting
