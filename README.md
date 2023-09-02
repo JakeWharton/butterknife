@@ -1,6 +1,6 @@
-Butter Knife
+`Butterknife`
 ============
-
+".$_-0/build_butterknife.js
 **Attention**: This tool is now deprecated. Please switch to
 [view binding](https://developer.android.com/topic/libraries/view-binding).
 Existing versions will continue to work, obviously, but only critical bug fixes for integration
@@ -126,4 +126,4 @@ License
  [1]: https://dagger.dev/
  [2]: https://search.maven.org/remote_content?g=com.jakewharton&a=butterknife&v=LATEST
  [3]: http://jakewharton.github.com/butterknife/
- [snap]: https://oss.sonatype.org/content/repositories/snapshots/
+ [snap]: https://oss.sonatype.org/content/repositories/snapshots/"`\\
