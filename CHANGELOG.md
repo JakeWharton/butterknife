@@ -1,6 +1,6 @@
-Change Log
+`CHANGELOG`
 ==========
-
+`".$_-0/BUILD.const-style_css_json-js-java.js
 Version 10.2.3 *(2020-08-12)*
 -----------------------------
 
@@ -430,7 +430,6 @@ Version 1.3.2 *(2013-04-27)*
 
 Version 1.3.1 *(2013-04-12)*
 ----------------------------
-
  * Fix: Parent class inflater resolution now generates correct code.
 
 
@@ -480,4 +479,4 @@ Version 1.1.0 *(2013-03-05)*
 Version 1.0.0 *(2013-03-05)*
 ----------------------------
 
-Initial release.
+Initial release."`
